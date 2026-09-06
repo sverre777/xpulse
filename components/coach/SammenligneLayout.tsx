@@ -7,6 +7,7 @@ import {
 } from '@/app/actions/comparison'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from '@/components/analysis/DateRangePicker'
+import { SammenligneKolonner, type MetrikkNokkel } from './sammenligne/SammenligneKolonner'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 import { SammenligneOverviewTab } from './sammenligne/SammenligneOverviewTab'
 import { SammenligneBelastningTab } from './sammenligne/SammenligneBelastningTab'
@@ -27,6 +28,7 @@ export type AthleteOption = {
 }
 
 type Tab =
+  | 'side_om_side'
   | 'oversikt'
   | 'belastning'
   | 'bevegelsesform'
@@ -36,6 +38,7 @@ type Tab =
   | 'periodisering'
 
 const TABS: { key: Tab; label: string }[] = [
+  { key: 'side_om_side',    label: 'Side om side' },
   { key: 'oversikt',        label: 'Oversikt' },
   { key: 'belastning',      label: 'Belastning' },
   { key: 'bevegelsesform',  label: 'Per bevegelsesform' },
@@ -47,7 +50,9 @@ const TABS: { key: Tab; label: string }[] = [
 
 export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
   const [selected, setSelected] = useState<string[]>([])
-  const [tab, setTab] = useState<Tab>('oversikt')
+  const [tab, setTab] = useState<Tab>('side_om_side')
+  // BOLK B3: metrikkvalget styrer ALLE kolonnene samtidig.
+  const [metrikker, setMetrikker] = useState<MetrikkNokkel[] | undefined>(undefined)
   const [range, setRange] = useState<DateRange>(rangeFromPreset('30d'))
   const [sportFilter, setSportFilter] = useState<Sport | null>(null)
   const [multi, setMulti] = useState<MultipleAthletesAnalysis | null>(null)
@@ -196,6 +201,11 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
           </div>
         )}
 
+        {hasValidSelection && tab === 'side_om_side' && (
+          multi
+            ? <SammenligneKolonner data={multi} valgte={metrikker} onValgte={setMetrikker} />
+            : <Stub label="Laster tallene…" />
+        )}
         {hasValidSelection && tab === 'oversikt' && (
           multi ? <SammenligneOverviewTab data={multi} /> : <Stub label="Laster oversikt…" />
         )}

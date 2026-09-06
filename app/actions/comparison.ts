@@ -1,12 +1,13 @@
 'use server'
 
+import { getPlanVsActual, type PlanVsActualResult } from './plan-vs-actual'
 import { createClient } from '@/lib/supabase/server'
 import type { Sport } from '@/lib/types'
 import {
-  getWorkoutStats, getAnalysisOverview, getBelastningAnalysis,
+  getWorkoutStats, getAnalysisOverview, getBelastningAnalysis, getShootingDepthAnalysis, getTerskelAnalysis,
   getMovementAnalysis, getHealthCorrelations, getCompetitionAnalysis,
   getPeriodizationOverview, getTestsAndPRs,
-  type WorkoutStats, type AnalysisOverview, type BelastningAnalysis,
+  type WorkoutStats, type AnalysisOverview, type BelastningAnalysis, type ShootingDepthAnalysis, type TerskelAnalysis,
   type MovementAnalysis, type HealthCorrelations, type CompetitionAnalysis,
   type PeriodizationOverview, type TestsAndPRs,
 } from './analysis'
@@ -38,6 +39,11 @@ export type AthleteMetricsSnapshot = {
   health: HealthCorrelations | null
   competitions: CompetitionAnalysis | null
   periodization: PeriodizationOverview | null
+  /** BOLK B3: skyting og terskel var ikke koblet inn i Sammenligne - nå er de det. */
+  skyting: ShootingDepthAnalysis | null
+  terskel: TerskelAnalysis | null
+  /** % av plan - ÉN kilde (getPlanVsActual), som ellers. */
+  plan: PlanVsActualResult | null
   errors: string[]
 }
 
@@ -116,7 +122,7 @@ export async function getMultipleAthletesAnalysis(
         athlete: meta,
         permissions: { can_view_analysis: false, can_view_dagbok: false, can_edit_plan: false },
         stats: null, overview: null, belastning: null, movement: null,
-        health: null, competitions: null, periodization: null,
+        health: null, competitions: null, periodization: null, skyting: null, terskel: null, plan: null,
         errors: ['Ingen aktiv relasjon'],
       }
     }
@@ -129,7 +135,7 @@ export async function getMultipleAthletesAnalysis(
           can_edit_plan: rel.can_edit_plan,
         },
         stats: null, overview: null, belastning: null, movement: null,
-        health: null, competitions: null, periodization: null,
+        health: null, competitions: null, periodization: null, skyting: null, terskel: null, plan: null,
         errors: ['Mangler analyse-tilgang'],
       }
     }
@@ -137,7 +143,7 @@ export async function getMultipleAthletesAnalysis(
     const primary = meta.primarySport ?? 'running'
     const movementName = movementForSport(primary)
 
-    const [statsRes, overviewRes, belastningRes, movementRes, healthRes, compRes, periodRes] = await Promise.all([
+    const [statsRes, overviewRes, belastningRes, movementRes, healthRes, compRes, periodRes, skytingRes, terskelRes, planRes] = await Promise.all([
       getWorkoutStats(fromDate, toDate, id),
       getAnalysisOverview(fromDate, toDate, sportFilter, id),
       getBelastningAnalysis(fromDate, toDate, sportFilter, id),
@@ -145,6 +151,9 @@ export async function getMultipleAthletesAnalysis(
       getHealthCorrelations(fromDate, toDate, id),
       getCompetitionAnalysis(fromDate, toDate, sportFilter, null, id),
       getPeriodizationOverview(fromDate, toDate, sportFilter, id),
+      getShootingDepthAnalysis(fromDate, toDate, sportFilter, id),
+      getTerskelAnalysis(fromDate, toDate, sportFilter, id),
+      getPlanVsActual(fromDate, toDate, id),
     ])
 
     const errors: string[] = []
@@ -170,6 +179,9 @@ export async function getMultipleAthletesAnalysis(
       health: safe(healthRes),
       competitions: safe(compRes),
       periodization: safe(periodRes),
+      skyting: safe(skytingRes),
+      terskel: safe(terskelRes),
+      plan: safe(planRes),
       errors,
     }
   }))

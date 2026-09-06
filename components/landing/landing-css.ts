@@ -110,4 +110,40 @@ export const LANDING_CSS = `
 .lp-snar a:hover,.lp-snar a.on{color:var(--lp-paper);border-color:var(--lp-oransje)}
 /* Ankrene må ikke havne bak topplinja + snarveisraden. */
 .lp [id]{scroll-margin-top:118px}
+
+/* ── seksjoner (bolk B4) ─────────────────────────────────── */
+.lp-us{padding:66px 0;border-bottom:1px solid var(--lp-line)}
+.lp-us-inn{max-width:1400px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1.08fr;gap:52px;align-items:center}
+.lp-us-inn.rev .lp-us-tekst{order:2}
+.lp-us-inn.full{grid-template-columns:minmax(0,900px)}
+.lp-us h2{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:clamp(30px,3.4vw,46px);line-height:1.02;letter-spacing:.02em;margin:8px 0 14px}
+.lp-ing{font-family:'Barlow',sans-serif;font-size:16px;line-height:1.68;color:var(--lp-dim);max-width:56ch}
+.lp-pkg{display:grid;gap:10px;margin-top:22px}
+.lp-pk{background:var(--lp-card);border:1px solid var(--lp-line);border-left:3px solid var(--lp-oransje);border-radius:12px;padding:13px 16px}
+.lp-pk.blaa{border-left-color:#1A6FD4}
+.lp-pk b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
+.lp-pk p{font-family:'Barlow',sans-serif;font-size:14px;color:var(--lp-dim);line-height:1.55}
+.lp-us-media{min-width:0}
+.lp-foto{position:relative;width:100%;aspect-ratio:4/3;border-radius:16px;overflow:hidden;border:1px solid var(--lp-line2)}
+.lp-foto img{width:100%;height:100%;object-fit:cover;display:block}
+/* Trener-flatene er blå (fasit): et blått lag over fotoet, ikke et eget bilde. */
+.lp-foto.blaa::after{content:'';position:absolute;inset:0;background:linear-gradient(140deg,rgba(26,111,212,.42),rgba(26,111,212,.12) 62%,transparent)}
+.lp-skjerm{background:var(--lp-card);border:1px solid var(--lp-line2);border-radius:16px;padding:16px 18px;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden}
+.lp-sk-topp{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.lp-sk-kap{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--lp-dim)}
+.lp-eks{min-height:var(--lp-eks-h,180px);font-family:'Inter',sans-serif;font-size:14px;line-height:1.4;color:var(--tekst-1-app);min-width:0;overflow:hidden}
+.lp-eks [data-oktkurve]{width:auto!important;max-width:100%!important}
+.lp-eks [data-oktkurve] svg{width:100%!important}
+.lp-eks [data-chip-rader]{flex-wrap:wrap!important;overflow:visible!important;min-width:0!important;max-width:100%!important}
+.lp-eks [data-chip-rader]>div{flex-wrap:wrap!important;flex:0 1 auto!important;min-width:0!important;max-width:100%!important}
+.lp-klokker{display:flex;flex-wrap:wrap;gap:8px}
+.lp-mrk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--lp-paper);
+  border:1px solid var(--lp-line2);border-radius:10px;padding:12px 16px;flex:1 1 30%;text-align:center;background:var(--lp-card)}
+.lp-mrk em{display:block;font-style:normal;font-size:10.5px;letter-spacing:.14em;color:var(--lp-dim);margin-top:3px}
+.lp-mrk.pavei{color:var(--lp-dim)}
+@media(max-width:1000px){
+  .lp-us-inn{grid-template-columns:1fr;gap:28px}
+  .lp-us-inn.rev .lp-us-tekst{order:0}
+  .lp-us{padding:44px 0}
+}
 `

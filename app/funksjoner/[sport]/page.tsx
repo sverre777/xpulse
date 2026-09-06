@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import { LandingShell } from '@/components/landing/LandingShell'
 import { LandingHero } from '@/components/landing/LandingHero'
 import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
-import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
+import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
+import { SportPageCTA } from '@/components/landing/SportFeatureSection'
 import { buildFeatureMetadata, FEATURE_SPORTS, findFeatureSport } from '@/lib/landing-meta'
 import { getSportPageContent } from '@/lib/sport-feature-content'
 // Dynamisk rute for alle sport-undersider. Innhold pluk­kes fra
@@ -69,13 +70,16 @@ export default async function SportFeaturePage(
       <LandingSnarvei punkter={snarveier} />
 
       {content.sections.map((s, i) => (
-        <SportFeatureSection
+        <LandingSeksjon
           key={s.id ?? i}
           id={s.id}
           kicker={s.kicker}
-          title={s.title}
-          intro={s.intro}
-          bullets={s.bullets}
+          tittel={s.title}
+          ingress={s.intro}
+          punkter={s.bullets?.map(x => ({ tittel: x.title, tekst: x.body }))}
+          media={s.media}
+          speilvendt={i % 2 === 1}
+          blaa={s.id === 'trener'}
         />
       ))}
 

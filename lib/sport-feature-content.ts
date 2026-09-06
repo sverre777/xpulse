@@ -1,5 +1,6 @@
 import type { FeatureSportSlug } from './landing-meta'
 import type { SportFeatureBullet } from '@/components/landing/SportFeatureSection'
+import type { LandingMedia } from '@/components/landing/LandingSeksjon'
 import { NYTT_I_VERSJON } from './versjon'
 
 // Innhold per sport-underside. Hold dette ett sted så hver page-fil kun
@@ -29,6 +30,8 @@ export interface SportPageContent {
     bullets?: SportFeatureBullet[]
     /** Kort navn i snarveisraden (bolk B3). Uten dette brukes kicker. */
     snarvei?: string
+    /** Media til høyre (bolk B4): ekte produktfragment, foto eller merkeliste. */
+    media?: LandingMedia
   }[]
   /** Seks spørsmål per side (bolk B5). Gir FAQPage JSON-LD. */
   faq?: { sporsmal: string; svar: string }[]
@@ -51,68 +54,101 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       'X-PULSE for langrennsutøvere. Klassisk, skøyting, staking, skipark, ski-tester og bevegelsesform-spesifikk analyse på én plattform.',
     sections: [
       {
-        id: 'aktivitet',
-        snarvei: 'Økter',
-        kicker: 'Aktivitets-basert logging',
-        title: 'DRAG, PAUSE OG TERRENG.',
+        id: 'okt',
+        snarvei: 'Øktbyggeren',
+        kicker: 'Øktbyggeren',
+        title: 'BYGG ØKTA SLIK DU TENKER DEN.',
         intro:
-          'Hver økt kan brytes ned i drag eller intervaller med egen sone, varighet, høydemeter og terreng. Pause registreres separat så aktiv tid blir riktig — også når du står og venter på etterregistrering.',
+          'Radene er editoren - ingen dra-og-slipp. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone, teknikk eller distanse på én rad, og resten regner seg selv.',
+        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
         bullets: [
-          { title: 'Drag og intervall', body: 'Splitt en økt i flere drag med egen sone og varighet. Sum og snitt vises automatisk.' },
-          { title: 'Høydemeter og terreng', body: 'Registrer stigning per drag — rolig, kupert, bratt. Påvirker både belastning og analyse.' },
-          { title: 'Pause som egen rad', body: 'Stopp er ikke "tid på ski". Aktiv pause vs full pause skilles, så aktivitets-sum blir korrekt.' },
+          { title: 'Hurtigoppsett', body: 'Skriv antall × dragtid / pause og sone - økta genereres som vanlige rader du kan justere fritt.' },
+          { title: '58 ferdige øktmaler', body: 'Bygget på Olympiatoppens intensitetsskala: terskel, I4/I5, motbakke, lagtur. Lagre dine egne som maler.' },
+          { title: 'Laktat, ernæring og notat', body: 'Punkter legges rett på kurven der de skjedde - planlagt teller aldri som målt.' },
+        ],
+      },
+      {
+        id: 'klokke',
+        snarvei: 'Klokkesynk',
+        kicker: 'Klokkesynk',
+        title: 'KLOKKA FYLLER UT RESTEN.',
+        intro:
+          'Økta kommer inn av seg selv etter trening. Rundene fra klokka legges oppå planen din - samlet eller splittet, du velger. Det du fører manuelt vinner alltid over det klokka gjettet.',
+        media: {
+          type: 'merker',
+          merker: [
+            { navn: 'Garmin', status: 'Beta' },
+            { navn: 'COROS', status: 'Beta' },
+            { navn: 'Wahoo', status: 'Beta' },
+            { navn: 'Zepp', status: 'Beta' },
+            { navn: 'Polar', status: 'Utrulling' },
+            { navn: 'Strava', status: 'Import' },
+            { navn: '.fit-fil', status: 'Alle merker, også Suunto' },
+            { navn: 'Intervals.icu', status: 'På vei', pavei: true },
+            { navn: 'Whoop', status: 'På vei', pavei: true },
+          ],
+          fot: 'Synken for Garmin, COROS, Wahoo og Zepp går gjennom vår klokkesynk-leverandør. Vi leser bare - frakobling sletter det vi har hentet.',
+        },
+        bullets: [
+          { title: 'Flett med planen', body: 'Rundene fra klokka legges oppå den planlagte økta. Samlet eller splittet - og manuelle tall vinner.' },
+          { title: 'Søvn, hvilepuls og HRV', body: 'Kommer inn hver natt av seg selv og vises sammen med belastningen din.' },
+          { title: 'Du eier dataene', body: 'Frakobling fjerner tilgangen umiddelbart, og det vi har hentet slettes.' },
+        ],
+      },
+      {
+        id: 'analyse',
+        snarvei: 'Analyse',
+        kicker: 'Analyse',
+        title: 'KLASSISK VS SKØYTING - SIDE OM SIDE.',
+        intro:
+          'Alt kan filtreres på bevegelsesform. Se om du faktisk dekker begge stilarter slik planen sier, hvor mange timer som ligger i I3+, og hvordan formen svarer på det du har gjort. Grafene setter du sammen selv og stjernemerker dem du vil se først.',
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, laktat og ernæring', hoyde: 620 },
+        bullets: [
+          { title: 'Filter per teknikk', body: 'Skøyting, klassisk og staking skilles i alle grafer - også de du bygger selv.' },
+          { title: 'Belastning og form', body: 'CTL, ATL og TSB på samme kurve som konkurransene dine.' },
+          { title: 'Terskel og tester', body: 'Terskelverdiene dine styrer sonene overalt - endrer du dem, regnes historikken riktig.' },
         ],
       },
       {
         id: 'skipark',
         snarvei: 'Skipark',
         kicker: 'Skipark og ski-tester',
-        title: 'ALLE SKIENE DINE — ÉN OVERSIKT.',
+        title: 'ALLE SKIENE DINE - ÉN OVERSIKT.',
         intro:
-          'Registrer hele skiparken med par, ski-merke, type og strukturen. Test ulike par på ulike forhold (snøtype, temperatur, fuktighet) og se hvilken konfigurasjon som faktisk fungerer på din typiske konkurransedag.',
+          'Registrer hele skiparken med modell, lengde, fleks, slip og smøring. Test par mot par under kjente forhold - snøtype, luft- og snøtemperatur, fuktighet - og se hvilken kombinasjon som faktisk var raskest den dagen.',
+        media: { type: 'foto', bilde: 'langrenn-skitunnel', alt: 'Langrennsløper i skitunnel' },
         bullets: [
-          { title: 'Par og merker', body: 'Hvert ski-par registreres med modell, lengde, fleks og slip-historikk.' },
-          { title: 'Test-historikk', body: 'Logg test-økter med snøtype, lufttemp, snøtemp og fuktighet. Se hva som har vært raskest under hvilke forhold.' },
-          { title: 'Smøring og slip', body: 'Hold rede på siste smøre-jobb og når slip ble gjort på hvert par.' },
+          { title: 'Par, slip og smøring', body: 'Hvert par har sin egen historikk: når det ble slipt, hva som ligger på, hvor mange km det har gått.' },
+          { title: 'Test-økter med forhold', body: 'Logg testen med føre og temperatur - resultatet henger på forholdene, ikke på minnet.' },
+          { title: 'Km og timer per par', body: 'Se hvilke ski som faktisk brukes, og hvilke som bare ligger i kjelleren.' },
         ],
       },
       {
-        id: 'analyse',
-        snarvei: 'Analyse',
-        kicker: 'Bevegelsesform-spesifikk analyse',
-        title: 'KLASSISK VS SKØYTING — SIDE OM SIDE.',
-        intro:
-          'Belastning, sonefordeling og test-utvikling kan filtreres på bevegelsesform. Sammenlign skøytings-økter mot klassiske over en periode og se om du faktisk dekker begge stilarter slik planen tilsier.',
-        bullets: [
-          { title: 'Filter per stil', body: 'Skill skøyting, klassisk og staking i alle dashbord — også custom grafer.' },
-          { title: 'Tid per teknikk', body: 'Aggregert tid og høydemeter per bevegelsesform over uka, måneden eller sesongen.' },
-          { title: 'Test-PR per stil', body: 'Egen PR-historikk for klassisk vs skøyting, så du ser fremgangen i begge retninger.' },
-        ],
-      },
-      {
-        id: 'periodisering',
+        id: 'aarsplan',
         snarvei: 'Årsplan',
-        kicker: 'Periodisering for sesong',
-        title: 'BYGG MOT NASJONALE LØP.',
+        kicker: 'Årsplan',
+        title: 'BYGG SESONGEN MOT DE LØPENE DU BRYR DEG OM.',
         intro:
-          'Legg inn konkurransekalenderen — Beitosprinten, Lillehammer, NM, Holmenkollen — og bygg perioder rundt dem. Grunntrening, spesifikk fase og peaking-uke håndteres som egne segmenter med egne mål.',
+          'Legg inn konkurransekalenderen - Beitosprinten, Lillehammer, NM, Holmenkollen - og bygg periodene rundt dem. Grunntrening, spesifikk fase og formtopp er egne segmenter med egne mål for timer og hardøkter.',
+        media: { type: 'app', navn: 'aarsplan', kap: 'Årsplanen med perioder og nøkkeldatoer', hoyde: 420 },
         bullets: [
-          { title: 'Sesong-mal', body: 'Importer en typisk langrennssesong eller bygg din egen fra bunn.' },
-          { title: 'Peak-merking', body: 'Marker konkurranser som "peak target" — hele plan-strukturen formes mot dem.' },
-          { title: 'Grupperte trener-planer', body: 'Trenere kan sende samme grunnplan til hele laget og personalisere på toppen.' },
+          { title: 'Perioder med volum-mål', body: 'Hver periode har sitt eget uketall, timemål og intensitetsprofil.' },
+          { title: 'A-, B- og C-løp', body: 'Merk hva som er hovedmålet - nedtellingen og planen former seg etter det.' },
+          { title: 'Samlinger og nøkkeldatoer', body: 'Samlinger, tester og reiser ligger i samme tidslinje som treningen.' },
         ],
       },
       {
-        id: 'nytt-v12',
-        snarvei: 'Nytt',
-        kicker: NYTT_I_VERSJON,
-        title: 'PLANLEGGING PÅ SEKUNDER.',
+        id: 'trener',
+        snarvei: 'For trenere',
+        kicker: 'For trenere',
+        title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          '58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala — terskel, I4/I5, motbakke, lagtur — pluss en intervall-bygger som genererer hele økta fra antall × dragtid × sone / pause. Søk «6x6» og økta ligger klar.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
+        media: { type: 'foto', bilde: 'langrenn-to-utovere-snoskog', alt: 'To langrennsløpere i snødekt skog', blaa: true },
         bullets: [
-          { title: 'Øktmal-biblioteket', body: 'Velg blant 58 OLT-baserte økter med oppvarming og nedjogg klart — eller lagre dine egne økt-, uke- og planmaler.' },
-          { title: 'Intervall-byggeren', body: 'Stable rader for pyramider og progressive økter — rundene genereres som vanlige aktivitetsrader du kan justere fritt.' },
-          { title: 'Helse og søvn fra klokka', body: 'Søvn, hvilepuls og HRV kommer inn av seg selv hver natt — det du fører manuelt vinner alltid.' },
+          { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
+          { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - ikke i en meldingstråd.' },
+          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],

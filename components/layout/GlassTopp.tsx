@@ -98,7 +98,8 @@ export function GlassTopp(props: GlassToppProps) {
         ) : (
           <Link href={rolle === 'coach' ? '/app/trener' : '/app/oversikt'} aria-label="X-PULSE" data-topp-logo style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', minWidth: 0 }}>
             <XPulseIcon size={28} variant={rolle === 'coach' ? 'trener' : 'utover'} ariaLabel="X-PULSE" />
-            <span style={{ fontFamily: FONT, fontWeight: 600, color: aksent, fontSize: 15, letterSpacing: '0.3em' }}>PULSE</span>
+            {/* Med Plan|Årsplan-segmentet i midten er det ikke plass til ordmerket på 390 — ikonet står alene. */}
+            {!planSegment && <span style={{ fontFamily: FONT, fontWeight: 600, color: aksent, fontSize: 15, letterSpacing: '0.3em' }}>PULSE</span>}
           </Link>
         )}
         <div className="flex-1 min-w-0 flex flex-col items-center justify-center" data-topp-tittel style={{ textAlign: 'center' }}>
@@ -106,7 +107,7 @@ export function GlassTopp(props: GlassToppProps) {
             <div role="group" aria-label="Plan eller årsplan" data-topp-segment style={{ display: 'inline-flex', height: 38, padding: 3, gap: 2, borderRadius: 14, border: `1px solid color-mix(in srgb, ${aksent} 45%, var(--line2))`, background: `color-mix(in srgb, ${aksent} 8%, transparent)` }}>
               {([['plan', '/app/plan', 'Plan', pathname.startsWith('/app/plan')], ['aarsplan', '/app/periodisering', 'Årsplan', pathname.startsWith('/app/periodisering')]] as const).map(([id, href, navn, paa]) => (
                 <Link key={id} href={href} data-topp-seg={id} aria-current={paa ? 'page' : undefined} className={paa ? 'on' : undefined}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 14px', borderRadius: 11, textDecoration: 'none', fontFamily: FONT, fontWeight: 700, fontSize: 13.5, letterSpacing: '0.1em', textTransform: 'uppercase', lineHeight: 1, background: paa ? aksent : 'transparent', color: paa ? 'var(--tekst-1-ren)' : 'var(--tekst-3-app)', transition: 'background .15s, color .15s' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '0 11px', borderRadius: 11, textDecoration: 'none', fontFamily: FONT, fontWeight: 700, fontSize: 13.5, letterSpacing: '0.1em', textTransform: 'uppercase', lineHeight: 1, background: paa ? aksent : 'transparent', color: paa ? 'var(--tekst-1-ren)' : 'var(--tekst-3-app)', transition: 'background .15s, color .15s' }}>
                   {id === 'plan' ? <CalendarGlyph size={15} strokeWidth={2.2} /> : null}{navn}
                 </Link>
               ))}

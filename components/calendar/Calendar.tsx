@@ -1460,7 +1460,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
     mode === 'plan' ? 'plan' : mode === 'dagbok' ? 'dagbok' : null
 
   return (
-    <DndContext
+    <DndContext id="kalender-dnd"
       sensors={dndSensors}
       collisionDetection={chipFirstCollision}
       onDragStart={handleDragStart}

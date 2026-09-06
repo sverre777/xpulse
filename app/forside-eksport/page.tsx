@@ -20,6 +20,7 @@ import { KompaktKurverProvider } from '@/components/calendar/kompakt-kurver'
 import { SeasonCanvas } from '@/components/periodization/SeasonCanvas'
 import { Gruppe as PlottTreffGruppeVisning } from '@/components/workout/PlottTreff'
 import { RpeSkala } from '@/components/ui/RpeSkala'
+import { SerieListe } from '@/components/workout/SerieListe'
 import { fraTidspunktNotater } from '@/components/workout/Punkt'
 import {
   oktaRader, oktaPlanBlokker, oktaSegmenter, oktaSamples, oktaLaps, OKTA_LAKTAT, OKTA_ERNAERING, OKTA_TOTAL,
@@ -160,6 +161,13 @@ function ForsideEksportInnhold() {
       <Kort navn="detaljrad" bredde={540}>
         <Detaljrad rpe={7} onRpe={ingen} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} segmenter={segmenter}
           handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
+      </Kort>
+
+      {/* Forside v7 bolk 6 (Sverre 6. sep): KUN skytestripen under «Før skytingen som på standplass» —
+          den ekte serie-raden fra økt-skjemaet: S · 5 skudd · 4 treff · 28,4 s · puls inn 168 (manuelt ført = M-chip) · vimpel 3 H · 🎯 📝 ×. */}
+      <Kort navn="skytestripe" bredde={smal ? 340 : 720}>
+        <SerieListe planMode={false} showPoints={false} onChange={ingen}
+          series={[{ id: 'ss-1', position: 'S', shots: '5', hits: '4', time_seconds: '28.4', avg_heart_rate: '168', max_heart_rate: '', note: '', shot_plot: null, points: '', vind_retning: 'H', vind_styrke: 3, sikt: 'god' }]} />
       </Kort>
 
       <Kort navn="rpe-skala" bredde={420}>

@@ -506,9 +506,6 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .htile div:last-child{border-right:none}
 .htile .v{font:400 22px/1 'Bebas Neue'}
 .htile .k{font:600 10px/1.3 'Barlow Condensed';letter-spacing:.13em;color:var(--mute);text-transform:uppercase;margin-top:3px}
-.blinkwrap{display:flex;gap:16px;align-items:center;margin-top:10px}
-.blinkstats{font-size:13px;color:var(--dim);line-height:2}
-.blinkstats b{color:var(--paper)}
 
 /* problem */
 .prob{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:24px}
@@ -529,13 +526,6 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 
 /* skiskyting-spotlight */
 .ski{background:linear-gradient(160deg,var(--bg5),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.skigrid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-top:8px}
-@media(max-width:900px){.skigrid{grid-template-columns:1fr}}
-.vimprow{display:flex;gap:10px;margin-top:16px}
-.vimp{border:1px solid var(--line2);border-radius:10px;padding:8px 6px 5px;text-align:center;width:64px;background:var(--surface)}
-.vimp.sel{border-color:var(--red);background:rgba(226,58,90,.1)}
-.vimp .lb{font:600 10px/1 'Barlow Condensed';letter-spacing:.08em;color:var(--mute);margin-top:3px}
-.vimp.sel .lb{color:var(--red)}
 
 /* trener */
 .trow{display:grid;grid-template-columns:34px 1fr 74px 84px;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bg2);font-size:14px}
@@ -1037,14 +1027,10 @@ html.js .istep.vis{opacity:1}
 .islot .phone{max-width:340px;margin:0 auto}
 
 /* Skuddene - pop-easing fra utkastet; transform-box trengs for SVG */
-html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-origin:center;
-  transition:opacity .22s,transform .3s cubic-bezier(.2,1.6,.4,1)}
-html.js .ishot.vis{opacity:1;transform:scale(1)}
 
 
 @media (prefers-reduced-motion: reduce){
-  .ipane,.ishot,.prob,.solution,.istep,.idot{transition:none !important}
-  html.js .ishot,html.js .prob,html.js .solution{opacity:1;transform:none}
+  .ipane,.istep,.idot{transition:none !important}
   html.js .istep{opacity:1}
 }
 
@@ -1170,10 +1156,8 @@ html.js .ishot.vis{opacity:1;transform:scale(1)}
 .skala i{flex:1;height:18px;border-radius:3px;background:var(--line);font:700 10px/18px 'Barlow Condensed';text-align:center;color:var(--paper);font-style:normal}
 .skala i.on{background:#B5C93A;color:#0A0A0B}
 /* skiskyting */
-.plott{margin-top:34px}
 .blink5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;max-width:520px}
 .blink5 svg{width:100%;height:auto}
-.plottrad{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
 :root[data-tema="lys"] .pgwrap,:root[data-tema="lys"] .hcard,:root[data-tema="lys"] .tile,:root[data-tema="lys"] .aars,:root[data-tema="lys"] .synk,:root[data-tema="lys"] .frad.foot{background:rgba(255,255,255,.55)}
 @media (max-width:1000px){
   .grafrad{grid-template-columns:1fr}
@@ -2464,48 +2448,14 @@ html.js .ishot.vis{opacity:1;transform:scale(1)}
 
 <!-- ═══════════ NY SEKSJON: SKISKYTING-SPOTLIGHT ═══════════ -->
 <section class="ski" id="skiskyting">
+  <!-- FORSIDE v7 bolk 6 (Sverre 6. sep): under overskriften står KUN skytestripen — den ekte serie-raden fra
+       økt-skjemaet (components/workout/SerieListe), eksportert som fragment. Vimpel-kortene, sikt-chipsene,
+       blinken og plott-kortet er tatt ut. -->
   <div class="wrap">
     <div class="label" style="color:var(--red)">Skiskyting - verktøy ingen andre har</div>
     <h2>FØR SKYTINGEN SOM<br><span style="color:var(--red)">PÅ STANDPLASS.</span></h2>
-    <div class="skigrid">
-      <div>
-        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
-        <div class="vimprow">
-          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="var(--mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--dim)"/><path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/></svg><span class="lb">Stille</span></span>
-          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="var(--mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--dim)"/><g transform="rotate(-35 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">2</span></span>
-          <span class="vimp sel"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="var(--mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--dim)"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">3 H</span></span>
-          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><g transform="translate(92 0) scale(-1 1)"><line x1="32" y1="12" x2="32" y2="84" stroke="var(--mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--dim)"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></g></svg><span class="lb">3 V</span></span>
-        </div>
-        <div class="chiprow" style="margin-top:14px">
-          <span class="chip" style="color:var(--blue);border-color:rgba(26,111,212,.55);background:rgba(26,111,212,.1)">Sikt: God</span>
-          <span class="chip">Lett tåke</span><span class="chip">Tåke</span><span class="chip">Tett tåke</span>
-        </div>
-        <p style="color:var(--mute);font-size:13px;margin-top:12px">Vimpel og sikt føres per serie - analysen viser treff mot forholdene, over hele sesongen.</p>
-      </div>
-      <div class="blinkwrap" id="shootSec">
-        <svg width="230" height="230" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="86" fill="var(--bg3)" stroke="var(--line2)" stroke-width="2"/>
-          <circle cx="100" cy="100" r="40" fill="var(--bg8)" stroke="var(--mute4)" stroke-width="2"/>
-          <circle class="ishot" cx="88" cy="86" r="8" fill="#28A86E"/><circle class="ishot" cx="112" cy="104" r="8" fill="#28A86E"/>
-          <circle class="ishot" cx="96" cy="118" r="8" fill="#28A86E"/><circle class="ishot" cx="118" cy="80" r="8" fill="#28A86E"/>
-          <circle class="ishot ismiss" cx="150" cy="62" r="8" fill="#E23A5A"/>
-        </svg>
-        <div class="blinkstats">
-          Serie 2 · Stående<br>
-          <b>4/5 treff</b> · skytetid <b>28,4 s</b><br>
-          puls inn <b>168</b> · vind <b>3 H</b><br>
-          <span style="color:var(--mute);font-size:12px">Bommen plottes - mønsteret avslører seg selv.</span>
-        </div>
-      </div>
-    </div>
-    <!-- NYTT (pkt 8): fem blinker slik det er i dagboka + Plott treff -->
-    <div class="app plott">
-      <div class="app-h"><span class="beam red"></span><h4>PLOTT TREFF · SERIE 2 · STÅENDE</h4><span class="aux">Vind 3 H · sikt god · puls inn 168</span></div>
-      <div class="app-b">
-        <div class="eks" data-eks="plott-treff" style="--eks-h:220px"></div>
-        <div class="plottrad"><span class="chip" style="color:var(--green);border-color:rgba(40,168,110,.45)">4/5 treff</span><span class="chip">Skytetid 28,4 s</span><span class="chip">Bom: blink 2 · høyre oppe</span><span class="kbtn sk" style="margin-left:auto">🎯 Plott treff</span></div>
-        <p class="cal-note"><i>Trykk der skuddet satt</i> - per blink, per serie, ligg og stå. Mønsteret over sesongen viser om det er vind, puls eller teknikk som koster.</p>
-      </div>
+    <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
+    <div class="eks" data-eks="skytestripe" style="--eks-h:72px;margin-top:26px"></div>
   </div>
 </section>
 
@@ -2874,11 +2824,10 @@ html.js .ishot.vis{opacity:1;transform:scale(1)}
       if(!e.isIntersecting) return;
       var el=e.target;
       io.unobserve(el);
-      if(el.id==='shootSec') stagger(el,'.ishot',140);
       if(el.id==='flowSec') stagger(el,'.istep',180);
     });
   },{threshold:.35});
-  ['shootSec','flowSec'].forEach(function(id){
+  ['flowSec'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) io.observe(el);
   });

@@ -12,8 +12,13 @@
 import { getPlanVsActual } from './plan-vs-actual'
 import { getShootingDepthAnalysis, getBelastningAnalysis } from './analysis'
 import { getHelseOversikt } from './helse-oversikt'
+import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
+import { computeActivityTotals, hoyIntensitetSek } from '@/lib/activity-summary'
+import { ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import type { Sport } from '@/lib/types'
-import type { OversiktStatus, StatusPlan, StatusSkyting, StatusBelastning, StatusHelse } from '@/lib/oversikt-status-type'
+import type { OversiktStatus, StatusPlan, StatusSkyting, StatusBelastning, StatusHelse, StatusOkt, StatusOkter } from '@/lib/oversikt-status-type'
 
 /** Dager tilbake fra en ISO-dato, uten tidssonestøy. */
 function minusDager(iso: string, n: number): string {
@@ -27,6 +32,79 @@ const snitt = (v: (number | null)[]): number | null => {
   return t.length > 0 ? Math.round((t.reduce((s, x) => s + x, 0) / t.length) * 10) / 10 : null
 }
 
+/** Siste/neste økt — samme felter som Hjem-kortene, regnet med computeActivityTotals. */
+async function hentOkter(toDate: string, targetUserId?: string): Promise<StatusOkter | null> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+  if ('error' in resolved) return null
+  const userId = resolved.userId
+  const heartZones = await getHeartZonesForUserCached(userId)
+
+  const VELG = `
+    id, title, date, time_of_day, rpe, is_planned, is_completed,
+    workout_activities (activity_type, duration_seconds, distance_meters, avg_heart_rate, max_heart_rate, zones, prone_shots, prone_hits, standing_shots, standing_hits),
+    workout_lactate_measurements (mmol)
+  `
+  const iDag = new Date().toISOString().slice(0, 10)
+  const [gjennomfort, planlagt] = await Promise.all([
+    supabase.from('workouts').select(VELG).eq('user_id', userId).is('merged_into_workout_id', null)
+      .eq('is_completed', true).gte('date', minusDager(toDate, 13)).lte('date', toDate).order('date', { ascending: false }).limit(40),
+    supabase.from('workouts').select(VELG).eq('user_id', userId).is('merged_into_workout_id', null)
+      .eq('is_planned', true).eq('is_completed', false).gte('date', iDag).order('date', { ascending: true }).limit(20),
+  ])
+
+  type Rad = { id: string; title: string | null; date: string; time_of_day: string | null; rpe: number | null;
+    workout_activities: Parameters<typeof computeActivityTotals>[0]
+    workout_lactate_measurements: { mmol: number | null }[] | null }
+
+  const tilOkt = (w: Rad): StatusOkt => {
+    const akt = w.workout_activities ?? []
+    const t = computeActivityTotals(akt, heartZones)
+    let hovedsone: string | null = null, mest = 0
+    for (const k of ALL_ZONE_NAMES as readonly ExtendedZoneName[]) { const v = t.zoneSeconds[k] ?? 0; if (v > mest) { mest = v; hovedsone = k } }
+    let hrV = 0, hrS = 0, maks: number | null = null, treff = 0, skudd = 0
+    for (const a of akt as { duration_seconds?: number | null; avg_heart_rate?: number | null; max_heart_rate?: number | null; prone_hits?: number | null; prone_shots?: number | null; standing_hits?: number | null; standing_shots?: number | null }[]) {
+      const d = Number(a.duration_seconds) || 0
+      if (a.avg_heart_rate && d > 0) { hrV += a.avg_heart_rate * d; hrS += d }
+      if (a.max_heart_rate) maks = Math.max(maks ?? 0, a.max_heart_rate)
+      if (a.prone_hits != null) { treff += a.prone_hits; skudd += a.prone_shots ?? 0 }
+      if (a.standing_hits != null) { treff += a.standing_hits; skudd += a.standing_shots ?? 0 }
+    }
+    const laktat = (w.workout_lactate_measurements ?? []).map(l => l.mmol).filter((v): v is number => v != null)
+    return {
+      id: w.id, dato: w.date, tittel: w.title || 'Uten tittel', klokkeslett: w.time_of_day,
+      varighetSek: t.totalSeconds, meter: t.totalMeters, hovedsone,
+      hardSek: (t.zoneSeconds.I3 ?? 0) + hoyIntensitetSek(t.zoneSeconds),
+      snittpuls: hrS > 0 ? Math.round(hrV / hrS) : null,
+      makspuls: maks, laktatMaks: laktat.length > 0 ? Math.max(...laktat) : null,
+      opplevd: w.rpe, treffPct: skudd > 0 ? Math.round((treff / skudd) * 1000) / 10 : null,
+      soner: Object.fromEntries((ALL_ZONE_NAMES as readonly ExtendedZoneName[]).map(k => [k, t.zoneSeconds[k] ?? 0])),
+    }
+  }
+
+  const ferdige = ((gjennomfort.data ?? []) as unknown as Rad[]).map(tilOkt)
+  const kommende = ((planlagt.data ?? []) as unknown as Rad[]).map(tilOkt)
+  // Hard = tid i I3 eller høyere (samme definisjon som toppradens «Hard I3+»).
+  const sisteHard = ferdige.find(o => o.hardSek > 0) ?? null
+  const nesteHard = kommende.find(o => o.hardSek > 0) ?? null
+  const nesteOkt = kommende[0] ?? null
+  // «Resten av uka»: planlagte økter etter den neste, ut inneværende uke (mandag–søndag).
+  const sluttUke = (() => {
+    const d = new Date(iDag + 'T00:00:00Z')
+    const dagNr = (d.getUTCDay() + 6) % 7
+    d.setUTCDate(d.getUTCDate() + (6 - dagNr))
+    return d.toISOString().slice(0, 10)
+  })()
+  return {
+    sisteHard,
+    sisteOkt: ferdige[0] ?? null,
+    nesteHard,
+    nesteOkt,
+    restenAvUka: kommende.filter(o => o !== nesteOkt && o.dato <= sluttUke).slice(0, 4)
+      .map(o => ({ dato: o.dato, tittel: o.tittel, hovedsone: o.hovedsone })),
+  }
+}
+
 export async function getOversiktStatus(
   fromDate: string,
   toDate: string,
@@ -38,13 +116,14 @@ export async function getOversiktStatus(
     // sammenligningen) — uavhengig av valgt periode, slik boksene sier i overskriften.
     const belFra = minusDager(toDate, 83)
     const helseFra = minusDager(toDate, 59)
-    const [planRes, skytingRes, belRes, helseRes] = await Promise.all([
+    const [planRes, skytingRes, belRes, helseRes, okter] = await Promise.all([
       getPlanVsActual(fromDate, toDate, targetUserId),
       getShootingDepthAnalysis(fromDate, toDate, sportFilter ?? null, targetUserId),
       getBelastningAnalysis(belFra, toDate, sportFilter ?? null, targetUserId),
       // Helse har sin EGEN delingsregel (can_view_helse) — resolveren i actionen
       // svarer med feil når treneren ikke har lov, og boksen sier «ikke delt».
       getHelseOversikt(helseFra, toDate, targetUserId),
+      hentOkter(toDate, targetUserId),
     ])
 
     let plan: StatusPlan | null = null
@@ -116,7 +195,7 @@ export async function getOversiktStatus(
       }
     }
 
-    return { plan, skyting, belastning, helse }
+    return { plan, skyting, belastning, helse, okter }
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Kunne ikke hente statuskortet' }
   }

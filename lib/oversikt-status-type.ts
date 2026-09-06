@@ -60,6 +60,36 @@ export interface StatusHelse {
   serie: { date: string; hrv: number | null; hvilepuls: number | null; sovnMin: number | null }[]
 }
 
+/** Én økt slik statuskortet viser den — samme felter som Hjem-kortene bruker. */
+export interface StatusOkt {
+  id: string
+  dato: string
+  tittel: string
+  klokkeslett: string | null
+  varighetSek: number
+  meter: number
+  /** Sonen med mest tid (I1–I8/Hurtighet), null når ingen soner er ført. */
+  hovedsone: string | null
+  hardSek: number
+  snittpuls: number | null
+  makspuls: number | null
+  laktatMaks: number | null
+  opplevd: number | null
+  treffPct: number | null
+  soner: Record<string, number>
+}
+
+export interface StatusOkter {
+  /** Siste hardøkt (I3+) de siste 14 dagene. */
+  sisteHard: StatusOkt | null
+  /** Siste gjennomførte økt — vises når det ikke finnes hardøkt. */
+  sisteOkt: StatusOkt | null
+  nesteHard: StatusOkt | null
+  nesteOkt: StatusOkt | null
+  /** Resten av inneværende uke etter neste økt. */
+  restenAvUka: { dato: string; tittel: string; hovedsone: string | null }[]
+}
+
 export interface OversiktStatus {
   /** null = ingen plan-data i det hele tatt (feil eller tom periode). */
   plan: StatusPlan | null
@@ -69,4 +99,6 @@ export interface OversiktStatus {
   belastning: StatusBelastning | null
   /** null når helse ikke er ført/delt — boksen sier «Logg helse →» eller «ikke delt». */
   helse: StatusHelse | null
+  /** Siste/neste økt. Feltene er null hver for seg — boksene sier hva som mangler. */
+  okter: StatusOkter | null
 }

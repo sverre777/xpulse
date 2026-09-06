@@ -19,6 +19,10 @@ import type { OversiktStatus } from '@/lib/oversikt-status-type'
 import type { DateRange } from './date-range'
 import { StarButton } from './StarButton'
 import { XpTooltip, CHART_LINE_WIDTH } from './chart-theme'
+import { ZoneBar } from '@/components/oversikt/kort-deler'
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
+import type { StatusOkt } from '@/lib/oversikt-status-type'
 import { hoyIntensitetSek } from '@/lib/activity-summary'
 import { getOversiktStatus } from '@/app/actions/oversikt-status'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
@@ -136,6 +140,101 @@ function Smaatall({ celler }: { celler: { etikett: string; verdi: string; under?
         </div>
       ))}
     </div>
+  )
+}
+
+function fmtDato(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1))
+  return dt.toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+}
+
+/** Metalinja under en økttittel: dato · varighet · sone · km · treff. */
+function OktMeta({ o }: { o: StatusOkt }) {
+  const deler: React.ReactNode[] = [
+    <span key="d">{fmtDato(o.dato)}{o.klokkeslett ? ` · ${o.klokkeslett.slice(0, 5)}` : ''}</span>,
+    <b key="v" style={{ color: 'var(--tekst-1-app)', fontWeight: 500 }}>{fmtTid(o.varighetSek)}</b>,
+  ]
+  if (o.hovedsone) deler.push(
+    <span key="s" style={{ display: 'inline-block', padding: '0 6px', borderRadius: 999, border: `1px solid ${ZONE_COLORS_V2[o.hovedsone as keyof typeof ZONE_COLORS_V2] ?? 'var(--line2)'}`, color: ZONE_COLORS_V2[o.hovedsone as keyof typeof ZONE_COLORS_V2] ?? 'var(--tekst-5-app)', fontFamily: FONT, fontWeight: 700, fontSize: 11, lineHeight: '17px' }}>{o.hovedsone}</span>,
+  )
+  if (o.meter > 0) deler.push(<span key="km">{fmtKm(o.meter)} km</span>)
+  if (o.treffPct != null) deler.push(<span key="t">🎯 {o.treffPct} %</span>)
+  return (
+    <div style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-5-app)', display: 'flex', flexWrap: 'wrap', gap: '4px 10px', alignItems: 'center' }}>
+      {deler.map((d, i) => <span key={i} style={{ display: 'inline-flex', gap: 10, alignItems: 'center' }}>{i > 0 && <span style={{ opacity: 0.5 }}>·</span>}{d}</span>)}
+    </div>
+  )
+}
+
+function OktTittel({ tekst }: { tekst: string }) {
+  return <div style={{ fontFamily: BEBAS, fontSize: 24, lineHeight: 1, letterSpacing: '0.03em', margin: '2px 0 5px', color: 'var(--tekst-1-app)' }}>{tekst}</div>
+}
+
+/** Siste hardøkt: tittel, nøkkeltall og sonestripa — samme tall som øktkortene på Hjem. */
+function SisteHardBoks({ status }: { status: OversiktStatus | null }) {
+  const o = status?.okter?.sisteHard ?? null
+  const siste = status?.okter?.sisteOkt ?? null
+  return (
+    <Boks tittel="Siste hardøkt" nokkel="oversikt_status_siste_hard">
+      {!o ? (
+        <Tom tekst={siste ? `Ingen hardøkt de siste 14 dagene. Siste økt: ${siste.tittel} (${fmtDato(siste.dato)}).` : 'Ingen økter ført de siste 14 dagene.'} />
+      ) : (
+        <>
+          <OktTittel tekst={o.tittel} />
+          <OktMeta o={o} />
+          <div style={{ margin: '8px 0 2px' }}><ZoneBar zones={o.soner as unknown as OversiktZoneSeconds} legend={false} /></div>
+          <Smaatall celler={[
+            { etikett: 'Snittpuls', verdi: o.snittpuls != null ? String(o.snittpuls) : '—' },
+            { etikett: 'Maks', verdi: o.makspuls != null ? String(o.makspuls) : '—' },
+            { etikett: 'Laktat maks', verdi: o.laktatMaks != null ? String(o.laktatMaks).replace('.', ',') : '—' },
+            { etikett: 'Opplevd', verdi: o.opplevd != null ? `${o.opplevd}` : '—', under: o.opplevd != null ? '/10' : null },
+          ]} />
+          <a href={`/app/okt/${o.id}`} style={{ display: 'inline-block', marginTop: 8, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
+            Åpne økta →
+          </a>
+        </>
+      )}
+    </Boks>
+  )
+}
+
+/** Neste hardøkt + neste økt + resten av uka. */
+function NesteBoks({ status }: { status: OversiktStatus | null }) {
+  const ok = status?.okter ?? null
+  const skille = <div style={{ height: 1, background: 'var(--line)', margin: '11px 0 9px' }} />
+  if (!ok || (!ok.nesteHard && !ok.nesteOkt)) {
+    return (
+      <Boks tittel="Neste hardøkt" nokkel="oversikt_status_neste">
+        <Tom tekst="Ingen planlagte økter." lenke="/app/plan" lenkeTekst="Planlegg uka →" />
+      </Boks>
+    )
+  }
+  return (
+    <Boks tittel="Neste hardøkt" nokkel="oversikt_status_neste">
+      {ok.nesteHard ? <><OktTittel tekst={ok.nesteHard.tittel} /><OktMeta o={ok.nesteHard} /></>
+        : <div style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-5-app)' }}>Ingen hard økt planlagt.</div>}
+      {ok.nesteOkt && (
+        <>
+          {skille}
+          <span style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>Neste økt</span>
+          <OktTittel tekst={ok.nesteOkt.tittel} />
+          <OktMeta o={ok.nesteOkt} />
+        </>
+      )}
+      {ok.restenAvUka.length > 0 && (
+        <>
+          {skille}
+          <span style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>Resten av uka</span>
+          {ok.restenAvUka.map(r => (
+            <div key={r.dato + r.tittel} data-status-ukerad style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontFamily: FONT, fontSize: 12.5, padding: '3px 0', borderBottom: '1px solid var(--line)' }}>
+              <b style={{ fontWeight: 500, color: 'var(--tekst-1-app)' }}>{fmtDato(r.dato)} · {r.tittel}</b>
+              {r.hovedsone && <span style={{ color: ZONE_COLORS_V2[r.hovedsone as keyof typeof ZONE_COLORS_V2] ?? 'var(--tekst-8-app)' }}>{r.hovedsone}</span>}
+            </div>
+          ))}
+        </>
+      )}
+    </Boks>
   )
 }
 
@@ -287,6 +386,8 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
 
       {!kollapset && (
         <div data-status-bokser className="xp-status-bokser" style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+          <SisteHardBoks status={status} />
+          <NesteBoks status={status} />
           <BelastningBoks status={status} konkurranser={konkurranser} />
           <HelseBoks status={status} canSeeHealthData={canSeeHealthData} />
         </div>

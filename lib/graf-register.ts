@@ -76,6 +76,8 @@ export const GRAFER: Record<string, GrafDef> = {
   overview_custom_breakdown: G('oversikt', 'Custom graf — fleksibel nedbryting', { data: 'selv', config: true }),
   // BOLK A (6. sep): «STATUS NÅ»-kortet øverst i Oversikt. Boksene får egne nøkler i A2/A3.
   oversikt_status_kort: G('oversikt', 'Status nå (statuskortet)'),
+  oversikt_status_siste_hard: G('oversikt', 'Status nå — siste hardøkt'),
+  oversikt_status_neste: G('oversikt', 'Status nå — neste hardøkt og neste økt'),
   oversikt_status_belastning: G('oversikt', 'Status nå — belastning (CTL/ATL/TSB)'),
   oversikt_status_helse: G('oversikt', 'Status nå — helse 30 dager'),
   oversikt_hovedtall: G('oversikt', 'Hovedtall (tid · km · økter · konkurranser)'),

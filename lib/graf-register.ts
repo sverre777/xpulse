@@ -114,6 +114,12 @@ export const GRAFER: Record<string, GrafDef> = {
   // ── Prestasjon ──
   prestasjon_ef: G('prestasjon', 'Effektivitetsfaktor'),
   prestasjon_frakobling: G('prestasjon', 'Aerob frakobling'),
+  // Bolk 3
+  prestasjon_gap: G('prestasjon', 'GAP-tempo over tid', { config: true }),
+  prestasjon_fart_ved_terskel: G('prestasjon', 'Fart / watt ved terskelpuls', { config: true }),
+  prestasjon_kurve_over_tid: G('prestasjon', 'Power- / tempokurve over tid', { config: true }),
+  prestasjon_kadens_vs_fart: G('prestasjon', 'Kadens vs fart'),
+  prestasjon_konkurranse_vs_form: G('prestasjon', 'Konkurranse vs form'),
 
   // ── Terskel ──
   terskel_lactate_profile: G('terskel', 'Laktatprofil (mmol vs puls)'),

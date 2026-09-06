@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { forsteEmbed } from '@/lib/embed'
 import { resolveTargetUser } from '@/lib/target-user'
 import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-summary'
 import { type HeartZone } from '@/lib/heart-zones'
@@ -391,10 +392,7 @@ type RawOverviewWorkoutRow = {
     standing_shots: number | null
     standing_hits: number | null
   }[] | null
-  workout_competition_data: {
-    position_overall: number | null
-    participant_count: number | null
-  }[] | null
+  workout_competition_data: { position_overall: number | null; participant_count: number | null } | { position_overall: number | null; participant_count: number | null }[] | null
 }
 
 function emptyOverviewMetrics(sport: Sport): OverviewMetrics {
@@ -601,7 +599,7 @@ async function computeMetricsForRange(
     if (w.elevation_meters) elevationSum += w.elevation_meters
 
     if (w.workout_type === 'competition' || w.workout_type === 'testlop') {
-      const comp = w.workout_competition_data?.[0]
+      const comp = forsteEmbed(w.workout_competition_data)
       metrics.competitions.push({
         id: w.id,
         date: w.date,
@@ -1046,7 +1044,7 @@ export async function getCompetitionStats(
   const sportsPresent = new Set<Sport>()
 
   for (const w of (data ?? []) as RawCompetitionRow[]) {
-    const comp = w.workout_competition_data?.[0] ?? null
+    const comp = forsteEmbed(w.workout_competition_data) ?? null
     const activities = w.workout_activities ?? []
 
     // Samlet aktivitets-tid og distanse — ekskluderer pauser OG skyting.
@@ -1168,6 +1166,9 @@ export interface CompetitionAnalysisRow {
   total_meters: number
   is_planned: boolean
   is_completed: boolean
+  /** Bolk 3 (skiskyttere): skytetid (sum skyterader) og bom (skudd − treff) i rennet. */
+  shooting_time_seconds: number | null
+  misses: number | null
 }
 
 export interface PlannedCompetitionRow {
@@ -1264,7 +1265,7 @@ export async function getCompetitionAnalysis(
 
     type RawCompRowWithFlags = RawCompetitionRow & { is_planned: boolean; is_completed: boolean }
     for (const w of (compData ?? []) as RawCompRowWithFlags[]) {
-      const comp = w.workout_competition_data?.[0] ?? null
+      const comp = forsteEmbed(w.workout_competition_data) ?? null
       // Filtrer på konkurransetype hvis oppgitt (inkluder om ingen comp-record og type-filter er null).
       if (typeFilter && typeFilter.length > 0) {
         if (!comp?.competition_type || !typeFilter.includes(comp.competition_type as CompetitionTypeFilter)) continue
@@ -1292,9 +1293,14 @@ export async function getCompetitionAnalysis(
       const activities = w.workout_activities ?? []
       let duration = 0
       let meters = 0
+      let skytetid = 0, harSkytetid = false, bom = 0, harBom = false
       for (const a of activities) {
         if (PAUSE_ACT_TYPES.has(a.activity_type)) continue
-        if (SHOOTING_ACT_TYPES.has(a.activity_type)) continue
+        if (SHOOTING_ACT_TYPES.has(a.activity_type)) {
+          if (a.duration_seconds) { skytetid += a.duration_seconds; harSkytetid = true }
+          for (const [sk, tr] of [[a.prone_shots, a.prone_hits], [a.standing_shots, a.standing_hits]] as const) { if (sk && tr != null) { bom += sk - tr; harBom = true } }
+          continue
+        }
         duration += a.duration_seconds ?? 0
         meters += a.distance_meters ?? 0
       }
@@ -1316,6 +1322,8 @@ export async function getCompetitionAnalysis(
         total_meters: meters,
         is_planned: w.is_planned,
         is_completed: w.is_completed,
+        shooting_time_seconds: harSkytetid ? skytetid : null,
+        misses: harBom ? bom : null,
       })
     }
 

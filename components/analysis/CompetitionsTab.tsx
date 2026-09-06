@@ -151,11 +151,11 @@ export function CompetitionsTab({
 
   // Tider per format (linjer).
   const formatGroups = useMemo(() => {
-    const groups = new Map<string, { x: number; sec: number; date: string }[]>()
+    const groups = new Map<string, { x: number; sec: number; date: string; skytetid: number | null; bom: number | null }[]>()
     for (const r of rows) {
       if (!r.distance_format || r.duration_seconds <= 0) continue
       const arr = groups.get(r.distance_format) ?? []
-      arr.push({ x: dateToEpoch(r.date), sec: r.duration_seconds, date: r.date })
+      arr.push({ x: dateToEpoch(r.date), sec: r.duration_seconds, date: r.date, skytetid: r.shooting_time_seconds, bom: r.misses })
       groups.set(r.distance_format, arr)
     }
     return Array.from(groups.entries())
@@ -390,7 +390,7 @@ export function CompetitionsTab({
 
           {/* Tider per distanse-format */}
           {formatGroups.length > 0 && (
-            <ChartWrapper chartKey="competitions_time_per_format" title="Sluttid over tid per distanse/format" subtitle="Kun formater med ≥2 datapunkter" height={320}>
+            <ChartWrapper chartKey="competitions_time_per_format" title="Sluttid over tid per distanse/format" subtitle="Kun formater med ≥2 datapunkter · skiskyttere: skytetid og bom i tooltip (bolk 3)" height={320}>
               <div className="flex flex-wrap gap-4 mb-3">
                 {Array.from(latestByFormat.entries()).map(([format, v]) => (
                   <div key={format}>
@@ -414,7 +414,11 @@ export function CompetitionsTab({
                     tickFormatter={(v) => `${Math.round(Number(v) / 60)}min`} />
                   <Tooltip content={<XpTooltip />}
                     labelFormatter={(v) => formatEpochAxis(Number(v))}
-                    formatter={(value) => [formatDuration(Number(value)), 'Tid']} />
+                    formatter={(value, _navn, item) => {
+                      const p = (item as { payload?: { skytetid?: number | null; bom?: number | null } }).payload
+                      const ekstra = [p?.skytetid != null ? `skyting ${p.skytetid} s` : null, p?.bom != null ? `${p.bom} bom` : null].filter(Boolean).join(' · ')
+                      return [`${formatDuration(Number(value))}${ekstra ? ` · ${ekstra}` : ''}`, 'Tid']
+                    }} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   {formatGroups.map((g, i) => (
                     <Line key={g.format} data={g.points} type="monotone" dataKey="sec" name={g.format}

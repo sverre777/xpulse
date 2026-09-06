@@ -16,6 +16,7 @@ import {
 } from 'recharts'
 import type { PrestasjonAnalyse, EfPunkt, FrakoblingsPunkt } from '@/app/actions/prestasjon-analyse'
 import { ChartWrapper } from './ChartWrapper'
+import { GapSeksjon, FartVedTerskelSeksjon, KurveOverTidSeksjon, KadensVsFartSeksjon, KonkurranseVsFormSeksjon } from './PrestasjonBolk3'
 import {
   XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK,
 } from '@/components/analysis/chart-theme'
@@ -37,6 +38,12 @@ export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
       )}
       <EfSection data={data} />
       <FrakoblingSection data={data} />
+      {/* Bolk 3: GAP, fart/watt ved terskel, kurver over tid, kadens, konkurranse vs form. */}
+      <GapSeksjon data={data} />
+      <FartVedTerskelSeksjon data={data} />
+      <KurveOverTidSeksjon data={data} />
+      <KadensVsFartSeksjon data={data} />
+      <KonkurranseVsFormSeksjon data={data} />
     </div>
   )
 }
@@ -184,10 +191,15 @@ function FrakoblingChart({ punkter }: { punkter: FrakoblingsPunkt[] }) {
 }
 
 /** Bolk 1: favoritt-rendring for Prestasjon-nøklene. */
-export function renderFavoritt(key: string, data: PrestasjonAnalyse): React.ReactNode | null {
+export function renderFavoritt(key: string, data: PrestasjonAnalyse, ctx?: { config?: Record<string, unknown> | null }): React.ReactNode | null {
   switch (key) {
     case 'prestasjon_ef': return <EfSection data={data} />
     case 'prestasjon_frakobling': return <FrakoblingSection data={data} />
+    case 'prestasjon_gap': return <GapSeksjon data={data} initialConfig={ctx?.config} />
+    case 'prestasjon_fart_ved_terskel': return <FartVedTerskelSeksjon data={data} initialConfig={ctx?.config} />
+    case 'prestasjon_kurve_over_tid': return <KurveOverTidSeksjon data={data} initialConfig={ctx?.config} />
+    case 'prestasjon_kadens_vs_fart': return <KadensVsFartSeksjon data={data} />
+    case 'prestasjon_konkurranse_vs_form': return <KonkurranseVsFormSeksjon data={data} />
     default: return null
   }
 }

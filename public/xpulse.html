@@ -1715,9 +1715,61 @@ html.js .istep.vis{opacity:1}
   .prob-scrolly .stegliste{display:none}
   .flyt-hint{display:none}
 }
+/* ── SCROLL-VELGER (Sverre 6. sep, fasit design/xpulse-scrollvelger-design.html) ──
+   Én fast glass-skinne midt på venstre side som følger hele forsiden. I ro: bare ikoner
+   og framdriftslinja. Hover eller tastaturfokus utvider ALLE radene med overskriften.
+   Vinduet er sju punkter med det aktive midt i. Under 1180 px byttes skinna med en
+   3 px framdriftsstripe øverst - ingen flytende knapp på mobil. */
+.rail{position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:50}
+.rail-glass{position:relative;padding:14px 14px 14px 18px;border-radius:22px;
+  background:linear-gradient(150deg,rgba(255,255,255,.10),rgba(255,255,255,.03) 42%,rgba(255,255,255,.06));
+  backdrop-filter:blur(20px) saturate(1.35);-webkit-backdrop-filter:blur(20px) saturate(1.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(255,255,255,.06), 0 26px 60px rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.14);transition:padding .4s cubic-bezier(.2,.7,.2,1)}
+html[data-tema="lys"] .rail-glass{background:linear-gradient(150deg,rgba(255,255,255,.74),rgba(255,255,255,.46));
+  border-color:rgba(0,0,0,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 20px 46px rgba(0,0,0,.13)}
+.rail:hover .rail-glass,.rail:focus-within .rail-glass{padding-right:22px}
+.rail-linje{position:absolute;left:7px;top:16px;bottom:16px;width:2px;background:rgba(255,255,255,.14);border-radius:2px;overflow:hidden}
+html[data-tema="lys"] .rail-linje{background:rgba(0,0,0,.12)}
+.rail-linje i{position:absolute;left:0;top:0;width:100%;height:0;background:linear-gradient(180deg,#FF4500,#1A6FD4);border-radius:2px;transition:height .18s linear}
+/* Forsidens globale nav-regel er position:fixed - den ville dratt lista ut av glasset. */
+.rail .rail-liste{position:static;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:0;background:none;z-index:auto}
+.rp{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--dim);
+   max-height:0;opacity:0;overflow:hidden;transform:translateX(-5px);
+   transition:max-height .4s cubic-bezier(.2,.7,.2,1),opacity .3s ease,transform .4s cubic-bezier(.2,.7,.2,1),color .2s ease}
+.rp-ik{flex:none;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;padding:5px 0}
+.rp-ik svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rp-tx{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;
+   max-width:0;opacity:0;overflow:hidden;transition:max-width .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease}
+.rp.vis{max-height:34px;opacity:.55;transform:none}
+.rp.d1{opacity:.42} .rp.d2{opacity:.3} .rp.d3{opacity:.2}
+.rp.on{max-height:34px;opacity:1;color:#FF4500;transform:none}
+.rp:hover{color:#FF4500}
+.rail:hover .rp,.rail:focus-within .rp{max-height:34px;opacity:1;transform:none}
+.rail:hover .rp-tx,.rail:focus-within .rp-tx{max-width:220px;opacity:1}
+.rail:hover .rp:not(.on),.rail:focus-within .rp:not(.on){color:var(--dim)}
+.rail:hover .rp:not(.on):hover,.rail:focus-within .rp:not(.on):hover{color:var(--paper)}
+.rp:focus-visible{outline:2px solid #FF4500;outline-offset:3px;border-radius:8px}
+@media (max-width:1180px){.rail{display:none}}
+@media (prefers-reduced-motion:reduce){.rp,.rp-tx,.rail-linje i,.rail-glass{transition:none} html{scroll-behavior:auto}
+  .rail .rp{max-height:34px;opacity:1;transform:none} .rail .rp-tx{max-width:220px;opacity:1}}
+.mobbar{display:none;position:fixed;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.1);z-index:60}
+.mobbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FF4500,#1A6FD4)}
+@media (max-width:1180px){.mobbar{display:block}}
+/* topplinja dekker 98 px - ankeret skal ikke havne under den */
+section[id],header[id]{scroll-margin-top:108px}
 </style>
 </head>
 <body>
+<!-- SCROLL-VELGER: punktene genereres av SEKSJONER-lista i skriptet nederst (én kilde). -->
+<aside class="rail" aria-label="Snarveier på siden" hidden>
+ <div class="rail-glass">
+  <div class="rail-linje"><i></i></div>
+  <nav class="rail-liste"></nav>
+ </div>
+</aside>
+<div class="mobbar" aria-hidden="true"><i id="mb"></i></div>
+
 
 
 <nav>
@@ -1831,7 +1883,7 @@ html.js .istep.vis{opacity:1}
   <a class="nav-panel-cta" href="#priser">Start 30 dagers gratis prøve</a>
 </div>
 
-<header class="hero">
+<header class="hero" id="topp">
   <div class="hero-bg"></div>
   <div class="hero-blaa"></div>
   <div class="hero-fade"></div>
@@ -2779,6 +2831,85 @@ html.js .istep.vis{opacity:1}
     var i=+b.dataset.i, total=o.sc.offsetHeight-innerHeight, top=o.sc.getBoundingClientRect().top+scrollY;
     scrollTo({top:top+total*(i/o.N)+8,behavior:reduced?'auto':'smooth'});
   })})});
+})();
+</script>
+<script>
+/* SCROLL-VELGEREN (fasit design/xpulse-scrollvelger-design.html).
+   EN kilde: SEKSJONER under er lista som genererer skinna - legges det til en seksjon paa
+   forsiden, dukker den opp her av seg selv. Aktiv seksjon settes av EN IntersectionObserver
+   (rootMargin -45%/-45% = seksjonen naermest midten av skjermen), og framdriftslinja av EN
+   passiv scroll-lytter med requestAnimationFrame - aldri inne i observeren. Ingen lytter per
+   seksjon. Ankrene er ekte #lenker, saa klikk virker uten JS. */
+(function(){
+  var SEKSJONER = [
+    {id:'topp',navn:'Toppen',ik:'<path d="M12 19V5M6 11l6-6 6 6"/>'},
+    {id:'problem',navn:'Én app',ik:'<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5.5h3"/>'},
+    {id:'inside',navn:'Slik ser det ut',ik:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 9h10M7 12.5h7M7 16h4"/>'},
+    {id:'nytt',navn:'Planlegging',ik:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'},
+    {id:'flyten',navn:'Flyten',ik:'<rect x="7" y="5" width="10" height="14" rx="3"/><path d="M9 5V2.5h6V5M9 19v2.5h6V19"/><path d="M10 12l1.5 1.5L14.5 10"/>'},
+    {id:'trener',navn:'For trenere',ik:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 14.5c2.8.2 4.5 1.9 4.5 4.5"/>'},
+    {id:'sports',navn:'Idretter',ik:'<path d="M4 19.5l14-13M7.5 21l14-13"/><circle cx="15.5" cy="4.5" r="1.6"/>'},
+    {id:'skiskyting',navn:'Skiskyting',ik:'<path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/>'},
+    {id:'features',navn:'Funksjoner',ik:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="3" height="4" rx=".8"/>'},
+    {id:'hvorfor',navn:'Hvorfor',ik:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 013.9-2c1.6 1 1.2 2.6.1 3.4-.8.6-1.5 1-1.5 2.1M12 17v.01"/>'},
+    {id:'testimonials',navn:'Utøverne',ik:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'},
+    {id:'priser',navn:'Priser',ik:'<path d="M12 3v18M8 7.5h6.5a2.5 2.5 0 010 5h-5a2.5 2.5 0 000 5H16"/>'},
+    {id:'faq',navn:'Spørsmål',ik:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 013.9-2c1.6 1 1.2 2.6.1 3.4-.8.6-1.5 1-1.5 2.1M12 17v.01"/>'},
+    {id:'signup',navn:'Kom i gang',ik:'<path d="M5 12h13M13 6l6 6-6 6"/>'}
+  ];
+  var rail = document.querySelector('.rail'), liste = document.querySelector('.rail-liste');
+  var mb = document.getElementById('mb');
+  if(!rail || !liste) return;
+  var punkter = SEKSJONER.filter(function(x){ return document.getElementById(x.id) });
+  if(punkter.length === 0) return;
+  liste.innerHTML = punkter.map(function(x, i){
+    return '<a class="rp" href="#' + x.id + '" data-mal="' + x.id + '" data-i="' + i + '">'
+      + '<span class="rp-ik"><svg viewBox="0 0 24 24">' + x.ik + '</svg></span>'
+      + '<span class="rp-tx">' + x.navn + '</span></a>';
+  }).join('');
+  rail.hidden = false;
+  var lenker = [].slice.call(liste.querySelectorAll('.rp'));
+  var seksjoner = punkter.map(function(x){ return document.getElementById(x.id) });
+  var fyll = document.querySelector('.rail-linje i');
+
+  var N = 7;
+  function vindu(aktiv){
+    var halv = Math.floor(N/2);
+    var fra = Math.min(Math.max(0, aktiv - halv), Math.max(0, lenker.length - N));
+    var til = Math.min(lenker.length - 1, fra + N - 1);
+    lenker.forEach(function(a,i){
+      a.classList.remove('vis','d1','d2','d3');
+      var av = (i === aktiv);
+      a.classList.toggle('on', av);
+      if(av) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current');
+      if(!av && i>=fra && i<=til){
+        a.classList.add('vis');
+        var d = Math.abs(i - aktiv);
+        if(d>=2) a.classList.add('d'+Math.min(d-1,3));
+      }
+    });
+  }
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var i = seksjoner.indexOf(e.target); if(i>=0) vindu(i);
+    });
+  }, {rootMargin:'-45% 0px -45% 0px', threshold:0});
+  seksjoner.forEach(function(s){ if(s) io.observe(s) });
+  vindu(0);
+
+  var venter=false;
+  function tegn(){
+    var h = document.documentElement.scrollHeight - innerHeight;
+    var p = h>0 ? Math.min(1, Math.max(0, scrollY/h)) : 0;
+    if(fyll) fyll.style.height = (p*100).toFixed(1)+'%';
+    if(mb) mb.style.width = (p*100).toFixed(1)+'%';
+    venter=false;
+  }
+  function planlegg(){ if(!venter){ venter=true; requestAnimationFrame(tegn) } }
+  addEventListener('scroll', planlegg, {passive:true});
+  addEventListener('resize', planlegg);
+  tegn();
 })();
 </script>
 </body>

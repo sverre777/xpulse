@@ -1,5 +1,6 @@
 'use client'
 
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { ActivityRow, findActivityType } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { parseDecimal } from '@/lib/parse-decimal'
@@ -39,7 +40,7 @@ function describeActivity(a: ActivityRow): string {
 function extras(a: ActivityRow): string[] {
   const out: string[] = []
   // a.zones er MM:SS-strenger (sekunder) fra phase 64+.
-  const zones = (['I1','I2','I3','I4','I5','Hurtighet'] as const)
+  const zones = ALL_ZONE_NAMES // bolk 7: I6–I8 med
     .map(k => ({ k, sec: parseActivityDuration(a.zones?.[k] ?? '') ?? 0 }))
     .filter(z => z.sec > 0)
   if (zones.length > 0) {

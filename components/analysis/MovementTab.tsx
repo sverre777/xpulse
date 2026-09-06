@@ -1,5 +1,6 @@
 'use client'
 
+import { bevFelterFor } from '@/lib/bevform-felter'
 import { useState, useEffect, useTransition } from 'react'
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
@@ -63,20 +64,25 @@ function linearTrend(points: { x: number; y: number }[]): { x: number; y: number
   ]
 }
 
+// Bolk 7: bev.form-felt-tabellen (bolk 27, lib/bevform-felter) er fasit for
+// hvilke grafer/kort som gir mening — ikke håndskrevne lister per bev.form.
 const PACE_MOVEMENTS = new Set(['Løping', 'Langrenn', 'Rulleski'])
-const WATT_MOVEMENTS = new Set(['Sykling'])
-const ELEVATION_MOVEMENTS = new Set(['Tur', 'Fjellsport'])
+const harWatt = (bev: string) => bevFelterFor(bev, '').wattFaktisk
+const harKadens = (bev: string) => bevFelterFor(bev, '').kadens
+const harHoydemeter = (bev: string) => bevFelterFor(bev, '').hoydemeter
 
 export function MovementTab({
   initialData,
   from,
   to,
   availableMovements,
+  targetUserId,
 }: {
   initialData: MovementAnalysis
   from: string
   to: string
   availableMovements: string[]     // union av movements brukt + valgt movement
+  targetUserId?: string            // bolk 7: trenervisning også ved bytte av bev.form
 }) {
   const [movement, setMovement] = useState(initialData.movementName)
   const [data, setData] = useState(initialData)
@@ -87,7 +93,7 @@ export function MovementTab({
     if (movement === initialData.movementName && data === initialData) return
     startTransition(async () => {
       setError(null)
-      const res = await getMovementAnalysis(from, to, movement)
+      const res = await getMovementAnalysis(from, to, movement, targetUserId)
       if ('error' in res) { setError(res.error); return }
       setData(res)
     })
@@ -143,6 +149,8 @@ export function MovementTab({
           <MovementZones weeks={data.weeks} />
           <MovementBest data={data} movement={movement} />
           <MovementSportSpecific data={data} movement={movement} />
+          <MovementKadens activities={data.activities} movement={movement} />
+          <MovementHoydemeter weeks={data.weeks} movement={movement} />
         </>
       )}
     </div>
@@ -197,7 +205,7 @@ export function MovementMetricCards({ data, movement, bare }: { data: MovementAn
           accent="#D4A017"
         />
       )}
-      {vis('bevegelse_snittwatt') && WATT_MOVEMENTS.has(movement) && data.current.avg_watts != null && (
+      {vis('bevegelse_snittwatt') && harWatt(movement) && data.current.avg_watts != null && (
         <MetricCard
           chartKey="bevegelse_snittwatt"
           label="Snittwatt"
@@ -320,7 +328,7 @@ function MovementBest({ data, movement }: { data: MovementAnalysis; movement: st
     value: `${formatPace(b.fastestPace.pace_sec_per_km)} · ${b.fastestPace.date}`,
     link: `/app/dagbok?edit=${b.fastestPace.workout_id}`,
   })
-  if (WATT_MOVEMENTS.has(movement) && b.maxWatts) rows.push({
+  if (harWatt(movement) && b.maxWatts) rows.push({
     label: 'Høyeste snittwatt',
     value: `${b.maxWatts.avg_watts} W · ${b.maxWatts.date}`,
     link: `/app/dagbok?edit=${b.maxWatts.workout_id}`,
@@ -382,7 +390,7 @@ export function MovementSportSpecific({ data, movement }: { data: MovementAnalys
   }
 
   // Sykling: snittwatt over tid.
-  if (WATT_MOVEMENTS.has(movement)) {
+  if (harWatt(movement)) {
     const points = data.activities
       .filter(a => a.avg_watts != null && a.avg_watts > 0)
       .map(a => ({ x: dateToEpoch(a.date), y: a.avg_watts!, date: a.date }))
@@ -437,21 +445,53 @@ export function MovementSportSpecific({ data, movement }: { data: MovementAnalys
     )
   }
 
-  if (ELEVATION_MOVEMENTS.has(movement)) {
-    return (
-      <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-        <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Høydemeter / sekkvekt
-        </p>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          Aggregerte høydemeter og sekkvekt er ikke lagret per aktivitet enda — kommer i senere fase.
-        </p>
-      </div>
-    )
-  }
-
   return null
+}
+
+/** Bolk 7: kadens over tid for bev.former med kadens i felt-tabellen (rpm/spm). */
+export function MovementKadens({ activities, movement }: { activities: MovementAnalysis['activities']; movement: string }) {
+  const enhet = harKadens(movement)
+  if (!enhet) return null
+  const points = activities
+    .filter(a => a.avg_cadence != null && a.avg_cadence > 0)
+    .map(a => ({ x: dateToEpoch(a.date), y: Math.round(a.avg_cadence!), date: a.date }))
+    .sort((a, b) => a.x - b.x)
+  if (points.length === 0) return null
+  const trend = linearTrend(points)
+  return (
+    <ChartWrapper chartKey="bevegelse_kadens" title="Kadens over tid" subtitle={`${enhet === 'rpm' ? 'Tråkk per minutt' : 'Steg per minutt'} per aktivitet · med trendlinje`}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <LineChart>
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']} tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} domain={['auto', 'auto']} />
+          <Tooltip content={<XpTooltip />} labelFormatter={(v) => formatEpochAxis(Number(v))} formatter={(v) => [`${v} ${enhet}`, 'Kadens']} />
+          <Line data={points} type="monotone" dataKey="y" name="Kadens" stroke="#1A6FD4" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
+          {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="var(--tekst-5-app)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
+        </LineChart>
+      </ResponsiveContainer>
+    </ChartWrapper>
+  )
+}
+
+/** Bolk 7: høydemeter per uke — erstatter «kommer i senere fase»-plassholderen (data: elevation_gain_m på raden). */
+export function MovementHoydemeter({ weeks, movement }: { weeks: MovementAnalysis['weeks']; movement: string }) {
+  if (!harHoydemeter(movement)) return null
+  const data = weeks.map(w => ({ label: w.label, meter: Math.round(w.elevation_m ?? 0) }))
+  if (!data.some(d => d.meter > 0)) return null
+  return (
+    <ChartWrapper chartKey="bevegelse_hoydemeter" title="Høydemeter per uke" subtitle="Sum av høydemeter ført på radene (m)">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <BarChart data={data}>
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} tickFormatter={v => `${v} m`} />
+          <Tooltip content={<XpTooltip />} formatter={(v) => [`${v} m`, 'Høydemeter']} cursor={CHART_CURSOR} />
+          <Bar dataKey="meter" name="Høydemeter" fill="#28A86E" />
+        </BarChart>
+      </ResponsiveContainer>
+    </ChartWrapper>
+  )
 }
 
 /** Bolk 1: favoritt-rendring — grafene for fanens valgte bev.form. */
@@ -467,6 +507,8 @@ export function renderFavoritt(key: string, data: MovementAnalysis): React.React
     case 'bevegelse_total_tid': case 'bevegelse_total_km': case 'bevegelse_aktiviteter':
     case 'bevegelse_snittpuls': case 'bevegelse_snittempo': case 'bevegelse_snittwatt':
       return <MovementMetricCards data={data} movement={m} bare={key} />
+    case 'bevegelse_kadens': return <MovementKadens activities={data.activities} movement={m} />
+    case 'bevegelse_hoydemeter': return <MovementHoydemeter weeks={data.weeks} movement={m} />
     default: return null
   }
 }

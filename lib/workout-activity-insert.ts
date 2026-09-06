@@ -1,3 +1,4 @@
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { parseDurationToSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration } from '@/lib/activity-duration'
@@ -25,7 +26,8 @@ export function parseFloatOrNull(s: string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-const ZONE_KEYS_ALL = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
+// Bolk 7: I6–I8 med — før falt de stille bort ved innsetting (utvidet skala, fase 111).
+const ZONE_KEYS_ALL = ALL_ZONE_NAMES
 
 // Zones-jsonb lagres som SEKUNDER (phase 64). UI-input er MM:SS-string.
 export function serializeZones(z: ActivityRow['zones']): Record<string, number> | null {

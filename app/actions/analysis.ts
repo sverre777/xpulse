@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { forsteEmbed } from '@/lib/embed'
 import { resolveTargetUser } from '@/lib/target-user'
 import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-summary'
-import { type HeartZone } from '@/lib/heart-zones'
+import { ALL_ZONE_NAMES, type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, vektFraIF, wattDekningSek } from '@/lib/watt-metrikker'
 import { sekPerWattSone, WATT_SONER, type WattSone } from '@/lib/watt-soner'
@@ -13,7 +13,7 @@ import { resolveMaxHr } from '@/lib/heart-zones'
 import { lineaerRegresjon } from '@/lib/regresjon'
 import { beregnSoneTss } from '@/lib/belastning'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
-import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
+import { leggTilSoner, hoyIntensitetSek, computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType, IKKE_TRENINGSTID_TYPER } from '@/lib/types'
 import { findStandardTest } from '@/lib/shooting-test-templates'
@@ -205,14 +205,7 @@ export async function getWorkoutStats(
     totalSessions += 1
     totalSeconds += sessionSeconds
 
-    if (totals) {
-      bucket.zones.I1 += totals.zoneSeconds.I1
-      bucket.zones.I2 += totals.zoneSeconds.I2
-      bucket.zones.I3 += totals.zoneSeconds.I3
-      bucket.zones.I4 += totals.zoneSeconds.I4
-      bucket.zones.I5 += totals.zoneSeconds.I5
-      bucket.zones.Hurtighet += totals.zoneSeconds.Hurtighet
-    }
+    if (totals) leggTilSoner(bucket.zones, totals.zoneSeconds)
 
     // Km per bevegelsesform (akkumuler per aktivitet).
     for (const a of (w.workout_activities ?? [])) {
@@ -223,7 +216,7 @@ export async function getWorkoutStats(
       bucket.kmByMovement[a.movement_name] = (bucket.kmByMovement[a.movement_name] ?? 0) + km
     }
 
-    const highIntensitySeconds = totals ? (totals.zoneSeconds.I4 + totals.zoneSeconds.I5) : 0
+    const highIntensitySeconds = totals ? hoyIntensitetSek(totals.zoneSeconds) : 0
     if (highIntensitySeconds > 0 || HARD_TYPES.has(w.workout_type)) bucket.intensiveCount += 1
   }
 
@@ -535,14 +528,7 @@ async function computeMetricsForRange(
     metrics.total_seconds += sessionSeconds
     metrics.total_meters += sessionMeters
 
-    if (totals) {
-      metrics.zone_seconds.I1 += totals.zoneSeconds.I1
-      metrics.zone_seconds.I2 += totals.zoneSeconds.I2
-      metrics.zone_seconds.I3 += totals.zoneSeconds.I3
-      metrics.zone_seconds.I4 += totals.zoneSeconds.I4
-      metrics.zone_seconds.I5 += totals.zoneSeconds.I5
-      metrics.zone_seconds.Hurtighet += totals.zoneSeconds.Hurtighet
-    }
+    if (totals) leggTilSoner(metrics.zone_seconds, totals.zoneSeconds)
 
     let hasStrength = false
     for (const a of (w.workout_activities ?? [])) {
@@ -886,14 +872,7 @@ async function computePlannedMetricsForRange(
     metrics.total_seconds += sessionSeconds
     metrics.total_meters += sessionMeters
 
-    if (totals) {
-      metrics.zone_seconds.I1 += totals.zoneSeconds.I1
-      metrics.zone_seconds.I2 += totals.zoneSeconds.I2
-      metrics.zone_seconds.I3 += totals.zoneSeconds.I3
-      metrics.zone_seconds.I4 += totals.zoneSeconds.I4
-      metrics.zone_seconds.I5 += totals.zoneSeconds.I5
-      metrics.zone_seconds.Hurtighet += totals.zoneSeconds.Hurtighet
-    }
+    if (totals) leggTilSoner(metrics.zone_seconds, totals.zoneSeconds)
 
     // Per-movement sum — snapshot bruker samme movement_name-felt som real activities.
     // Økt-telleren bruker unike movement-navn i én økt (samme som faktisk-pathen).
@@ -1423,6 +1402,8 @@ export interface MovementWeekBucket {
   total_meters: number
   activity_count: number
   zones: OverviewZoneSeconds
+  /** Bolk 7: høydemeter (workout_activities.elevation_gain_m) summert per uke. */
+  elevation_m: number
 }
 
 export interface MovementActivityPoint {
@@ -1434,7 +1415,10 @@ export interface MovementActivityPoint {
   avg_watts: number | null
   lactate_mmol: number | null
   pace_sec_per_km: number | null
-  subcategory: string | null   // fra notes/activity_type-mapping — vi bruker movement_subcategory hvis finnes
+  subcategory: string | null   // movement_subcategory på raden (bolk 7: fylles nå)
+  /** Bolk 7: kadens (rpm/spm) og høydemeter på raden. */
+  avg_cadence: number | null
+  elevation_gain_m: number | null
 }
 
 export interface MovementBestPerformances {
@@ -1492,6 +1476,9 @@ type RawMovementRow = {
     distance_meters: number | null
     avg_heart_rate: number | null
     avg_watts: number | null
+    movement_subcategory: string | null
+    avg_cadence: number | null
+    elevation_gain_m: number | null
     lactate_mmol: number | null
     zones: Record<string, number | string | null> | null
   }[] | null
@@ -1507,7 +1494,7 @@ async function computeMovementMetrics(
 ): Promise<MovementAnalysis['current'] & { activities: MovementActivityPoint[]; best: MovementBestPerformances; weeks: MovementWeekBucket[]; workout_count: number }> {
   const { data, error } = await supabase
     .from('workouts')
-    .select('id,date,sport,workout_type,duration_minutes,workout_activities(id,activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,avg_watts,lactate_mmol,zones)')
+    .select('id,date,sport,workout_type,duration_minutes,workout_activities(id,activity_type,movement_name,movement_subcategory,duration_seconds,distance_meters,avg_heart_rate,avg_watts,avg_cadence,elevation_gain_m,lactate_mmol,zones)')
     .eq('user_id', userId)
     .is('merged_into_workout_id', null)
     .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -1538,6 +1525,7 @@ async function computeMovementMetrics(
         weekKey, label, startDate,
         total_seconds: 0, total_meters: 0, activity_count: 0,
         zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
+        elevation_m: 0,
       }
       weekMap.set(weekKey, bucket)
     }
@@ -1553,21 +1541,8 @@ async function computeMovementMetrics(
       })),
       heartZones,
     )
-    bucket.zones.I1 += totals.zoneSeconds.I1
-    bucket.zones.I2 += totals.zoneSeconds.I2
-    bucket.zones.I3 += totals.zoneSeconds.I3
-    bucket.zones.I4 += totals.zoneSeconds.I4
-    bucket.zones.I5 += totals.zoneSeconds.I5
-    bucket.zones.I6 += totals.zoneSeconds.I6
-    bucket.zones.I7 += totals.zoneSeconds.I7
-    bucket.zones.I8 += totals.zoneSeconds.I8
-    bucket.zones.Hurtighet += totals.zoneSeconds.Hurtighet
-    zones.I1 += totals.zoneSeconds.I1
-    zones.I2 += totals.zoneSeconds.I2
-    zones.I3 += totals.zoneSeconds.I3
-    zones.I4 += totals.zoneSeconds.I4
-    zones.I5 += totals.zoneSeconds.I5
-    zones.Hurtighet += totals.zoneSeconds.Hurtighet
+    leggTilSoner(bucket.zones, totals.zoneSeconds)
+    leggTilSoner(zones, totals.zoneSeconds)
 
     for (const a of matching) {
       const secs = a.duration_seconds ?? 0
@@ -1575,6 +1550,7 @@ async function computeMovementMetrics(
       bucket.total_seconds += secs
       bucket.total_meters += meters
       bucket.activity_count += 1
+      bucket.elevation_m += Number(a.elevation_gain_m) || 0
 
       totalSeconds += secs
       totalMeters += meters
@@ -1594,7 +1570,9 @@ async function computeMovementMetrics(
         avg_watts: a.avg_watts,
         lactate_mmol: a.lactate_mmol,
         pace_sec_per_km: pace,
-        subcategory: null,
+        subcategory: a.movement_subcategory ?? null,
+        avg_cadence: a.avg_cadence != null ? Number(a.avg_cadence) : null,
+        elevation_gain_m: a.elevation_gain_m != null ? Number(a.elevation_gain_m) : null,
       }
       activities.push(point)
 
@@ -2311,16 +2289,9 @@ export async function getTemplateAnalysis(
       execs.sort((a, b) => a.date.localeCompare(b.date))
       const hrs = execs.map(e => e.avg_heart_rate).filter((v): v is number => v != null)
       const avgZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
-      for (const e of execs) {
-        avgZones.I1 += e.zones.I1; avgZones.I2 += e.zones.I2; avgZones.I3 += e.zones.I3
-        avgZones.I4 += e.zones.I4; avgZones.I5 += e.zones.I5; avgZones.Hurtighet += e.zones.Hurtighet
-      }
+      for (const e of execs) leggTilSoner(avgZones, e.zones)
       const n = execs.length
-      if (n > 0) {
-        avgZones.I1 = Math.round(avgZones.I1 / n); avgZones.I2 = Math.round(avgZones.I2 / n)
-        avgZones.I3 = Math.round(avgZones.I3 / n); avgZones.I4 = Math.round(avgZones.I4 / n)
-        avgZones.I5 = Math.round(avgZones.I5 / n); avgZones.Hurtighet = Math.round(avgZones.Hurtighet / n)
-      }
+      if (n > 0) for (const k of ALL_ZONE_NAMES) avgZones[k] = Math.round(avgZones[k] / n)
       templates.push({
         id: t.id,
         name: t.name,
@@ -2752,12 +2723,7 @@ export async function getIntensityDistribution(
       }))
       const totals = computeActivityTotals(acts, heartZones)
 
-      bucket.zones.I1 += totals.zoneSeconds.I1
-      bucket.zones.I2 += totals.zoneSeconds.I2
-      bucket.zones.I3 += totals.zoneSeconds.I3
-      bucket.zones.I4 += totals.zoneSeconds.I4
-      bucket.zones.I5 += totals.zoneSeconds.I5
-      bucket.zones.Hurtighet += totals.zoneSeconds.Hurtighet
+      leggTilSoner(bucket.zones, totals.zoneSeconds)
       bucket.totalSeconds += totals.zoneTotalSec
 
       bucket.polarized.low += totals.zoneSeconds.I1 + totals.zoneSeconds.I2
@@ -2768,12 +2734,7 @@ export async function getIntensityDistribution(
         bucket.intensiveSessions += 1
       }
 
-      totalZones.I1 += totals.zoneSeconds.I1
-      totalZones.I2 += totals.zoneSeconds.I2
-      totalZones.I3 += totals.zoneSeconds.I3
-      totalZones.I4 += totals.zoneSeconds.I4
-      totalZones.I5 += totals.zoneSeconds.I5
-      totalZones.Hurtighet += totals.zoneSeconds.Hurtighet
+      leggTilSoner(totalZones, totals.zoneSeconds)
       totalSeconds += totals.zoneTotalSec
 
       // Per-movement breakdown — approximate using each activity individually.
@@ -2793,12 +2754,7 @@ export async function getIntensityDistribution(
           zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
           total_seconds: 0,
         }
-        row.zones.I1 += subTotals.zoneSeconds.I1
-        row.zones.I2 += subTotals.zoneSeconds.I2
-        row.zones.I3 += subTotals.zoneSeconds.I3
-        row.zones.I4 += subTotals.zoneSeconds.I4
-        row.zones.I5 += subTotals.zoneSeconds.I5
-        row.zones.Hurtighet += subTotals.zoneSeconds.Hurtighet
+        leggTilSoner(row.zones, subTotals.zoneSeconds)
         row.total_seconds += subTotals.zoneTotalSec
         movementMap.set(a.movement_name, row)
       }
@@ -4492,12 +4448,7 @@ export async function getCustomBreakdown(
           const t = computeActivityTotals([like], heartZones)
           if (t.totalSeconds <= 0) continue
           bucket.total_seconds += t.totalSeconds
-          bucket.endurance_zone_seconds.I1 += t.zoneSeconds.I1
-          bucket.endurance_zone_seconds.I2 += t.zoneSeconds.I2
-          bucket.endurance_zone_seconds.I3 += t.zoneSeconds.I3
-          bucket.endurance_zone_seconds.I4 += t.zoneSeconds.I4
-          bucket.endurance_zone_seconds.I5 += t.zoneSeconds.I5
-          bucket.endurance_zone_seconds.Hurtighet += t.zoneSeconds.Hurtighet
+          leggTilSoner(bucket.endurance_zone_seconds, t.zoneSeconds)
           enduranceInUse.add(cls.name)
         } else {
           const sec = Number(a.duration_seconds) || 0

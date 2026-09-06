@@ -1,5 +1,6 @@
 'use server'
 
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
@@ -27,7 +28,7 @@ interface Bucket {
   sessions: number
   i3i4Minutes: number
   perSport: Record<string, number>      // sport → minutter
-  perZone: Record<string, number>       // I1..I5+Hurtighet → minutter
+  perZone: Record<string, number>       // I1..I8+Hurtighet → minutter
 }
 
 export interface PlanVsActualResult {
@@ -35,7 +36,7 @@ export interface PlanVsActualResult {
   actual: Bucket
 }
 
-const ZONE_NAMES = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
+const ZONE_NAMES = ALL_ZONE_NAMES // bolk 7: I6–I8 med
 
 function emptyBucket(): Bucket {
   return {

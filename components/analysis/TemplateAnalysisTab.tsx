@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import Link from 'next/link'
 import {
   ResponsiveContainer, LineChart, Line, ScatterChart, Scatter,
@@ -42,11 +43,11 @@ function formatEpochAxis(ms: number): string {
 function ZoneBar({ zones, height = 10 }: { zones: OverviewZoneSeconds; height?: number }) {
   const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + (zones.I6 ?? 0) + (zones.I7 ?? 0) + (zones.I8 ?? 0) + zones.Hurtighet
   if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
-  const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+  const keys = ALL_ZONE_NAMES // bolk 7: I6–I8 med
   return (
     <div style={{ display: 'flex', width: '100%', height, backgroundColor: 'var(--flate-3)' }}>
       {keys.map(k => {
-        const pct = (zones[k] / total) * 100
+        const pct = ((zones[k] ?? 0) / total) * 100
         if (pct <= 0) return null
         return <div key={k} style={{ width: `${pct}%`, backgroundColor: CHART_ZONE_COLORS[k] }} />
       })}
@@ -187,10 +188,10 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
         <ZoneBar zones={template.avg_zones} height={18} />
         <div className="flex flex-wrap gap-3 mt-2 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          {(['I1','I2','I3','I4','I5','Hurtighet'] as const).map(k => (
+          {ALL_ZONE_NAMES.filter(k => !['I6', 'I7', 'I8', 'Hurtighet'].includes(k) || (template.avg_zones[k] ?? 0) > 0).map(k => (
             <div key={k} className="flex items-center gap-1">
               <span style={{ width: 10, height: 10, backgroundColor: CHART_ZONE_COLORS[k] }} />
-              <span>{k}: {formatDuration(template.avg_zones[k])}</span>
+              <span>{k}: {formatDuration(template.avg_zones[k] ?? 0)}</span>
             </div>
           ))}
         </div>

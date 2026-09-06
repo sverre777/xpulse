@@ -98,6 +98,11 @@ export const GRAFER: Record<string, GrafDef> = {
   klokke_suffer_score: G('klokkedata', 'Suffer score'),
   klokke_cadence: G('klokkedata', 'Kadens-utvikling'),
   klokkedata_dekning: G('klokkedata', 'Klokkesync-dekning'),
+  // Bolk 7: rå klokkedata — utvikling bor i Prestasjon, NP/IF + watt-soner i Terskel (lenket).
+  klokke_pace_curve: G('klokkedata', 'Pace-kurve'),
+  klokke_hoydemeter_per_uke: G('klokkedata', 'Høydemeter per uke'),
+  klokke_fart_ved_puls: G('klokkedata', 'Fart ved gitt puls', { config: true }),
+  klokke_watt_per_kg: G('klokkedata', 'Watt/kg per økt'),
 
   // ── Belastning ──
   belastning_fitness_fatigue_form: G('belastning', 'Belastningskurver (CTL/ATL/TSB)'),
@@ -262,6 +267,9 @@ export const GRAFER: Record<string, GrafDef> = {
   bevegelse_snittpuls: G('per_bevegelsesform', 'Snittpuls (bev.form)'),
   bevegelse_snittempo: G('per_bevegelsesform', 'Snittempo (bev.form)'),
   bevegelse_snittwatt: G('per_bevegelsesform', 'Snittwatt (bev.form)'),
+  // Bolk 7
+  bevegelse_kadens: G('per_bevegelsesform', 'Kadens over tid (bev.form)'),
+  bevegelse_hoydemeter: G('per_bevegelsesform', 'Høydemeter per uke (bev.form)'),
 
   // ── Intensitetsfordeling ──
   intensity_zones_per_week: G('intensitet', 'Sonefordeling per uke'),

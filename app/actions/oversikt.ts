@@ -1,10 +1,11 @@
 'use server'
 
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
 import type { Sport, WorkoutType } from '@/lib/types'
 import { toISO, mondayOf, addDays, isoWeekNum } from '@/lib/season-calendar'
-import { computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
+import { hoyIntensitetSek, computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
 import { getHelseOversikt, type HelseOversiktData } from './helse-oversikt'
 import { getWorkoutKlokkesyncData, type WorkoutKlokkesyncData } from './workout-klokkesync'
 import { beregnSoneTss } from '@/lib/belastning'
@@ -325,7 +326,8 @@ export interface OversiktData {
 
 // ── Hjelpere ────────────────────────────────────────
 
-const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+// Bolk 7: ALLE soner (I6–I8 er intensitetsmerker over I5 og telte ikke før).
+const ZONE_KEYS = ALL_ZONE_NAMES
 type ZoneKey = (typeof ZONE_KEYS)[number]
 
 function zeroZones(): OversiktZoneSeconds {
@@ -358,13 +360,13 @@ function accumulateZonesFromActivities(
   }
 }
 
-// I3+I4+I5+Hurtighet sekunder for én workout (verdier er allerede sekunder fra phase 64).
+// I3 og opp (I3–I8 + Hurtighet) sekunder for én workout (verdier er allerede sekunder fra phase 64).
 function hardSecondsForWorkout(
   activities: { zones: Record<string, number> | null | undefined }[],
 ): number {
   const agg = zeroZones()
   accumulateZonesFromActivities(activities, agg)
-  return agg.I3 + agg.I4 + agg.I5 + agg.Hurtighet
+  return agg.I3 + hoyIntensitetSek(agg)
 }
 
 /** HJEM v2 bolk 0: skudd/førte/treff over rader — uavhengig av OversiktShots. */

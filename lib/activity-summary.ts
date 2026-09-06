@@ -64,6 +64,17 @@ export function emptyZoneSeconds(): Record<ExtendedZoneName, number> {
   return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
 }
 
+/** Analyse v2 bolk 7: legg ALLE soner (I1–I8 + Hurtighet) fra `fra` til `into`.
+    Erstatter håndskrevne I1…I5-summer som stille mistet I6–I8 (Sverre 6. sep). */
+export function leggTilSoner(into: Record<ExtendedZoneName, number>, fra: Partial<Record<ExtendedZoneName, number>>): void {
+  for (const k of ALL_ZONE_NAMES) into[k] += fra[k] ?? 0
+}
+
+/** Sekunder i høy intensitet: I4 og opp (I6–I8 er intensitetsmerker over I5) + Hurtighet. */
+export function hoyIntensitetSek(z: Partial<Record<ExtendedZoneName, number>>): number {
+  return (z.I4 ?? 0) + (z.I5 ?? 0) + (z.I6 ?? 0) + (z.I7 ?? 0) + (z.I8 ?? 0) + (z.Hurtighet ?? 0)
+}
+
 export function emptyTotals(): ActivityTotals {
   return {
     totalSeconds: 0,

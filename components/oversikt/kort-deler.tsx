@@ -12,9 +12,11 @@
 
 import type { OversiktShots, OversiktZoneSeconds } from '@/app/actions/oversikt'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { COLOR_PRONE, COLOR_STANDING } from '@/components/analysis/SkytingSummaryCards'
 
-export const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
+// Bolk 7: ALLE soner — synlige = de med tid, så I6–I8 vises bare når de er ført.
+export const ZONE_KEYS = ALL_ZONE_NAMES
 const FONT = "'Barlow Condensed', sans-serif"
 
 export function fmtHM(seconds: number): string {

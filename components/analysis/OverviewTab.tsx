@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   LineChart, Line, Legend,
@@ -29,7 +31,8 @@ const MOVEMENT_PALETTE = [
   '#E11D48', '#0EA5E9', '#84CC16', '#F97316', '#EC4899',
 ]
 
-const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+// Bolk 7: ALLE soner — I6–I8 (utvidet skala) telte ikke i Oversikt før.
+const ZONE_KEYS = ALL_ZONE_NAMES
 
 function paletteFor(index: number): string {
   return MOVEMENT_PALETTE[index % MOVEMENT_PALETTE.length]
@@ -84,8 +87,8 @@ const EMPTY = (
 
 // Mini horisontal sone-bar (render inne i MetricCard).
 function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
-  const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
-  const total = keys.reduce((s, k) => s + zones[k], 0)
+  const keys = ALL_ZONE_NAMES
+  const total = keys.reduce((s, k) => s + (zones[k] ?? 0), 0)
   if (total <= 0) return <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Ingen sonedata</p>
 
   return (
@@ -282,16 +285,17 @@ export function OverviewHoursPerWeek({ stats }: { stats: WorkoutStats }) {
 }
 
 export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
-  const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
-  const zoneData = stats.weeks.map(w => ({
-    label: w.label,
-    I1: Math.round(w.zones.I1 / 60),
-    I2: Math.round(w.zones.I2 / 60),
-    I3: Math.round(w.zones.I3 / 60),
-    I4: Math.round(w.zones.I4 / 60),
-    I5: Math.round(w.zones.I5 / 60),
-    Hurtighet: Math.round(w.zones.Hurtighet / 60),
-  }))
+  // Sonespråket (5b): med utvidet skala legges eldre Hurtighet i I7 med synlig
+  // fotnote — samme regel som Per bev.form og Klokkedata (aldri stille blanding).
+  const utvidet = useUtvidetSkala()
+  const flytt = utvidet === true
+  const zoneData = stats.weeks.map(w => {
+    const rad: Record<string, string | number> = { label: w.label }
+    for (const k of ALL_ZONE_NAMES) rad[k] = Math.round((w.zones[k] ?? 0) / 60)
+    if (flytt) { rad.I7 = Math.round(((w.zones.I7 ?? 0) + w.zones.Hurtighet) / 60); rad.Hurtighet = 0 }
+    return rad
+  })
+  const harFlyttet = flytt && stats.weeks.some(w => w.zones.Hurtighet > 0)
   return (
     <ChartWrapper chartKey="overview_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter — OLT I-skala">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -306,6 +310,11 @@ export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
           ))}
         </BarChart>
       </ResponsiveContainer>
+      {harFlyttet && (
+        <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+          I7 inkluderer eldre Hurtighet-føringer (lagret urørt).
+        </p>
+      )}
     </ChartWrapper>
   )
 }
@@ -380,7 +389,7 @@ export function oversiktKortListe(overview: AnalysisOverview, canSeeHealthData: 
     { key: 'oversikt_konkurranser', gruppe: 'hoved', node: <MetricCard chartKey="oversikt_konkurranser" label="Konkurranser" value={String(overview.current.competitions.length)}
       sublabel={prev ? `Forrige periode: ${prev.competitions.length}` : null} accent="#D4A017" /> },
     { key: 'oversikt_sonefordeling', gruppe: 'sone', node: <MetricCard chartKey="oversikt_sonefordeling" label="Sonefordeling"
-      value={formatDuration(ZONE_KEYS.reduce((s, k) => s + overview.current.zone_seconds[k], 0))} sublabel="Samlet i sone-område" accent="#8B5CF6">
+      value={formatDuration(ZONE_KEYS.reduce((s, k) => s + (overview.current.zone_seconds[k] ?? 0), 0))} sublabel="Samlet i sone-område" accent="#8B5CF6">
       <ZoneBar zones={overview.current.zone_seconds} /></MetricCard> },
     { key: 'oversikt_bevegelsesformer', gruppe: 'sone', node: <MetricCard chartKey="oversikt_bevegelsesformer" label="Bevegelsesformer"
       value={String(overview.current.movement_breakdown.length)} sublabel="Topp 6 i perioden" accent="#EC4899">

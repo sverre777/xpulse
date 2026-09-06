@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getPlanVsActual, type PlanVsActualResult } from '@/app/actions/plan-vs-actual'
 import { SPORTS } from '@/lib/types'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import type { DateRange } from './date-range'
 
 interface Props {
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const SPORT_LABEL = new Map<string, string>(SPORTS.map(s => [s.value, s.label]))
-const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
+const ZONE_KEYS = ALL_ZONE_NAMES // bolk 7: I6–I8 med (rader uten verdi skjules)
 
 function fmtMinutes(mins: number): string {
   if (mins <= 0) return '0t'

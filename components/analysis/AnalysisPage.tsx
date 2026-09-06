@@ -271,7 +271,7 @@ function AnalysisPageInner({
 
   const hentFaneData = (k: FaneDataKey): Promise<unknown> => {
     switch (k) {
-      case 'klokkedata': return getKlokkedataTrender(range.from, range.to, sportFilter)
+      case 'klokkedata': return getKlokkedataTrender(range.from, range.to, sportFilter, targetUserId)
       case 'belastning': return getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
       case 'prestasjon': return getPrestasjonAnalyse(range.from, range.to, targetUserId)
       case 'terskel': return getTerskelAnalysis(range.from, range.to, sportFilter)
@@ -288,7 +288,7 @@ function AnalysisPageInner({
       case 'ernering': return getNutritionAnalysis(range.from, range.to, targetUserId)
       case 'vaer': return getWeatherAnalysis(range.from, range.to, targetUserId)
       case 'hoyde_varme': return getAltitudeHeatAnalysis(range.from, range.to, targetUserId)
-      case 'per_bevegelsesform': return getMovementAnalysis(range.from, range.to, defaultMovementForSport(overview.primarySport))
+      case 'per_bevegelsesform': return getMovementAnalysis(range.from, range.to, defaultMovementForSport(overview.primarySport), targetUserId)
       case 'intensitet': return getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
     }
   }
@@ -468,6 +468,7 @@ function AnalysisPageInner({
                 from={range.from}
                 to={range.to}
                 availableMovements={cache.per_bevegelsesform.availableMovements}
+                targetUserId={targetUserId}
               />
             : <LoadingStub label="Laster bevegelsesdata…" />
         )}

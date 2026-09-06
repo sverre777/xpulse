@@ -23,13 +23,15 @@ import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shootin
 import { seriesToLegacyAggregates, serieRadTilDb, type SerieDbRad } from '@/lib/shooting'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
 
 // Serialiser sone-tid til jsonb-format. Lagres som SEKUNDER fra phase 64
 // (tidligere heltall-minutter). Input fra UI er MM:SS-string (eller "60" =
 // 60 min) som parses via parseActivityDuration. Returnerer null hvis ingen
-// soner har verdi. Inkluderer Hurtighet — en 6. sone som føres manuelt.
-const ZONE_KEYS_ALL = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+// soner har verdi. Inkluderer Hurtighet og I6–I8 (utvidet skala, fase 111) —
+// før bolk 7 falt I6–I8-minuttene stille bort ved lagring.
+const ZONE_KEYS_ALL = ALL_ZONE_NAMES
 
 function serializeZones(z: ActivityZoneMinutes | null | undefined): Record<string, number> | null {
   if (!z) return null

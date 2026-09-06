@@ -18,6 +18,8 @@ import {
 } from '@/app/actions/analysis'
 import { SPORTS, SURFACE_SUMMER, SURFACE_WINTER, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
+import { getOversiktStatus } from '@/app/actions/oversikt-status'
+import type { OversiktStatus } from '@/lib/oversikt-status-type'
 import { FavoritesProvider, useFavorites } from './FavoritesContext'
 import { FavoritterTab } from './FavoritterTab'
 import { dataForGraf, losGrafNokkel, type FaneKey } from '@/lib/graf-register'
@@ -167,7 +169,7 @@ function LoadingStub({ label }: { label: string }) {
 }
 
 export function AnalysisPage({
-  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true, harSkiskyting = false, harStyrke = false,
+  initialStats, initialOverview, initialStatus = null, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true, harSkiskyting = false, harStyrke = false,
 }: {
   /** Skyting kun for skiskyttere: «Skyting-dybde» og skytefavoritter bare når personen har skiskyting. */
   harSkiskyting?: boolean
@@ -175,6 +177,8 @@ export function AnalysisPage({
   harStyrke?: boolean
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
+  /** BOLK A: statuskortets tall, hentet server-side i samme pakke som stats/overview. */
+  initialStatus?: OversiktStatus | null
   initialRange: DateRange
   /** Fase 122: nøkkel + lagret oppsett. I trenervisning er dette UTØVERENS favoritter (lesing). */
   initialFavorites?: Pick<FavoriteChart, 'chart_key' | 'config'>[]
@@ -193,6 +197,7 @@ export function AnalysisPage({
         harStyrke={harStyrke}
         initialStats={initialStats}
         initialOverview={initialOverview}
+        initialStatus={initialStatus}
         initialRange={initialRange}
         targetUserId={targetUserId}
         canSeeHealthData={canSeeHealthData}
@@ -202,12 +207,13 @@ export function AnalysisPage({
 }
 
 function AnalysisPageInner({
-  initialStats, initialOverview, initialRange, targetUserId, canSeeHealthData, harSkiskyting = false, harStyrke = false,
+  initialStats, initialOverview, initialStatus = null, initialRange, targetUserId, canSeeHealthData, harSkiskyting = false, harStyrke = false,
 }: {
   harSkiskyting?: boolean
   harStyrke?: boolean
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
+  initialStatus?: OversiktStatus | null
   initialRange: DateRange
   targetUserId?: string
   canSeeHealthData: boolean
@@ -224,6 +230,8 @@ function AnalysisPageInner({
   const [range, setRangeState] = useState<DateRange>(initialRange)
   const [stats, setStats] = useState<WorkoutStats>(initialStats)
   const [overview, setOverview] = useState<AnalysisOverview>(initialOverview)
+  // BOLK A: statuskortet henter i SAMME runde som stats/overview — aldri per boks.
+  const [status, setStatus] = useState<OversiktStatus | null>(initialStatus)
   const [sportFilter, setSportFilterState] = useState<Sport | null>(null)
   // Fase 16b: føre-filter for belastning/intensitet-fanene (klient-valgt).
   const [surfaceFilter, setSurfaceFilterState] = useState<string | null>(null)
@@ -266,14 +274,16 @@ function AnalysisPageInner({
     }
     startTransition(async () => {
       setError(null)
-      const [s, o] = await Promise.all([
+      const [s, o, st] = await Promise.all([
         getWorkoutStats(range.from, range.to),
         getAnalysisOverview(range.from, range.to, sportFilter),
+        getOversiktStatus(range.from, range.to, sportFilter, targetUserId),
       ])
       if ('error' in s) { setError(s.error); return }
       if ('error' in o) { setError(o.error); return }
       setStats(s)
       setOverview(o)
+      setStatus('error' in st ? null : st)
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to, sportFilter])
@@ -460,7 +470,7 @@ function AnalysisPageInner({
         )}
         {tab === 'oversikt' && (
           <div className="space-y-5">
-            <OverviewTab stats={stats} overview={overview} analysisRange={range} targetUserId={targetUserId} canSeeHealthData={canSeeHealthData} />
+            <OverviewTab stats={stats} overview={overview} status={status} harSkiskyting={harSkiskyting} analysisRange={range} targetUserId={targetUserId} canSeeHealthData={canSeeHealthData} />
             {/* Sesong mot sesong (bolk 4) — samme komponent står også
                 nederst under Årsplan (avtalt unntak fra én-plassering). */}
             <SesongSammenligning targetUserId={targetUserId} />

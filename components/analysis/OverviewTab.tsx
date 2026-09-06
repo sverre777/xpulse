@@ -19,6 +19,8 @@ import { KortGruppe } from './KortGruppe'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { VolumeProgressBar } from './VolumeProgressBar'
 import { PlanVsActualCard } from './PlanVsActualCard'
+import { StatusKort, StatusKortSelvhentende } from './StatusKort'
+import type { OversiktStatus } from '@/lib/oversikt-status-type'
 import dynamic from 'next/dynamic'
 // Lazy: sesong-grafen bærer recharts og hører til favoritt-rendringen (bolk 1).
 const SesongSammenligningLazy = dynamic(() => import('./SesongSammenligning').then(m => ({ default: m.SesongSammenligning })), { ssr: false })
@@ -143,13 +145,16 @@ interface OverviewTabProps {
   stats: WorkoutStats
   overview?: AnalysisOverview | null
   analysisRange: DateRange
+  /** BOLK A: statuskortets tall — hentet i SAMME kallpakke som fanen (aldri per boks). */
+  status?: OversiktStatus | null
+  harSkiskyting?: boolean
   targetUserId?: string
   // Trener-view: false hvis utøver ikke har opt'et inn på helsedata-deling.
   // Skjuler helse-KPI-raden (HRV/RHR/søvn/vekt). Default true for self-view.
   canSeeHealthData?: boolean
 }
 
-export function OverviewTab({ stats, overview, analysisRange, targetUserId, canSeeHealthData = true }: OverviewTabProps) {
+export function OverviewTab({ stats, overview, analysisRange, status = null, harSkiskyting = false, targetUserId, canSeeHealthData = true }: OverviewTabProps) {
   const [volumePlans, setVolumePlans] = useState<MonthlyVolumePlan[]>([])
 
   useEffect(() => {
@@ -171,6 +176,10 @@ export function OverviewTab({ stats, overview, analysisRange, targetUserId, canS
 
   return (
     <div className="space-y-5">
+      {/* BOLK A: «STATUS NÅ» øverst — alt som lå her fra før ligger uendret under. */}
+      {overview && (
+        <StatusKort overview={overview} status={status} range={analysisRange} harSkiskyting={harSkiskyting} targetUserId={targetUserId} />
+      )}
       {plannedHours > 0 && (
         <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />
       )}
@@ -464,6 +473,7 @@ export function renderFavoritt(key: string, data: { stats: WorkoutStats; overvie
     case 'overview_intensive_sessions': return <OverviewIntensiveSessions stats={data.stats} />
     case 'overview_training_vs_rest_vs_sickness': return <OverviewTrainingVsRestVsSickness weekly={data.overview.weekly_distribution} />
     case 'overview_custom_breakdown': return <CustomBreakdownChart analysisRange={ctx.range} targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
+    case 'oversikt_status_kort': return <StatusKortSelvhentende overview={data.overview} range={ctx.range} targetUserId={ctx.targetUserId} />
     case 'oversikt_plan_vs_faktisk': return <PlanVsActualCard range={ctx.range} targetUserId={ctx.targetUserId} />
     case 'oversikt_sesong_mot_sesong': return <SesongSammenligningLazy targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
     default: return key.startsWith('oversikt_') || key.startsWith('overview_') ? <OversiktKort overview={data.overview} canSeeHealthData={ctx.canSeeHealthData} bare={key} /> : null

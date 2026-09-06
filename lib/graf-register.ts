@@ -74,6 +74,8 @@ export const GRAFER: Record<string, GrafDef> = {
   overview_average_energy: G('oversikt', 'Snitt overskudd 🙂'),
   overview_average_stress: G('oversikt', 'Snitt stress 😰'),
   overview_custom_breakdown: G('oversikt', 'Custom graf — fleksibel nedbryting', { data: 'selv', config: true }),
+  // BOLK A (6. sep): «STATUS NÅ»-kortet øverst i Oversikt. Boksene får egne nøkler i A2/A3.
+  oversikt_status_kort: G('oversikt', 'Status nå (statuskortet)'),
   oversikt_hovedtall: G('oversikt', 'Hovedtall (tid · km · økter · konkurranser)'),
   oversikt_total_tid: G('oversikt', 'Total tid'),
   oversikt_total_km: G('oversikt', 'Total km'),

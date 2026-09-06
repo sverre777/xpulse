@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { harSkiskyting, sporterFraProfil } from '@/lib/har-skiskyting'
 import { LoadError } from '@/components/ui/LoadError'
 import { getFavoriteCharts } from '@/app/actions/favorites'
+import { getOversiktStatus } from '@/app/actions/oversikt-status'
 import { getCoachCanSeeHealthDataForAthlete } from '@/app/actions/coach-data-permissions'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
 import { rangeFromPreset } from '@/components/analysis/date-range'
@@ -42,9 +43,11 @@ export async function AnalysePageView({ viewContext }: Props) {
       : Promise.resolve(true)
 
     const supabase = await createClient()
-    const [stats, overview, favoritesRes, canSeeHealthData, profilRes, harStyrke] = await Promise.all([
+    const [stats, overview, statusRes, favoritesRes, canSeeHealthData, profilRes, harStyrke] = await Promise.all([
       getWorkoutStats(range.from, range.to, targetId),
       getAnalysisOverview(range.from, range.to, null, targetId),
+      // BOLK A: statuskortet er med i samme pakke — ingen ekstra runde fra klienten.
+      getOversiktStatus(range.from, range.to, null, targetId),
       // Fase 122: i trenervisning er dette utøverens favoritter (lesing).
       getFavoriteCharts(targetId),
       canSeeHealthDataPromise,
@@ -80,6 +83,7 @@ export async function AnalysePageView({ viewContext }: Props) {
         harStyrke={harStyrke}
         initialStats={stats as Exclude<typeof stats, { error: string }>}
         initialOverview={overview as Exclude<typeof overview, { error: string }>}
+        initialStatus={'error' in statusRes ? null : statusRes}
         initialRange={range}
         initialFavorites={initialFavorites}
         targetUserId={targetId}

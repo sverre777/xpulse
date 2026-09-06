@@ -1,6 +1,7 @@
 'use client'
 
 import { useErMobilNav } from '@/lib/er-app'
+import { GlassTopp } from './GlassTopp'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -95,6 +96,10 @@ export function MainNav({
   const harPlussKnapp = onPlan || pathname === '/app/oversikt' || pathname === '/app/dagbok' || pathname.startsWith('/app/dagbok/')
 
   const glassNav = useErMobilNav()
+  // Navigasjon v2 bolk 2: på app-mobil erstattes hele mobil-linja av glass-topplinja.
+  if (glassNav) {
+    return <GlassTopp rolle={activeRole === 'coach' ? 'coach' : 'athlete'} userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} klokkesyncBadge={klokkesyncBadge} />
+  }
   if (isMobile) {
     return (
       <>

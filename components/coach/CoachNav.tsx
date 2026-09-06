@@ -1,6 +1,7 @@
 'use client'
 
 import { useErMobilNav } from '@/lib/er-app'
+import { GlassTopp } from '@/components/layout/GlassTopp'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -69,6 +70,9 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
   useEffect(() => { setMenuOpen(false) }, [pathname])
 
   const glassNav = useErMobilNav()
+  if (glassNav) {
+    return <GlassTopp rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />
+  }
   if (isMobile) {
     return (
       <>

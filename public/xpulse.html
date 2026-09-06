@@ -527,6 +527,13 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 /* skiskyting-spotlight */
 /* bolk 6: KUN stripen — fragmentets «+ Legg til serie» og sumlinja skjules på forsiden */
 .eks[data-eks="skytestripe"] > div > button, .eks[data-eks="skytestripe"] > div > div:not(:has(input)){display:none}
+.blinkwrap{display:flex;gap:16px;align-items:center;margin-top:10px}
+.blinkstats{font-size:13px;color:var(--dim);line-height:2}
+.blinkstats b{color:var(--paper)}
+.skigrid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-top:8px}
+@media(max-width:900px){.skigrid{grid-template-columns:1fr}}
+html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-origin:center;
+html.js .ishot.vis{opacity:1;transform:scale(1)}
 .ski{background:linear-gradient(160deg,var(--bg5),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 
 /* trener */
@@ -1032,7 +1039,8 @@ html.js .istep.vis{opacity:1}
 
 
 @media (prefers-reduced-motion: reduce){
-  .ipane,.istep,.idot{transition:none !important}
+  .ipane,.ishot,.istep,.idot{transition:none !important}
+  html.js .ishot{opacity:1;transform:none}
   html.js .istep{opacity:1}
 }
 
@@ -2450,14 +2458,33 @@ html.js .istep.vis{opacity:1}
 
 <!-- ═══════════ NY SEKSJON: SKISKYTING-SPOTLIGHT ═══════════ -->
 <section class="ski" id="skiskyting">
-  <!-- FORSIDE v7 bolk 6 (Sverre 6. sep): under overskriften står KUN skytestripen — den ekte serie-raden fra
-       økt-skjemaet (components/workout/SerieListe), eksportert som fragment. Vimpel-kortene, sikt-chipsene,
-       blinken og plott-kortet er tatt ut. -->
+  <!-- FORSIDE v7 bolk 6 (Sverre 6. sep): venstre = lead + skytestripen (den ekte serie-raden fra økt-skjemaet,
+       components/workout/SerieListe, eksportert som fragment — uten «+ Legg til serie» og sumlinja); høyre =
+       blinken med skuddene som før. Vimpel-kortene, sikt-chipsene og plott-kortet er tatt ut. -->
   <div class="wrap">
     <div class="label" style="color:var(--red)">Skiskyting - verktøy ingen andre har</div>
     <h2>FØR SKYTINGEN SOM<br><span style="color:var(--red)">PÅ STANDPLASS.</span></h2>
-    <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
-    <div class="eks" data-eks="skytestripe" style="--eks-h:72px;margin-top:26px"></div>
+    <div class="skigrid">
+      <div>
+        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
+        <div class="eks" data-eks="skytestripe" style="--eks-h:72px;margin-top:22px"></div>
+      </div>
+      <div class="blinkwrap" id="shootSec">
+        <svg width="230" height="230" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="86" fill="var(--bg3)" stroke="var(--line2)" stroke-width="2"/>
+          <circle cx="100" cy="100" r="40" fill="var(--bg8)" stroke="var(--mute4)" stroke-width="2"/>
+          <circle class="ishot" cx="88" cy="86" r="8" fill="#28A86E"/><circle class="ishot" cx="112" cy="104" r="8" fill="#28A86E"/>
+          <circle class="ishot" cx="96" cy="118" r="8" fill="#28A86E"/><circle class="ishot" cx="118" cy="80" r="8" fill="#28A86E"/>
+          <circle class="ishot ismiss" cx="150" cy="62" r="8" fill="#E23A5A"/>
+        </svg>
+        <div class="blinkstats">
+          Serie 2 · Stående<br>
+          <b>4/5 treff</b> · skytetid <b>28,4 s</b><br>
+          puls inn <b>168</b> · vind <b>3 H</b><br>
+          <span style="color:var(--mute);font-size:12px">Bommen plottes - mønsteret avslører seg selv.</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -2826,10 +2853,11 @@ html.js .istep.vis{opacity:1}
       if(!e.isIntersecting) return;
       var el=e.target;
       io.unobserve(el);
+      if(el.id==='shootSec') stagger(el,'.ishot',140);
       if(el.id==='flowSec') stagger(el,'.istep',180);
     });
   },{threshold:.35});
-  ['flowSec'].forEach(function(id){
+  ['shootSec','flowSec'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) io.observe(el);
   });

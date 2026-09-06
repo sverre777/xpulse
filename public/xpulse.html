@@ -1583,6 +1583,50 @@ html.js .solution.vis{opacity:1;transform:none}
   --tonet-lilla-1: #E5DBE5;
   --tonet-lilla-2: #EDE5EB;
 }
+/* ═══ FORSIDE v7 bolk 0 — ÉN scrollmotor (fasit design/xpulse-flyten-scroll-design.html).
+   .flyt-scrolly (data-n) er N × 100vh + 40vh høy; .flyt-sticky er festet i 100vh med
+   .hd øverst, .stegliste venstre (.sl-knapper), .paneler høyre (.pan) og .flyt-hint
+   nederst. Motoren (nederst i fila) deler scrollposisjonen i N segmenter → data-step
+   på containeren og on/done/gone på .sl/.pan. Kun transform/opacity animeres.
+   ≤ 900 px: ingen festing — .flyt-mobil m/ .mflyt som glir inn fra siden (én gang).
+   prefers-reduced-motion: alt statisk. ═══ */
+.flyt-scrolly{position:relative;height:calc(4 * 100vh + 40vh)}
+.flyt-sticky{position:sticky;top:0;height:100vh;display:grid;grid-template-columns:minmax(300px,.85fr) 1.25fr;grid-template-rows:auto 1fr auto;gap:0 40px;align-items:center;max-width:1180px;margin:0 auto;padding:0 28px;box-sizing:border-box}
+.flyt-sticky .hd{grid-column:1/-1;align-self:start;padding-top:56px}
+.flyt-sticky .hd h2{margin:10px 0 8px}
+.flyt-sticky .hd .lead{font-size:15px}
+.stegliste{display:flex;flex-direction:column;gap:6px;align-self:center}
+.sl{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;text-align:left;background:transparent;border:1px solid transparent;border-radius:14px;padding:12px 14px 12px 12px;cursor:pointer;color:var(--paper);position:relative;opacity:.45;transition:opacity .35s,border-color .35s,background .35s,transform .35s;transform:translateX(-6px)}
+.sl .fnum{width:44px;height:44px;font-size:15px;border-color:var(--line2);color:var(--dim);transition:all .35s}
+.sl .slt b{display:block;font:400 19px/1.05 'Bebas Neue';letter-spacing:.03em}
+.sl .slt small{display:block;color:var(--dim);font-size:13px;line-height:1.35;margin-top:3px;max-height:0;overflow:hidden;transition:max-height .4s,margin .4s}
+.sl.on{opacity:1;transform:none;background:var(--card);border-color:var(--line2)}
+.sl.on .fnum{border-color:var(--orange);color:var(--orange);background:color-mix(in srgb,var(--orange) 12%,transparent)}
+.sl.on .slt small{max-height:60px}
+.sl.done .fnum{border-color:var(--green);color:var(--green)}
+.sl .bar{position:absolute;left:12px;right:14px;bottom:6px;height:2px;background:var(--line);border-radius:1px;overflow:hidden;opacity:0}
+.sl.on .bar{opacity:1}
+.sl .bar s{display:block;height:100%;width:0;background:var(--orange);transition:width .12s linear}
+.paneler{display:grid;align-self:center;align-items:center}
+.pan{grid-area:1/1;opacity:0;transform:translateX(70px) scale(.98);transition:opacity .45s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1);pointer-events:none;will-change:transform,opacity}
+.pan.on{opacity:1;transform:none;pointer-events:auto}
+.pan.gone{opacity:0;transform:translateX(-50px) scale(.98)}
+.pan .app{margin:0;max-height:calc(100vh - 300px);overflow:hidden}
+.pan .ncard{max-height:calc(100vh - 300px);overflow:hidden}
+.hv{display:flex;align-items:center;gap:6px;margin:6px 0 4px;font:600 10.5px/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.hv b{font:700 11px/1 'Barlow Condensed';letter-spacing:.06em;border:1px solid var(--line2);border-radius:999px;padding:5px 9px;color:var(--paper)}
+.hv b.on{border-color:var(--orange);color:var(--orange);background:color-mix(in srgb,var(--orange) 12%,transparent)}
+.flyt-hint{grid-column:1/-1;align-self:end;justify-self:center;padding-bottom:22px;font:600 11px/1 'Barlow Condensed';letter-spacing:.24em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:10px}
+.flyt-hint i{width:18px;height:28px;border:1.5px solid var(--line2);border-radius:10px;position:relative;display:inline-block}
+.flyt-hint i::after{content:'';position:absolute;left:50%;top:6px;width:3px;height:6px;margin-left:-1.5px;border-radius:2px;background:var(--orange);animation:hjul 1.6s infinite}
+@keyframes hjul{0%{transform:translateY(0);opacity:1}70%{transform:translateY(10px);opacity:0}100%{opacity:0}}
+/* mobil / smal: ingen pinning — stegene glir inn fra siden når de kommer i syne */
+.flyt-mobil{display:none;max-width:1180px;margin:0 auto;padding:0 28px}
+.mflyt{opacity:0;transform:translateX(-40px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.7,.2,1);margin-top:28px}
+.mflyt[data-side="r"]{transform:translateX(40px)}
+.mflyt.vis{opacity:1;transform:none}
+@media (max-width:900px){.flyt-scrolly{display:none}.flyt-mobil{display:block}}
+@media (prefers-reduced-motion:reduce){.flyt-scrolly{height:auto}.flyt-sticky{position:static;height:auto;grid-template-columns:1fr}.paneler{display:block}.pan{opacity:1;transform:none;margin-top:18px}.pan .app{max-height:none}.sl{opacity:1;transform:none}.mflyt{opacity:1;transform:none}.flyt-hint{display:none}}
 </style>
 </head>
 <body>
@@ -2590,6 +2634,47 @@ html.js .solution.vis{opacity:1;transform:none}
   document.querySelectorAll('.eks[data-eks]').forEach(function(el){io.observe(el)});
   new MutationObserver(function(){document.querySelectorAll('.eks[data-eks-lastet]').forEach(last)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-tema']});
   matchMedia('(max-width:560px)').addEventListener('change',function(){document.querySelectorAll('.eks[data-eks-lastet]').forEach(last)});
+})();
+</script>
+<script>
+/* ═══ FORSIDE v7 bolk 0 — scrollmotoren. Ingen bibliotek. Én passiv, rAF-throttlet
+   scroll-lytter for alle .flyt-scrolly-seksjoner; stegene (.sl) er knapper som
+   scroller til sitt segment; .mflyt (mobil) får .vis én gang via IntersectionObserver.
+   Reduced motion og ≤ 900 px: motoren rører ingenting. ═══ */
+(function(){
+  var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var secs=[].slice.call(document.querySelectorAll('.flyt-scrolly')).map(function(sc){
+    var sls=[].slice.call(sc.querySelectorAll('.sl')), pans=[].slice.call(sc.querySelectorAll('.pan'));
+    var N=+(sc.dataset.n||sls.length||4);
+    return {sc:sc,sls:sls,pans:pans,N:N,cur:-1};
+  });
+  function setActive(o,i){
+    if(i===o.cur) return;
+    o.sc.dataset.step=i;
+    o.sls.forEach(function(b,k){b.classList.toggle('on',k===i);b.classList.toggle('done',k<i)});
+    o.pans.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('gone',k<i)});
+    o.cur=i;
+  }
+  function onScroll(){
+    if(reduced||innerWidth<=900) return;
+    secs.forEach(function(o){
+      var r=o.sc.getBoundingClientRect(), total=o.sc.offsetHeight-innerHeight;
+      var y=Math.min(Math.max(-r.top,0),total), prog=total>0?y/total:0;
+      var seg=1/o.N, i=Math.min(o.N-1,Math.floor(prog/seg)), inner=(prog-i*seg)/seg;
+      setActive(o,i);
+      var s=o.sls[i]&&o.sls[i].querySelector('.bar s'); if(s) s.style.width=(Math.min(inner,1)*100).toFixed(1)+'%';
+    });
+  }
+  /* rAF-throttlet: scroll-hendelsene samles til én måling per frame (ingen layout-thrash). */
+  var venter=false;
+  function planlegg(){ if(venter) return; venter=true; requestAnimationFrame(function(){ venter=false; onScroll(); }); }
+  addEventListener('scroll',planlegg,{passive:true}); addEventListener('resize',planlegg); onScroll();
+  secs.forEach(function(o){o.sls.forEach(function(b){b.addEventListener('click',function(){
+    var i=+b.dataset.i, total=o.sc.offsetHeight-innerHeight, top=o.sc.getBoundingClientRect().top+scrollY;
+    scrollTo({top:top+total*(i/o.N)+8,behavior:reduced?'auto':'smooth'});
+  })})});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target)}})},{threshold:.18});
+  document.querySelectorAll('.mflyt').forEach(function(el){io.observe(el)});
 })();
 </script>
 </body>

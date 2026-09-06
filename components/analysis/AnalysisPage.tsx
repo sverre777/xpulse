@@ -23,6 +23,7 @@ import { FavoritterTab } from './FavoritterTab'
 import { dataForGraf, losGrafNokkel, type FaneKey } from '@/lib/graf-register'
 import { getHelseOversikt, type HelseOversiktData } from '@/app/actions/helse-oversikt'
 import type { FavoriteChart } from '@/app/actions/favorites'
+import { getHelseBelastning, type HelseBelastning } from '@/app/actions/helse-belastning'
 import { OverviewTab } from './OverviewTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
@@ -227,7 +228,7 @@ function AnalysisPageInner({
     klokkedata: KlokkedataTrender; belastning: BelastningAnalysis; prestasjon: PrestasjonAnalyse; terskel: TerskelAnalysis
     skyting: ShootingDepthAnalysis; sammenlign: WorkoutsForComparison; mal_analyse: TemplateAnalysis; periodisering: PeriodizationOverview
     konkurranser: CompetitionAnalysis; tester_pr: TestsAndPRs; ski_tester: SkiTestAnalysisData; helse: HelseOversiktData
-    helse_korrelasjon: HealthCorrelations; ernering: NutritionAnalysis; vaer: WeatherAnalysis; hoyde_varme: AltitudeHeatAnalysis
+    helse_korrelasjon: HealthCorrelations; helse_belastning: HelseBelastning; ernering: NutritionAnalysis; vaer: WeatherAnalysis; hoyde_varme: AltitudeHeatAnalysis
     per_bevegelsesform: MovementAnalysis; intensitet: IntensityDistribution
   }
   type FaneDataKey = keyof FaneData
@@ -283,6 +284,7 @@ function AnalysisPageInner({
       case 'ski_tester': return getSkiTestAnalysis(range.from, range.to)
       case 'helse': return getHelseOversikt(range.from, range.to, targetUserId)
       case 'helse_korrelasjon': return getHealthCorrelations(range.from, range.to)
+      case 'helse_belastning': return getHelseBelastning(range.from, range.to, targetUserId)
       case 'ernering': return getNutritionAnalysis(range.from, range.to, targetUserId)
       case 'vaer': return getWeatherAnalysis(range.from, range.to, targetUserId)
       case 'hoyde_varme': return getAltitudeHeatAnalysis(range.from, range.to, targetUserId)
@@ -314,6 +316,7 @@ function AnalysisPageInner({
         if (d && d !== 'selv' && d !== 'oversikt') trengs.add(d as FaneDataKey)
       }
     } else if (tab === 'sammenlign') { trengs.add('sammenlign'); trengs.add('mal_analyse'); trengs.add('periodisering') }
+    else if (tab === 'belastning') { trengs.add('belastning'); trengs.add('helse_belastning') }
     else if (tab !== 'oversikt' && tab !== 'helse' && tab !== 'standardokter') trengs.add(tab as FaneDataKey)
     for (const k of trengs) hent(k)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -513,7 +516,7 @@ function AnalysisPageInner({
         )}
         {tab === 'belastning' && (
           cache.belastning
-            ? <BelastningTab data={cache.belastning} />
+            ? <BelastningTab data={cache.belastning} helse={cache.helse_belastning ?? null} />
             : <LoadingStub label="Laster belastning…" />
         )}
         {tab === 'terskel' && (

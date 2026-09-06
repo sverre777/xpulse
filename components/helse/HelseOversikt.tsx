@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea,
 } from 'recharts'
 import { getHelseOversikt, type HelseOversiktData, type HelseDag } from '@/app/actions/helse-oversikt'
 import { settDagsform } from '@/app/actions/health'
@@ -194,9 +194,9 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
           <div style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
             <SeksjonsTittel tittel={`TRENDER — ${periode === '1y' ? '1 ÅR (UKESNITT)' : periode === '7d' ? 'SISTE 7 DAGER' : periode === 'egen' ? 'VALGT PERIODE' : 'SISTE 30 DAGER'}`} merknad={forside ? undefined : 'hold over for verdi per dag'} />
             <div className={forside ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-1 md:grid-cols-3 gap-3.5'} data-helse-trender>
-              <TrendPanel chartKey={forside ? undefined : 'helse_hrv'} navn="HRV" enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} liten={forside} />
-              <TrendPanel chartKey={forside ? undefined : 'helse_resting_hr'} navn="HVILEPULS" enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} liten={forside} />
-              <TrendPanel chartKey={forside ? undefined : 'helse_sovnscore'} navn="SØVNSCORE" enhet="" farge={HELSE_TREND_FARGER.sovnscore} dager={dager} felt="sleep_score" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel chartKey={forside ? undefined : 'helse_hrv'} navn="HRV" hendelser={data.hendelser ?? []} enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel chartKey={forside ? undefined : 'helse_resting_hr'} navn="HVILEPULS" hendelser={data.hendelser ?? []} enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel chartKey={forside ? undefined : 'helse_sovnscore'} navn="SØVNSCORE" hendelser={data.hendelser ?? []} enhet="" farge={HELSE_TREND_FARGER.sovnscore} dager={dager} felt="sleep_score" ukesnitt={periode === '1y'} liten={forside} />
             </div>
           </div>
 
@@ -365,8 +365,10 @@ function Flis({ navn, enhet, felt, sisteMed, snittAv, lavereErBedre = false, som
   )
 }
 
-export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = false, chartKey }: {
+export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = false, chartKey, hendelser = [] }: {
   liten?: boolean
+  /** Bolk 4: sykdom/skade som lag på panelet. */
+  hendelser?: { date: string; type: 'sykdom' | 'skade' }[]
   /** Bolk 1: stjerne på panelet (helse_hrv, helse_resting_hr, helse_sovnscore, helse_body_weight). */
   chartKey?: string
   navn: string
@@ -416,6 +418,9 @@ export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = 
             <LineChart data={punkter} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="dato" hide />
+              {hendelser.filter(h => punkter.some(p => p.dato === h.date)).map((h, i) => (
+                <ReferenceArea key={`h-${i}`} x1={h.date} x2={h.date} fill={h.type === 'sykdom' ? 'rgba(226,58,90,.25)' : 'rgba(255,140,0,.25)'} stroke="none" />
+              ))}
               <YAxis tick={{ ...CHART_AXIS_TICK, fontSize: 10 }} axisLine={CHART_AXIS_LINE}
                 tickLine={false} width={30} domain={['auto', 'auto']} hide={liten} />
               <Tooltip content={<XpTooltip />} cursor={{ stroke: 'var(--line2)', strokeDasharray: '3 3' }}

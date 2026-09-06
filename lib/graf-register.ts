@@ -21,7 +21,7 @@ export type FaneKey =
 export type DataKey =
   | 'oversikt' | 'klokkedata' | 'belastning' | 'prestasjon' | 'terskel' | 'skyting'
   | 'sammenlign' | 'mal_analyse' | 'periodisering' | 'konkurranser' | 'tester_pr' | 'ski_tester'
-  | 'helse' | 'helse_korrelasjon' | 'ernering' | 'vaer' | 'hoyde_varme' | 'per_bevegelsesform' | 'intensitet'
+  | 'helse' | 'helse_korrelasjon' | 'helse_belastning' | 'ernering' | 'vaer' | 'hoyde_varme' | 'per_bevegelsesform' | 'intensitet'
   | 'selv'
 
 export const FANE_NAVN: Record<FaneKey, string> = {
@@ -106,6 +106,19 @@ export const GRAFER: Record<string, GrafDef> = {
   belastning_energy_stress_over_time: G('belastning', 'Overskudd og stress over tid'),
   belastning_rest_day_stats: G('belastning', 'Hviledag-statistikk'),
   belastning_status: G('belastning', 'Belastningsstatus (CTL · ATL · TSB · form)'),
+  // Bolk 4 — helse mot belastning (datasett helse_belastning)
+  belastning_helse_kurver: G('belastning', 'HRV og hvilepuls mot belastning', { data: 'helse_belastning', config: true }),
+  belastning_klar: G('belastning', 'Klar for belastning', { data: 'helse_belastning' }),
+  belastning_korrelasjoner: G('belastning', 'Korrelasjonskort (alle)', { data: 'helse_belastning' }),
+  belastning_korr_hrv_tsb: G('belastning', 'HRV vs form (TSB)', { data: 'helse_belastning' }),
+  belastning_korr_hvilepuls_atl: G('belastning', 'Hvilepuls vs tretthet (ATL)', { data: 'helse_belastning' }),
+  belastning_korr_sovn_opplevd: G('belastning', 'Søvn vs opplevd neste dag', { data: 'helse_belastning' }),
+  belastning_korr_dagsform_ef: G('belastning', 'Dagsform vs EF', { data: 'helse_belastning' }),
+  belastning_korr_sovn_treff: G('belastning', 'Søvn vs treff %', { data: 'helse_belastning' }),
+  belastning_korr_hrv_treff: G('belastning', 'HRV vs treff %', { data: 'helse_belastning' }),
+  belastning_korr_vekt_wattkg: G('belastning', 'Vekt vs watt per kg', { data: 'helse_belastning' }),
+  belastning_rpe_vs_tss: G('belastning', 'Opplevd vs TSS per økt', { data: 'helse_belastning', config: true }),
+  belastning_custom: G('belastning', 'Custom belastningsgraf', { data: 'helse_belastning', config: true }),
   belastning_ctl: G('belastning', 'Fitness (CTL)'),
   belastning_atl: G('belastning', 'Fatigue (ATL)'),
   belastning_tsb: G('belastning', 'Form (TSB)'),
@@ -183,10 +196,10 @@ export const GRAFER: Record<string, GrafDef> = {
   periodisering_total_tss: G('periodisering', 'Total TSS (årsplan)'),
   periodisering_konkurranser: G('periodisering', 'Konkurranser (årsplan)'),
 
-  // ── Standardøkter (bygges om i bolk 6 — favoritt = serie + variabel) ──
-  standardokter_drag_for_drag: G('standardokter', 'Drag for drag', { data: 'selv' }),
-  standardokter_puls_gjennom_okta: G('standardokter', 'Puls gjennom økta', { data: 'selv' }),
-  standardokter_trend_total_tid: G('standardokter', 'Trend — alle gjennomføringer', { data: 'selv' }),
+  // ── Standardøkter (bolk 6): favoritt = serie + variabel; ØktGraf-ene deler komponent med Sammenligning ──
+  standardokter_serie: G('standardokter', 'Standardøkt over tid (serie + variabel)', { data: 'selv', config: true }),
+  standardokter_tabell: G('standardokter', 'Alle gjennomføringer × alle variabler', { data: 'selv', config: true }),
+  standardokter_grafer: G('standardokter', 'Gjennomføringene som ØktGraf (oppå / side om side)', { data: 'selv', config: true }),
 
   // ── Konkurranser ──
   competitions_placement_over_time: G('konkurranser', 'Plasseringer over tid'),
@@ -216,9 +229,6 @@ export const GRAFER: Record<string, GrafDef> = {
   helse_sickness_vs_load: G('helse', 'Sykdom 🤒 vs månedlig belastning', { data: 'helse_korrelasjon' }),
   // Korrelasjonskortene kommer i bolk 4 — nøklene beholdes så gamle stjerner
   // ikke blir «ukjent graf» (viser «Åpne Helse» til grafen finnes).
-  helse_stress_vs_load: G('helse', 'Stress 😰 vs belastning (7d)'),
-  helse_energy_vs_load: G('helse', 'Overskudd 🙂 vs belastning (7d)'),
-  helse_rest_vs_perceived: G('helse', 'Hviledager 🛌 vs opplevd belastning'),
   health_recovery_distribution: G('helse', 'Recovery-fordeling'),
 
   // ── Ernæring ──
@@ -284,6 +294,14 @@ export const NOKKEL_ALIAS: Record<string, string> = {
   sammenlign_pacekurve: 'sammenlign_oktsett',
   sammenlign_laktat: 'sammenlign_oktsett',
   sammenlign_nokkeltall: 'sammenlign_oktsett',
+  // Bolk 6: de tre nakne grafene i Standardøkter er dekket av serie-analysen.
+  standardokter_drag_for_drag: 'standardokter_serie',
+  standardokter_puls_gjennom_okta: 'standardokter_grafer',
+  standardokter_trend_total_tid: 'standardokter_serie',
+  // Bolk 4: de gamle scatter-nøklene uten komponent dekkes av korrelasjonskortene.
+  helse_stress_vs_load: 'belastning_korrelasjoner',
+  helse_energy_vs_load: 'belastning_korrelasjoner',
+  helse_rest_vs_perceived: 'belastning_rpe_vs_tss',
 }
 
 export function losGrafNokkel(key: string): string {

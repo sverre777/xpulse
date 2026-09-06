@@ -46,7 +46,11 @@ export interface SovnStadieIntervall {
   til: number
 }
 
+export interface HelseHendelse { date: string; type: 'sykdom' | 'skade' }
+
 export interface HelseOversiktData {
+  /** Bolk 4: sykdom/skade-dager (day_states) — lag på trendpanelene. */
+  hendelser?: HelseHendelse[]
   /** Regel 20: kortet vises hvis brukeren HAR helsedata i det hele tatt —
    * ikke om valgt periode er tom. */
   harData: boolean
@@ -83,7 +87,7 @@ export async function getHelseOversikt(
   if ('error' in resolved) return { error: resolved.error }
   const userId = resolved.userId
 
-  const [sovnRes, helseRes, merkeRes, dagsformRes] = await Promise.all([
+  const [sovnRes, helseRes, merkeRes, dagsformRes, hendelseRes] = await Promise.all([
     supabase.from('sleep_records')
       .select('date, total_sleep_minutes, deep_minutes, light_minutes, rem_minutes, awake_minutes, sleep_score, sleep_start, sleep_end, sources, updated_at')
       .eq('user_id', userId).gte('date', fra).lte('date', til).order('date'),
@@ -97,7 +101,14 @@ export async function getHelseOversikt(
       .select('date, day_form')
       .eq('user_id', userId).gte('date', fra).lte('date', til)
       .not('day_form', 'is', null),
+    supabase.from('day_states').select('date, state_type').eq('user_id', userId).gte('date', fra).lte('date', til),
   ])
+  const hendelser: HelseHendelse[] = []
+  for (const r of (hendelseRes.data ?? []) as { date: string; state_type: string }[]) {
+    const t = (r.state_type ?? '').toLowerCase()
+    if (t.includes('syk')) hendelser.push({ date: r.date, type: 'sykdom' })
+    else if (t.includes('skade') || t.includes('injur')) hendelser.push({ date: r.date, type: 'skade' })
+  }
 
   type SovnRad = {
     date: string; total_sleep_minutes: number | null; deep_minutes: number | null
@@ -209,5 +220,5 @@ export async function getHelseOversikt(
   }
   if (!harData) return TOM
 
-  return { harData, kilde, dager, sisteNatt, merke }
+  return { harData, kilde, dager, sisteNatt, merke, hendelser }
 }

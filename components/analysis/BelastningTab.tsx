@@ -9,6 +9,8 @@ import type { BelastningAnalysis, FormStatus } from '@/app/actions/analysis'
 import { ChartWrapper } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
 import { KortGruppe } from './KortGruppe'
+import { HelseBelastningSeksjon, HelseMotBelastning, KlarForBelastning, Korrelasjonskort, RpeVsTss, BelastningCustom } from './BelastningBolk4'
+import type { HelseBelastning } from '@/app/actions/helse-belastning'
 import type { ReactNode } from 'react'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE,
@@ -66,7 +68,7 @@ function downloadCsv(filename: string, rows: string[][]) {
   URL.revokeObjectURL(url)
 }
 
-export function BelastningTab({ data }: { data: BelastningAnalysis }) {
+export function BelastningTab({ data, helse }: { data: BelastningAnalysis; helse?: HelseBelastning | null }) {
   if (!data.hasData || data.daily.length === 0) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
@@ -80,11 +82,17 @@ export function BelastningTab({ data }: { data: BelastningAnalysis }) {
   return (
     <div className="space-y-5">
       <CurrentStatus data={data} />
-      <FitnessFatigueChart data={data} />
+      <FitnessFatigueChart data={data} hendelser={helse?.hendelser} />
       <DailyTssChart data={data} />
       <PerceivedVsCalculatedChart data={data} />
       <EnergyStressOverTimeChart data={data} />
       <RestDayStats data={data} />
+      {/* Bolk 4: helse mot belastning — egen datasett (getHelseBelastning), lastes med fanen. */}
+      {helse ? <HelseBelastningSeksjon data={helse} /> : (
+        <div className="py-10 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+          <p className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>Laster helse mot belastning…</p>
+        </div>
+      )}
       <CsvExport data={data} />
       <MethodNote />
     </div>
@@ -109,7 +117,7 @@ export function CurrentStatus({ data, bare }: { data: BelastningAnalysis; bare?:
     </KortGruppe>
   )
 }
-export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
+export function FitnessFatigueChart({ data, hendelser = [] }: { data: BelastningAnalysis; hendelser?: { date: string; type: 'sykdom' | 'skade' }[] }) {
   const rows = useMemo(() => data.daily.map(d => ({
     date: d.date,
     label: formatDateShort(d.date),
@@ -167,6 +175,11 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
               <ReferenceArea key={`alt-${i}`} yAxisId="ctl" x1={b.x1} x2={b.x2}
                 fill="rgba(91, 141, 239, 0.14)" stroke="#5B8DEF" strokeOpacity={0.4} strokeDasharray="3 3"
                 label={{ value: `🏔️ ${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
+            ))}
+            {/* Bolk 4: sykdom/skade som lag — samme på alle belastnings-/helsegrafer. */}
+            {hendelser.filter(h => rows.some(r => r.date === h.date)).map((h, i) => (
+              <ReferenceArea key={`h-${i}`} yAxisId="ctl" x1={formatDateShort(h.date)} x2={formatDateShort(h.date)}
+                fill={h.type === 'sykdom' ? 'rgba(226,58,90,.22)' : 'rgba(255,140,0,.22)'} stroke="none" ifOverflow="extendDomain" />
             ))}
             <ReferenceLine yAxisId="tsb" y={0} stroke="var(--tekst-8-app)" strokeDasharray="2 2" />
             <Tooltip content={<XpTooltip />}
@@ -469,17 +482,31 @@ function MethodNote() {
   )
 }
 
-/** Bolk 1: favoritt-rendring for Belastning-nøklene (Favoritter-fanen). */
-export function renderFavoritt(key: string, data: BelastningAnalysis): ReactNode | null {
+/** Bolk 1: favoritt-rendring for Belastning-nøklene (Favoritter-fanen). Bolk 4-nøklene får
+    datasettet helse_belastning (registeret sier data: 'helse_belastning'). */
+export function renderFavoritt(key: string, data: BelastningAnalysis | HelseBelastning, ctx?: { config?: Record<string, unknown> | null }): ReactNode | null {
+  if (key.startsWith('belastning_helse_') || key.startsWith('belastning_korr') || key === 'belastning_klar' || key === 'belastning_rpe_vs_tss' || key === 'belastning_custom') {
+    const h = data as HelseBelastning
+    if (!('dager' in h)) return null
+    switch (key) {
+      case 'belastning_helse_kurver': return <HelseMotBelastning data={h} initialConfig={ctx?.config} />
+      case 'belastning_klar': return <KlarForBelastning data={h} />
+      case 'belastning_korrelasjoner': return <Korrelasjonskort data={h} />
+      case 'belastning_rpe_vs_tss': return <RpeVsTss data={h} initialConfig={ctx?.config} />
+      case 'belastning_custom': return <BelastningCustom data={h} initialConfig={ctx?.config} />
+      default: return <Korrelasjonskort data={h} bare={key} />
+    }
+  }
+  const b = data as BelastningAnalysis
   switch (key) {
-    case 'belastning_fitness_fatigue_form': return <FitnessFatigueChart data={data} />
-    case 'belastning_daily_tss': return <DailyTssChart data={data} />
-    case 'belastning_perceived_vs_calculated': return <PerceivedVsCalculatedChart data={data} />
-    case 'belastning_energy_stress_over_time': return <EnergyStressOverTimeChart data={data} />
-    case 'belastning_rest_day_stats': return <RestDayStats data={data} />
-    case 'belastning_status': return <CurrentStatus data={data} />
+    case 'belastning_fitness_fatigue_form': return <FitnessFatigueChart data={b} />
+    case 'belastning_daily_tss': return <DailyTssChart data={b} />
+    case 'belastning_perceived_vs_calculated': return <PerceivedVsCalculatedChart data={b} />
+    case 'belastning_energy_stress_over_time': return <EnergyStressOverTimeChart data={b} />
+    case 'belastning_rest_day_stats': return <RestDayStats data={b} />
+    case 'belastning_status': return <CurrentStatus data={b} />
     case 'belastning_ctl': case 'belastning_atl': case 'belastning_tsb': case 'belastning_formstatus':
-      return <CurrentStatus data={data} bare={key} />
+      return <CurrentStatus data={b} bare={key} />
     default: return null
   }
 }

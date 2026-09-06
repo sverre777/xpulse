@@ -4,6 +4,7 @@ import { StarRating } from '@/components/ui/StarRating'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { hentSisteStyrkeokt } from '@/app/actions/strength-session'
 import { saveWorkout, markCompleted } from '@/app/actions/workouts'
 import { listMySessionSeries, createSessionSeries, type StandardSessionSeries } from '@/app/actions/standard-sessions'
 import { getAltitudePeriodForDate } from '@/app/actions/seasons'
@@ -118,6 +119,8 @@ interface WorkoutFormProps {
   // Når satt: trener redigerer utøvers plan. saveWorkout skriver da til utøverens rad,
   // og created_by_coach_id settes til innlogget trener → gir blå markering i Calendar.
   targetUserId?: string
+  /** ＋-knapp bolk 2: popupen åpnet fra «Live styrke» — hurtigvalg-rad øverst (siste styrkeøkt · styrkemaler · tom). */
+  styrkeHurtigvalg?: boolean
   // Brukerens default pace-enhet (profiles.default_pace_unit). Brukes til å vise
   // pace-felt i ActivitiesSection med riktig enhet ved første visning.
   defaultPaceUnit?: 'min_per_km' | 'km_per_h' | null
@@ -221,7 +224,7 @@ function malPunkter(form: WorkoutFormData): TidspunktNotat[] {
   return ut.sort((a, b) => a.sek - b.sek)
 }
 
-export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, apneOktbygger = false, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [], initialActivityEquipment = {} }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, apneOktbygger = false, targetUserId, styrkeHurtigvalg = false, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [], initialActivityEquipment = {} }: WorkoutFormProps) {
   const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
@@ -515,6 +518,34 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const isStrengthWorkout = (form.activities ?? []).some(
     a => (a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke',
   )
+  // ＋-knapp bolk 2: hurtigvalg-raden (siste styrkeøkt · maler · tom).
+  const [hurtigValgt, setHurtigValgt] = useState<string | null>(null)
+  const [hurtigLaster, setHurtigLaster] = useState(false)
+  const [hurtigFeil, setHurtigFeil] = useState<string | null>(null)
+  const hurtigStil = (paa: boolean): React.CSSProperties => ({
+    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
+    color: paa ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)', background: paa ? 'var(--card2)' : 'none',
+    border: `1px solid ${paa ? 'var(--accent)' : 'var(--line2)'}`, fontWeight: paa ? 700 : 400,
+  })
+  const hentSiste = async () => {
+    setHurtigLaster(true); setHurtigFeil(null)
+    try {
+      const sist = await hentSisteStyrkeokt(targetUserId)
+      if (!sist) { setHurtigFeil('Fant ingen gjennomført styrkeøkt å kopiere fra.'); return }
+      setForm(f => ({
+        ...f,
+        title: f.title.trim() && f.title !== 'Styrke' ? f.title : (sist.title || 'Styrke'),
+        // Første rad beholdes (samme id) så den står åpen i radlista — bare bev.form og øvelser byttes.
+        activities: [{ ...(f.activities[0] ?? makeActivity({ activity_type: 'aktivitet' })), movement_name: 'Styrke', exercises: sist.exercises.map(e => ({ ...e, id: crypto.randomUUID(), sets: e.sets.map(st => ({ ...st, id: crypto.randomUUID() })) })) }],
+      }))
+      setHurtigValgt('siste')
+    } finally { setHurtigLaster(false) }
+  }
+  const tomStyrke = () => {
+    setForm(f => ({ ...f, activities: [{ ...(f.activities[0] ?? makeActivity({ activity_type: 'aktivitet' })), movement_name: 'Styrke', exercises: [] }] }))
+    setHurtigValgt('tom')
+  }
+
   const startLiveFlow = async () => {
     if (!workoutId || startingLive) return
     setStartingLive(true)
@@ -1012,6 +1043,22 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               Planinnholdet forhåndsutfylles — juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
             </p>
           )}
+        </div>
+      )}
+
+      {/* ── ＋-knapp bolk 2: HURTIGVALG for styrke (bare ny økt fra «Live styrke») ── */}
+      {styrkeHurtigvalg && !workoutId && (
+        <div className="mb-3" data-styrke-hurtigvalg>
+          <p className="text-xs tracking-widest uppercase mb-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Start fra</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button type="button" data-hurtig="siste" disabled={hurtigLaster} onClick={hentSiste}
+              style={hurtigStil(hurtigValgt === 'siste')}>{hurtigLaster ? 'Henter…' : 'Siste styrkeøkt'}</button>
+            {alleMaler.filter(t => (t.activities ?? []).some(a => (a?.exercises?.length ?? 0) > 0 || a?.movement_name === 'Styrke')).slice(0, 8).map(t => (
+              <button key={t.id} type="button" data-hurtig={`mal:${t.id}`} onClick={() => { loadTemplate(t); setHurtigValgt(`mal:${t.id}`) }} style={hurtigStil(hurtigValgt === `mal:${t.id}`)}>{t.name}</button>
+            ))}
+            <button type="button" data-hurtig="tom" onClick={tomStyrke} style={hurtigStil(hurtigValgt === 'tom')}>Tom</button>
+          </div>
+          {hurtigFeil && <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E23A5A' }}>{hurtigFeil}</p>}
         </div>
       )}
 

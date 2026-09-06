@@ -6,7 +6,7 @@ import { glemVindu } from '@/lib/kurve-zoom'
 import { deleteWorkout } from '@/app/actions/workouts'
 import { hentPakke, hentUtstyrListe, glemOkt, glemUtstyr } from './okt-lager'
 import { varmKlokkedata } from './useKlokkedata'
-import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
+import { makeActivity, ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone } from '@/lib/heart-zones'
 import { WorkoutForm } from './WorkoutForm'
@@ -17,7 +17,7 @@ import { ImportSourceBadge } from './ImportSourceBadge'
 
 export type WorkoutModalState =
   | { kind: 'edit'; workoutId: string; formMode: 'plan' | 'dagbok' }
-  | { kind: 'create'; date: string; formMode: 'plan' | 'dagbok'; initialStartTime?: string }
+  | { kind: 'create'; date: string; formMode: 'plan' | 'dagbok'; initialStartTime?: string; preset?: 'styrke' }
 
 interface WorkoutModalProps {
   state: WorkoutModalState | null
@@ -83,6 +83,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
         date: state.date,
         is_planned: state.formMode === 'plan',
         time_of_day: state.initialStartTime ?? '',
+        // ＋-knapp bolk 2: «Live styrke» → forhåndssatt Styrke-rad og tittel.
+        ...(state.preset === 'styrke' ? { title: 'Styrke', activities: [makeActivity({ activity_type: 'aktivitet', movement_name: 'Styrke' })] } : {}),
       })
       setEquipmentIds([])
       setActivityEquipment({})
@@ -290,6 +292,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               userSports={userSports}
               activityTypeFavorites={activityTypeFavorites}
               initialDate={state.kind === 'create' ? state.date : undefined}
+              styrkeHurtigvalg={state.kind === 'create' && state.preset === 'styrke'}
               onSaved={handleSaved}
               onCancel={onClose}
               readOnly={readOnly}

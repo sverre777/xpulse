@@ -8,6 +8,53 @@ import { parseDurationToSeconds } from '@/lib/shooting-duration'
 import type { StrengthExerciseRow, ActivityRow } from '@/lib/types'
 import { parseDecimal } from '@/lib/parse-decimal'
 
+// Delt mapping DB → skjemarader (live-økta og «Siste styrkeøkt» leser likt).
+type SetRow = { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }
+type ExRow = { exercise_name: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
+type ActRow = { movement_name: string | null; sort_order: number | null; workout_activity_exercises: ExRow[] | null }
+function tilOvelsesrader(acts: ActRow[]): StrengthExerciseRow[] {
+  const exRows = acts
+    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .flatMap(a => (a.workout_activity_exercises ?? []))
+  return exRows
+    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((ex, ei) => ({
+      id: `ex-${ei}`,
+      exercise_name: ex.exercise_name ?? '',
+      notes: '',
+      superset_group: ex.superset_group ?? null,
+      sets: (ex.workout_activity_exercise_sets ?? [])
+        .slice().sort((a, b) => a.set_number - b.set_number)
+        .map((s, si) => ({
+          id: `ex-${ei}-set-${si}`,
+          set_number: String(s.set_number ?? si + 1),
+          reps: s.reps != null ? String(s.reps) : '',
+          weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
+          duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
+          rpe: s.rpe != null ? String(s.rpe) : '',
+          notes: '',
+        })),
+    }))
+}
+
+/** ＋-knapp bolk 2: sist gjennomførte styrkeøkt (øvelser/sett) — grunnlag for «Siste styrkeøkt» i popupen. */
+export async function hentSisteStyrkeokt(targetUserId?: string): Promise<{ workoutId: string; date: string; title: string; exercises: StrengthExerciseRow[] } | null> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok', 'read')
+  if ('error' in resolved) return null
+  const { data } = await supabase
+    .from('workouts')
+    .select('id, date, title, workout_activities!inner(movement_name, sort_order, workout_activity_exercises(exercise_name, superset_group, sort_order, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe)))')
+    .eq('user_id', resolved.userId).eq('is_completed', true).is('merged_into_workout_id', null)
+    .eq('workout_activities.movement_name', 'Styrke')
+    .order('date', { ascending: false }).limit(5)
+  for (const w of (data ?? []) as { id: string; date: string; title: string | null; workout_activities: ActRow[] | null }[]) {
+    const exercises = tilOvelsesrader(w.workout_activities ?? []).filter(e => e.exercise_name.trim())
+    if (exercises.length > 0) return { workoutId: w.id, date: w.date, title: w.title ?? 'Styrke', exercises }
+  }
+  return null
+}
+
 // Fase 80: forrige-økt-oppslag for styrkeøvelser. Øvelser nøkles på fritekst-
 // navn (lower(trim)), så «sist» hentes uavhengig av hvilken økt/sport øvelsen
 // lå i sist — markløft i en helkroppsøkt viser forrige markløft uansett.
@@ -126,35 +173,10 @@ export async function getStrengthForLiveSession(
   console.log(`[getStrengthForLive] query ${Date.now() - t0}ms`)
   if (!data) return { exercises: [], plannedByName: {} }
 
-  type SetRow = { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }
-  type ExRow = { exercise_name: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
-  type ActRow = { movement_name: string | null; sort_order: number | null; workout_activity_exercises: ExRow[] | null }
   const acts = (data.workout_activities ?? []) as ActRow[]
   // Samle øvelser fra ALLE aktiviteter (robust mot flere/feil-merkede
   // styrke-aktiviteter), sortert.
-  const actualExRows = acts
-    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-    .flatMap(a => (a.workout_activity_exercises ?? []))
-
-  const actualExercises: StrengthExerciseRow[] = actualExRows
-    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-    .map((ex, ei) => ({
-      id: `ex-${ei}`,
-      exercise_name: ex.exercise_name ?? '',
-      notes: '',
-      superset_group: ex.superset_group ?? null,
-      sets: (ex.workout_activity_exercise_sets ?? [])
-        .slice().sort((a, b) => a.set_number - b.set_number)
-        .map((s, si) => ({
-          id: `ex-${ei}-set-${si}`,
-          set_number: String(s.set_number ?? si + 1),
-          reps: s.reps != null ? String(s.reps) : '',
-          weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
-          duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
-          rpe: s.rpe != null ? String(s.rpe) : '',
-          notes: '',
-        })),
-    }))
+  const actualExercises = tilOvelsesrader(acts)
 
   // Plan-hint (+ seed når ingen faktiske) fra planned_snapshot.
   const snap = data.planned_snapshot as { activities?: ActivityRow[] } | null

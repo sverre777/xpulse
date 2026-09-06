@@ -2772,10 +2772,11 @@ export function Calendar({
   const closeModal = useCallback(() => {
     setModalState(null)
     // Fjern eventuelle ?edit / ?new query-parametere uten ny navigasjon
-    if (searchParams.get('edit') || searchParams.get('new')) {
+    if (searchParams.get('edit') || searchParams.get('new') || searchParams.get('styrke')) {
       const params = new URLSearchParams(searchParams.toString())
       params.delete('edit')
       params.delete('new')
+      params.delete('styrke'); params.delete('time')
       const qs = params.toString()
       router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false })
     }
@@ -2786,6 +2787,7 @@ export function Calendar({
     const editId = searchParams.get('edit')
     const newDate = searchParams.get('new')
     const newTime = searchParams.get('time') ?? undefined
+    const styrke = searchParams.get('styrke') === '1'
     if (editId) {
       setModalState({ kind: 'edit', workoutId: editId, formMode: mode === 'plan' ? 'plan' : 'dagbok' })
     } else if (newDate) {
@@ -2793,6 +2795,7 @@ export function Calendar({
         kind: 'create', date: newDate,
         formMode: mode === 'plan' ? 'plan' : 'dagbok',
         initialStartTime: newTime,
+        preset: styrke ? 'styrke' : undefined,
       })
     }
   }, [searchParams, mode])
@@ -2906,7 +2909,7 @@ export function Calendar({
     params.set('cv', view)
     params.set('cd', toISO(refDate))
     // Transiente modal-params skal ikke persisteres med posisjonen.
-    params.delete('edit'); params.delete('new'); params.delete('time')
+    params.delete('edit'); params.delete('new'); params.delete('time'); params.delete('styrke')
     router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
   }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line
 

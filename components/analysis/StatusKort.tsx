@@ -22,6 +22,7 @@ import { XpTooltip, CHART_LINE_WIDTH, movementColor } from './chart-theme'
 import { ZoneBar } from '@/components/oversikt/kort-deler'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
+import { STATUS_GRONN, STATUS_ROD, KONKURRANSE_GULL, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
 import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
 import type { StatusOkt } from '@/lib/oversikt-status-type'
 import { hoyIntensitetSek } from '@/lib/activity-summary'
@@ -31,10 +32,11 @@ import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 const FONT = "'Barlow Condensed', sans-serif"
 const BEBAS = "'Bebas Neue', sans-serif"
 const ORANSJE = '#FF4500'
-const GRONN = '#28A86E'
-const BLAA = '#1A6FD4'
-const GULL = '#D4A017'
-const ROD = '#E11D48'
+// Statusfargene ligger i lib/status-farger (én kilde — samme skala i trenerlista).
+const GRONN = STATUS_GRONN
+const BLAA = TRENER_BLAA
+const GULL = KONKURRANSE_GULL
+const ROD = STATUS_ROD
 
 /** Formsone-tekstene er de samme som i Belastning-fanen. */
 const FORM_TEKST: Record<string, string> = {
@@ -242,22 +244,16 @@ function NesteBoks({ status }: { status: OversiktStatus | null }) {
 /** Plan vs gjennomført: bar med hvit strek på 100 %, skala til 130 %.
  *  Fargeskalaen er den samme som trenerlista skal bruke (fasit): under 60 rød,
  *  60–84 gul, 85–105 grønn, over 105 oransje. */
-function planFarge(pct: number): string {
-  if (pct < 60) return ROD
-  if (pct < 85) return GULL
-  if (pct <= 105) return GRONN
-  return ORANSJE
-}
 function PlanRad({ etikett, faktisk, plan, format }: { etikett: string; faktisk: number; plan: number; format: (v: number) => string }) {
   const pct = plan > 0 ? (faktisk / plan) * 100 : null
-  const bredde = pct == null ? 0 : Math.min(pct, 130) / 130 * 100
+  const bredde = pct == null ? 0 : Math.min(pct, PLAN_SKALA_MAKS) / PLAN_SKALA_MAKS * 100
   return (
     <div data-status-planrad={etikett} style={{ display: 'grid', gridTemplateColumns: '78px 1fr 96px', gap: 10, alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--line)' }}>
       <small style={{ fontFamily: FONT, fontWeight: 600, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>{etikett}</small>
       <div style={{ height: 8, background: 'var(--line2)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
-        {pct != null && <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${bredde}%`, borderRadius: 4, background: planFarge(pct) }} />}
+        {pct != null && <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${bredde}%`, borderRadius: 4, background: planPctFarge(pct, ORANSJE) }} />}
         {/* hvit strek på 100 % — 100/130 av bredden */}
-        <i style={{ position: 'absolute', left: `${100 / 130 * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--tekst-1-app)', opacity: 0.75 }} />
+        <i style={{ position: 'absolute', left: `${100 / PLAN_SKALA_MAKS * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--tekst-1-app)', opacity: 0.75 }} />
       </div>
       <span style={{ fontFamily: BEBAS, fontSize: 18, letterSpacing: '0.03em', textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--tekst-1-app)' }}>
         {format(faktisk)}

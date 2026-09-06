@@ -1,20 +1,81 @@
 'use client'
 
-import Link from 'next/link'
-import { useMemo, useState } from 'react'
-import type { CoachAthleteCard, AthleteLoggingStatus } from '@/app/actions/coach-dashboard'
-import { SPORTS, type Sport } from '@/lib/types'
+// BOLK B1 (Trenerside v2, Sverre 6. sep): utøverlista er hovedsaken på trener-hjem.
+// Én rad per utøver med timer, % av plan, sonestripe + hard I3+, skudd/treff og HRV
+// for valgt periode (Uke · Måned · År). Tallene kommer fra ÉN aggregator
+// (getTrenerOversikt) som kjører de eksisterende funksjonene per utøver — ingen
+// nye beregninger, ingen runde per rad (regel 20).
 
-const COACH_BLUE = '#1A6FD4'
+import Link from 'next/link'
+import { useEffect, useMemo, useState } from 'react'
+import type { CoachAthleteCard, AthleteLoggingStatus } from '@/app/actions/coach-dashboard'
+import { getTrenerOversikt } from '@/app/actions/trener-oversikt'
+import type { TrenerUtoverRad } from '@/lib/trener-oversikt-type'
+import { SPORTS, type Sport } from '@/lib/types'
+import { ZoneBar } from '@/components/oversikt/kort-deler'
+import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
+import { STATUS_GRONN, STATUS_GUL, STATUS_ROD, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
+
+const COACH_BLUE = TRENER_BLAA
+const FONT = "'Barlow Condensed', sans-serif"
+const BEBAS = "'Bebas Neue', sans-serif"
+const ORANSJE = '#FF4500'
+
+type Periode = 'uke' | 'maaned' | 'aar'
+const PERIODE_NAVN: Record<Periode, string> = { uke: 'Uke', maaned: 'Måned', aar: 'År' }
 
 interface Props {
   athletes: CoachAthleteCard[]
 }
 
 const STATUS_COLOR: Record<AthleteLoggingStatus, string> = {
-  active:   '#28A86E',
-  delayed:  '#D4A017',
-  inactive: '#E11D48',
+  active:   STATUS_GRONN,
+  delayed:  STATUS_GUL,
+  inactive: STATUS_ROD,
+}
+
+/** Periodens start og slutt — uka går mandag–søndag, som ellers i appen. */
+function periodeDatoer(p: Periode): { fra: string; til: string } {
+  const naa = new Date()
+  const til = naa.toISOString().slice(0, 10)
+  if (p === 'aar') return { fra: `${til.slice(0, 4)}-01-01`, til }
+  if (p === 'maaned') return { fra: `${til.slice(0, 7)}-01`, til }
+  const d = new Date(til + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+  return { fra: d.toISOString().slice(0, 10), til }
+}
+
+function fmtTid(sek: number): string {
+  if (sek <= 0) return '—'
+  const t = Math.floor(sek / 3600), m = Math.round((sek % 3600) / 60)
+  return t > 0 ? `${t}:${String(m).padStart(2, '0')}` : `${m} min`
+}
+
+/** Én tallcelle i raden. */
+function Celle({ etikett, children, bredde = 92 }: { etikett: string; children: React.ReactNode; bredde?: number }) {
+  return (
+    <div data-utover-celle={etikett} style={{ minWidth: 0, width: bredde }}>
+      <small style={{ display: 'block', fontFamily: FONT, fontWeight: 600, fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>{etikett}</small>
+      <div style={{ fontFamily: BEBAS, fontSize: 18, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', lineHeight: 1.2 }}>{children}</div>
+    </div>
+  )
+}
+
+/** % av plan: bar med hvit strek på 100 %, skala til 130 %. */
+function PlanBar({ rad }: { rad: TrenerUtoverRad }) {
+  if (rad.planPct == null) {
+    return <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>Ingen plan</span>
+  }
+  const bredde = Math.min(rad.planPct, PLAN_SKALA_MAKS) / PLAN_SKALA_MAKS * 100
+  return (
+    <div>
+      <span data-utover-planpct>{rad.planPct} %</span>
+      <div style={{ height: 6, background: 'var(--line2)', borderRadius: 3, position: 'relative', overflow: 'hidden', marginTop: 3 }}>
+        <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${bredde}%`, borderRadius: 3, background: planPctFarge(rad.planPct, ORANSJE) }} />
+        <i style={{ position: 'absolute', left: `${100 / PLAN_SKALA_MAKS * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--tekst-1-app)', opacity: 0.75 }} />
+      </div>
+    </div>
+  )
 }
 
 const STATUS_LABEL: Record<AthleteLoggingStatus, string> = {
@@ -38,6 +99,21 @@ function formatLastWorkout(dateIso: string | null, title: string | null): string
 export function CoachAthleteList({ athletes }: Props) {
   const [query, setQuery] = useState('')
   const [sportFilter, setSportFilter] = useState<'all' | Sport>('all')
+  const [periode, setPeriode] = useState<Periode>('uke')
+  // ÉN henting for hele lista — ingen runde per rad. Perioden lagres SAMMEN med
+  // tallene, så «henter …» følger av at svaret gjelder en annen periode (ingen
+  // setState synkront i effekten).
+  const [tall, setTall] = useState<{ periode: Periode; kart: Map<string, TrenerUtoverRad> } | null>(null)
+  useEffect(() => {
+    let live = true
+    const { fra, til } = periodeDatoer(periode)
+    getTrenerOversikt(fra, til).then(r => {
+      if (!live || 'error' in r) return
+      setTall({ periode, kart: new Map(r.rader.map(x => [x.id, x])) })
+    }).catch(() => {})
+    return () => { live = false }
+  }, [periode])
+  const gjeldende = tall && tall.periode === periode ? tall.kart : null
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -60,10 +136,19 @@ export function CoachAthleteList({ athletes }: Props) {
             className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
-            Utøvere ({athletes.length})
+            Utøvere ({athletes.length}) · {PERIODE_NAVN[periode].toLowerCase()}
           </span>
         </div>
         <div className="flex-1" />
+        <div data-utover-periode={periode} role="group" aria-label="Periode"
+          style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
+          {(['uke', 'maaned', 'aar'] as Periode[]).map(p => (
+            <button key={p} type="button" data-utover-periodevalg={p} aria-pressed={periode === p} onClick={() => setPeriode(p)}
+              style={{ padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: periode === p ? COACH_BLUE : 'transparent', color: periode === p ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
+              {PERIODE_NAVN[p]}
+            </button>
+          ))}
+        </div>
         <input
           type="text"
           value={query}
@@ -104,7 +189,7 @@ export function CoachAthleteList({ athletes }: Props) {
         <ul>
           {filtered.map(a => (
             <li key={a.id} style={{ borderTop: '1px solid var(--line)' }} className="first:border-t-0">
-              <div className="flex items-center gap-4 px-5 py-4">
+              <div className="flex items-center gap-4 px-5 py-4 flex-wrap xp-utoverrad" data-utover-rad={a.id}>
                 {/* Status-prikk */}
                 <span
                   aria-label={STATUS_LABEL[a.status]}
@@ -158,6 +243,43 @@ export function CoachAthleteList({ athletes }: Props) {
                     {formatLastWorkout(a.lastWorkoutDate, a.lastWorkoutTitle)}
                   </p>
                 </div>
+
+                {/* BOLK B1: tallene for valgt periode — én aggregator for hele lista. */}
+                {(() => {
+                  const r = gjeldende?.get(a.id) ?? null
+                  if (!r) {
+                    return (
+                      <div data-utover-tall="laster" style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', minWidth: 120 }}>
+                        {gjeldende ? 'Ingen tall i perioden' : 'Henter tall …'}
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="flex items-center gap-4 flex-wrap" data-utover-tall={a.id}>
+                      <Celle etikett="Timer" bredde={70}>{fmtTid(r.timerSek)}</Celle>
+                      <Celle etikett="% av plan" bredde={96}><PlanBar rad={r} /></Celle>
+                      <Celle etikett="Soner" bredde={150}>
+                        <div style={{ marginTop: 2 }}><ZoneBar zones={r.soner as unknown as OversiktZoneSeconds} legend={false} /></div>
+                        <span style={{ fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)' }}>I3+ {fmtTid(r.hardSek)}</span>
+                      </Celle>
+                      {r.harSkiskyting && (
+                        <Celle etikett="Skudd · treff" bredde={92}>
+                          {r.skudd ? r.skudd : '—'}
+                          <span style={{ fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)', marginLeft: 5 }}>{r.treffPct != null ? `${r.treffPct} %` : ''}</span>
+                        </Celle>
+                      )}
+                      <Celle etikett="HRV" bredde={78}>
+                        {!r.helseDelt ? <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>ikke delt</span>
+                          : r.hrv == null ? '—'
+                          : <>{r.hrv}{r.hrvEndring != null && r.hrvEndring !== 0 && (
+                              <span style={{ fontFamily: FONT, fontSize: 11, marginLeft: 4, color: r.hrvEndring > 0 ? STATUS_GRONN : STATUS_ROD }}>
+                                {r.hrvEndring > 0 ? '▲' : '▼'} {Math.abs(r.hrvEndring)}
+                              </span>
+                            )}</>}
+                      </Celle>
+                    </div>
+                  )
+                })()}
 
                 {/* Quick actions */}
                 <div className="flex items-center gap-2 shrink-0">

@@ -12,7 +12,7 @@
 // «Vis mindre ▴» kollapser til bare toppraden. Valget huskes i nettleseren, som
 // de andre visningsvalgene i appen (tema, samlet/splittet, graf-visning).
 
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts'
 import type { AnalysisOverview, MovementBreakdownRow } from '@/app/actions/analysis'
 import type { OversiktStatus } from '@/lib/oversikt-status-type'
@@ -101,15 +101,20 @@ function Tall({ etikett, verdi, enhet, under, farge }: {
   )
 }
 
+// Stjernene hører til analysens favoritter. I trenerens detaljpanel (bolk B1) er
+// boksene en visning av UTØVERENS tall — der skal ingen stjerne kunne trykkes.
+const StjerneKontekst = createContext(true)
+
 /** Boks med overskrift, stjerne og nøkkel — som i fasiten. */
 function Boks({ tittel, nokkel, undertittel, children }: {
   tittel: string; nokkel: string; undertittel?: string; children: React.ReactNode
 }) {
+  const visStjerne = useContext(StjerneKontekst)
   return (
     <div data-status-boks={nokkel} style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '12px 14px', minWidth: 0 }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
         <span style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>{tittel}</span>
-        <span style={{ marginLeft: 'auto' }}><StarButton chartKey={nokkel} size={16} title={tittel} /></span>
+        {visStjerne && <span style={{ marginLeft: 'auto' }}><StarButton chartKey={nokkel} size={16} title={tittel} /></span>}
       </div>
       {undertittel && <div style={{ fontFamily: FONT, fontSize: 11.5, color: 'var(--tekst-8-app)', margin: '-4px 0 8px' }}>{undertittel}</div>}
       {children}
@@ -533,14 +538,17 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
 
 /** De åtte boksene alene. Trenerens detaljpanel under en utøverrad (bolk B1)
  *  bruker NØYAKTIG de samme boksene — ingen egen variant (regel 11). */
-export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, bevform = [], konkurranser = [] }: {
+export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, bevform = [], konkurranser = [], visStjerner = true }: {
   status: OversiktStatus | null
   harSkiskyting: boolean
   canSeeHealthData?: boolean
   bevform?: MovementBreakdownRow[]
   konkurranser?: string[]
+  /** Trenerens detaljpanel: boksene er utøverens tall — ingen stjerne der. */
+  visStjerner?: boolean
 }) {
   return (
+    <StjerneKontekst.Provider value={visStjerner}>
     <div data-status-bokser className="xp-status-bokser" style={{ display: 'grid', gap: 12, marginTop: 12 }}>
       <SisteHardBoks status={status} />
       <NesteBoks status={status} />
@@ -551,6 +559,7 @@ export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, b
       {harSkiskyting && <SkytingBoks status={status} />}
       {bevform.length > 0 && <BevformBoks rader={bevform} />}
     </div>
+    </StjerneKontekst.Provider>
   )
 }
 

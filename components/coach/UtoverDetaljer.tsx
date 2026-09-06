@@ -58,7 +58,7 @@ export function UtoverDetaljer({ athleteId, navn, fra, til, harSkiskyting, helse
       ) : !status ? (
         <p data-utover-detaljer-laster style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)' }}>Henter tall for {navn} …</p>
       ) : (
-        <StatusBokser status={status} harSkiskyting={harSkiskyting} canSeeHealthData={helseDelt} />
+        <StatusBokser status={status} harSkiskyting={harSkiskyting} canSeeHealthData={helseDelt} visStjerner={false} />
       )}
       <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: 12 }}>
         <Link href={`/app/trener/${athleteId}/dagbok`} style={knapp}>Åpne dagbok</Link>

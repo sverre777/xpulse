@@ -12,7 +12,7 @@ import { getMyVolumePlansForDateRange, type MonthlyVolumePlan } from '@/app/acti
 import { ChartWrapper } from './ChartWrapper'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
-  CHART_LEGEND_STYLE, CHART_CURSOR, BAR_RADIUS, CHART_LINE_WIDTH,
+  CHART_LEGEND_STYLE, CHART_CURSOR, BAR_RADIUS, CHART_LINE_WIDTH, MOVEMENT_PALETTE,
 } from './chart-theme'
 import { MetricCard } from './MetricCard'
 import { KortGruppe } from './KortGruppe'
@@ -28,11 +28,6 @@ import type { DateRange } from './date-range'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 // Palett for bevegelsesform-stack. Stabil rekkefølge via modulo.
-const MOVEMENT_PALETTE = [
-  '#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#8B5CF6',
-  '#E11D48', '#0EA5E9', '#84CC16', '#F97316', '#EC4899',
-]
-
 // Bolk 7: ALLE soner — I6–I8 (utvidet skala) telte ikke i Oversikt før.
 const ZONE_KEYS = ALL_ZONE_NAMES
 

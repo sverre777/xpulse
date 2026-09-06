@@ -18,7 +18,7 @@ import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { computeActivityTotals, hoyIntensitetSek } from '@/lib/activity-summary'
 import { ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import type { Sport } from '@/lib/types'
-import type { OversiktStatus, StatusPlan, StatusSkyting, StatusBelastning, StatusHelse, StatusOkt, StatusOkter } from '@/lib/oversikt-status-type'
+import type { OversiktStatus, StatusPlan, StatusSkyting, StatusBelastning, StatusHelse, StatusOkt, StatusOkter, StatusSonerad } from '@/lib/oversikt-status-type'
 
 /** Dager tilbake fra en ISO-dato, uten tidssonestøy. */
 function minusDager(iso: string, n: number): string {
@@ -105,6 +105,41 @@ async function hentOkter(toDate: string, targetUserId?: string): Promise<StatusO
   }
 }
 
+/** Uke · måned · år — samme sonesummer som ellers (computeActivityTotals), én spørring. */
+async function hentSoner(toDate: string, targetUserId?: string): Promise<StatusSonerad[]> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+  if ('error' in resolved) return []
+  const heartZones = await getHeartZonesForUserCached(resolved.userId)
+  const aarStart = `${toDate.slice(0, 4)}-01-01`
+  const { data } = await supabase.from('workouts')
+    .select('date, workout_activities (activity_type, duration_seconds, distance_meters, avg_heart_rate, zones)')
+    .eq('user_id', resolved.userId).is('merged_into_workout_id', null)
+    .eq('is_completed', true).gte('date', aarStart).lte('date', toDate).limit(2000)
+  const rader = (data ?? []) as unknown as { date: string; workout_activities: Parameters<typeof computeActivityTotals>[0] }[]
+  // Mandag i uka som toDate ligger i, og første i måneden.
+  const d = new Date(toDate + 'T00:00:00Z')
+  const mandag = new Date(d); mandag.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+  const ukeStart = mandag.toISOString().slice(0, 10)
+  const mndStart = `${toDate.slice(0, 7)}-01`
+  const bøtter: { navn: string; fra: string }[] = [
+    { navn: 'Denne uka', fra: ukeStart },
+    { navn: 'Denne måneden', fra: mndStart },
+    { navn: `Hittil i ${toDate.slice(0, 4)}`, fra: aarStart },
+  ]
+  return bøtter.map(b => {
+    const soner: Record<string, number> = Object.fromEntries((ALL_ZONE_NAMES as readonly ExtendedZoneName[]).map(k => [k, 0]))
+    let tid = 0, meter = 0
+    for (const w of rader) {
+      if (w.date < b.fra) continue
+      const t = computeActivityTotals(w.workout_activities ?? [], heartZones)
+      tid += t.totalSeconds; meter += t.totalMeters
+      for (const k of ALL_ZONE_NAMES as readonly ExtendedZoneName[]) soner[k] += t.zoneSeconds[k] ?? 0
+    }
+    return { navn: b.navn, tidSek: tid, meter, soner, hardSek: (soner.I3 ?? 0) + hoyIntensitetSek(soner as Partial<Record<ExtendedZoneName, number>>) }
+  })
+}
+
 export async function getOversiktStatus(
   fromDate: string,
   toDate: string,
@@ -116,7 +151,8 @@ export async function getOversiktStatus(
     // sammenligningen) — uavhengig av valgt periode, slik boksene sier i overskriften.
     const belFra = minusDager(toDate, 83)
     const helseFra = minusDager(toDate, 59)
-    const [planRes, skytingRes, belRes, helseRes, okter] = await Promise.all([
+    const aarStart = `${toDate.slice(0, 4)}-01-01`
+    const [planRes, skytingRes, belRes, helseRes, okter, soner, aarSkyting] = await Promise.all([
       getPlanVsActual(fromDate, toDate, targetUserId),
       getShootingDepthAnalysis(fromDate, toDate, sportFilter ?? null, targetUserId),
       getBelastningAnalysis(belFra, toDate, sportFilter ?? null, targetUserId),
@@ -124,6 +160,8 @@ export async function getOversiktStatus(
       // svarer med feil når treneren ikke har lov, og boksen sier «ikke delt».
       getHelseOversikt(helseFra, toDate, targetUserId),
       hentOkter(toDate, targetUserId),
+      hentSoner(toDate, targetUserId),
+      getShootingDepthAnalysis(aarStart, toDate, sportFilter ?? null, targetUserId),
     ])
 
     let plan: StatusPlan | null = null
@@ -195,7 +233,11 @@ export async function getOversiktStatus(
       }
     }
 
-    return { plan, skyting, belastning, helse, okter }
+    const skytingAar = !('error' in aarSkyting) && aarSkyting.totals.shots > 0
+      ? { skudd: aarSkyting.totals.shots, treffPct: aarSkyting.totals.accuracy_pct }
+      : null
+
+    return { plan, skyting, belastning, helse, okter, soner, skytingAar }
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Kunne ikke hente statuskortet' }
   }

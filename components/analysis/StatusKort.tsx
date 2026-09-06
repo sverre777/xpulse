@@ -14,13 +14,14 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts'
-import type { AnalysisOverview } from '@/app/actions/analysis'
+import type { AnalysisOverview, MovementBreakdownRow } from '@/app/actions/analysis'
 import type { OversiktStatus } from '@/lib/oversikt-status-type'
 import type { DateRange } from './date-range'
 import { StarButton } from './StarButton'
-import { XpTooltip, CHART_LINE_WIDTH } from './chart-theme'
+import { XpTooltip, CHART_LINE_WIDTH, movementColor } from './chart-theme'
 import { ZoneBar } from '@/components/oversikt/kort-deler'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
 import type { StatusOkt } from '@/lib/oversikt-status-type'
 import { hoyIntensitetSek } from '@/lib/activity-summary'
@@ -238,6 +239,148 @@ function NesteBoks({ status }: { status: OversiktStatus | null }) {
   )
 }
 
+/** Plan vs gjennomført: bar med hvit strek på 100 %, skala til 130 %.
+ *  Fargeskalaen er den samme som trenerlista skal bruke (fasit): under 60 rød,
+ *  60–84 gul, 85–105 grønn, over 105 oransje. */
+function planFarge(pct: number): string {
+  if (pct < 60) return ROD
+  if (pct < 85) return GULL
+  if (pct <= 105) return GRONN
+  return ORANSJE
+}
+function PlanRad({ etikett, faktisk, plan, format }: { etikett: string; faktisk: number; plan: number; format: (v: number) => string }) {
+  const pct = plan > 0 ? (faktisk / plan) * 100 : null
+  const bredde = pct == null ? 0 : Math.min(pct, 130) / 130 * 100
+  return (
+    <div data-status-planrad={etikett} style={{ display: 'grid', gridTemplateColumns: '78px 1fr 96px', gap: 10, alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--line)' }}>
+      <small style={{ fontFamily: FONT, fontWeight: 600, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>{etikett}</small>
+      <div style={{ height: 8, background: 'var(--line2)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+        {pct != null && <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${bredde}%`, borderRadius: 4, background: planFarge(pct) }} />}
+        {/* hvit strek på 100 % — 100/130 av bredden */}
+        <i style={{ position: 'absolute', left: `${100 / 130 * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--tekst-1-app)', opacity: 0.75 }} />
+      </div>
+      <span style={{ fontFamily: BEBAS, fontSize: 18, letterSpacing: '0.03em', textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--tekst-1-app)' }}>
+        {format(faktisk)}
+        <em style={{ fontStyle: 'normal', fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)' }}> / {plan > 0 ? format(plan) : '—'}</em>
+      </span>
+    </div>
+  )
+}
+
+function PlanBoks({ status }: { status: OversiktStatus | null }) {
+  const p = status?.plan ?? null
+  return (
+    <Boks tittel="Timer · plan vs gjennomført" nokkel="oversikt_status_plan" undertittel={p?.harPlan ? 'Valgt periode' : undefined}>
+      {!p || !p.harPlan ? <Tom tekst="Ingen plan i perioden." lenke="/app/plan" lenkeTekst="Planlegg →" /> : (
+        <>
+          <PlanRad etikett="Timer" faktisk={p.faktiskTimerMin} plan={p.planTimerMin} format={fmtMin} />
+          <PlanRad etikett="Hard I3+I4" faktisk={p.faktiskHardMin} plan={p.planHardMin} format={fmtMin} />
+          <PlanRad etikett="Økter" faktisk={p.faktiskOkter} plan={p.planOkter} format={v => String(Math.round(v))} />
+          <div style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', marginTop: 6 }}>Hvit strek = 100 % · skalaen går til 130 %</div>
+        </>
+      )}
+    </Boks>
+  )
+}
+
+/** Bevegelsesformer i perioden — samme tall og palett som Oversikt-fanens kort. */
+function BevformBoks({ rader }: { rader: MovementBreakdownRow[] }) {
+  const topp = [...rader].sort((a, b) => b.seconds - a.seconds).slice(0, 6)
+  const maks = topp[0]?.seconds ?? 0
+  return (
+    <Boks tittel="Bevegelsesformer" nokkel="oversikt_status_bevform">
+      {topp.length === 0 ? <Tom tekst="Ingen bevegelsesformer ført i perioden." /> : topp.map((r, i) => (
+        <div key={r.movement_name} data-status-bevform={r.movement_name} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 62px', gap: 10, alignItems: 'center', padding: '5px 0' }}>
+          <span className="truncate" style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-1-app)', minWidth: 0 }}>{r.movement_name}</span>
+          <div style={{ height: 8, background: 'var(--line2)', borderRadius: 4, overflow: 'hidden' }}>
+            <i style={{ display: 'block', height: '100%', borderRadius: 4, width: maks > 0 ? `${Math.round((r.seconds / maks) * 100)}%` : '0%', background: movementColor(i) }} />
+          </div>
+          <b style={{ fontFamily: BEBAS, fontSize: 18, textAlign: 'right', letterSpacing: '0.03em', color: 'var(--tekst-1-app)' }}>{fmtTid(r.seconds)}</b>
+        </div>
+      ))}
+    </Boks>
+  )
+}
+
+/** Soner og volum: uke · måned · år. Samme tall som Hovedtall, bare fordelt. */
+function SonerBoks({ status }: { status: OversiktStatus | null }) {
+  const rader = status?.soner ?? []
+  const harData = rader.some(r => r.tidSek > 0)
+  const soner = ALL_ZONE_NAMES.filter(k => rader.some(r => (r.soner[k] ?? 0) > 0))
+  return (
+    <Boks tittel="Soner og volum" nokkel="oversikt_status_soner" undertittel={harData ? 'Uke · måned · år' : undefined}>
+      {!harData ? <Tom tekst="Ingen førte økter hittil i år." /> : (
+        <>
+          <div style={{ overflowX: 'auto' }}>
+            <table data-status-sonetabell style={{ width: '100%', borderCollapse: 'collapse', fontFamily: FONT, fontSize: 12.5 }}>
+              <thead>
+                <tr style={{ color: 'var(--tekst-8-app)', textAlign: 'left' }}>
+                  <th style={{ padding: '4px 6px 4px 0', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Periode</th>
+                  <th style={{ padding: '4px 6px', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', textAlign: 'right' }}>Tid</th>
+                  <th style={{ padding: '4px 6px', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', textAlign: 'right' }}>km</th>
+                  {soner.map(k => <th key={k} style={{ padding: '4px 6px', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textAlign: 'right', color: ZONE_COLORS_V2[k] }}>{k}</th>)}
+                  <th style={{ padding: '4px 0 4px 6px', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', textAlign: 'right' }}>Hard I3+</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rader.map(r => {
+                  const sum = soner.reduce((s2, k) => s2 + (r.soner[k] ?? 0), 0)
+                  return (
+                    <tr key={r.navn} data-status-sonerad={r.navn} style={{ borderTop: '1px solid var(--line)', color: 'var(--tekst-1-app)' }}>
+                      <td style={{ padding: '5px 6px 5px 0', whiteSpace: 'nowrap' }}>{r.navn}</td>
+                      <td style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmtTid(r.tidSek)}</td>
+                      <td style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.meter > 0 ? fmtKm(r.meter) : '—'}</td>
+                      {soner.map(k => <td key={k} style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-5-app)' }}>{sum > 0 && (r.soner[k] ?? 0) > 0 ? `${Math.round(((r.soner[k] ?? 0) / sum) * 100)} %` : '—'}</td>)}
+                      <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.hardSek > 0 ? fmtTid(r.hardSek) : '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', marginTop: 6 }}>Samme tall som Hovedtall over — bare fordelt på uke, måned og år.</div>
+        </>
+      )}
+    </Boks>
+  )
+}
+
+/** Skyting — kun for skiskyttere. Treff regnes alltid av FØRTE skudd. */
+function SkytingBoks({ status }: { status: OversiktStatus | null }) {
+  const sk = status?.skyting ?? null
+  const aar = status?.skytingAar ?? null
+  const farge = (t: number, s2: number) => { const p = s2 > 0 ? t / s2 : 0; return p >= 0.8 ? GRONN : p >= 0.6 ? GULL : ROD }
+  return (
+    <Boks tittel="Skyting" nokkel="oversikt_status_skyting">
+      {!sk && !aar ? <Tom tekst="Ingen skyting ført." /> : (
+        <>
+          <Smaatall celler={[
+            { etikett: 'Skudd i perioden', verdi: sk ? String(sk.skudd) : '—' },
+            { etikett: 'Treff liggende', verdi: sk?.treffLiggPct != null ? `${sk.treffLiggPct} %` : '—', farge: '#38BDF8' },
+            { etikett: 'Treff stående', verdi: sk?.treffStaaPct != null ? `${sk.treffStaaPct} %` : '—', farge: ORANSJE },
+          ]} />
+          <div style={{ height: 8 }} />
+          <Smaatall celler={[
+            { etikett: 'Skudd i år', verdi: aar ? String(aar.skudd) : '—' },
+            { etikett: 'Treff totalt', verdi: aar?.treffPct != null ? `${aar.treffPct} %` : '—' },
+            { etikett: 'Skytetid snitt', verdi: sk?.skytetidSnitt != null ? String(sk.skytetidSnitt).replace('.', ',') : '—', under: sk?.skytetidSnitt != null ? 's' : null },
+          ]} />
+          {sk && sk.siste10.length > 0 && (
+            <>
+              <div style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', margin: '11px 0 3px' }}>Treff siste {sk.siste10.length} serier</div>
+              <div data-status-serier style={{ display: 'flex', gap: 5 }}>
+                {sk.siste10.map((s2, i) => (
+                  <i key={i} style={{ flex: 1, textAlign: 'center', fontFamily: BEBAS, fontSize: 17, lineHeight: '26px', borderRadius: 6, border: `1px solid ${farge(s2.treff, s2.skudd)}`, color: farge(s2.treff, s2.skudd), fontStyle: 'normal' }}>{s2.treff}</i>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </Boks>
+  )
+}
+
 /** Belastning: CTL/ATL/TSB + 12-ukers kurve. Samme tall og farger som Belastning-fanen. */
 function BelastningBoks({ status, konkurranser }: { status: OversiktStatus | null; konkurranser: string[] }) {
   const b = status?.belastning ?? null
@@ -390,6 +533,10 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
           <NesteBoks status={status} />
           <BelastningBoks status={status} konkurranser={konkurranser} />
           <HelseBoks status={status} canSeeHealthData={canSeeHealthData} />
+          <PlanBoks status={status} />
+          <SonerBoks status={status} />
+          {harSkiskyting && <SkytingBoks status={status} />}
+          <BevformBoks rader={overview.current.movement_breakdown} />
         </div>
       )}
     </section>

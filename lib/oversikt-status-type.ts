@@ -90,6 +90,16 @@ export interface StatusOkter {
   restenAvUka: { dato: string; tittel: string; hovedsone: string | null }[]
 }
 
+/** Én rad i «Soner og volum» — uke, måned og år t.o.m. periodens slutt. */
+export interface StatusSonerad {
+  navn: string
+  tidSek: number
+  meter: number
+  /** Sekunder per sone (I1–I8 + Hurtighet). */
+  soner: Record<string, number>
+  hardSek: number
+}
+
 export interface OversiktStatus {
   /** null = ingen plan-data i det hele tatt (feil eller tom periode). */
   plan: StatusPlan | null
@@ -101,4 +111,8 @@ export interface OversiktStatus {
   helse: StatusHelse | null
   /** Siste/neste økt. Feltene er null hver for seg — boksene sier hva som mangler. */
   okter: StatusOkter | null
+  /** Uke · måned · år. Tom liste når ingen økter er ført i år. */
+  soner: StatusSonerad[]
+  /** Skudd og treff hittil i år — «Skudd i år» i skyteboksen. */
+  skytingAar: { skudd: number; treffPct: number | null } | null
 }

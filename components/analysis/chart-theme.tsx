@@ -31,6 +31,16 @@ export const CHART_ZONE_COLORS = {
 } as const
 
 // ===== Serier =====
+// Bevegelsesform-palett — stabil rekkefølge via modulo. Delt av Oversikt-fanen
+// og statuskortet (bolk A) så hexene ikke står to steder.
+export const MOVEMENT_PALETTE = [
+  '#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#8B5CF6',
+  '#E11D48', '#0EA5E9', '#84CC16', '#F97316', '#EC4899',
+]
+export function movementColor(index: number): string {
+  return MOVEMENT_PALETTE[index % MOVEMENT_PALETTE.length]
+}
+
 export const CHART_LINE_WIDTH = 2
 export const CHART_DOT = { r: 3, strokeWidth: 0 } as const
 export const CHART_ACTIVE_DOT = { r: 4.5, strokeWidth: 0 } as const

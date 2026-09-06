@@ -6,6 +6,7 @@
 //
 // Rekkefølge (Øktbygger-fasiten): + Legg til aktivitet ·
 // 🎯 + Legg til skyting · ⚡ Øktbygger · 🎯 Plott treff.
+// Under 560 px kortes de to første til «+ AKTIVITET» / «🎯 + SKYTING» (Sverre 6. sep).
 //
 // Betingelser — knapper SKJULES (aldri deaktiveres) når de ikke gjelder:
 //   + Legg til aktivitet  — alltid (plan og dagbok)
@@ -24,9 +25,14 @@
 const PILL_BASE: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
   letterSpacing: '0.1em', fontSize: 13, textTransform: 'uppercase',
-  borderRadius: 999, padding: '8px 18px', cursor: 'pointer',
+  borderRadius: 999, cursor: 'pointer',
   whiteSpace: 'nowrap', minHeight: 36, background: 'transparent',
 }
+// Sverre 6. sep: på smal skjerm gikk raden utenfor kortet. Kortformene «+ AKTIVITET»
+// og «🎯 + SKYTING» sparer plassen (teksten er uppercase uansett), og pillene blir
+// tettere. Padding ligger i klassen, ikke i inline-stilen, så media-regelen vinner.
+const PILL_KLASSE = 'px-[18px] py-2 max-[560px]:px-3'
+const LANG = 'max-[560px]:hidden'
 
 export function AktivitetKnapperad({
   isPlanMode, harSkyting, userHasBiathlon,
@@ -44,24 +50,24 @@ export function AktivitetKnapperad({
   const visBygger = !!onOktbygger
   return (
     <div className="flex gap-2 items-center flex-wrap mb-3" data-aktivitet-knapperad>
-      <button type="button" onClick={onLeggTilAktivitet}
+      <button type="button" onClick={onLeggTilAktivitet} className={PILL_KLASSE}
         style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-        + Legg til aktivitet
+        + <span className={LANG}>Legg til </span>aktivitet
       </button>
       {userHasBiathlon && (
-        <button type="button" onClick={onLeggTilSkyting}
+        <button type="button" onClick={onLeggTilSkyting} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-          🎯 + Legg til skyting
+          🎯 + <span className={LANG}>Legg til </span>skyting
         </button>
       )}
       {visBygger && (
-        <button type="button" onClick={onOktbygger}
+        <button type="button" onClick={onOktbygger} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
           ⚡ Øktbygger
         </button>
       )}
       {visPlottTreff && (
-        <button type="button" onClick={onPlottTreff}
+        <button type="button" onClick={onPlottTreff} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid #FF4500', color: '#FF4500' }}>
           🎯 Plott treff
         </button>

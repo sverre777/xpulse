@@ -243,8 +243,18 @@ section{padding:88px 0}
 
 /* ── HERO ── */
 .hero{position:relative;min-height:88vh;display:flex;flex-direction:column;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:url('/photos/hero-bg.jpg') center/cover no-repeat;filter:saturate(.92)}
-.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(13,13,17,.88) 0%,rgba(13,13,17,.62) 55%,rgba(13,13,17,.45) 100%);}
+.hero-bg{position:absolute;inset:0;background:url('/photos/hero-bg.jpg') center/cover no-repeat}
+/* Sloret bygges i lag (design/xpulse-hero-topp-design.html): rod oppe til venstre,
+   bla nede til hoyre, vignett, topp/bunn, sider og gradient-fasiten. Kantene blir
+   tydelig morkere hele veien rundt, midten star omtrent som for. Ingen ekstra
+   metning pa selve fotoet - filter:saturate() er fjernet med vilje. */
+.hero-bg::after{content:'';position:absolute;inset:0;background:
+  radial-gradient(46% 44% at 6% 6%, rgba(255,69,0,.30), transparent 68%),
+  radial-gradient(52% 48% at 96% 96%, rgba(26,111,212,.32), transparent 70%),
+  radial-gradient(92% 70% at 50% 46%, transparent 18%, rgba(8,8,10,.55) 52%, rgba(8,8,10,.86) 78%, rgba(8,8,10,1) 100%),
+  linear-gradient(180deg,rgba(8,8,10,.94) 0%,rgba(8,8,10,.4) 22%,rgba(8,8,10,.3) 52%,rgba(8,8,10,.96) 100%),
+  linear-gradient(90deg,rgba(8,8,10,.8) 0%,transparent 18%,transparent 82%,rgba(8,8,10,.8) 100%),
+  linear-gradient(115deg,rgba(255,69,0,.09),rgba(26,111,212,.11) 72%)}
 /* Faden toner ut i NØYAKTIG samme fixed gradient som body - samme
    viewport-koordinater gjør overgangen sømløs. En flat --bg her ga en
    synlig linje mot den tonede bakgrunnen. */
@@ -253,17 +263,15 @@ section{padding:88px 0}
   -webkit-mask-image:linear-gradient(to bottom,transparent,#000 85%);
   mask-image:linear-gradient(to bottom,transparent,#000 85%)}
 .hero-in{position:relative;margin:auto;padding:124px 0 46px;text-align:center;display:flex;flex-direction:column;align-items:center;width:100%}
-.hero h1{margin-bottom:40px}
+.hero h1{margin-bottom:40px;font-size:clamp(40px,5.6vw,86px);line-height:.94}
 .hero-tags{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
 /* Hero v5: ÉN chip - «Treningsdagbok for utholdenhet · V1.3 · Hva er nytt →», gull på versjonsdelen. */
 .hchip{display:inline-flex;align-items:center;gap:0;font:600 12px/1 'Barlow Condensed';letter-spacing:.18em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5);text-decoration:none}
 .hchip-v{color:var(--gold);font-weight:700}
-/* Kald blå radial øverst til venstre - eget lag over bildet, under faden. */
-.hero-blaa{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at 8% 12%, rgba(26,111,212,.14), transparent 70%)}
 /* Flyt-stripa i heroen: fem på én rad ≥880 (maks 1000 bred), 3 + 2 mellom 560 og 880, ikoner + titler under 560. */
 .hero-flow{width:100%;max-width:1000px;margin:0 auto}
 .hero-flow .iflow{overflow:visible;padding-bottom:0}
-.hquote{margin:40px auto 0;max-width:62ch;font:italic 400 14px/1.55 'Inter';color:rgb(var(--paper-rgb) / .72)}
+.hquote{margin:40px auto 0;max-width:62ch;font:italic 400 14px/1.55 'Inter';color:rgba(255,255,255,.9);text-shadow:0 2px 18px rgba(0,0,0,.6)}
 .hero .hacts{margin-top:38px}
 .htag{font:600 12px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}
 .hver{font:700 12px/1 'Barlow Condensed';letter-spacing:.16em;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:999px;padding:8px 13px}
@@ -277,15 +285,28 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
    samme .btn.pri-klasse, staar uendret. */
 .hero .btn.pri{text-transform:uppercase}
 .btn.sec{border:1px solid var(--line2);color:var(--paper);background:transparent}
+/* Hero-knappene: loft pa hover, lite trykk, og et raskt glans-sveip over de store
+   CTA-ene. Kun transform, opacity, farge og skygge animeres. */
+.hero .btn{position:relative;overflow:hidden;transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease,background .25s ease,border-color .25s ease}
+.hero .btn:hover{transform:translateY(-2px)}
+.hero .btn:active{transform:translateY(0) scale(.985)}
+.hero .btn.pri:hover{background:#FF5A19;box-shadow:0 16px 34px rgba(255,69,0,.5)}
+.hero .btn.sec:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.34);box-shadow:0 12px 28px rgba(0,0,0,.4)}
+.hero .btn::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-18deg);opacity:0}
+.hero .btn:hover::after{opacity:1;animation:hero-glans .75s ease}
+@keyframes hero-glans{from{left:-40%}to{left:120%}}
 .btn.blue{background:var(--blue);color:var(--hvit);box-shadow:0 18px 50px rgba(26,111,212,.35)}
+.hero .hfree{margin-top:18px;font-size:13.5px;color:rgba(255,255,255,.72);text-shadow:0 2px 14px rgba(0,0,0,.7)}
+.hero .hfree b{color:#fff}
 .hfree{margin-top:18px;font-size:13.5px;color:var(--mute)}
 .hfree b{color:var(--dim)}
-.proof{display:flex;gap:0;margin-top:46px;flex-wrap:nowrap;max-width:860px;width:100%;justify-content:center;border-top:1px solid var(--line2);padding-top:18px}
-.proof>div{flex:1 1 0;max-width:none;padding:0 18px;border-left:1px solid var(--line2)}
-.proof>div:first-child{border-left:0}
+/* Tallene star uten streker - verken over raden eller mellom kolonnene. */
+.proof{display:flex;gap:0;margin-top:46px;flex-wrap:nowrap;max-width:860px;width:100%;justify-content:center;padding-top:18px}
+.proof>div{flex:1 1 0;max-width:none;padding:0 18px}
 
-.proof .n{font:400 34px/1 'Bebas Neue';letter-spacing:.02em;color:var(--hvit);text-shadow:none}
-.proof .t{font:600 10.5px/1.3 'Barlow Condensed';letter-spacing:.13em;text-transform:uppercase;color:var(--dim,var(--dim));margin-top:6px}
+.proof .n{font:400 34px/1 'Bebas Neue';letter-spacing:.02em;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+.proof .t{font:600 10.5px/1.3 'Barlow Condensed';letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-top:6px;text-shadow:0 2px 14px rgba(0,0,0,.75)}
 .pris-betaling{margin:14px 0 0;text-align:center;font-size:13px;color:var(--mute)}
 
 /* ── KLOKKESYNK-RADEN ──────────────────────────────────────────────
@@ -853,23 +874,31 @@ nav {
     color:rgb(var(--paper-rgb) / 0.55); text-decoration:none; transition:color 0.3s;
   }
 .nav-links a:hover, .nav-links a.active { color:var(--white); }
-.nav-cta { border-radius:999px; background:var(--orange) !important; color:var(--white) !important; padding:9px 20px !important; }
-  /* Logg inn: pill-omriss uten fyll (Sverre 20. aug). */
-  .nav-login { border:1px solid var(--border); border-radius:999px; padding:8px 18px; background:rgba(16,16,20,.65); backdrop-filter:blur(6px); box-shadow:0 4px 18px rgba(0,0,0,.35); }
-  .nav-login:hover { border-color:var(--muted); }
+/* Topplinja i heroen: «Lys modus» og «Logg inn» er glass-piller, «Start gratis
+   prove» er oransje - alle tre i samme hoyde og typografi (Barlow Condensed 700,
+   12 px, .16em, versaler). Scopet under .nav-links fordi `.nav-links a` (0,1,1)
+   ellers vinner over font-size og letter-spacing. */
+.nav-tema,.nav-links .nav-login,.nav-links .nav-cta{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;
+  padding:9px 17px;border-radius:999px;white-space:nowrap;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;line-height:1;
+  letter-spacing:.16em;text-transform:uppercase;
+  transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease,background .25s ease,border-color .25s ease}
+.nav-tema,.nav-links .nav-login{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.20);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28);color:var(--white)}
+.nav-tema:hover,.nav-links .nav-login:hover{transform:translateY(-2px);background:rgba(255,255,255,.16);
+  border-color:rgba(255,255,255,.34);box-shadow:0 12px 28px rgba(0,0,0,.4);color:var(--white)}
+.nav-links .nav-cta{background:var(--orange);color:var(--white);border:1px solid var(--orange);box-shadow:0 10px 26px rgba(255,69,0,.35)}
+.nav-links .nav-cta:hover{background:#FF5A19;border-color:#FF5A19;transform:translateY(-2px);box-shadow:0 16px 34px rgba(255,69,0,.5);color:var(--white)}
+.nav-tema:active,.nav-links .nav-login:active,.nav-links .nav-cta:active{transform:translateY(0) scale(.985)}
 
 /* Tema-bryteren. Staar SYNLIG i topplinja, ikke gjemt bak et ikon: lys/mørk
    er en funksjon vi viser fram her. Ikonet og teksten sier hva du BYTTER
    TIL - sol/«Lys modus» når det er mørkt, måne/«Mørk modus» når det er lyst.
    Nav-en er fredet mørk (den ligger på heroen), så knappen holder lys tekst
    i begge tema. */
-.nav-tema{display:inline-flex;align-items:center;gap:8px;min-height:40px;
-  padding:8px 16px;border:1px solid var(--line2);border-radius:999px;
-  background:rgba(16,16,20,.55);backdrop-filter:blur(6px);cursor:pointer;
-  color:var(--white);font:600 11px/1 'Barlow Condensed',sans-serif;
-  letter-spacing:2.5px;text-transform:uppercase;white-space:nowrap;
-  transition:color .15s,border-color .15s}
-.nav-tema:hover{color:var(--orange);border-color:var(--orange)}
+.nav-tema{cursor:pointer}
 .nav-tema:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
 .nav-tema svg{display:block;flex-shrink:0}
 /* TO monteringsplasser, EN kilde til sannhet.
@@ -895,10 +924,16 @@ nav {
    Skjul KUN etiketten, ikke ikon-wrapperen: `.nav-tema span` traff begge, og
    da fikk svg-en bredde 0 og knappen sto tom. */
 @media(max-width:1100px){
-  .nav-tema span:not(.tema-ikon){display:none}
-  /* Ikon-only skal fortsatt ha ekte treffflate, ikke bli en smal pille. */
-  .nav-tema{padding:8px;min-width:40px;justify-content:center}
-  .nav-links{gap:20px}
+  /* Sverre 6. sep: «Logg inn» og navlenkene skjules; «Lys modus» og den oransje
+     pilla blir staaende. Hamburgeren kommer fram samtidig, ellers ville
+     Funksjoner/Priser/FAQ vaert utilgjengelige mellom 900 og 1100. */
+  .nav-links > li:not(.nav-blir){display:none}
+  /* space-between med tre barn ville lagt de to pillene midt i raden - de skal
+     staa til hoyre, ved siden av hamburgeren. */
+  .nav-links{gap:12px;margin-left:auto;margin-right:14px}
+  .nav-mobilhoyre{display:flex}
+  .nav-hamburger{display:inline-flex}
+  .nav-tema-mobil{display:none}
 }
 @media(max-width:900px){
   /* 44px paa mobil, ikke 40. Gjentas her fordi 1100-blokka over setter
@@ -908,7 +943,6 @@ nav {
   .nav-mobilhoyre{display:flex}
 }
 
-.nav-cta:hover { background:var(--orange-dark) !important; color:var(--white) !important; }
 .dropdown-trigger {
     background:none; border:none; cursor:pointer;
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
@@ -972,33 +1006,45 @@ nav {
 .istep{flex:1;min-width:130px;text-align:center;position:relative;transition:opacity .35s}
 html.js .istep{opacity:.28}
 html.js .istep.vis{opacity:1}
-.istep::before{content:'';position:absolute;top:23px;left:calc(50% + 26px);right:calc(-50% + 26px);height:2px;background:var(--line2)}
+/* Segmentene MELLOM sirklene stopper for hver sirkel - aldri en strek bak dem.
+   Hvert segment tar sin bit av gradienten rod -> oransje -> lilla -> bla, sa raden
+   samlet leser som en overgang. */
+.istep::before{content:'';position:absolute;top:23px;left:calc(50% + 26px);right:calc(-50% + 26px);height:2px;border-radius:2px;opacity:.9}
 .istep:last-child::before{display:none}
-.istep.vis::before{background:linear-gradient(90deg,var(--orange),var(--line2))}
-.idot{width:46px;height:46px;border-radius:50%;border:2px solid var(--line2);background:var(--surface);
-  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative;z-index:1;transition:border-color .35s}
-.istep.vis .idot{border-color:var(--orange)}
-.idot svg{width:20px;height:20px;stroke:var(--paper);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.istep h4{font:700 15px 'Barlow Condensed';letter-spacing:.12em;margin:0 0 3px}
-.istep p{color:var(--mute);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0}
+.istep:nth-child(1)::before{background:linear-gradient(90deg,#E23A5A,#FF4500)}
+.istep:nth-child(2)::before{background:linear-gradient(90deg,#FF4500,#A85BC4)}
+.istep:nth-child(3)::before{background:linear-gradient(90deg,#A85BC4,#6E6BE6)}
+.istep:nth-child(4)::before{background:linear-gradient(90deg,#6E6BE6,#2E7FE0)}
+/* Glassfylte sirkler - ingen boks rundt raden; lesbarheten kommer fra vignetten
+   pluss text-shadow pa tittel og tekst. */
+.idot{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.30);
+  background:linear-gradient(150deg,rgba(255,255,255,.20),rgba(255,255,255,.06));
+  -webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 24px rgba(0,0,0,.45);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative;z-index:1;
+  transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease}
+.istep:hover .idot{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 14px 30px rgba(0,0,0,.5)}
+.idot svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.istep h4{font:700 15px 'Barlow Condensed';letter-spacing:.12em;margin:0 0 3px;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.75)}
+.istep p{color:rgba(255,255,255,.8);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0;text-shadow:0 2px 14px rgba(0,0,0,.8)}
 /* Smal skjerm: to rader (3+2, sentrert) i stedet for horisontal scroll.
    Forbindelseslinjene skjules - de gir ikke mening på tvers av radbrudd. */
-@media (max-width: 880px){
-  .iflow{flex-wrap:wrap;justify-content:center;overflow-x:visible;row-gap:20px;padding-bottom:0}
-  .istep{flex:0 0 33.33%;min-width:0}
-  /* Streken beholdes INNAD i hver rad (1–2, 2–3 og 4–5) - den skjules kun
-     på siste steg i hver rad, der den ellers ville stukket ut i lufta. */
-  .istep:nth-child(3)::before{display:none}
+/* Under 1000 px stables stegene i EN kolonne - ikon til venstre, tittel over
+   tekst - og segmentene blir korte LODDRETTE koblinger med sin bit av samme
+   gradient (fasitens mobilblokk). */
+@media (max-width: 1000px){
+  .hero h1{font-size:clamp(34px,9.5vw,58px)}
+  .hero-flow{max-width:460px;padding:0 22px}
+  .iflow{flex-direction:column;overflow-x:visible;gap:16px;padding-bottom:0}
+  .istep{flex:0 0 auto;min-width:0;display:grid;grid-template-columns:44px 1fr;column-gap:14px;row-gap:2px;align-items:center;text-align:left}
+  .idot{width:44px;height:44px;margin:0;grid-row:1 / span 2;align-self:center}
+  .idot svg{width:18px;height:18px}
+  .istep h4{margin:0;font-size:13px;letter-spacing:.16em}
+  .istep p{padding:0;font-size:12px}
+  .istep::before{left:21px;right:auto;top:calc(50% + 26px);width:2px;height:20px}
+  .istep:last-child::before{display:none}
 }
 @media (max-width: 560px){
-  .iflow{flex-wrap:nowrap;row-gap:0}
-  .istep{flex:1 1 0;min-width:0}
-  .istep:nth-child(3)::before{display:block}
-  .istep::before{left:calc(50% + 18px);right:calc(-50% + 18px);top:17px}
-  .idot{width:34px;height:34px;margin-bottom:8px}
-  .idot svg{width:16px;height:16px}
-  .istep h4{font-size:11px;letter-spacing:.08em;padding:0 2px}
-  .istep p{display:none}
   .hchip-txt{display:none}
 }
 
@@ -1013,7 +1059,9 @@ html.js .istep.vis{opacity:1}
 
 
 @media (prefers-reduced-motion: reduce){
-  .ishot,.istep,.idot{transition:none !important}
+  .ishot,.istep,.idot,.hero .btn{transition:none !important}
+  .hero .btn:hover{transform:none}
+  .hero .btn:hover::after{animation:none;opacity:0}
   html.js .ishot{opacity:1;transform:none}
   html.js .istep{opacity:1}
 }
@@ -2077,9 +2125,9 @@ section[id],header[id]{scroll-margin-top:108px}
     </li>
     <li><a href="#priser">Priser</a></li>
     <li><a href="#faq">FAQ</a></li>
-  <li><button type="button" class="nav-tema"><span class="tema-ikon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span>Lys modus</span></button></li>
+  <li class="nav-blir"><button type="button" class="nav-tema"><span class="tema-ikon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span>Lys modus</span></button></li>
     <li><a href="/app" class="nav-login">Logg inn</a></li>
-    <li><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
+    <li class="nav-blir"><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
   </ul>
   <div class="nav-mobilhoyre">
     <button type="button" class="nav-tema nav-tema-mobil"><span class="tema-ikon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span></span></button>
@@ -2155,13 +2203,12 @@ section[id],header[id]{scroll-margin-top:108px}
 
 <header class="hero" id="topp">
   <div class="hero-bg"></div>
-  <div class="hero-blaa"></div>
   <div class="hero-fade"></div>
   <div class="wrap hero-in">
     <div class="hero-tags">
       <a class="hchip" href="/nytt"><span class="hchip-txt">Treningsdagbok for utholdenhet · </span><span class="hchip-v">V1.3 · Hva er nytt →</span></a>
     </div>
-    <h1>BYGGET FOR <span class="o">ELITEN.</span><br>ENKEL FOR <span class="b">ALLE.</span></h1>
+    <h1>BYGGET FOR<br><span class="o">ELITEN.</span><br>ENKEL FOR <span class="b">ALLE.</span></h1>
     <!-- Flyt-stripa (hero v5): hele sløyfa, fem steg, rett under overskriften.
          Én plass i sida (regel 11) - den gamle seksjonen under folden er slettet. -->
     <div class="hero-flow" aria-label="Slik henger det sammen">
@@ -2188,7 +2235,7 @@ section[id],header[id]{scroll-margin-top:108px}
       </div>
     </div>
     </div>
-    <p class="hquote">“Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.”</p>
+    <p class="hquote">Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.</p>
     <div class="hacts">
       <a class="btn pri" href="#priser">Start gratis prøve</a>
       <a class="btn sec" href="#inside">Se innsiden ↓</a>

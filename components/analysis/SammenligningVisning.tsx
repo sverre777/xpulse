@@ -29,7 +29,7 @@ const FONT = "'Barlow Condensed', sans-serif"
 export const OKT_FARGER = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C']
 const MND = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des']
 
-export type SammenligningVisningValg = 'stablet' | 'oppa'
+export type SammenligningVisningValg = 'stablet' | 'oppa' | 'rutenett'
 export interface SammenligningConfig { ids: string[]; visning: SammenligningVisningValg; forskyv: boolean; metrikk: string | null; valgt: string | null }
 
 function fmtDato(iso: string): string { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}. ${MND[d.getMonth()]}` }
@@ -72,16 +72,25 @@ interface Props {
   targetUserId?: string
   /** Fase 122: lagret favoritt-oppsett (visning, forskyv, metrikk, valgt). */
   initialConfig?: Record<string, unknown> | null
+  /** Bolk 6 (Standardøkter): egen nøkkel/tittel, styrt visning og uten tabellene (serien har sin egen). */
+  chartKey?: string
+  tittel?: string
+  modus?: SammenligningVisningValg
+  onModus?: (m: SammenligningVisningValg) => void
+  skjulTabeller?: boolean
 }
 
-export function SammenligningVisning({ okter, harSki, initialConfig }: Props) {
+export function SammenligningVisning({ okter, harSki, initialConfig, chartKey = 'sammenlign_oktsett', tittel = 'Sammenligning av økter', modus, onModus, skjulTabeller = false }: Props) {
   const montert = useSyncExternalStore(() => () => {}, () => true, () => false)
-  const [visning, setVisning] = useState<SammenligningVisningValg>(initialConfig?.visning === 'oppa' ? 'oppa' : 'stablet')
+  const [visningEgen, setVisningEgen] = useState<SammenligningVisningValg>(initialConfig?.visning === 'oppa' || initialConfig?.visning === 'rutenett' ? initialConfig.visning : 'stablet')
+  const visning = modus ?? visningEgen
+  const setVisning = (m: SammenligningVisningValg) => { setVisningEgen(m); onModus?.(m) }
   const [forskyv, setForskyv] = useState<boolean>(initialConfig?.forskyv === true)
   const [valgtId, setValgtId] = useState<string | null>(typeof initialConfig?.valgt === 'string' ? initialConfig.valgt : null)
   const referanse = okter.find(o => o.isPlanned) ?? null
   const faktiske = okter.filter(o => !o.isPlanned)
-  const valgt = faktiske.find(o => o.id === valgtId) ?? faktiske[0] ?? null
+  // Standardvalg = første økt MED klokkedata — ellers står «Oppå hverandre» tom når første økt mangler kurve.
+  const valgt = faktiske.find(o => o.id === valgtId) ?? faktiske.find(o => o.klokke?.samples) ?? faktiske[0] ?? null
 
   // Klokkedata per økt, forskjøvet når «start på første drag» er på.
   const klokker = useMemo(() => new Map(okter.map(o => [o.id, o.klokke && forskyv ? forskyvKlokke(o.klokke, forsteDragSek(o.klokke)) : o.klokke])), [okter, forskyv])
@@ -160,7 +169,7 @@ export function SammenligningVisning({ okter, harSki, initialConfig }: Props) {
   )
 
   return (
-    <ChartWrapper chartKey="sammenlign_oktsett" title="Sammenligning av økter" height="auto" config={config as unknown as Record<string, unknown>}
+    <ChartWrapper chartKey={chartKey} title={tittel} height="auto" config={config as unknown as Record<string, unknown>}
       subtitle={okter.map((o, i) => `${i + 1}. ${fmtDato(o.date)} ${o.title}`).join(' · ')}>
       <div className="flex flex-col gap-4" data-sammenligning data-visning={visning}>
         {/* Øktene: farge, dato, tittel, terskel-chip og vær */}
@@ -194,9 +203,10 @@ export function SammenligningVisning({ okter, harSki, initialConfig }: Props) {
             <span role="group" data-sammenlign-visning style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden' }}>
               {bryter(visning === 'stablet', 'Stablet', () => setVisning('stablet'), 'stablet')}
               {bryter(visning === 'oppa', 'Oppå hverandre', () => setVisning('oppa'), 'oppa')}
+              {bryter(visning === 'rutenett', 'Side om side', () => setVisning('rutenett'), 'rutenett')}
             </span>
           </Gruppe>
-          {visning === 'stablet' && (
+          {(visning === 'stablet' || visning === 'rutenett') && (
             <Chip farge="var(--accent)" etikett="Start på første drag" paa={forskyv} fokus={false} onClick={() => setForskyv(v => !v)} />
           )}
           {metrikker.length > 0 && (
@@ -225,6 +235,16 @@ export function SammenligningVisning({ okter, harSki, initialConfig }: Props) {
               </div>
             ))}
           </div>
+        ) : visning === 'rutenett' ? (
+          /* Bolk 6: SIDE OM SIDE — rutenett 2–3 i bredden, felles tidsakse, samme chips. */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-sammenlign-rutenett>
+            {faktiske.map(o => (
+              <div key={o.id} data-sammenlign-graf={o.id} style={{ borderTop: `3px solid ${fargeFor(o.id)}`, paddingTop: 6, minWidth: 0 }}>
+                <p style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: fargeFor(o.id), margin: '0 0 4px' }}>{fmtDato(o.date)} · {o.title}</p>
+                {graf(o)}
+              </div>
+            ))}
+          </div>
         ) : valgt ? (
           <div data-sammenlign-oppa data-valgt={valgt.id} style={{ borderLeft: `3px solid ${fargeFor(valgt.id)}`, paddingLeft: 10 }}>
             {graf(valgt, faktiske.filter(o => o.id !== valgt.id).flatMap(o => serierFor(o).filter(s => !s.somAreal).map(s => ({
@@ -233,9 +253,9 @@ export function SammenligningVisning({ okter, harSki, initialConfig }: Props) {
           </div>
         ) : null}
 
-        <Nokkeltall okter={okter} fargeFor={fargeFor} />
-        <RunderSideVedSide okter={okter} fargeFor={fargeFor} />
-        {harSki && <SkytingSideVedSide okter={okter} fargeFor={fargeFor} />}
+        {!skjulTabeller && <Nokkeltall okter={okter} fargeFor={fargeFor} />}
+        {!skjulTabeller && <RunderSideVedSide okter={okter} fargeFor={fargeFor} />}
+        {!skjulTabeller && harSki && <SkytingSideVedSide okter={okter} fargeFor={fargeFor} />}
       </div>
     </ChartWrapper>
   )

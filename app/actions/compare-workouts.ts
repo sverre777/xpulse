@@ -234,6 +234,12 @@ export interface DetailedActivity {
   zones: Record<string, string> | null
   exercises: DetailedExercise[]
   shooting_series: DetailedShootingSeries[]
+  /** Bolk 6: skyte-aggregatene på raden (eldre/enkle rader uten serier) + kadens. */
+  prone_shots: number | null
+  prone_hits: number | null
+  standing_shots: number | null
+  standing_hits: number | null
+  avg_cadence: number | null
 }
 
 export interface DetailedWorkout {
@@ -258,6 +264,9 @@ export interface DetailedWorkout {
     notes: string | null
   } | null
 }
+
+type SkyteAggregat = { prone_shots?: number | null; prone_hits?: number | null; standing_shots?: number | null; standing_hits?: number | null; avg_cadence?: number | null }
+const agg = (a: unknown) => a as SkyteAggregat
 
 interface RawActivity {
   sort_order: number | null
@@ -302,6 +311,7 @@ export async function compareWorkoutsDetailed(
       workout_activities (
         sort_order, activity_type, duration_seconds, distance_meters, avg_heart_rate,
         max_heart_rate, avg_watts, avg_pace_seconds_per_km, movement_name, splits_per_km, zones,
+        prone_shots, prone_hits, standing_shots, standing_hits, avg_cadence,
         lactate_measurements:workout_activity_lactate_measurements ( value_mmol, measured_at ),
         workout_activity_exercises (
           exercise_name, sort_order,
@@ -344,6 +354,9 @@ export async function compareWorkoutsDetailed(
               rpe: st.rpe ?? null,
             })),
         })),
+      prone_shots: agg(a).prone_shots ?? null, prone_hits: agg(a).prone_hits ?? null,
+      standing_shots: agg(a).standing_shots ?? null, standing_hits: agg(a).standing_hits ?? null,
+      avg_cadence: agg(a).avg_cadence ?? null,
       shooting_series: [...(a.workout_shooting_series ?? [])]
         .sort((x, y) => x.series_no - y.series_no)
         .map(sr => ({

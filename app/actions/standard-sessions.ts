@@ -7,6 +7,7 @@
 // Lesebaner bruker getAuthUser (8e657a7-mønsteret); mutasjoner auth.getUser.
 
 import { revalidatePath } from 'next/cache'
+import { findStandardTest } from '@/lib/shooting-test-templates'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { resolveTargetUser } from '@/lib/target-user'
@@ -156,7 +157,7 @@ export async function getSessionSeriesLibrary(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const [{ data: rows, error }, { data: links, error: lErr }] = await Promise.all([
+    const [{ data: rows, error }, { data: links, error: lErr }, testRes] = await Promise.all([
       supabase
         .from('standard_session_series')
         .select('id, name, sport, movement_name, location, template_id, description')
@@ -170,6 +171,16 @@ export async function getSessionSeriesLibrary(
         .not('standard_session_series_id', 'is', null)
         .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
         .order('date', { ascending: true }),
+      // Bolk 6: NSSF-tester som serietype — skyteblokkene med shooting_test_ref
+      // (kolonnen bor på workout_activities, ikke på workouts) gir en virtuell
+      // serie per test (id «nssf:<ref>»), uten egen tabell (ingen SQL).
+      supabase
+        .from('workout_activities')
+        .select('workout_id, shooting_test_ref, workouts!inner(id, user_id, date, title, duration_minutes, distance_km, avg_heart_rate, is_completed, merged_into_workout_id)')
+        .not('shooting_test_ref', 'is', null)
+        .eq('workouts.user_id', userId)
+        .eq('workouts.is_completed', true)
+        .is('workouts.merged_into_workout_id', null),
     ])
     if (error) return { error: error.message }
     if (lErr) return { error: lErr.message }
@@ -189,7 +200,33 @@ export async function getSessionSeriesLibrary(
       bySerie.set(sid, arr)
     }
 
-    return (rows ?? []).map(r => {
+    const byTest = new Map<string, SeriesExecution[]>()
+    const settTest = new Set<string>() // én rad per økt per test — flere skyteblokker med samme ref teller én gang
+    type TestRad = { workout_id: string; shooting_test_ref: string; workouts: { id: string; date: string; title: string | null; duration_minutes: number | null; distance_km: number | null; avg_heart_rate: number | null } | null }
+    for (const a of ((testRes.data ?? []) as unknown as TestRad[])) {
+      const l = a.workouts; const ref = a.shooting_test_ref
+      if (!l || !ref || settTest.has(`${ref}|${l.id}`)) continue
+      settTest.add(`${ref}|${l.id}`)
+      const arr = byTest.get(ref) ?? []
+      arr.push({
+        workout_id: l.id, date: l.date, title: l.title ?? '',
+        total_seconds: l.duration_minutes != null ? l.duration_minutes * 60 : null,
+        distance_meters: l.distance_km != null ? Math.round(l.distance_km * 1000) : null,
+        avg_heart_rate: l.avg_heart_rate ?? null,
+      })
+      arr.sort((x, y) => x.date.localeCompare(y.date))
+      byTest.set(ref, arr)
+    }
+    const testSerier: SessionSeriesWithExecutions[] = [...byTest.entries()].map(([ref, executions]) => {
+      const std = findStandardTest(ref)
+      return {
+        id: `nssf:${ref}`, name: std?.name ?? `Skytetest ${ref}`, sport: 'biathlon', movement_name: 'Skyting', location: null,
+        template_id: null, description: std?.guidance ?? 'Skytetest (NSSF) — hver gjennomføring er en økt med denne testen.',
+        workout_count: executions.length, last_date: executions[executions.length - 1]?.date ?? null, executions,
+      }
+    })
+
+    return [...(rows ?? []).map(r => {
       const executions = bySerie.get(r.id as string) ?? []
       return {
         id: r.id as string,
@@ -203,7 +240,7 @@ export async function getSessionSeriesLibrary(
         last_date: executions.length > 0 ? executions[executions.length - 1].date : null,
         executions,
       }
-    })
+    }), ...testSerier]
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }
   }

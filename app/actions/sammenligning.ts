@@ -79,8 +79,9 @@ function dominantBev(aktiviteter: DetailedActivity[]): string {
 export async function hentSammenligning(
   ids: string[],
   targetUserId?: string,
+  maks = 4,
 ): Promise<SammenligningOkt[] | { error: string }> {
-  const rene = ids.filter(Boolean).slice(0, 4)
+  const rene = ids.filter(Boolean).slice(0, maks)
   if (rene.length === 0) return []
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

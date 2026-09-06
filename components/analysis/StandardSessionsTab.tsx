@@ -15,7 +15,8 @@ import {
 } from '@/app/actions/standard-sessions'
 import { SPORTS } from '@/lib/types'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
-import { SerieSammenligning } from './SerieSammenligning'
+import { SerieAnalyse, SerieFavoritt } from './SerieAnalyse'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 
 const ACCENT = '#FF8A5C'
 
@@ -50,6 +51,7 @@ function Sparkline({ values }: { values: (number | null)[] }) {
 }
 
 export function StandardSessionsTab({ targetUserId }: { targetUserId?: string }) {
+  const harSki = useHarSkiskyting()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [series, setSeries] = useState<SessionSeriesWithExecutions[] | null>(null)
@@ -60,7 +62,8 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
   const [editName, setEditName] = useState('')
   const [editSted, setEditSted] = useState('')
   const [editDesc, setEditDesc] = useState('')
-  const readOnly = !!targetUserId
+  // Virtuelle NSSF-serier (bolk 6) kan ikke redigeres/slettes — de er øktenes testreferanse.
+  const readOnly = !!targetUserId || (selectedId?.startsWith('nssf:') ?? false)
 
   const load = () => {
     getSessionSeriesLibrary(targetUserId)
@@ -234,7 +237,7 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
         </div>
 
         {/* Kø #48 bolk 4–6: sammenligningen — innholdsavhengig fra start. */}
-        <SerieSammenligning serie={selected} />
+        <SerieAnalyse serie={selected} harSki={harSki} targetUserId={targetUserId} />
       </div>
     )
   }
@@ -290,4 +293,16 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
       )}
     </div>
   )
+}
+
+/** Bolk 6: favoritt = serie + variabel (config.serieId) — henter selv. */
+export function renderFavoritt(key: string, _data: unknown, ctx: { targetUserId?: string; config?: Record<string, unknown> | null }): React.ReactNode | null {
+  const serieId = typeof ctx.config?.serieId === 'string' ? ctx.config.serieId : null
+  if (!serieId || !['standardokter_serie', 'standardokter_tabell', 'standardokter_grafer'].includes(key)) return null
+  return <SerieFavorittMedSki serieId={serieId} targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
+}
+
+function SerieFavorittMedSki(props: { serieId: string; targetUserId?: string; initialConfig?: Record<string, unknown> | null }) {
+  const harSki = useHarSkiskyting()
+  return <SerieFavoritt {...props} harSki={harSki} />
 }

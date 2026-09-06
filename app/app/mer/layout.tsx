@@ -1,0 +1,66 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { GlassLinje } from '@/components/layout/GlassLinje'
+import { MainNav } from '@/components/layout/MainNav'
+import { CoachNav } from '@/components/coach/CoachNav'
+import { RoleProvider } from '@/lib/role-context'
+import { getInboxUnreadCount } from '@/app/actions/inbox'
+import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
+import type { Role } from '@/lib/types'
+
+// NAVIGASJON v2 bolk 4: /app/mer er en delt rute — Mer-fanen finnes i begge
+// roller. Samme mønster som innstillinger-layouten: nav etter active_role,
+// fall-back til athlete uten trener-tier. (Under (authed) ville trener-modus
+// blitt sendt til /app/trener.)
+
+export default async function MerLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/app')
+
+  const [{ data: profile }, sub, unreadInboxCount] = await Promise.all([
+    supabase.from('profiles')
+      .select('full_name, has_athlete_role, has_coach_role, active_role, role')
+      .eq('id', user.id)
+      .single(),
+    getActiveSubscription(supabase, user.id),
+    getInboxUnreadCount(),
+  ])
+
+  const rawActiveRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
+  const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
+  const hasCoachRole: boolean = profile?.has_coach_role ?? false
+  const coachTier = hasCoachTier(sub)
+  const activeRole: Role = (rawActiveRole === 'coach' && !coachTier)
+    ? 'athlete'
+    : rawActiveRole
+
+  return (
+    <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
+      <div className="min-h-screen flex flex-col">
+        {activeRole === 'coach' ? (
+          <CoachNav
+            userName={profile?.full_name ?? null}
+            hasAthleteRole={hasAthleteRole}
+            hasCoachRole={hasCoachRole}
+            hasCoachTier={coachTier}
+            unreadInboxCount={unreadInboxCount}
+          />
+        ) : (
+          <MainNav
+            userName={profile?.full_name ?? null}
+            activeRole={activeRole}
+            hasAthleteRole={hasAthleteRole}
+            hasCoachRole={hasCoachRole}
+            hasCoachTier={coachTier}
+            unreadInboxCount={unreadInboxCount}
+          />
+        )}
+        <div className="flex-1 xp-app-innhold">
+          {children}
+        </div>
+        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'} />
+      </div>
+    </RoleProvider>
+  )
+}

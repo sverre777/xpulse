@@ -376,8 +376,12 @@ export async function updateSession(request: NextRequest) {
     // når aldri hit. Profil hentes KUN for trener-tier-brukere — vanlige utøvere
     // (Athlete Pro) treffer aldri denne grenen, så ingen ekstra spørring for dem.
     // Rollen caches i samme cookie; rollebytte-actionen sletter cookien.
+    // /app/mer (Navigasjon v2 bolk 4) er rolle-nøytral på samme måte som innboksen:
+    // egen layout velger CoachNav/MainNav etter active_role, så treneren skal IKKE
+    // sendes til /app/trener herfra.
     const isInbox = pathname === '/app/innboks' || pathname.startsWith('/app/innboks/')
-    if (!isCoachRoute(pathname) && !isInbox && coach) {
+    const isMer = pathname === '/app/mer' || pathname.startsWith('/app/mer/')
+    if (!isCoachRoute(pathname) && !isInbox && !isMer && coach) {
       let activeRole = cachedRole
       if (!activeRole) {
         const { data: profile } = await withTimeout(supabase

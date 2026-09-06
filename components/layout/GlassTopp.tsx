@@ -14,6 +14,7 @@ import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { tittelForRute, useToppTittelOverstyring } from '@/lib/topp-tittel'
 import { AvatarMeny, type AvatarMenyProps } from './AvatarMeny'
+import { SynkArk } from './SynkArk'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const BEBAS = "'Bebas Neue', sans-serif"
@@ -56,6 +57,7 @@ export function GlassTopp(props: GlassToppProps) {
   const aksent = rolle === 'coach' ? COACH_BLUE : ORANSJE
   const planSegment = rolle === 'athlete' && (pathname.startsWith('/app/plan') || pathname.startsWith('/app/periodisering'))
   const [menyAapen, setMenyAapen] = useState(false)
+  const [synkAapen, setSynkAapen] = useState(false)
   // Oransje prikk: nye økter hentet i dag (siste synk < 24 t) — nærmeste sannhet uten egen teller.
   // Tidspunktet leses én gang ved montering (Date.now() i render er urent).
   const [naa] = useState(() => Date.now())
@@ -89,7 +91,7 @@ export function GlassTopp(props: GlassToppProps) {
           )}
         </div>
         {rolle === 'athlete' && (
-          <button type="button" data-topp-synk onClick={() => onSynk ? onSynk() : router.push('/app/innstillinger/klokkesync')} aria-label="Klokkesynk"
+          <button type="button" data-topp-synk onClick={() => onSynk ? onSynk() : setSynkAapen(true)} aria-label="Klokkesynk"
             style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 5, height: 34, padding: '0 11px', borderRadius: 999, border: 'none', cursor: 'pointer', background: `color-mix(in srgb, ${GRONN} 22%, transparent)`, color: GRONN, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.12em' }}>
             <SynkIkon /> SYNK
             {nySynk && <span data-topp-synk-prikk aria-label="Nye økter hentet" style={{ position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: 999, background: ORANSJE, border: '2px solid var(--flate-3)' }} />}
@@ -104,6 +106,7 @@ export function GlassTopp(props: GlassToppProps) {
           {menyAapen && <AvatarMeny {...props} onLukk={() => setMenyAapen(false)} />}
         </div>
       </div>
+      {synkAapen && <SynkArk onClose={() => setSynkAapen(false)} />}
     </div>
   )
 }

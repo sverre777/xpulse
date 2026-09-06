@@ -8,7 +8,7 @@
 // 3.1.1) · Logg ut. Lukkes ved klikk utenfor/Esc. Samme komponent på PC.
 
 import Link from 'next/link'
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { logout } from '@/app/actions/auth'
 import { switchActiveRole } from '@/app/actions/roles'
 import { gjeldendeTema, nesteTema, settTema, type Tema } from '@/lib/tema'
@@ -65,8 +65,9 @@ function RolleSegment({ rolle }: { rolle: 'athlete' | 'coach' }) {
 
 export function AvatarMeny({ rolle, userName, hasAthleteRole = true, hasCoachRole = false, hasCoachTier = false, unreadInboxCount = 0, sportEtikett, planEtikett, plassering = 'mobil', onLukk }: AvatarMenyProps & { onLukk: () => void }) {
   const rot = useRef<HTMLDivElement | null>(null)
-  const [tema, setTemaState] = useState<Tema | null>(null)
-  useEffect(() => { setTemaState(gjeldendeTema()) }, [])
+  // Temaet leses etter montering (serveren vet det ikke) — uten setState i effekt.
+  const [temaTick, setTemaTick] = useState(0)
+  const tema = useSyncExternalStore(() => () => {}, () => (temaTick >= 0 ? gjeldendeTema() : null), () => null)
   useEffect(() => {
     const klikk = (e: MouseEvent) => { const t = e.target as Node; if (rot.current && !rot.current.contains(t) && !(t as HTMLElement).closest?.('[data-topp-avatar], [data-pc-avatar]')) onLukk() }
     const tast = (e: KeyboardEvent) => { if (e.key === 'Escape') onLukk() }
@@ -75,7 +76,7 @@ export function AvatarMeny({ rolle, userName, hasAthleteRole = true, hasCoachRol
   }, [onLukk])
   const aksent = rolle === 'coach' ? COACH_BLUE : ORANSJE
   const rad: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', borderRadius: 12, textDecoration: 'none', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 15, fontWeight: 600, minHeight: 44, background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }
-  const byttTema = () => { const n = nesteTema(tema); settTema(n); setTemaState(n) }
+  const byttTema = () => { settTema(nesteTema(tema)); setTemaTick(t => t + 1) }
   return (
     <div ref={rot} role="menu" data-avatar-meny style={{
       position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 'min(320px, calc(100vw - 24px))', zIndex: 120, padding: 10, borderRadius: 18,

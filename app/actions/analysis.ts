@@ -6,6 +6,10 @@ import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-s
 import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, vektFraIF, wattDekningSek } from '@/lib/watt-metrikker'
+import { sekPerWattSone, WATT_SONER, type WattSone } from '@/lib/watt-soner'
+import { besteRullendeSnitt } from '@/lib/rullende-snitt'
+import { resolveMaxHr } from '@/lib/heart-zones'
+import { lineaerRegresjon } from '@/lib/regresjon'
 import { beregnSoneTss } from '@/lib/belastning'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
@@ -3178,6 +3182,10 @@ export interface LactatePoint {
   activity_type: string | null
   value_mmol: number
   heart_rate: number | null      // aktivitetens snittpuls (beste proxy vi har)
+  // Bolk 2: bev.form og intensiteten på aktiviteten — laktat ved samme fart/watt.
+  movement_name: string | null
+  avg_watts: number | null
+  pace_sec_km: number | null
 }
 
 export interface TerskelEstimate {
@@ -3199,11 +3207,70 @@ export interface TemplateLactateStats {
   recent_mmol: number | null
 }
 
+/** Bolk 2: én rad i user_thresholds — terskelen som gjaldt fra en dato for en nøkkel. */
+export interface TerskelHistorikkPunkt {
+  date: string
+  movement_name: string
+  movement_subcategory: string
+  threshold_hr: number
+  threshold_pace_sec_km: number | null
+  ftp_watts: number | null
+  /** Radene i tabellen er alltid ført (manuelt / fra test-flaten). Estimater lagres aldri. */
+  kilde: 'manuell'
+}
+
+/** Bolk 2: et ESTIMAT fra en økt — aldri skrevet til terskeltabellen. */
+export interface TerskelEstimatPunkt {
+  date: string
+  workout_id: string
+  title: string
+  type: 'ftp20' | 'pace30' | 'laktat'
+  /** W for ftp20 · sek/km for pace30 · bpm (puls ved 4 mmol) for laktat. */
+  verdi: number
+  detalj: string
+  movement_name: string | null
+}
+
+export interface WattUkePunkt {
+  week: string
+  label: string
+  Z1: number; Z2: number; Z3: number; Z4: number; Z5: number; Z6: number; Z7: number
+  total: number
+}
+
+export interface WattOktPunkt {
+  date: string
+  workout_id: string
+  title: string
+  np: number
+  ftp: number | null
+  if: number | null
+  wattPerKg: number | null
+}
+
+export interface HfmaxInfo {
+  fort: number | null
+  formel: number
+  gulati: boolean
+  terskelHr: number | null
+  pctVedTerskel: number | null
+}
+
 export interface TerskelAnalysis {
   points: LactatePoint[]
   estimate: TerskelEstimate
   byTemplate: TemplateLactateStats[]
   hasData: boolean
+  // Bolk 2
+  historikk: TerskelHistorikkPunkt[]
+  estimater: TerskelEstimatPunkt[]
+  wattUker: WattUkePunkt[]
+  wattOkter: WattOktPunkt[]
+  hfmax: HfmaxInfo
+  bevFormer: string[]
+  vektKg: number | null
+  /** Gjeldende FTP (globalnivå eller nyeste nøkkel) — for watt/kg-kortet. */
+  ftpNaa: number | null
 }
 
 type RawTerskelLactate = {
@@ -3216,6 +3283,12 @@ type RawTerskelActivity = {
   activity_type: string | null
   avg_heart_rate: number | null
   lactate_mmol: number | string | null
+  movement_name: string | null
+  movement_subcategory: string | null
+  avg_watts: number | null
+  avg_speed_ms: number | null
+  avg_pace_seconds_per_km: number | null
+  duration_seconds: number | null
   workout_activity_lactate_measurements: RawTerskelLactate[] | null
 }
 
@@ -3223,30 +3296,10 @@ type RawTerskelWorkout = {
   id: string
   date: string
   sport: string
+  title: string | null
+  workout_type: string | null
   template_id: string | null
   workout_activities: RawTerskelActivity[] | null
-}
-
-// Enkel lineær regresjon y = slope * x + intercept (x = mmol, y = HR).
-// Returnerer null hvis < 3 punkter eller nullvarians.
-function linearRegression(points: { x: number; y: number }[]):
-  { slope: number; intercept: number; r2: number; n: number } | null {
-  const n = points.length
-  if (n < 3) return null
-  const meanX = points.reduce((s, p) => s + p.x, 0) / n
-  const meanY = points.reduce((s, p) => s + p.y, 0) / n
-  let num = 0, denX = 0, denY = 0
-  for (const p of points) {
-    const dx = p.x - meanX, dy = p.y - meanY
-    num += dx * dy
-    denX += dx * dx
-    denY += dy * dy
-  }
-  if (denX === 0) return null
-  const slope = num / denX
-  const intercept = meanY - slope * meanX
-  const r2 = denY === 0 ? 0 : (num * num) / (denX * denY)
-  return { slope, intercept, r2, n }
 }
 
 export async function getTerskelAnalysis(
@@ -3263,7 +3316,7 @@ export async function getTerskelAnalysis(
 
     let q = supabase
       .from('workouts')
-      .select(`id,date,sport,template_id,workout_activities(id,activity_type,avg_heart_rate,lactate_mmol,workout_activity_lactate_measurements(value_mmol,measured_at))`)
+      .select(`id,date,sport,title,workout_type,template_id,workout_activities(id,activity_type,avg_heart_rate,lactate_mmol,movement_name,movement_subcategory,avg_watts,avg_speed_ms,avg_pace_seconds_per_km,duration_seconds,workout_activity_lactate_measurements(value_mmol,measured_at))`)
       .eq('user_id', userId)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -3277,7 +3330,7 @@ export async function getTerskelAnalysis(
     // satte nøkkel. profiles.lactate_threshold_hr er FROSSET (leses og
     // skrives ikke; pensjoneres i egen opprydding).
     const iDag = new Date().toISOString().slice(0, 10)
-    const [workoutsRes, templatesRes, terskelRes] = await Promise.all([
+    const [workoutsRes, templatesRes, terskelRes, alleTerskler, profilRes, vektRes] = await Promise.all([
       q,
       supabase.from('workout_templates').select('id,name').eq('user_id', userId),
       supabase.from('user_thresholds')
@@ -3285,9 +3338,23 @@ export async function getTerskelAnalysis(
         .eq('user_id', userId)
         .lte('valid_from', iDag)
         .order('valid_from', { ascending: false }),
+      // Bolk 2: hele historikken (også framtidige «gjelder fra»), alle felt.
+      supabase.from('user_thresholds')
+        .select('movement_name, movement_subcategory, threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
+        .eq('user_id', userId)
+        .order('valid_from', { ascending: true }),
+      supabase.from('profiles').select('max_heart_rate, birth_year, gender').eq('id', userId).maybeSingle(),
+      supabase.from('health_metrics').select('date, body_weight_kg').eq('user_id', userId).not('body_weight_kg', 'is', null).order('date', { ascending: false }).limit(120),
     ])
     if (workoutsRes.error) return { error: workoutsRes.error.message }
     if (templatesRes.error) return { error: templatesRes.error.message }
+    // Bolk 2: klokkekurver for øktene i perioden (nyeste 80) — beste 20-min
+    // watt, beste 30-min fart, watt-soner og NP/IF per økt.
+    const terskelWorkouts = (workoutsRes.data ?? []) as RawTerskelWorkout[]
+    const sampleIds = terskelWorkouts.slice(-80).map(w => w.id)
+    const samplesRes = sampleIds.length > 0
+      ? await supabase.from('workout_samples').select('workout_id, watt_samples, pace_samples, speed_samples').in('workout_id', sampleIds)
+      : { data: [] as Array<{ workout_id: string; watt_samples: unknown; pace_samples: unknown; speed_samples: unknown }> }
 
     type TemplateRow = { id: string; name: string }
     const templatesById = new Map<string, TemplateRow>()
@@ -3313,6 +3380,9 @@ export async function getTerskelAnalysis(
               activity_type: a.activity_type,
               value_mmol: mmol,
               heart_rate: a.avg_heart_rate,
+              movement_name: a.movement_name,
+              avg_watts: a.avg_watts,
+              pace_sec_km: a.avg_pace_seconds_per_km ?? (a.avg_speed_ms && a.avg_speed_ms > 0.3 ? Math.round(1000 / a.avg_speed_ms) : null),
             })
           }
         } else if (a.lactate_mmol != null) {
@@ -3328,6 +3398,9 @@ export async function getTerskelAnalysis(
               activity_type: a.activity_type,
               value_mmol: mmol,
               heart_rate: a.avg_heart_rate,
+              movement_name: a.movement_name,
+              avg_watts: a.avg_watts,
+              pace_sec_km: a.avg_pace_seconds_per_km ?? (a.avg_speed_ms && a.avg_speed_ms > 0.3 ? Math.round(1000 / a.avg_speed_ms) : null),
             })
           }
         }
@@ -3338,7 +3411,7 @@ export async function getTerskelAnalysis(
     const withHr = points
       .filter(p => p.heart_rate != null && Number.isFinite(p.heart_rate))
       .map(p => ({ x: p.value_mmol, y: p.heart_rate as number }))
-    const reg = linearRegression(withHr)
+    const reg = lineaerRegresjon(withHr)
     const lt1 = reg ? reg.slope * 2 + reg.intercept : null
     const lt2 = reg ? reg.slope * 4 + reg.intercept : null
     type TerskelRow = { threshold_hr: number; movement_name: string; movement_subcategory: string }
@@ -3378,7 +3451,86 @@ export async function getTerskelAnalysis(
     }
     byTemplate.sort((a, b) => b.measurements - a.measurements || b.avg_mmol - a.avg_mmol)
 
+    // ── Bolk 2 ──
+    const terskelRader = ((alleTerskler.data ?? []) as TerskelDbRad[])
+    const historikk: TerskelHistorikkPunkt[] = terskelRader.map(r => ({
+      date: r.valid_from, movement_name: r.movement_name, movement_subcategory: r.movement_subcategory,
+      threshold_hr: r.threshold_hr, threshold_pace_sec_km: r.threshold_pace_sec_km, ftp_watts: r.ftp_watts, kilde: 'manuell',
+    }))
+    const vektRader = ((vektRes.data ?? []) as Array<{ date: string; body_weight_kg: number | string | null }>)
+      .map(r => ({ date: r.date, kg: Number(r.body_weight_kg) })).filter(r => Number.isFinite(r.kg) && r.kg > 0)
+    const vektPaa = (dato: string): number | null => vektRader.find(r => r.date <= dato)?.kg ?? vektRader[vektRader.length - 1]?.kg ?? null
+    const dominantFor = (w: RawTerskelWorkout): [string, string] => {
+      const sum = new Map<string, number>(); const sub = new Map<string, string>()
+      for (const a of w.workout_activities ?? []) { const n = (a.movement_name ?? '').trim(); if (!n) continue; sum.set(n, (sum.get(n) ?? 0) + (a.duration_seconds ?? 0)); if (!sub.has(n)) sub.set(n, (a.movement_subcategory ?? '').trim()) }
+      let beste = '', mest = -1
+      for (const [n, v] of sum) if (v > mest) { beste = n; mest = v }
+      return [beste, sub.get(beste) ?? '']
+    }
+    type RaaSample = { t: number; w?: number; mps?: number }
+    const samplesBy = new Map<string, { watt: RaaSample[] | null; fart: RaaSample[] | null }>()
+    for (const r of (samplesRes.data ?? []) as Array<{ workout_id: string; watt_samples: RaaSample[] | null; pace_samples: RaaSample[] | null; speed_samples: RaaSample[] | null }>) {
+      samplesBy.set(r.workout_id, { watt: r.watt_samples, fart: r.pace_samples ?? r.speed_samples })
+    }
+    const estimater: TerskelEstimatPunkt[] = []
+    const wattOkter: WattOktPunkt[] = []
+    const ukeSoner = new Map<string, { label: string; sek: Record<WattSone, number> }>()
+    for (const w of terskelWorkouts) {
+      const sm = samplesBy.get(w.id)
+      const [bev, bevSub] = dominantFor(w)
+      const tersk = resolveTerskel(terskelRader, w.date, bev, bevSub)
+      const tittel = w.title ?? ''
+      if (sm?.watt && sm.watt.length > 10) {
+        const seq = sm.watt.filter(p => Number.isFinite(p.t) && Number.isFinite(p.w)).map(p => ({ t: p.t, v: p.w as number }))
+        const b20 = besteRullendeSnitt(seq, 1200)
+        if (b20 != null && b20 > 0) estimater.push({ date: w.date, workout_id: w.id, title: tittel, type: 'ftp20', verdi: Math.round(b20 * 0.95), detalj: `beste 20 min ${Math.round(b20)} W × 0,95`, movement_name: bev || null })
+        const np = beregnNP(sm.watt.map(p => ({ t: p.t, w: p.w as number })))
+        if (np != null) {
+          const ftp = tersk?.ftp_watts ?? null
+          const kg = vektPaa(w.date)
+          wattOkter.push({ date: w.date, workout_id: w.id, title: tittel, np, ftp, if: ftp ? Math.round((np / ftp) * 100) / 100 : null, wattPerKg: ftp && kg ? Math.round((ftp / kg) * 100) / 100 : null })
+        }
+        if (tersk?.ftp_watts) {
+          const sek = sekPerWattSone(sm.watt.map(p => ({ t: p.t, w: p.w as number })), tersk.ftp_watts)
+          const uke = isoWeekKey(new Date(`${w.date}T12:00:00`))
+          const b = ukeSoner.get(uke.weekKey) ?? { label: uke.label, sek: { Z1: 0, Z2: 0, Z3: 0, Z4: 0, Z5: 0, Z6: 0, Z7: 0 } }
+          for (const z of WATT_SONER) b.sek[z] += sek[z]
+          ukeSoner.set(uke.weekKey, b)
+        }
+      }
+      if (sm?.fart && sm.fart.length > 10 && (w.sport === 'running' || w.sport === 'triathlon' || bev === 'Løping')) {
+        const seq = sm.fart.filter(p => Number.isFinite(p.t) && Number.isFinite(p.mps) && (p.mps as number) > 0.5).map(p => ({ t: p.t, v: p.mps as number }))
+        const b30 = besteRullendeSnitt(seq, 1800)
+        if (b30 != null && b30 > 0.5) estimater.push({ date: w.date, workout_id: w.id, title: tittel, type: 'pace30', verdi: Math.round(1000 / b30), detalj: 'beste 30 min tempo', movement_name: bev || null })
+      }
+      // Laktat-krysning per økt: ≥3 målinger m/ puls → puls ved 4 mmol.
+      const egne = points.filter(p => p.workout_id === w.id && p.heart_rate != null).map(p => ({ x: p.value_mmol, y: p.heart_rate as number }))
+      if (egne.length >= 3) {
+        const r = lineaerRegresjon(egne)
+        if (r && r.slope > 0) estimater.push({ date: w.date, workout_id: w.id, title: tittel, type: 'laktat', verdi: Math.round(r.slope * 4 + r.intercept), detalj: `laktat-krysning 4 mmol (${egne.length} målinger, R² ${Math.round(r.r2 * 100)} %)`, movement_name: bev || null })
+      }
+    }
+    estimater.sort((a, b) => a.date.localeCompare(b.date))
+    wattOkter.sort((a, b) => a.date.localeCompare(b.date))
+    const wattUker: WattUkePunkt[] = [...ukeSoner.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([week, b]) => {
+      const t = (z: WattSone) => Math.round((b.sek[z] / 3600) * 10) / 10
+      const total = WATT_SONER.reduce((s2, z) => s2 + b.sek[z], 0)
+      return { week, label: b.label, Z1: t('Z1'), Z2: t('Z2'), Z3: t('Z3'), Z4: t('Z4'), Z5: t('Z5'), Z6: t('Z6'), Z7: t('Z7'), total: Math.round((total / 3600) * 10) / 10 }
+    })
+    const profil = profilRes.data as { max_heart_rate: number | null; birth_year: number | null; gender: string | null } | null
+    const formel = resolveMaxHr(null, profil?.birth_year ?? null, profil?.gender ?? null)
+    const fort = profil?.max_heart_rate && profil.max_heart_rate > 0 ? profil.max_heart_rate : null
+    const hfmaxVerdi = fort ?? formel
+    const hfmax: HfmaxInfo = {
+      fort, formel, gulati: profil?.gender === 'female', terskelHr: profileThresholdHr,
+      pctVedTerskel: profileThresholdHr && hfmaxVerdi > 0 ? Math.round((profileThresholdHr / hfmaxVerdi) * 100) : null,
+    }
+    const bevFormer = [...new Set([...points.map(p => p.movement_name ?? ''), ...historikk.map(h => h.movement_name)].filter(Boolean))].sort()
+    const gjeldende = resolveTerskel(terskelRader, iDag, '', '')
+    const ftpNaa = gjeldende?.ftp_watts ?? terskelRader.filter(r => r.ftp_watts && r.valid_from <= iDag).sort((a, b) => b.valid_from.localeCompare(a.valid_from))[0]?.ftp_watts ?? null
+
     return {
+      historikk, estimater, wattUker, wattOkter, hfmax, bevFormer, vektKg: vektPaa(iDag), ftpNaa,
       points,
       estimate: {
         lt1_hr: lt1 != null ? Math.round(lt1) : null,
@@ -3387,7 +3539,7 @@ export async function getTerskelAnalysis(
         regression: reg ? { slope: Math.round(reg.slope * 100) / 100, intercept: Math.round(reg.intercept * 10) / 10, r2: Math.round(reg.r2 * 1000) / 1000, n: reg.n } : null,
       },
       byTemplate,
-      hasData: points.length > 0,
+      hasData: points.length > 0 || historikk.length > 0 || estimater.length > 0,
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)

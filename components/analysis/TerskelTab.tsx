@@ -2,7 +2,10 @@
 
 import { MetricCard } from './MetricCard'
 import { KortGruppe } from './KortGruppe'
-import { useMemo } from 'react'
+import { TerskelHistorikk, EstimaterTabell, HfmaxKort, WattSonerPerUke, NpIfPerOkt, LaktatVedIntensitet } from './TerskelBolk2'
+import { useMemo, useState } from 'react'
+import { lineaerRegresjon } from '@/lib/regresjon'
+import { Chip } from '@/components/workout/WorkoutDetailChart'
 import {
   ResponsiveContainer, ScatterChart, Scatter, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ZAxis, ReferenceLine,
@@ -48,7 +51,7 @@ export function TerskelTab({ data }: { data: TerskelAnalysis }) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
-          Ingen laktatmålinger i perioden. Legg inn mmol/L-verdier på aktiviteter (test-økter og terskelintervaller) for å se laktatprofil og terskelpuls-estimat.
+          Ingen terskel, klokkedata eller laktatmålinger i perioden. Legg inn mmol/L-verdier på aktiviteter (test-økter og terskelintervaller) for å se laktatprofil og terskelpuls-estimat.
         </p>
       </div>
     )
@@ -57,8 +60,14 @@ export function TerskelTab({ data }: { data: TerskelAnalysis }) {
   return (
     <div className="space-y-5">
       <EstimateCards data={data} />
+      <HfmaxKort data={data} />
+      <TerskelHistorikk data={data} />
+      <EstimaterTabell data={data} />
       <LactateProfile data={data} />
+      <LaktatVedIntensitet data={data} />
       <LactateTrend data={data} />
+      <WattSonerPerUke data={data} />
+      <NpIfPerOkt data={data} />
       <TemplateTable data={data} />
       <CsvExport data={data} />
       <MethodNote />
@@ -89,10 +98,13 @@ export function EstimateCards({ data, bare }: { data: TerskelAnalysis; bare?: st
   )
 }
 
-export function LactateProfile({ data }: { data: TerskelAnalysis }) {
-  // Scatter av (mmol, HR) med regresjonslinje over 0–12 mmol.
-  const withHr = data.points.filter(p => p.heart_rate != null)
-  const regression = data.estimate.regression
+export function LactateProfile({ data, initialConfig }: { data: TerskelAnalysis; initialConfig?: Record<string, unknown> | null }) {
+  // Scatter av (mmol, HR) med regresjonslinje over 0–12 mmol. Bolk 2: per
+  // bev.form — regresjonen regnes for utvalget (samme lib-formel som serveren).
+  const bevFormer = useMemo(() => [...new Set(data.points.map(p => p.movement_name ?? '').filter(Boolean))], [data.points])
+  const [bev, setBev] = useState<string | null>(typeof initialConfig?.bev === 'string' ? initialConfig.bev : null)
+  const withHr = data.points.filter(p => p.heart_rate != null && (!bev || p.movement_name === bev))
+  const regression = useMemo(() => bev ? lineaerRegresjon(withHr.map(p => ({ x: p.value_mmol, y: p.heart_rate as number }))) : data.estimate.regression, [bev, withHr, data.estimate.regression])
 
   const regressionLine = useMemo(() => {
     if (!regression) return []
@@ -133,9 +145,17 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
           Laktatprofil — mmol/L vs puls
         </p>
       </div>
-      <ChartWrapper chartKey="terskel_lactate_profile" title="Scatter med regresjon"
+      <ChartWrapper chartKey="terskel_lactate_profile" title="Scatter med regresjon" config={{ bev }}
         subtitle="Hvert punkt = én måling (mmol på x, aktivitetens snittpuls på y). Blå linje = lineær regresjon."
-        height={340}>
+        height="auto">
+        {bevFormer.length > 1 && (
+          <div className="flex gap-1.5 flex-wrap mb-2" data-laktat-bevformer>
+            {[null, ...bevFormer].map(b => (
+              <Chip key={b ?? 'alle'} farge="var(--accent)" etikett={b ?? 'Alle'} paa={bev === b} fokus={false} onClick={() => setBev(b)} />
+            ))}
+          </div>
+        )}
+        <div style={{ width: '100%', height: 340 }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ScatterChart margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
             <CartesianGrid stroke={CHART_GRID} />
@@ -164,6 +184,7 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
             )}
           </ScatterChart>
         </ResponsiveContainer>
+        </div>
       </ChartWrapper>
     </div>
   )
@@ -316,9 +337,16 @@ function MethodNote() {
 }
 
 /** Bolk 1: favoritt-rendring for Terskel-nøklene. */
-export function renderFavoritt(key: string, data: TerskelAnalysis): React.ReactNode | null {
+export function renderFavoritt(key: string, data: TerskelAnalysis, ctx?: { config?: Record<string, unknown> | null }): React.ReactNode | null {
   switch (key) {
-    case 'terskel_lactate_profile': return <LactateProfile data={data} />
+    case 'terskel_historikk': return <TerskelHistorikk data={data} initialConfig={ctx?.config} />
+    case 'terskel_estimater': return <EstimaterTabell data={data} />
+    case 'terskel_hfmax': return <HfmaxKort data={data} />
+    case 'terskel_hfmax_fort': case 'terskel_hfmax_formel': case 'terskel_hfmax_pct': case 'terskel_watt_per_kg': return <HfmaxKort data={data} bare={key} />
+    case 'terskel_watt_soner_per_uke': return <WattSonerPerUke data={data} />
+    case 'terskel_np_if_per_okt': return <NpIfPerOkt data={data} />
+    case 'terskel_laktat_vs_intensitet': return <LaktatVedIntensitet data={data} initialConfig={ctx?.config} />
+    case 'terskel_lactate_profile': return <LactateProfile data={data} initialConfig={ctx?.config} />
     case 'terskel_lactate_trend': return <LactateTrend data={data} />
     case 'terskel_laktat_per_mal': return <TemplateTable data={data} />
     case 'terskel_estimat': return <EstimateCards data={data} />

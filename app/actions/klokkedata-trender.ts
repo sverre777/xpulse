@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { besteRullendeSnitt } from '@/lib/rullende-snitt'
 import { getAuthUser } from '@/lib/auth'
 import type { Sport } from '@/lib/types'
 
@@ -215,8 +216,8 @@ export async function getKlokkedataTrender(
         if (!w || w.length < 5) continue
         const seq = w.map(p => ({ t: p.t, v: p.w }))
         for (const dur of [5, 60, 300, 1200, 3600]) {
-          const a = bestRollingAvg(seq, dur)
-          if (a && a > bests[dur]) bests[dur] = a
+          const a = besteRullendeSnitt(seq, dur)
+          if (a && Math.round(a) > bests[dur]) bests[dur] = Math.round(a)
         }
       }
       const powerLabels: Array<[number, string]> = [
@@ -274,32 +275,6 @@ function aggregateActivities(
     avgSpeedMs: spW > 0 ? spSum / spW : null,
     avgCadence: cdW > 0 ? cdSum / cdW : null,
   }
-}
-
-function bestRollingAvg(
-  data: Array<{ t: number; v: number }>,
-  windowSec: number,
-): number | null {
-  if (data.length < 2) return null
-  const totalSec = data[data.length - 1].t - data[0].t
-  if (totalSec < windowSec) return null
-  let best = -Infinity
-  let i = 0, j = 0, sum = 0, count = 0
-  while (j < data.length) {
-    sum += data[j].v
-    count++
-    while (data[j].t - data[i].t > windowSec && i < j) {
-      sum -= data[i].v
-      count--
-      i++
-    }
-    if (data[j].t - data[i].t >= windowSec - 1) {
-      const a = sum / count
-      if (a > best) best = a
-    }
-    j++
-  }
-  return best === -Infinity ? null : Math.round(best)
 }
 
 function round1(n: number): number {

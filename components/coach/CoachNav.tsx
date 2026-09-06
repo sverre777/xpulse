@@ -8,8 +8,7 @@ import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
-import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
-import { UserMenu } from '@/components/layout/UserMenu'
+import { PcAvatar, MerNedtrekk } from '@/components/layout/PcMeny'
 import { VERSJONS_MERKE } from '@/lib/versjon'
 import { TemaBryter } from '@/components/layout/TemaBryter'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
@@ -28,12 +27,11 @@ interface CoachNavProps {
 }
 
 const INBOX_HREF = '/app/innboks'
-const SETTINGS_HREF = '/app/innstillinger'
 const HOME_HREF = '/app/trener'
 
 // TODO: AI Coach for trener kommer senere.
+// Navigasjon v2 bolk 7: Hjem · Planlegg · Kalender · Sammenligne · Mer — Utøvere ligger i Mer.
 const NAV_LINKS = [
-  { href: '/app/trener/utovere',     label: 'Utøvere' },
   { href: '/app/trener/planlegg',    label: 'Planlegg' },
   { href: '/app/trener/kalender',    label: 'Kalender' },
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
@@ -383,81 +381,18 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               </Link>
             )
           })}
+          <MerNedtrekk rolle="coach" accent={COACH_BLUE} unreadInboxCount={unreadInboxCount} />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <SearchIconButton mode="coach" accent={COACH_BLUE} />
-
-        <InboxIconLink
-          unreadCount={unreadInboxCount}
-          isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
-        />
-
-        <TemaBryter accent={COACH_BLUE} />
-
-        <SettingsIconButton
-          accent={COACH_BLUE}
-          isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
-        />
-
-        <RoleSwitcher
-          activeRole="coach"
-          hasAthleteRole={hasAthleteRole}
-          hasCoachRole={hasCoachRole}
-          hasCoachTier={hasCoachTier}
-        />
-
-        <UserMenu userName={userName} accent={COACH_BLUE} />
+        <PcAvatar rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />
       </div>
     </nav>
   )
 }
 
-function InboxIconLink({ unreadCount, isActive }: {
-  unreadCount: number
-  isActive: boolean
-}) {
-  return (
-    <Link
-      href={INBOX_HREF}
-      aria-label={`Innboks${unreadCount > 0 ? ` (${unreadCount} uleste)` : ''}`}
-      style={{
-        position: 'relative',
-        width: '40px',
-        height: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: isActive ? COACH_BLUE : 'var(--tekst-5-app)',
-        textDecoration: 'none',
-        transition: 'color 150ms',
-      }}
-    >
-      <MailIcon />
-      {unreadCount > 0 && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '4px',
-            right: '2px',
-            backgroundColor: COACH_BLUE,
-            color: 'var(--tekst-1-app)',
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '13px',
-            padding: '0 4px',
-            minWidth: '16px',
-            textAlign: 'center',
-            lineHeight: '1.4',
-          }}
-        >
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </Link>
-  )
-}
 
 function GearIcon() {
   return (
@@ -497,24 +432,6 @@ function MailIcon() {
   )
 }
 
-function UnreadBadge({ count }: { count: number }) {
-  return (
-    <span
-      className="text-xs tracking-widest"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: COACH_BLUE,
-        color: 'var(--tekst-1-app)',
-        padding: '1px 6px',
-        minWidth: '18px',
-        textAlign: 'center',
-        lineHeight: '1.2',
-      }}
-    >
-      {count > 99 ? '99+' : count}
-    </span>
-  )
-}
 
 function HamburgerIcon({ open }: { open: boolean }) {
   const bar: React.CSSProperties = {

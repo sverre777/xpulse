@@ -1,3 +1,4 @@
+import { PlanAarsplanSegment } from '@/components/layout/PlanAarsplanSegment'
 import { PlussKnapp } from '@/components/ui/PlussKnapp'
 import { Suspense } from 'react'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
@@ -100,6 +101,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
               Plan {now.getFullYear()}
             </h1>
+            <PlanAarsplanSegment />
           </div>
           {!isCoachView && (
             <SavePlanTemplateButton

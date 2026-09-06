@@ -8,12 +8,11 @@ import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
-import { SettingsIconButton } from './SettingsIconButton'
 import { VERSJONS_MERKE } from '@/lib/versjon'
 import { TemaBryter } from './TemaBryter'
 import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
-import { UserMenu } from './UserMenu'
+import { PcAvatar, MerNedtrekk } from './PcMeny'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
 import type { Role } from '@/lib/types'
@@ -32,17 +31,14 @@ interface MainNavProps {
 }
 
 const INBOX_HREF = '/app/innboks'
-const SETTINGS_HREF = '/app/innstillinger'
 const HOME_HREF = '/app/oversikt'
 
+// Navigasjon v2 bolk 7: toppmenyen har de samme fem som glass-linja —
+// Hjem · Plan · Dagbok · Analyse · Mer (nedtrekk m/ de ni postene).
 const NAV_LINKS = [
-  { href: '/app/dagbok',        label: 'Dagbok' },
   { href: '/app/plan',          label: 'Plan' },
-  { href: '/app/periodisering', label: 'Årsplan' },
+  { href: '/app/dagbok',        label: 'Dagbok' },
   { href: '/app/analyse',       label: 'Analyse' },
-  { href: '/app/maler',         label: 'Maler' },
-  { href: '/app/ai-coach',      label: 'AI Coach' },
-  { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
 // Mobil-menyen inkluderer Hjem øverst — Maler ligger nå i NAV_LINKS slik
@@ -248,7 +244,7 @@ export function MainNav({
           {[{ href: HOME_HREF, label: 'Hjem' }, ...NAV_LINKS].map(({ href, label }) => {
             const active = href === HOME_HREF
               ? pathname === href
-              : pathname === href || pathname.startsWith(href + '/')
+              : pathname === href || pathname.startsWith(href + '/') || (href === '/app/plan' && pathname.startsWith('/app/periodisering'))
             const Glyph = ATHLETE_NAV_GLYPHS[href]
             return (
               <Link
@@ -274,6 +270,7 @@ export function MainNav({
               </Link>
             )
           })}
+          <MerNedtrekk rolle="athlete" accent={accent} unreadInboxCount={unreadInboxCount} />
         </div>
       </div>
 
@@ -295,30 +292,10 @@ export function MainNav({
         )}
 
         <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
-
-        <InboxIconLink
-          unreadCount={unreadInboxCount}
-          accent={accent}
-          isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
-        />
-
+        {/* Navigasjon v2 bolk 7: SYNK (kun utøver) + avatar m/ samme meny som på mobil —
+            innboks, tema, innstillinger, rollebytte og logg ut bor der. */}
         {activeRole !== 'coach' && <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />}
-
-        <TemaBryter accent={accent} />
-
-        <SettingsIconButton
-          accent={accent}
-          isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
-        />
-
-        <RoleSwitcher
-          activeRole={activeRole}
-          hasAthleteRole={hasAthleteRole}
-          hasCoachRole={hasCoachRole}
-          hasCoachTier={hasCoachTier}
-        />
-
-        <UserMenu userName={userName} accent={accent} />
+        <PcAvatar rolle={activeRole === 'coach' ? 'coach' : 'athlete'} userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />
       </div>
     </nav>
   )
@@ -545,51 +522,6 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
   )
 }
 
-function InboxIconLink({ unreadCount, accent, isActive }: {
-  unreadCount: number
-  accent: string
-  isActive: boolean
-}) {
-  return (
-    <Link
-      href={INBOX_HREF}
-      aria-label={`Innboks${unreadCount > 0 ? ` (${unreadCount} uleste)` : ''}`}
-      style={{
-        position: 'relative',
-        width: '40px',
-        height: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: isActive ? accent : 'var(--tekst-5-app)',
-        textDecoration: 'none',
-        transition: 'color 150ms',
-      }}
-    >
-      <MailIcon />
-      {unreadCount > 0 && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '4px',
-            right: '2px',
-            backgroundColor: accent,
-            color: 'var(--tekst-1-app)',
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '13px',
-            padding: '0 4px',
-            minWidth: '16px',
-            textAlign: 'center',
-            lineHeight: '1.4',
-          }}
-        >
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </Link>
-  )
-}
 
 function GearIcon() {
   return (
@@ -629,24 +561,6 @@ function MailIcon() {
   )
 }
 
-function UnreadBadge({ count, accent }: { count: number; accent: string }) {
-  return (
-    <span
-      className="text-xs tracking-widest"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: accent,
-        color: 'var(--tekst-1-app)',
-        padding: '1px 6px',
-        minWidth: '18px',
-        textAlign: 'center',
-        lineHeight: '1.2',
-      }}
-    >
-      {count > 99 ? '99+' : count}
-    </span>
-  )
-}
 
 function HamburgerIcon({ open }: { open: boolean }) {
   const bar: React.CSSProperties = {

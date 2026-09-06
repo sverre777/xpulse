@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { GlassLinje } from '@/components/layout/GlassLinje'
 import { MainNav } from '@/components/layout/MainNav'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { RoleProvider } from '@/lib/role-context'
@@ -52,7 +53,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             unreadInboxCount={unreadInboxCount}
           />
         )}
-        <main className="flex-1 w-full max-w-[1800px] mx-auto px-4 lg:px-6 pt-4 pb-10">
+        <main className="flex-1 w-full max-w-[1800px] mx-auto px-4 lg:px-6 pt-4 pb-10 xp-app-innhold">
           <h1
             className="text-2xl mb-3"
             style={{
@@ -66,6 +67,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
           <InboxTabs activeRole={activeRole} />
           <div className="mt-4">{children}</div>
         </main>
+        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'} />
       </div>
     </RoleProvider>
   )

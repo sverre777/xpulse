@@ -1,5 +1,6 @@
 'use client'
 
+import { useErMobilNav } from '@/lib/er-app'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -93,6 +94,7 @@ export function MainNav({
   // ＋-knappen (Sverre 6. sep) dekker Hjem, Plan og Dagbok — der skjules toppens +.
   const harPlussKnapp = onPlan || pathname === '/app/oversikt' || pathname === '/app/dagbok' || pathname.startsWith('/app/dagbok/')
 
+  const glassNav = useErMobilNav()
   if (isMobile) {
     return (
       <>
@@ -159,7 +161,8 @@ export function MainNav({
           )}
           <TemaBryter accent={accent} storrelse={44} />
 
-          <button
+          {/* Navigasjon v2: på app-mobil (≤620 / Capacitor) erstattes hamburgeren av glass-linja nederst. */}
+          {!glassNav && <button
             type="button"
             onClick={() => setMenuOpen(o => !o)}
             aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
@@ -172,11 +175,11 @@ export function MainNav({
             }}
           >
             <HamburgerIcon open={menuOpen} />
-          </button>
+          </button>}
           </div>
         </nav>
 
-        {menuOpen && (
+        {menuOpen && !glassNav && (
           <MobileOverlay
             pathname={pathname}
             userName={userName}

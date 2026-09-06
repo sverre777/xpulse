@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { sporterFraProfil } from '@/lib/har-skiskyting'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { medTid } from '@/lib/ytelse-tid'
+import { GlassLinje } from '@/components/layout/GlassLinje'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
@@ -81,12 +82,13 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           unreadInboxCount={unreadInboxCount}
           klokkesyncBadge={klokkesyncBadge}
         />
-        <div className="flex-1">
+        <div className="flex-1 xp-app-innhold">
           {children}
         </div>
         <AppFooter />
         <InstallHint />
         {visProfilvarsel && <ProfilVarselBanner />}
+        <GlassLinje rolle={effectiveRole === 'coach' ? 'coach' : 'athlete'} />
       </div>
     </BrukerSporterProvider>
     </RoleProvider>

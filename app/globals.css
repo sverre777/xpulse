@@ -1174,3 +1174,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   .uke-kolonner [data-uke-chip] > span:first-child { font-size: 8.5px !important; letter-spacing: .02em !important; }
   .uke-chip-meta { display: none !important; }
 }
+
+/* ── Navigasjon v2: innholdet scroller under glass-linja på app-mobil ── */
+html[data-app-nav] .xp-app-innhold { padding-bottom: 130px; }
+

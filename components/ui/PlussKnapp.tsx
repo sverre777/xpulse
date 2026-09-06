@@ -77,7 +77,7 @@ export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbo
   void pathname
 
   return (
-    <div ref={rot} data-pluss-knapp style={{ position: 'fixed', right: 16, bottom: 'calc(18px + env(safe-area-inset-bottom, 0px))', zIndex: 45 }}>
+    <div ref={rot} data-pluss-knapp style={{ position: 'fixed', right: 16, bottom: 'calc(18px + var(--xp-bunnlinje, 0px) + env(safe-area-inset-bottom, 0px))', zIndex: 45 }}>
       {aapen && (
         <div role="menu" data-pluss-meny className="flex flex-col"
           style={{ position: 'absolute', right: 0, bottom: 64, minWidth: 210, background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 14, padding: 6, boxShadow: '0 16px 40px rgba(0,0,0,.35)' }}>

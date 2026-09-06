@@ -6,17 +6,19 @@ import type { ReactNode } from 'react'
 interface IconProps {
   size?: number
   className?: string
+  /** Navigasjon v2: glass-linja tegner med strek 1,7 (SF-stil); toppmenyen beholder 2. */
+  strokeWidth?: number
 }
 
 function makeIcon(d: ReactNode) {
-  return ({ size = 22, className }: IconProps) => (
+  return ({ size = 22, className, strokeWidth = 2 }: IconProps) => (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -128,3 +130,13 @@ export const COACH_NAV_GLYPHS: Record<string, NavGlyph> = {
   '/app/trener/kalender': CalendarGlyph,
   '/app/trener/sammenligne': CompareGlyph,
 }
+
+/** Navigasjon v2: «Mer» — fire avrundede ruter (samme strek som resten). */
+export const MerGlyph = makeIcon(
+  <>
+    <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+  </>,
+)

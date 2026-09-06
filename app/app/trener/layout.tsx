@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { GlassLinje } from '@/components/layout/GlassLinje'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { AppFooter } from '@/components/layout/AppFooter'
@@ -35,11 +36,12 @@ export default async function CoachLayout({ children }: { children: React.ReactN
         hasCoachTier={true}
         unreadInboxCount={unreadInboxCount}
       />
-      <div className="flex-1">
+      <div className="flex-1 xp-app-innhold">
         {children}
       </div>
       <AppFooter />
       <InstallHint />
+      <GlassLinje rolle="coach" />
     </div>
   )
 }

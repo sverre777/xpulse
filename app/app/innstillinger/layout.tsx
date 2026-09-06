@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { GlassLinje } from '@/components/layout/GlassLinje'
 import { MainNav } from '@/components/layout/MainNav'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { RoleProvider } from '@/lib/role-context'
@@ -54,9 +55,10 @@ export default async function InnstillingerLayout({ children }: { children: Reac
             unreadInboxCount={unreadInboxCount}
           />
         )}
-        <div className="flex-1">
+        <div className="flex-1 xp-app-innhold">
           {children}
         </div>
+        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'} />
       </div>
     </RoleProvider>
   )

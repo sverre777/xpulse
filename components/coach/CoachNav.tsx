@@ -1,5 +1,6 @@
 'use client'
 
+import { useErMobilNav } from '@/lib/er-app'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -67,6 +68,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
 
   useEffect(() => { setMenuOpen(false) }, [pathname])
 
+  const glassNav = useErMobilNav()
   if (isMobile) {
     return (
       <>
@@ -109,7 +111,8 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <TemaBryter accent={COACH_BLUE} storrelse={44} />
 
-          <button
+          {/* Navigasjon v2: på app-mobil (≤620 / Capacitor) erstattes hamburgeren av glass-linja nederst. */}
+          {!glassNav && <button
             type="button"
             onClick={() => setMenuOpen(o => !o)}
             aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
@@ -122,11 +125,11 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
             }}
           >
             <HamburgerIcon open={menuOpen} />
-          </button>
+          </button>}
           </div>
         </nav>
 
-        {menuOpen && (
+        {menuOpen && !glassNav && (
           <div
             role="dialog"
             aria-modal="true"

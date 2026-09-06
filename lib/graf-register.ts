@@ -14,7 +14,7 @@ export type FaneKey =
   | 'favoritter' | 'oversikt' | 'klokkedata' | 'belastning' | 'prestasjon' | 'terskel' | 'skyting'
   | 'sammenlign' | 'standardokter' | 'konkurranser' | 'tester_pr' | 'ski_tester' | 'helse'
   | 'ernering' | 'vaer' | 'hoyde_varme' | 'per_bevegelsesform' | 'intensitet'
-  | 'periodisering' | 'mal_analyse'
+  | 'periodisering' | 'mal_analyse' | 'styrke'
 
 /** Datasettene AnalysisPage henter — én server-action per sett. 'selv' =
     komponenten henter selv (custom-grafer, sesong, skuddmål). */
@@ -22,6 +22,7 @@ export type DataKey =
   | 'oversikt' | 'klokkedata' | 'belastning' | 'prestasjon' | 'terskel' | 'skyting'
   | 'sammenlign' | 'mal_analyse' | 'periodisering' | 'konkurranser' | 'tester_pr' | 'ski_tester'
   | 'helse' | 'helse_korrelasjon' | 'helse_belastning' | 'ernering' | 'vaer' | 'hoyde_varme' | 'per_bevegelsesform' | 'intensitet'
+  | 'styrke'
   | 'selv'
 
 export const FANE_NAVN: Record<FaneKey, string> = {
@@ -45,6 +46,7 @@ export const FANE_NAVN: Record<FaneKey, string> = {
   intensitet: 'Intensitetsfordeling',
   periodisering: 'Årsplan-analyse',
   mal_analyse: 'Mal-analyse',
+  styrke: 'Styrke',
 }
 
 export interface GrafDef {
@@ -276,6 +278,21 @@ export const GRAFER: Record<string, GrafDef> = {
   // Bolk 7
   bevegelse_kadens: G('per_bevegelsesform', 'Kadens over tid (bev.form)'),
   bevegelse_hoydemeter: G('per_bevegelsesform', 'Høydemeter per uke (bev.form)'),
+
+  // ── Styrke (bolk 9, kun for brukere med styrkeøkter) ──
+  styrke_sammendrag: G('styrke', 'Styrke i perioden'),
+  styrke_okter: G('styrke', 'Styrkeøkter'),
+  styrke_tonnasje: G('styrke', 'Tonnasje'),
+  styrke_tid: G('styrke', 'Tid i styrke'),
+  styrke_pr_antall: G('styrke', 'PR-er i perioden'),
+  styrke_pr_liste: G('styrke', 'Personlige rekorder'),
+  styrke_ovelse: G('styrke', 'Øvelse over tid', { config: true }),
+  styrke_okter_per_uke: G('styrke', 'Styrkeøkter per uke'),
+  styrke_tonnasje_per_uke: G('styrke', 'Tonnasje per uke'),
+  styrke_muskelgrupper: G('styrke', 'Fordeling per muskelgruppe'),
+  styrke_ovelser_fordeling: G('styrke', 'Mest brukte øvelser'),
+  styrke_tid_per_okt: G('styrke', 'Tid per styrkeøkt'),
+  styrke_periode_sammenligning: G('styrke', 'Sammenlign to perioder (styrke)'),
 
   // ── Intensitetsfordeling ──
   intensity_zones_per_week: G('intensitet', 'Sonefordeling per uke'),

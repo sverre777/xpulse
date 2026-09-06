@@ -1,3 +1,4 @@
+import { harStyrkeokter } from '@/app/actions/styrke-analyse'
 import { getWorkoutStats, getAnalysisOverview } from '@/app/actions/analysis'
 import { createClient } from '@/lib/supabase/server'
 import { harSkiskyting, sporterFraProfil } from '@/lib/har-skiskyting'
@@ -41,7 +42,7 @@ export async function AnalysePageView({ viewContext }: Props) {
       : Promise.resolve(true)
 
     const supabase = await createClient()
-    const [stats, overview, favoritesRes, canSeeHealthData, profilRes] = await Promise.all([
+    const [stats, overview, favoritesRes, canSeeHealthData, profilRes, harStyrke] = await Promise.all([
       getWorkoutStats(range.from, range.to, targetId),
       getAnalysisOverview(range.from, range.to, null, targetId),
       // Fase 122: i trenervisning er dette utøverens favoritter (lesing).
@@ -49,6 +50,8 @@ export async function AnalysePageView({ viewContext }: Props) {
       canSeeHealthDataPromise,
       // Skyting kun for skiskyttere: personen vi ser på (utøveren i trenervisning).
       supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', viewContext.userId).maybeSingle(),
+      // Bolk 9: Styrke-fanen bare for personer med minst én styrkeøkt (én head-count).
+      harStyrkeokter(targetId),
     ])
     const brukerSporter = sporterFraProfil(profilRes.data)
 
@@ -74,6 +77,7 @@ export async function AnalysePageView({ viewContext }: Props) {
     return (
       <AnalysisPage
         harSkiskyting={harSkiskyting(brukerSporter)}
+        harStyrke={harStyrke}
         initialStats={stats as Exclude<typeof stats, { error: string }>}
         initialOverview={overview as Exclude<typeof overview, { error: string }>}
         initialRange={range}

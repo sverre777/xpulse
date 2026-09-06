@@ -27,6 +27,7 @@ import { getHelseBelastning, type HelseBelastning } from '@/app/actions/helse-be
 import { OverviewTab } from './OverviewTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
+import { hentStyrkeAnalyse, type StyrkeAnalyse } from '@/app/actions/styrke-analyse'
 import { getKlokkedataTrender, type KlokkedataTrender } from '@/app/actions/klokkedata-trender'
 import { getPrestasjonAnalyse, type PrestasjonAnalyse } from '@/app/actions/prestasjon-analyse'
 
@@ -40,6 +41,8 @@ const CompetitionsTab = dynamic(() => import('./CompetitionsTab').then(m => ({ d
   { loading: () => <LoadingStub label="Laster konkurranser…" />, ssr: false })
 const MovementTab = dynamic(() => import('./MovementTab').then(m => ({ default: m.MovementTab })),
   { loading: () => <LoadingStub label="Laster bevegelsesdata…" />, ssr: false })
+const StyrkeTab = dynamic(() => import('./StyrkeTab').then(m => ({ default: m.StyrkeTab })),
+  { loading: () => <LoadingStub label="Laster styrke…" />, ssr: false })
 const TemplateAnalysisTab = dynamic(() => import('./TemplateAnalysisTab').then(m => ({ default: m.TemplateAnalysisTab })),
   { loading: () => <LoadingStub label="Laster mal-analyse…" />, ssr: false })
 const CompareWorkoutsTab = dynamic(() => import('./CompareWorkoutsTab').then(m => ({ default: m.CompareWorkoutsTab })),
@@ -96,6 +99,7 @@ type Tab =
   | 'per_bevegelsesform'
   | 'intensitet'
   | 'periodisering'
+  | 'styrke'
 
 // Standard-bevegelse basert på brukerens primære sport.
 function defaultMovementForSport(sport: Sport): string {
@@ -129,6 +133,7 @@ const TABS: [Tab, string][] = [
   ['hoyde_varme', 'Høyde & varme'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
+  ['styrke', 'Styrke'],
 ]
 
 const TAB_KEYS = new Set<string>(TABS.map(([k]) => k))
@@ -162,10 +167,12 @@ function LoadingStub({ label }: { label: string }) {
 }
 
 export function AnalysisPage({
-  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true, harSkiskyting = false,
+  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true, harSkiskyting = false, harStyrke = false,
 }: {
   /** Skyting kun for skiskyttere: «Skyting-dybde» og skytefavoritter bare når personen har skiskyting. */
   harSkiskyting?: boolean
+  /** Bolk 9: «Styrke»-fanen (og styrkefavoritter) bare når personen har minst én styrkeøkt. */
+  harStyrke?: boolean
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
@@ -180,9 +187,10 @@ export function AnalysisPage({
   canSeeHealthData?: boolean
 }) {
   return (
-    <FavoritesProvider readOnly={!!targetUserId} initialFavorites={harSkiskyting ? initialFavorites : initialFavorites.filter(f => !f.chart_key.startsWith('skyting'))}>
+    <FavoritesProvider readOnly={!!targetUserId} initialFavorites={initialFavorites.filter(f => (harSkiskyting || !f.chart_key.startsWith('skyting')) && (harStyrke || !f.chart_key.startsWith('styrke_')))}>
       <AnalysisPageInner
         harSkiskyting={harSkiskyting}
+        harStyrke={harStyrke}
         initialStats={initialStats}
         initialOverview={initialOverview}
         initialRange={initialRange}
@@ -194,9 +202,10 @@ export function AnalysisPage({
 }
 
 function AnalysisPageInner({
-  initialStats, initialOverview, initialRange, targetUserId, canSeeHealthData, harSkiskyting = false,
+  initialStats, initialOverview, initialRange, targetUserId, canSeeHealthData, harSkiskyting = false, harStyrke = false,
 }: {
   harSkiskyting?: boolean
+  harStyrke?: boolean
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
@@ -229,7 +238,7 @@ function AnalysisPageInner({
     skyting: ShootingDepthAnalysis; sammenlign: WorkoutsForComparison; mal_analyse: TemplateAnalysis; periodisering: PeriodizationOverview
     konkurranser: CompetitionAnalysis; tester_pr: TestsAndPRs; ski_tester: SkiTestAnalysisData; helse: HelseOversiktData
     helse_korrelasjon: HealthCorrelations; helse_belastning: HelseBelastning; ernering: NutritionAnalysis; vaer: WeatherAnalysis; hoyde_varme: AltitudeHeatAnalysis
-    per_bevegelsesform: MovementAnalysis; intensitet: IntensityDistribution
+    per_bevegelsesform: MovementAnalysis; intensitet: IntensityDistribution; styrke: StyrkeAnalyse
   }
   type FaneDataKey = keyof FaneData
   const [cache, setCache] = useState<Partial<FaneData>>({})
@@ -290,6 +299,7 @@ function AnalysisPageInner({
       case 'hoyde_varme': return getAltitudeHeatAnalysis(range.from, range.to, targetUserId)
       case 'per_bevegelsesform': return getMovementAnalysis(range.from, range.to, defaultMovementForSport(overview.primarySport), targetUserId)
       case 'intensitet': return getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
+      case 'styrke': return hentStyrkeAnalyse(targetUserId)
     }
   }
   const hent = (k: FaneDataKey) => {
@@ -347,7 +357,7 @@ function AnalysisPageInner({
 
         {/* Tabs — horisontal scroll på mobil, flex-wrap på desktop. */}
         <div className="flex gap-1 mb-5 overflow-x-auto" style={{ scrollbarWidth: 'thin' }}>
-          {TABS.filter(([key]) => (key !== 'helse' || canSeeHealthData) && (key !== 'skyting' || harSkiskyting)).map(([key, label]) => (
+          {TABS.filter(([key]) => (key !== 'helse' || canSeeHealthData) && (key !== 'skyting' || harSkiskyting) && (key !== 'styrke' || harStyrke)).map(([key, label]) => (
             <button
               key={key}
               type="button"
@@ -553,6 +563,11 @@ function AnalysisPageInner({
           cache.klokkedata
             ? <KlokkedataTrenderTab data={cache.klokkedata} />
             : <LoadingStub label="Laster klokkedata-trender…" />
+        )}
+        {tab === 'styrke' && (
+          cache.styrke
+            ? <StyrkeTab data={cache.styrke} range={range} targetUserId={targetUserId} />
+            : <LoadingStub label="Laster styrke…" />
         )}
         {tab === 'prestasjon' && (
           cache.prestasjon

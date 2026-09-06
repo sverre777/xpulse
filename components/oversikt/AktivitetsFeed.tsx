@@ -68,7 +68,7 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
                   fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
                   fontSize: '18px', letterSpacing: '0.04em', lineHeight: 1.1,
                 }}>
-                  {e.title}
+                  {e.title}{e.pr && <span data-pr-badge style={{ marginLeft: 8, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.1em', color: '#E8B93C', border: '1px solid #E8B93C', padding: '1px 5px', verticalAlign: 'middle' }}>PR!</span>}
                 </p>
                 <p className="mt-0.5 text-xs"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>

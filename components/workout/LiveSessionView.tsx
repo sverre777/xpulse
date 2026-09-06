@@ -416,7 +416,7 @@ export function LiveSessionView({
             Volum: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>
           </span>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12 }}>
-            {exercises.length} øvelser
+            {exercises.length} øvelser · <a href="/app/analyse?tab=styrke" data-live-styrke-analyse style={{ color: 'var(--tekst-5-app)', textDecoration: 'underline' }}>utvikling og PR-er</a>
           </span>
         </div>
         <button type="button" onClick={finish} disabled={busy}

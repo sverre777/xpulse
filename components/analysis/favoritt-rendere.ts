@@ -23,6 +23,7 @@ export type RenderFavoritt = (key: string, data: any, ctx: FavorittKontekst) => 
 const LASTERE: Partial<Record<FaneKey, () => Promise<RenderFavoritt>>> = {
   oversikt: () => import('./OverviewTab').then(m => m.renderFavoritt as RenderFavoritt),
   klokkedata: () => import('./KlokkedataTrenderTab').then(m => m.renderFavoritt as RenderFavoritt),
+  styrke: () => import('./StyrkeTab').then(m => m.renderFavoritt as RenderFavoritt),
   belastning: () => import('./BelastningTab').then(m => m.renderFavoritt as RenderFavoritt),
   prestasjon: () => import('./PrestasjonTab').then(m => m.renderFavoritt as RenderFavoritt),
   terskel: () => import('./TerskelTab').then(m => m.renderFavoritt as RenderFavoritt),

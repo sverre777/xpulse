@@ -89,7 +89,7 @@ export function UkePopupV2({ totals, plan, detaljer, weekNumber, todayISO, onClo
                       <a key={o.id} href={`/app/dagbok?edit=${o.id}`} data-uke-okt={o.id} className="flex items-center gap-3" style={{ padding: '6px 0', borderBottom: '1px solid var(--line)', textDecoration: 'none', color: 'inherit' }}>
                         <span style={{ width: 8, height: 8, borderRadius: 999, background: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : 'var(--line2)', flexShrink: 0 }} />
                         <span style={{ ...tekst, width: 58, flexShrink: 0 }}>{fmtDato(o.date)}</span>
-                        <span style={{ ...tall, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>{o.title}<span style={{ fontWeight: 500, color: 'var(--tekst-8-alt)' }}> · {sportLabel(o.sport)}</span></span>
+                        <span style={{ ...tall, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>{o.title}{o.pr && <span data-pr-badge style={{ marginLeft: 6, fontSize: 10, letterSpacing: '0.1em', color: '#E8B93C', border: '1px solid #E8B93C', padding: '0 4px' }}>PR!</span>}<span style={{ fontWeight: 500, color: 'var(--tekst-8-alt)' }}> · {sportLabel(o.sport)}</span></span>
                         <span style={{ ...tall, flexShrink: 0 }}>{o.duration_minutes != null ? fmtHM(o.duration_minutes * 60) : '—'}</span>
                         <span style={{ ...tekst, width: 34, textAlign: 'right', flexShrink: 0 }}>{o.avg_heart_rate ?? '—'}</span>
                       </a>

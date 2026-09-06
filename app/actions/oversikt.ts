@@ -1,5 +1,6 @@
 'use server'
 
+import { beregnPR, type StyrkeSett } from '@/lib/styrke-pr'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
@@ -200,6 +201,8 @@ export interface OversiktFeedEntry {
   primary_intensity_zone: string | null
   /** Styrkeøkter måles i øvelser og volum, ikke distanse og puls. */
   exercise_count: number
+  /** Bolk 9: økta satte minst én automatisk styrke-PR (lib/styrke-pr). */
+  pr?: boolean
 }
 
 export interface OversiktFocusPoints {
@@ -429,7 +432,7 @@ type ActivityRaw = {
   prone_hits?: number | null
   standing_shots?: number | null
   standing_hits?: number | null
-  workout_activity_exercises?: { id: string }[] | null
+  workout_activity_exercises?: { id: string; exercise_name?: string | null }[] | null
 }
 
 type WorkoutRow = {
@@ -585,7 +588,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 3. Dagens økter (planlagt + gjennomført).
     const todayWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id,exercise_name),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .eq('date', todayISO)
@@ -594,7 +597,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 4. Neste planlagt fremover i tid (opp til 30 dager).
     const futurePlannedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id,exercise_name),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .eq('is_planned', true)
@@ -679,7 +682,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    Også utvidet filter for å fange dagbok-input som ikke har is_completed=true.
     const recentCompletedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id,exercise_name),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -887,6 +890,10 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // testløp) ELLER ≥15 min i I3+ (900s). Begge signaler: manuell tagg + faktisk
     // sonetid (sone-basert beholdt som supplement).
     const recentCompleted = (recentCompletedRes.data ?? []) as WorkoutRow[]
+
+    // Bolk 9: «PR!» på styrkeøkter i feeden og uka — regnes fra settene på de
+    // øvelsene disse øktene inneholder (målrettet, ikke hele historikken).
+    const prOkter = await styrkePrOkter(supabase, user.id, [...weekWorkouts, ...recentCompleted] as { id: string; workout_activities?: ActivityRaw[] | null }[])
     const HARD_WORKOUT_TYPES = ['interval', 'threshold', 'hard_combo', 'competition', 'testlop']
     // Unngå dobbeltvisning av dagens økt om den er den hardøkta vi viser i seksjon 2.
     const todayCardId = todayCompleted?.id ?? todayPlanned?.id ?? null
@@ -972,6 +979,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
         workout_type: (w.workout_type ?? 'other') as WorkoutType, duration_minutes: w.duration_minutes, distance_km: w.distance_km,
         avg_heart_rate: w.avg_heart_rate ?? null, shots: sumShots(acts), primary_intensity_zone: dominantZone(z),
         exercise_count: acts.reduce((s, a) => s + (a.workout_activity_exercises?.length ?? 0), 0),
+        pr: prOkter.has(w.id),
       }
     })
     const bevMap = new Map<string, { sek: number; km: number }>()
@@ -1128,6 +1136,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
         primary_intensity_zone: dominantZone(z),
         // Styrkeøkter måles i øvelser og volum, ikke distanse og puls.
         exercise_count: acts.reduce((n, a) => n + (a.workout_activity_exercises?.length ?? 0), 0),
+        pr: prOkter.has(w.id),
       }
     })
 
@@ -1186,4 +1195,38 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getOversiktDashboard: ${msg}` }
   }
+}
+
+// Bolk 9: hvilke av øktene satte en styrke-PR? Henter settene for øvelsene i
+// disse øktene (hele historikken for akkurat de øvelsene) og lar
+// lib/styrke-pr avgjøre — samme regel som Styrke-fanen, ingen kopi.
+async function styrkePrOkter(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  okter: { id: string; workout_activities?: ActivityRaw[] | null }[],
+): Promise<Set<string>> {
+  const ids = new Set<string>(), navn = new Set<string>()
+  for (const w of okter) for (const a of (w.workout_activities ?? [])) for (const e of (a.workout_activity_exercises ?? [])) {
+    if (e.exercise_name?.trim()) { navn.add(e.exercise_name.trim()); ids.add(w.id) }
+  }
+  if (navn.size === 0) return new Set()
+  const { data, error } = await supabase
+    .from('workout_activity_exercise_sets')
+    .select('set_number, reps, weight_kg, duration_seconds, rpe, workout_activity_exercises!inner(exercise_name, superset_group, workout_activities!inner(movement_name, workouts!inner(id, date, title, user_id, is_completed, is_planned, merged_into_workout_id, live_started_at)))')
+    .eq('workout_activity_exercises.workout_activities.workouts.user_id', userId)
+    .in('workout_activity_exercises.exercise_name', [...navn])
+    .limit(5000)
+  if (error || !data) return new Set()
+  type Rad = { set_number: number; reps: number | null; weight_kg: number | string | null; duration_seconds: number | null; rpe: number | null; workout_activity_exercises: { exercise_name: string | null; superset_group: number | null; workout_activities: { movement_name: string | null; workouts: { id: string; date: string; title: string | null; is_completed: boolean | null; is_planned: boolean | null; merged_into_workout_id: string | null; live_started_at: string | null } | null } | null } | null }
+  const sett: StyrkeSett[] = []
+  for (const r of data as unknown as Rad[]) {
+    const ex = r.workout_activity_exercises; const w = ex?.workout_activities?.workouts
+    if (!ex || !w || !ex.exercise_name || w.merged_into_workout_id) continue
+    if (!(w.is_completed === true || (w.is_planned === false && w.live_started_at == null))) continue
+    const vekt = r.weight_kg != null ? Number(r.weight_kg) : null
+    sett.push({ workout_id: w.id, date: w.date, title: w.title ?? 'Styrke', ovelse: ex.exercise_name.trim(), set_number: r.set_number, reps: r.reps ?? null, vekt: vekt != null && Number.isFinite(vekt) ? vekt : null, varighetSek: r.duration_seconds ?? null, rpe: r.rpe ?? null, supersett: ex.superset_group != null })
+  }
+  const ut = new Set<string>()
+  for (const h of beregnPR(sett)) if (ids.has(h.workout_id)) ut.add(h.workout_id)
+  return ut
 }

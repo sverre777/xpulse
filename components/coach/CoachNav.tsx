@@ -120,7 +120,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               </Link>
             )
           })}
-          <MerNedtrekk rolle="coach" accent={COACH_BLUE} unreadInboxCount={unreadInboxCount} />
+          <MerNedtrekk rolle="coach" accent={COACH_BLUE} unreadInboxCount={unreadInboxCount} toppLenker={[HOME_HREF, ...NAV_LINKS.map(l => l.href)]} />
         </div>
       </div>
 

@@ -122,7 +122,7 @@ export function MainNav({
               </Link>
             )
           })}
-          <MerNedtrekk rolle="athlete" accent={accent} unreadInboxCount={unreadInboxCount} />
+          <MerNedtrekk rolle="athlete" accent={accent} unreadInboxCount={unreadInboxCount} toppLenker={[HOME_HREF, ...NAV_LINKS.map(l => l.href)]} />
         </div>
       </div>
 

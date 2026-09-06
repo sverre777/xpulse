@@ -34,7 +34,7 @@ export function PcAvatar(props: AvatarMenyProps) {
   )
 }
 
-export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0 }: { rolle: 'athlete' | 'coach'; accent: string; unreadInboxCount?: number }) {
+export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0, toppLenker = [] }: { rolle: 'athlete' | 'coach'; accent: string; unreadInboxCount?: number; /** Rutene som har egen fane i toppen — Mer skal ikke lyse for dem (Sverre 6. sep: Analyse/Maler tente også Mer). */ toppLenker?: string[] }) {
   const [aapen, setAapen] = useState(false)
   const rot = useRef<HTMLDivElement | null>(null)
   const pathname = usePathname() ?? ''
@@ -46,7 +46,13 @@ export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0 }: { rolle: 'a
     return () => { document.removeEventListener('mousedown', klikk); document.removeEventListener('keydown', tast) }
   }, [aapen])
   const poster = merPoster(rolle, { unreadInboxCount, harPlan: true })
-  const aktiv = poster.some(p => p.href.split('?')[0] !== '/app/dagbok' && pathname.startsWith(p.href.split('?')[0].split('#')[0]))
+  // Mer lyser bare for poster som IKKE har egen fane i toppen (Helse → /app/analyse og Maler → /app/maler
+  // hører til Analyse/Maler-fanene; Live styrke → /app/dagbok hører til Dagbok).
+  const aktiv = poster.some(p => {
+    const base = p.href.split('?')[0].split('#')[0]
+    if (toppLenker.some(t => base === t || base.startsWith(t + '/'))) return false
+    return pathname === base || pathname.startsWith(base + '/')
+  })
   return (
     <div ref={rot} style={{ position: 'relative', alignSelf: 'center' }}>
       <button type="button" data-pc-mer onClick={() => setAapen(v => !v)} aria-haspopup="menu" aria-expanded={aapen} title="Mer"

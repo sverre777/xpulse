@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { forsteEmbed } from '@/lib/embed'
 import { resolveTargetUser } from '@/lib/target-user'
 import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-summary'
-import { ALL_ZONE_NAMES, type HeartZone } from '@/lib/heart-zones'
+import { zoneForHeartRate, ALL_ZONE_NAMES, type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, vektFraIF, wattDekningSek } from '@/lib/watt-metrikker'
 import { sekPerWattSone, WATT_SONER, type WattSone } from '@/lib/watt-soner'
@@ -13,6 +13,7 @@ import { resolveMaxHr } from '@/lib/heart-zones'
 import { lineaerRegresjon } from '@/lib/regresjon'
 import { beregnSoneTss } from '@/lib/belastning'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
+import { beregnSegmenter, pulsIVindu } from '@/lib/segmenter'
 import { leggTilSoner, hoyIntensitetSek, computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType, IKKE_TRENINGSTID_TYPER } from '@/lib/types'
@@ -3546,6 +3547,17 @@ export interface ShootingSeriesRow {
   // shooting_test_templates). Lar testresultater følges over tid.
   shooting_is_test: boolean
   shooting_test_ref: string | null
+  // ── Analyse v2 bolk 8 ──
+  /** Stilling eksplisitt ('L' | 'S'); aggregat-fallback uten skudd i én stilling gir den stillingen som har skudd. */
+  position: 'L' | 'S'
+  /** Radens DB-sort_order (til å slå sammen serier fra samme skyterad). */
+  activity_sort_order: number
+  /** Skuddplottet (x/y 0..1, null-hull = ikke plottet) — kun for ekte serier. */
+  shot_plot: ({ x: number; y: number } | null)[] | null
+  /** Pulsen man kom inn i skytevinduet med (siste sample før vinduet) — kun der økta har pulskurve og plassert vindu. */
+  puls_inn: number | null
+  /** Sonen (I1–I8) på nærmeste foregående trenings-rad i økta — fra zones-jsonb, ellers fra snittpuls. */
+  forrige_sone: string | null
 }
 
 export interface ShootingAccuracyPoint {
@@ -3619,10 +3631,17 @@ type RawShootingWorkout = {
   workout_type: WorkoutType
   sport: Sport
   workout_activities: {
+    id: string
     activity_type: string
     sort_order: number | null
     duration_seconds: number | null
     avg_heart_rate: number | null
+    movement_name: string | null
+    zones: Record<string, number | string | null> | null
+    window_start_seconds: number | null
+    window_duration_seconds: number | null
+    external_id: string | null
+    strava_lap_index: number | null
     prone_shots: number | null
     prone_hits: number | null
     standing_shots: number | null
@@ -3636,6 +3655,7 @@ type RawShootingWorkout = {
       shots: number | null; hits: number | null; time_seconds: number | null
       avg_heart_rate: number | null; max_heart_rate: number | null
       vind_retning: string | null; vind_styrke: number | null; sikt: string | null
+      shot_plot: ({ x: number; y: number } | null)[] | null
     }[] | null
   }[] | null
 }
@@ -3659,6 +3679,8 @@ function hrZoneForShooting(hr: number | null): string {
 }
 
 const HR_ZONE_ORDER = ['<130','130–149','150–169','170–184','185+','Uten puls']
+/** Bolk 8: pulskurver hentes for de nyeste øktene i perioden (puls inn). */
+const SKYTE_SAMPLES_TAK = 60
 
 export async function getShootingDepthAnalysis(
   fromDate: string,
@@ -3687,7 +3709,7 @@ export async function getShootingDepthAnalysis(
 
     const { data, error } = await supabase
       .from('workouts')
-      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training,shooting_is_test,shooting_test_ref,workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,vind_retning,vind_styrke,sikt))')
+      .select('id,date,workout_type,sport,workout_activities(id,activity_type,sort_order,duration_seconds,avg_heart_rate,movement_name,zones,window_start_seconds,window_duration_seconds,external_id,strava_lap_index,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training,shooting_is_test,shooting_test_ref,workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,vind_retning,vind_styrke,sikt,shot_plot))')
       .eq('user_id', userId)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -3701,12 +3723,54 @@ export async function getShootingDepthAnalysis(
     const seriesRows: ShootingSeriesRow[] = []
     const perWorkout = new Map<string, ShootingSeriesRow[]>()
 
-    for (const w of (data ?? []) as RawShootingWorkout[]) {
-      const acts = (w.workout_activities ?? [])
-        .filter(a => SHOOTING_ACT_TYPES.has(a.activity_type))
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    // Bolk 8: «puls inn» regnes fra pulskurven + plassert skytevindu (samme
+    // kjerne som skuddplottet: beregnSegmenter + pulsIVindu) for de nyeste
+    // SKYTE_SAMPLES_TAK øktene — én samples-henting. Foregående drag-sone
+    // leses fra nærmeste trenings-rad før skyteraden (zones-jsonb, ellers
+    // snittpuls mot utøverens soner).
+    const alleOkter = (data ?? []) as RawShootingWorkout[]
+    const sampleIds = alleOkter.slice(-SKYTE_SAMPLES_TAK).map(w => w.id)
+    const [samplesRes, heartZones] = await Promise.all([
+      sampleIds.length > 0 ? supabase.from('workout_samples').select('workout_id, hr_samples').in('workout_id', sampleIds) : Promise.resolve({ data: [] as { workout_id: string; hr_samples: { t: number; hr: number }[] | null }[] }),
+      getHeartZonesForUserCached(userId),
+    ])
+    const hrBy = new Map<string, { t: number; hr: number }[]>()
+    for (const r of (samplesRes.data ?? []) as { workout_id: string; hr_samples: { t: number; hr: number }[] | null }[]) if (r.hr_samples && r.hr_samples.length > 0) hrBy.set(r.workout_id, r.hr_samples)
+
+    for (const w of alleOkter) {
+      const alleRader = (w.workout_activities ?? []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      const acts = alleRader.filter(a => SHOOTING_ACT_TYPES.has(a.activity_type))
       if (acts.length === 0) continue
       const inComp = w.workout_type === 'competition' || w.workout_type === 'testlop'
+      // Puls inn per skyterad (aktivitets-id → inn).
+      const pulsInnBy = new Map<string, number | null>()
+      const hr = hrBy.get(w.id)
+      if (hr) {
+        const totalSek = hr[hr.length - 1].t
+        const segmenter = beregnSegmenter(alleRader.map(a => ({
+          id: a.id, activity_type: a.activity_type, movement_name: a.movement_name, duration_seconds: a.duration_seconds,
+          window_start_seconds: a.window_start_seconds, window_duration_seconds: a.window_duration_seconds,
+          prone_shots: a.prone_shots, prone_hits: a.prone_hits, standing_shots: a.standing_shots, standing_hits: a.standing_hits,
+          harKlokkeProveniens: !!a.external_id || a.strava_lap_index != null,
+        })), totalSek)
+        for (const sg of segmenter) if (sg.type.startsWith('skyting')) pulsInnBy.set(sg.aktivitetId, pulsIVindu(hr, sg.startSek, sg.sluttSek).inn)
+      }
+      // Foregående drag-sone per skyterad: nærmeste trenings-rad før (ikke pause/skyting).
+      const forrigeSoneBy = new Map<string, string | null>()
+      for (let i = 0; i < alleRader.length; i++) {
+        const a = alleRader[i]
+        if (!SHOOTING_ACT_TYPES.has(a.activity_type)) continue
+        let sone: string | null = null
+        for (let j = i - 1; j >= 0; j--) {
+          const f = alleRader[j]
+          if (SHOOTING_ACT_TYPES.has(f.activity_type) || IKKE_TRENINGSTID_TYPER.has(f.activity_type)) continue
+          let best: string | null = null, bestSek = 0
+          for (const k of ALL_ZONE_NAMES) { const sek = Number(f.zones?.[k]) || 0; if (sek > bestSek) { best = k; bestSek = sek } }
+          sone = best ?? (f.avg_heart_rate ? (zoneForHeartRate(f.avg_heart_rate, heartZones) ?? null) : null)
+          break
+        }
+        forrigeSoneBy.set(a.id, sone)
+      }
       let idx = 0
       for (const a of acts) {
         // Tørrtrening har ingen skudd — holdes utenfor treff-analysen.
@@ -3753,6 +3817,11 @@ export async function getShootingDepthAnalysis(
               shooting_type: a.shooting_type ?? null,
               shooting_is_test: a.shooting_is_test === true,
               shooting_test_ref: a.shooting_test_ref ?? null,
+              position: isL ? 'L' : 'S',
+              activity_sort_order: a.sort_order ?? 0,
+              shot_plot: Array.isArray(s.shot_plot) ? s.shot_plot : null,
+              puls_inn: pulsInnBy.get(a.id) ?? null,
+              forrige_sone: forrigeSoneBy.get(a.id) ?? null,
             })
           }
           continue
@@ -3781,6 +3850,11 @@ export async function getShootingDepthAnalysis(
           shooting_type: a.shooting_type ?? null,
           shooting_is_test: a.shooting_is_test === true,
           shooting_test_ref: a.shooting_test_ref ?? null,
+          position: (a.standing_shots ?? 0) > 0 && (a.prone_shots ?? 0) === 0 ? 'S' : 'L',
+          activity_sort_order: a.sort_order ?? 0,
+          shot_plot: null,
+          puls_inn: pulsInnBy.get(a.id) ?? null,
+          forrige_sone: forrigeSoneBy.get(a.id) ?? null,
         })
       }
     }

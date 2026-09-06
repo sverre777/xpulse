@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  ResponsiveContainer, LineChart, Line,
+  ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
+import { getHelseBelastning } from '@/app/actions/helse-belastning'
+import type { DateRange } from './date-range'
 import { ChartWrapper } from './ChartWrapper'
 import { ChipSelector } from './ChartControls'
 import {
@@ -35,8 +37,24 @@ type SightKeyFilter = 'all' | 'good' | 'reduced'
 // Én linje per skytetype, eller alt samlet i én.
 type GroupKey = 'samlet' | 'skytetype'
 
-// To grafmoduser: seriene (dagens akse-bygger) og testresultater over tid.
-type ModusKey = 'serier' | 'tester'
+// Tre grafmoduser: seriene (dagens akse-bygger), testresultater over tid og
+// PIVOTEN (bolk 8): én variabel på x, én som gruppe/farge, ett måltall.
+type ModusKey = 'serier' | 'tester' | 'pivot'
+
+// ── Bolk 8: pivot ──────────────────────────────────────────────
+export type PivotVar = 'vind' | 'pulssone_inn' | 'pulssone' | 'sikt' | 'stilling' | 'skytetid'
+  | 'forrige_sone' | 'tsb' | 'sovn' | 'hrv' | 'kontekst' | 'maaned'
+export type PivotMaal = 'treff_pct' | 'skytetid' | 'puls_inn' | 'antall'
+export const PIVOT_VAR_NAVN: Record<PivotVar, string> = {
+  vind: 'Vind (retning × styrke)', pulssone_inn: 'Pulssone inn', pulssone: 'Pulssone (snitt)', sikt: 'Sikt', stilling: 'Stilling',
+  skytetid: 'Skytetid-intervall', forrige_sone: 'Foregående drag-sone', tsb: 'Form (TSB)', sovn: 'Søvn natta før', hrv: 'HRV samme dag',
+  kontekst: 'Trening vs konkurranse', maaned: 'Måned (over tid)',
+}
+const PIVOT_MAAL_NAVN: Record<PivotMaal, string> = { treff_pct: 'Treff %', skytetid: 'Skytetid (s)', puls_inn: 'Puls inn (bpm)', antall: 'Antall serier' }
+/** Variablene som trenger dagsdata (TSB/søvn/HRV) — hentes lat via getHelseBelastning. */
+const DAG_VARIABLER: PivotVar[] = ['tsb', 'sovn', 'hrv']
+export const PIVOT_MIN_N = 5
+type DagKontekst = Map<string, { tsb: number | null; hrv: number | null; sovnTimer: number | null }>
 
 const UTEN_TYPE = 'ukjent'
 
@@ -95,6 +113,10 @@ interface FilterState {
   yAxis: YAxisKey
   visning: VisningKey
   workoutId: string | null  // For akkumulert: hvilken økt
+  // Bolk 8: pivot
+  pivotX: PivotVar
+  pivotGruppe: PivotVar | 'ingen'
+  pivotMaal: PivotMaal
 }
 
 const DEFAULT_FILTER: FilterState = {
@@ -111,6 +133,9 @@ const DEFAULT_FILTER: FilterState = {
   yAxis: 'accuracy_pct',
   visning: 'both',
   workoutId: null,
+  pivotX: 'pulssone_inn',
+  pivotGruppe: 'stilling',
+  pivotMaal: 'treff_pct',
 }
 
 const WORKOUT_TYPE_LABELS: Record<WorkoutTypeKey, string> = {
@@ -205,9 +230,12 @@ interface Props {
   data: ShootingDepthAnalysis
   /** Fase 122: lagret favoritt-oppsett (FilterState). */
   initialConfig?: Record<string, unknown> | null
+  /** Bolk 8: perioden + trenervisning — bare for dagsvariablene i pivoten (TSB/søvn/HRV). */
+  range?: DateRange
+  targetUserId?: string
 }
 
-export function CustomSkytingChartBuilder({ data, initialConfig }: Props) {
+export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUserId }: Props) {
   const [filter, setFilter] = useState<FilterState>(() => {
     const c = initialConfig ?? {}
     const ut: FilterState = { ...DEFAULT_FILTER }
@@ -295,6 +323,21 @@ export function CustomSkytingChartBuilder({ data, initialConfig }: Props) {
   const chartData = useMemo(() => {
     return buildChartPoints(filtered, filter)
   }, [filtered, filter])
+
+  // Bolk 8: dagsdata (TSB/søvn/HRV) hentes LAT — bare når pivoten bruker dem.
+  const trengerDag = filter.modus === 'pivot' && (DAG_VARIABLER.includes(filter.pivotX) || DAG_VARIABLER.includes(filter.pivotGruppe as PivotVar))
+  const [dag, setDag] = useState<{ nokkel: string; kontekst: DagKontekst } | null>(null)
+  const dagNokkel = range ? `${range.from}|${range.to}|${targetUserId ?? ''}` : null
+  useEffect(() => {
+    if (!trengerDag || !range || !dagNokkel || dag?.nokkel === dagNokkel) return
+    let live = true
+    getHelseBelastning(range.from, range.to, targetUserId).then(res => {
+      if (!live || 'error' in res) return
+      setDag({ nokkel: dagNokkel, kontekst: new Map(res.dager.map(d => [d.date, { tsb: d.tsb, hrv: d.hrv, sovnTimer: d.sovnTimer }])) })
+    }).catch(() => {})
+    return () => { live = false }
+  }, [trengerDag, range, dagNokkel, targetUserId, dag?.nokkel])
+  const pivot = useMemo(() => filter.modus === 'pivot' ? byggPivot(filtered, filter, dag?.nokkel === dagNokkel ? dag.kontekst : null) : null, [filtered, filter, dag, dagNokkel])
 
   const erSammenheng = X_ER_SAMMENHENG[filter.xAxis]
 
@@ -427,8 +470,43 @@ export function CustomSkytingChartBuilder({ data, initialConfig }: Props) {
           options={[
             { value: 'serier', label: 'Serier' },
             { value: 'tester', label: 'Testresultater' },
+            { value: 'pivot', label: 'Pivot — alle variabler' },
           ]}
         />
+
+        {/* Bolk 8: PIVOT — x-akse, gruppe og måltall fritt; hurtigvalg for de vanligste spørsmålene. */}
+        {filter.modus === 'pivot' && (
+          <div className="flex flex-col gap-2" data-skyting-pivot>
+            <div className="flex flex-wrap gap-2">
+              {([
+                ['forrige_drag', 'Treff etter foregående drag', { pivotX: 'forrige_sone', pivotGruppe: 'stilling', pivotMaal: 'treff_pct' }],
+                ['puls_inn', 'Treff etter puls inn', { pivotX: 'pulssone_inn', pivotGruppe: 'stilling', pivotMaal: 'treff_pct' }],
+                ['vind_stilling', 'Vind × stilling', { pivotX: 'vind', pivotGruppe: 'stilling', pivotMaal: 'treff_pct' }],
+                ['tsb', 'Form (TSB)', { pivotX: 'tsb', pivotGruppe: 'ingen', pivotMaal: 'treff_pct' }],
+                ['sovn', 'Søvn natta før', { pivotX: 'sovn', pivotGruppe: 'stilling', pivotMaal: 'treff_pct' }],
+                ['skytetid', 'Skytetid per stilling over tid', { pivotX: 'maaned', pivotGruppe: 'stilling', pivotMaal: 'skytetid' }],
+              ] as [string, string, Partial<FilterState>][]).map(([key, label, oppsett]) => (
+                <button key={key} type="button" onClick={() => setFilter(f => ({ ...f, ...oppsett }))} data-pivot-preset={key}
+                  className="text-xs tracking-widest uppercase"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", padding: '4px 10px', border: '1px solid var(--kant-3)', backgroundColor: 'transparent', color: 'var(--tekst-5-app)', cursor: 'pointer' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+              <SelectField label="X-akse (én variabel)" value={filter.pivotX} onChange={v => set('pivotX', v as PivotVar)}>
+                {(Object.keys(PIVOT_VAR_NAVN) as PivotVar[]).map(k => <option key={k} value={k}>{PIVOT_VAR_NAVN[k]}</option>)}
+              </SelectField>
+              <SelectField label="Gruppe (farge)" value={filter.pivotGruppe} onChange={v => set('pivotGruppe', v as PivotVar | 'ingen')}>
+                <option value="ingen">Ingen</option>
+                {(Object.keys(PIVOT_VAR_NAVN) as PivotVar[]).filter(k => k !== filter.pivotX).map(k => <option key={k} value={k}>{PIVOT_VAR_NAVN[k]}</option>)}
+              </SelectField>
+              <SelectField label="Måltall" value={filter.pivotMaal} onChange={v => set('pivotMaal', v as PivotMaal)}>
+                {(Object.keys(PIVOT_MAAL_NAVN) as PivotMaal[]).map(k => <option key={k} value={k}>{PIVOT_MAAL_NAVN[k]}</option>)}
+              </SelectField>
+            </div>
+          </div>
+        )}
 
         {/* VISNING — samme chip-rad som den fysiske grafens
             Gjennomført/Planlagt/Begge (delt ChipSelector). */}
@@ -516,7 +594,11 @@ export function CustomSkytingChartBuilder({ data, initialConfig }: Props) {
 
         <p className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          {filter.modus === 'tester'
+          {filter.modus === 'pivot' ? (
+            pivot && pivot.rader.length > 0
+              ? `${pivot.nSerier} serier · ${pivot.rader.length} ${PIVOT_VAR_NAVN[filter.pivotX].toLowerCase()}-verdier${pivot.dempede > 0 ? ` · ${pivot.dempede} celle${pivot.dempede === 1 ? '' : 'r'} med for lite data (n < ${PIVOT_MIN_N}, dempet)` : ''}${trengerDag && !(dag?.nokkel === dagNokkel) ? ' · henter dagsdata…' : ''}`
+              : (trengerDag && !(dag?.nokkel === dagNokkel) ? 'Henter dagsdata (TSB/søvn/HRV)…' : 'Ingen serier med verdi for valgt variabel.')
+          ) : filter.modus === 'tester'
             ? (testSerier.length === 0
                 ? 'Ingen skytetester i perioden.'
                 : `${testSerier.length} testprotokoll${testSerier.length === 1 ? '' : 'er'} · ${testSerier.reduce((n, t) => n + t.punkter.length, 0)} gjennomføringer`)
@@ -537,7 +619,17 @@ export function CustomSkytingChartBuilder({ data, initialConfig }: Props) {
 
         {/* Grafen har sin egen faste høyde inni det auto-høye kortet. */}
         <div style={{ width: '100%', height: 260, minWidth: 0 }}>
-          {filter.modus === 'tester' ? (
+          {filter.modus === 'pivot' ? (
+            !pivot || pivot.rader.length === 0 ? (
+              <div className="h-full flex items-center justify-center" style={{ border: '1px dashed var(--kant-3)' }}>
+                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+                  {trengerDag && !(dag?.nokkel === dagNokkel) ? 'Henter dagsdata…' : 'Ingen serier med verdi for valgt variabel.'}
+                </p>
+              </div>
+            ) : (
+              <PivotChart pivot={pivot} maal={filter.pivotMaal} />
+            )
+          ) : filter.modus === 'tester' ? (
             testSerier.length === 0 ? (
               <div className="h-full flex items-center justify-center"
                 style={{ border: '1px dashed var(--kant-3)' }}>
@@ -735,6 +827,121 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
 
 // Egen tooltip for enkel-serie-grafene: dato · skyting-nr, verdi, puls og
 // vind/sikt-kontekst der ført (CHART_TOOLTIP_BOX = delt tooltip-språk).
+// ── Bolk 8: pivot-bygging ─────────────────────────────────────
+const PULS_TRAPP = (hr: number | null): string | null => hr == null ? null : hr < 130 ? '<130' : hr < 150 ? '130–149' : hr < 170 ? '150–169' : hr < 185 ? '170–184' : '185+'
+const PIVOT_REKKEFOLGE: Partial<Record<PivotVar, string[]>> = {
+  pulssone_inn: ['<130', '130–149', '150–169', '170–184', '185+'],
+  pulssone: ['<130', '130–149', '150–169', '170–184', '185+'],
+  skytetid: ['<25 s', '25–35 s', '>35 s'],
+  forrige_sone: ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet'],
+  tsb: ['Sliten (<−20)', 'Belastet (−20–0)', 'Frisk (0–10)', 'Uthvilt (>10)'],
+  sovn: ['<6 t', '6–7 t', '7–8 t', '>8 t'],
+  hrv: ['Lav', 'Normal', 'Høy'],
+  stilling: ['Liggende', 'Stående'],
+  kontekst: ['Trening', 'Konkurranse'],
+  sikt: ['God', 'Lett tåke', 'Tåke', 'Tett tåke'],
+}
+const PIVOT_FARGER = ['#1A6FD4', '#FF8C00', '#28A86E', '#E23A5A', '#8B5CF6', '#E8B93C', '#0EA5E9', '#EC4899', '#84CC16', '#6E6E78']
+
+function pivotVerdi(r: ShootingSeriesRow, v: PivotVar, dag: DagKontekst | null, hrvMedian: number | null): string | null {
+  switch (v) {
+    case 'vind': return r.vind_styrke == null ? null : r.vind_styrke === 0 ? 'Vindstille' : `${r.vind_retning ?? '?'}${r.vind_styrke}`
+    case 'pulssone_inn': return PULS_TRAPP(r.puls_inn)
+    case 'pulssone': return PULS_TRAPP(r.avg_heart_rate)
+    case 'sikt': return sightLabel(r.sikt)
+    case 'stilling': return r.position === 'L' ? 'Liggende' : 'Stående'
+    case 'skytetid': return r.duration_seconds == null || r.duration_seconds <= 0 ? null : r.duration_seconds < 25 ? '<25 s' : r.duration_seconds <= 35 ? '25–35 s' : '>35 s'
+    case 'forrige_sone': return r.forrige_sone
+    case 'kontekst': return r.in_competition ? 'Konkurranse' : 'Trening'
+    case 'maaned': return r.date.slice(0, 7)
+    case 'tsb': { const t = dag?.get(r.date)?.tsb; return t == null ? null : t < -20 ? 'Sliten (<−20)' : t < 0 ? 'Belastet (−20–0)' : t <= 10 ? 'Frisk (0–10)' : 'Uthvilt (>10)' }
+    case 'sovn': { const t = dag?.get(r.date)?.sovnTimer; return t == null ? null : t < 6 ? '<6 t' : t < 7 ? '6–7 t' : t <= 8 ? '7–8 t' : '>8 t' }
+    case 'hrv': { const h = dag?.get(r.date)?.hrv; if (h == null || hrvMedian == null || hrvMedian <= 0) return null; return h < hrvMedian * 0.9 ? 'Lav' : h > hrvMedian * 1.1 ? 'Høy' : 'Normal' }
+  }
+}
+
+interface PivotCelle { n: number; rec: number; hits: number; tidSum: number; tidN: number; innSum: number; innN: number }
+export interface PivotData {
+  rader: Record<string, string | number | null>[]
+  grupper: { key: string; navn: string; farge: string }[]
+  /** Celle-n per (x, gruppe) — for demping og tooltip. */
+  n: Record<string, Record<string, number>>
+  nSerier: number
+  dempede: number
+}
+
+function pivotMaalVerdi(c: PivotCelle, maal: PivotMaal): number | null {
+  if (maal === 'antall') return c.n
+  if (maal === 'treff_pct') return c.rec > 0 ? Math.round((c.hits / c.rec) * 1000) / 10 : null
+  if (maal === 'skytetid') return c.tidN > 0 ? Math.round((c.tidSum / c.tidN) * 10) / 10 : null
+  return c.innN > 0 ? Math.round(c.innSum / c.innN) : null
+}
+
+function sorterKategorier(v: PivotVar, verdier: Set<string>): string[] {
+  const fast = PIVOT_REKKEFOLGE[v]
+  if (fast) return fast.filter(k => verdier.has(k))
+  if (v === 'vind') return [...verdier].sort((a, b) => (a === 'Vindstille' ? -1 : b === 'Vindstille' ? 1 : a.localeCompare(b)))
+  return [...verdier].sort()
+}
+
+export function byggPivot(rows: ShootingSeriesRow[], f: FilterState, dag: DagKontekst | null): PivotData {
+  const gruppeVar = f.pivotGruppe === 'ingen' ? null : f.pivotGruppe
+  const hrvVerdier = dag ? [...dag.values()].map(d => d.hrv).filter((v): v is number => v != null).sort((a, b) => a - b) : []
+  const hrvMedian = hrvVerdier.length ? hrvVerdier[Math.floor(hrvVerdier.length / 2)] : null
+  const celler = new Map<string, Map<string, PivotCelle>>()
+  const xSet = new Set<string>(), gSet = new Set<string>()
+  let nSerier = 0
+  for (const r of rows) {
+    const x = pivotVerdi(r, f.pivotX, dag, hrvMedian); if (x == null) continue
+    const g = gruppeVar ? pivotVerdi(r, gruppeVar, dag, hrvMedian) : 'alle'; if (g == null) continue
+    xSet.add(x); gSet.add(g); nSerier++
+    const rad = celler.get(x) ?? new Map<string, PivotCelle>()
+    const c = rad.get(g) ?? { n: 0, rec: 0, hits: 0, tidSum: 0, tidN: 0, innSum: 0, innN: 0 }
+    c.n++; c.rec += r.prone_recorded_shots + r.standing_recorded_shots; c.hits += r.prone_hits + r.standing_hits
+    if (r.duration_seconds != null && r.duration_seconds > 0) { c.tidSum += r.duration_seconds; c.tidN++ }
+    if (r.puls_inn != null) { c.innSum += r.puls_inn; c.innN++ }
+    rad.set(g, c); celler.set(x, rad)
+  }
+  const xer = sorterKategorier(f.pivotX, xSet)
+  const ger = gruppeVar ? sorterKategorier(gruppeVar, gSet) : ['alle']
+  const grupper = ger.map((g, i) => ({ key: g, navn: gruppeVar ? g : PIVOT_MAAL_NAVN[f.pivotMaal], farge: gruppeVar === 'stilling' ? (g === 'Liggende' ? COLOR_PRONE : COLOR_STANDING) : PIVOT_FARGER[i % PIVOT_FARGER.length] }))
+  const n: Record<string, Record<string, number>> = {}
+  let dempede = 0
+  const rader = xer.map(x => {
+    const rad: Record<string, string | number | null> = { x: f.pivotX === 'maaned' ? new Date(x + '-01T00:00:00').toLocaleDateString('nb-NO', { month: 'short', year: '2-digit' }) : x }
+    n[String(rad.x)] = {}
+    for (const g of ger) {
+      const c = celler.get(x)?.get(g)
+      rad[g] = c ? pivotMaalVerdi(c, f.pivotMaal) : null
+      n[String(rad.x)][g] = c?.n ?? 0
+      if (c && c.n < PIVOT_MIN_N) dempede++
+    }
+    return rad
+  })
+  return { rader, grupper, n, nSerier, dempede }
+}
+
+function PivotChart({ pivot, maal }: { pivot: PivotData; maal: PivotMaal }) {
+  const enhet = maal === 'treff_pct' ? ' %' : maal === 'skytetid' ? ' s' : maal === 'puls_inn' ? ' bpm' : ''
+  return (
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+      <BarChart data={pivot.rader} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} interval={0} />
+        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} domain={maal === 'treff_pct' ? [0, 100] : ['auto', 'auto']} unit={enhet} />
+        <Tooltip content={<XpTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+          formatter={(v, name, item) => { const x = String((item.payload as { x: string }).x); const nn = pivot.n[x]?.[String(item.dataKey)] ?? 0; return [`${v}${enhet} · n=${nn}${nn < PIVOT_MIN_N ? ' (for lite data)' : ''}`, name] }} />
+        {pivot.grupper.length > 1 && <Legend wrapperStyle={CHART_LEGEND_STYLE} />}
+        {pivot.grupper.map(g => (
+          <Bar key={g.key} dataKey={g.key} name={g.navn} fill={g.farge} isAnimationActive={false}>
+            {pivot.rader.map((rad, i) => <Cell key={i} fillOpacity={(pivot.n[String(rad.x)]?.[g.key] ?? 0) < PIVOT_MIN_N ? 0.3 : 1} />)}
+          </Bar>
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
 function BuilderTip({ active, payload, yLabel, aggregert = false }: {
   active?: boolean
   payload?: { payload?: ChartPoint }[]

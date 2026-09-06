@@ -14,6 +14,7 @@ import {
   CHART_CURSOR, BAR_RADIUS,
 } from './chart-theme'
 import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
+import { TreffMotPulsInn, TreffMotSkytetid, SkytetidLiggStaa, PlottHeatmap, BomRetningOverTid } from './SkytingBolk8'
 import { SkytingVindSiktCard } from './SkytingVindSiktCard'
 import { TestComparison } from './TestComparison'
 import { ShotVolumeChart } from './ShotVolumeChart'
@@ -89,8 +90,16 @@ export function SkytingTab({ data, range, targetUserId }: {
       {/* Kø #49 bolk 5: test-sammenligning — gjennomføringer av samme
           skytetest-mal side om side + trend (selvskjulende uten tester). */}
       <TestComparison targetUserId={targetUserId} />
-      <CustomSkytingChartBuilder data={data} />
+      <CustomSkytingChartBuilder data={data} range={range} targetUserId={targetUserId} />
       <AccuracyTrend data={data} />
+      {/* Bolk 8: faste grafer som manglet — pivoten (alle variabler) bor i Custom skyting-graf. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <TreffMotPulsInn series={data.series} />
+        <TreffMotSkytetid series={data.series} />
+      </div>
+      <SkytetidLiggStaa series={data.series} />
+      <PlottHeatmap series={data.series} />
+      <BomRetningOverTid series={data.series} />
       <HrZoneAccuracy data={data} />
       <SkytingVindSiktCard data={data} />
       <FirstVsLast data={data} />
@@ -484,7 +493,12 @@ export function renderFavoritt(key: string, data: ShootingDepthAnalysis | null, 
   if (key === 'skyting_skuddmengde') return <ShotVolumeChart range={ctx.range} targetUserId={ctx.targetUserId} title="Skudd per uke" initialConfig={ctx.config} />
   if (!data || !data.hasData || data.sportMismatch) return null
   switch (key) {
-    case 'skyting_custom': return <CustomSkytingChartBuilder data={data} initialConfig={ctx.config} />
+    case 'skyting_custom': return <CustomSkytingChartBuilder data={data} initialConfig={ctx.config} range={ctx.range} targetUserId={ctx.targetUserId} />
+    case 'skyting_treff_vs_pulsinn': return <TreffMotPulsInn series={data.series} />
+    case 'skyting_treff_vs_skytetid': return <TreffMotSkytetid series={data.series} />
+    case 'skyting_skytetid_ligg_staa': return <SkytetidLiggStaa series={data.series} />
+    case 'skyting_plott_heatmap': return <PlottHeatmap series={data.series} initialConfig={ctx.config} />
+    case 'skyting_bomretning': return <BomRetningOverTid series={data.series} />
     case 'skyting_accuracy_over_time': return <AccuracyTrend data={data} />
     case 'skyting_accuracy_hr_zones': return <HrZoneAccuracy data={data} />
     case 'skyting_wind_accuracy': return <SkytingVindSiktCard data={data} />

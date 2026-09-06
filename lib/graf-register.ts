@@ -162,6 +162,12 @@ export const GRAFER: Record<string, GrafDef> = {
 
   // ── Skyting-dybde ──
   skyting_custom: G('skyting', 'Custom skyting-graf', { config: true }),
+  // Bolk 8: de faste grafene som manglet (pivoten bor i skyting_custom)
+  skyting_treff_vs_pulsinn: G('skyting', 'Treff mot puls inn'),
+  skyting_treff_vs_skytetid: G('skyting', 'Treff mot skytetid'),
+  skyting_skytetid_ligg_staa: G('skyting', 'Skytetid liggende vs stående'),
+  skyting_plott_heatmap: G('skyting', 'Skuddplott-heatmap', { config: true }),
+  skyting_bomretning: G('skyting', 'Bom-retning over tid'),
   skyting_accuracy_over_time: G('skyting', 'Treff% per stilling over tid'),
   skyting_accuracy_hr_zones: G('skyting', 'Treff% i puls-soner'),
   skyting_wind_accuracy: G('skyting', 'Treff% i vind og sikt'),

@@ -47,7 +47,7 @@ import { RecoveryModal } from '@/components/recovery/RecoveryModal'
 import { HealthModal } from '@/components/health/HealthModal'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
-import { WeekCalendarView } from './WeekCalendarView'
+import { UkeVisning } from './UkeVisning'
 import type { DayState, DayStateType } from '@/lib/day-state-types'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import { DayStateModal } from '@/components/day-state/DayStateModal'
@@ -228,7 +228,7 @@ function fmtDuration(mins: number | null) {
 }
 
 
-function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
+export function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
   // Plan: vis alle planlagte — også de som er markert gjennomført
   //        (planen beholdes uendret i Plan, gjennomføring vises i Dagbok).
   if (mode === 'plan') return workouts.filter(w => w.is_planned)
@@ -241,7 +241,7 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
 // Visuell tilstand: dashed (plan-look) eller solid (gjennomført-look).
 // Plan-kalenderen: alltid dashed for planlagte, uansett om de er gjennomført.
 // Dagbok: dashed til den er gjennomført — deretter solid med grønn check.
-function planVisual(w: CalendarWorkoutSummary, mode: CalendarMode) {
+export function planVisual(w: CalendarWorkoutSummary, mode: CalendarMode) {
   if (mode === 'plan') return w.is_planned
   return w.is_planned && !w.is_completed
 }
@@ -260,23 +260,23 @@ function emptyZoneSec(): Record<ExtendedZoneName, number> {
 }
 
 // Aggregerte verdier for én økt (plan eller faktisk, basert på modus).
-function secondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+export function secondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
   return mode === 'plan' ? w.planned_total_seconds : w.total_seconds
 }
 
 // Skyting-tid (alle skyting_*-aktiviteter + tørrtrening). Holdes utenfor
 // treningstid og vises som egen liten label på workout-chip når > 0.
-function shootingSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+export function shootingSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
   return mode === 'plan' ? w.planned_shooting_seconds : w.shooting_seconds
 }
-function metersFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+export function metersFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
   return mode === 'plan' ? w.planned_total_meters : w.total_meters
 }
-function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<ExtendedZoneName, number> {
+export function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<ExtendedZoneName, number> {
   return mode === 'plan' ? w.planned_zone_seconds : w.zone_seconds
 }
 
-function includeInSum(w: CalendarWorkoutSummary, mode: CalendarMode): boolean {
+export function includeInSum(w: CalendarWorkoutSummary, mode: CalendarMode): boolean {
   // Plan: tell alle planlagte rader (uavhengig av is_completed — planen beholdes
   // selv om økta er utført). Dagbok: tell alle gjennomførte rader — en planlagt
   // økt som er fullført teller også i dagbok. Matcher server-side analyse-overlay
@@ -568,7 +568,7 @@ function ZoneLegend({
 //  - Konkurranse: gull-ramme + 🏆. Gjennomført → solid gull-fyll.
 //  - Testløp:    blå-ramme + 📊. Gjennomført → solid blå-fyll.
 // Plasseringen vises direkte på chip-en når tilgjengelig.
-function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
+export function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
   { color: string; icon: string; thickBorder: boolean } | null {
   if (w.workout_type === 'competition') return { color: '#D4A017', icon: '🏆', thickBorder: true }
   if (w.workout_type === 'testlop')     return { color: '#1A6FD4', icon: '📊', thickBorder: false }
@@ -583,7 +583,7 @@ const COACH_BLUE = '#1A6FD4'
 // under det: den av I1/I2 med mest tid. Leser zoneSecondsFor — SAMME kilde
 // som ukestripene aggregerer fra (workout_zones-radene alene er ofte tomme).
 // Uten sonedata → null (fall tilbake til type-farge).
-function intensityAccent(w: CalendarWorkoutSummary, mode: CalendarMode): string | null {
+export function intensityAccent(w: CalendarWorkoutSummary, mode: CalendarMode): string | null {
   const zs = zoneSecondsFor(w, mode)
   if (!zs) return null
   const total = ALL_ZONE_NAMES.reduce((s, k) => s + (zs[k] ?? 0), 0)
@@ -2894,6 +2894,7 @@ export function Calendar({
   // Fersk last uten URL-posisjon: server-data stemmer → hopp over mount-fetch.
   const restoredFromUrl = !!(urlDate || urlView)
   const [mounted, setMounted] = useState(false)
+  const hentetOmraade = useRef<string | null>(null)
   useEffect(() => {
     if (!mounted) {
       setMounted(true)
@@ -2903,6 +2904,10 @@ export function Calendar({
       if (serverRange ? erSammeOmraade(serverRange, view, refDate) : !restoredFromUrl) return
     }
     const { start, end } = getDateRange(view, refDate)
+    // Ukevisning v2: valgt dag = refDate. Samme uke → samme område → ingen ny henting.
+    const nokkel = `${view}|${toISO(start)}|${toISO(end)}`
+    if (hentetOmraade.current === nokkel) return
+    hentetOmraade.current = nokkel
     const pr = getPrevRange(view, refDate)
     fetchData(start, end, pr?.start, pr?.end)
   }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line
@@ -3140,6 +3145,31 @@ export function Calendar({
           </div>
         </>
       )}
+      {view === 'måned' && (
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} />
+      )}
+      {view === 'uke' && (
+        <UkeVisning
+          weekDates={weekDates}
+          weekNum={weekNum}
+          byDate={byDate}
+          mode={mode}
+          seasonPeriods={seasonPeriods}
+          seasonKeyDates={seasonKeyDates}
+          seasonMarkings={seasonMarkings}
+          selectedDate={toISO(refDate)}
+          onSelectDate={iso => setRefDate(new Date(iso + 'T12:00:00'))}
+          onPrevWeek={prev}
+          onNextWeek={next}
+          onEditWorkout={handleEditWorkout}
+          onCreateWorkout={handleCreateWorkout}
+          dayStatesByDate={dayStatesByDate}
+          onEditDayState={handleEditDayState}
+          targetUserId={targetUserId}
+          readOnly={readOnly}
+          onMoveWorkout={handleMoveWorkout}
+        />
+      )}
       {showNotes && view === 'uke' && (
         <>
           <PeriodNote
@@ -3167,28 +3197,6 @@ export function Calendar({
             />
           </div>
         </>
-      )}
-      {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} />
-      )}
-      {view === 'uke' && (
-        <WeekCalendarView
-          weekDates={weekDates}
-          weekNum={weekNum}
-          byDate={byDate}
-          mode={mode}
-          seasonPeriods={seasonPeriods}
-          seasonKeyDates={seasonKeyDates}
-          seasonMarkings={seasonMarkings}
-          onEditWorkout={handleEditWorkout}
-          onCreateWorkout={handleCreateWorkout}
-          dayStatesByDate={dayStatesByDate}
-          onEditDayState={handleEditDayState}
-          targetUserId={targetUserId}
-          readOnly={readOnly}
-          refreshCalendar={refreshCalendar}
-          onMoveWorkout={handleMoveWorkout}
-        />
       )}
       {view === 'år' && (
         <YearView year={year} byDate={byDate} prevByDate={prevByDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />

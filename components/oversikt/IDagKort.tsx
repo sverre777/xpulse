@@ -53,7 +53,7 @@ function hovedsone(w: OversiktWorkoutCard): ExtendedZoneName | null {
   return (w.primary_intensity_zone as ExtendedZoneName | null) ?? null
 }
 
-function SoneChip({ sone }: { sone: string | null }) {
+export function SoneChip({ sone }: { sone: string | null }) {
   if (!sone) return null
   const farge = ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? 'var(--mut)'
   return (
@@ -64,7 +64,7 @@ function SoneChip({ sone }: { sone: string | null }) {
   )
 }
 
-function Chip({ farge, children, data }: { farge: string; children: React.ReactNode; data?: string }) {
+export function Chip({ farge, children, data }: { farge: string; children: React.ReactNode; data?: string }) {
   return (
     <span data-status-chip={data} style={{
       display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 11, fontWeight: 700,
@@ -77,7 +77,7 @@ function Chip({ farge, children, data }: { farge: string; children: React.ReactN
   )
 }
 
-function Meta({ deler }: { deler: Array<React.ReactNode | null | false | ''> }) {
+export function Meta({ deler }: { deler: Array<React.ReactNode | null | false | ''> }) {
   const d = deler.filter(Boolean)
   return (
     <p className="flex items-center gap-x-2 gap-y-1 flex-wrap" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', margin: '4px 0 0' }}>

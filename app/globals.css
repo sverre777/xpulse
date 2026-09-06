@@ -1159,3 +1159,18 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-fav-kort:hover .xp-fav-fjern, .xp-fav-kort:focus-within .xp-fav-fjern { opacity: 1; }
 @media (hover: none) { .xp-fav-kort .xp-fav-fjern { opacity: 1; } }
 /* bolk1 css-touch */
+
+/* ── Ukevisning v2 (design/xpulse-ukevisning-design.html) ── */
+.uke-kolonner { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.uke-okter { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 900px) {
+  .uke-okter-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .uke-okter-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .uke-kolonner { gap: 4px; }
+  .uke-kolonner [data-uke-dag] { min-height: 110px !important; padding: 8px 3px !important; border-radius: 10px !important; }
+  .uke-kolonner [data-uke-chip] { padding: 3px 3px !important; border-radius: 5px !important; margin-top: 3px !important; }
+  .uke-kolonner [data-uke-chip] > span:first-child { font-size: 8.5px !important; letter-spacing: .02em !important; }
+  .uke-chip-meta { display: none !important; }
+}

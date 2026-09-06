@@ -43,8 +43,8 @@ export function tittelForRute(pathname: string, cd: string | null, rolle: 'athle
     if (p === '/app/trener') return { tittel: 'Hjem', undertekst: idag }
     if (p.startsWith('/app/trener/planlegg')) return { tittel: 'Planlegg', undertekst: 'maler · push' }
     if (p.startsWith('/app/trener/kalender')) return { tittel: 'Kalender', undertekst: 'alle utøvere' }
-    if (p.startsWith('/app/trener/sammenligne')) return { tittel: 'Sammenligne', undertekst: null }
-    if (p.startsWith('/app/trener/utovere')) return { tittel: 'Utøvere', undertekst: null, tilbake: '/app/mer' }
+    if (p.startsWith('/app/trener/utovere')) return { tittel: 'Utøvere', undertekst: null }
+    if (p.startsWith('/app/trener/sammenligne')) return { tittel: 'Sammenligne', undertekst: null, tilbake: '/app/mer' }
   }
   if (p === '/app/oversikt' || p === '/app') return { tittel: 'Hjem', undertekst: idag }
   if (p.startsWith('/app/plan')) return { tittel: 'Plan', undertekst: uke }

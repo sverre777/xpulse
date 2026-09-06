@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { GlassLinje } from '@/components/layout/GlassLinje'
+import { PlussKnappTrenerAuto } from '@/components/ui/PlussKnapp'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { AppFooter } from '@/components/layout/AppFooter'
@@ -42,6 +43,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
       <AppFooter />
       <InstallHint />
       <GlassLinje rolle="coach" />
+      <PlussKnappTrenerAuto />
     </div>
   )
 }

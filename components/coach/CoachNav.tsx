@@ -4,8 +4,6 @@ import { useErMobilNav } from '@/lib/er-app'
 import { GlassTopp } from '@/components/layout/GlassTopp'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { PcAvatar, MerNedtrekk } from '@/components/layout/PcMeny'
@@ -30,281 +28,22 @@ const INBOX_HREF = '/app/innboks'
 const HOME_HREF = '/app/trener'
 
 // TODO: AI Coach for trener kommer senere.
-// Navigasjon v2 bolk 7: Hjem · Planlegg · Kalender · Sammenligne · Mer — Utøvere ligger i Mer.
+// Navigasjon v2 bolk 7 + rettelser (Sverre 6. sep): på PC står både Utøvere og
+// Sammenligne i toppen — Hjem · Planlegg · Kalender · Utøvere · Sammenligne · Mer.
 const NAV_LINKS = [
   { href: '/app/trener/planlegg',    label: 'Planlegg' },
   { href: '/app/trener/kalender',    label: 'Kalender' },
+  { href: '/app/trener/utovere',     label: 'Utøvere' },
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
 ]
 
-// Mobil-menyen inkluderer Hjem øverst (matcher utøvers MainNav-mønster).
-const MOBILE_LINKS = [
-  { href: HOME_HREF, label: 'Hjem' },
-  ...NAV_LINKS,
-]
-
-// Hamburger litt tidligere enn før (900) — samme terskel som MainNav.
-const BREAKPOINT = 1000
-
 export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier = true, unreadInboxCount = 0 }: CoachNavProps) {
   const pathname = usePathname()
-  const [isMobile, setIsMobile] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < BREAKPOINT)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  useEffect(() => {
-    if (!menuOpen) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [menuOpen])
-
-  useEffect(() => { setMenuOpen(false) }, [pathname])
 
   const glassNav = useErMobilNav()
   if (glassNav) {
     return <GlassTopp rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />
   }
-  if (isMobile) {
-    return (
-      <>
-        <nav
-          className="flex items-center justify-between px-4 sticky top-0 z-40"
-          style={{
-            background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            height: '52px',
-          }}
-        >
-          <Link
-            href="/app/trener"
-            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <XPulseIcon size={35} variant="trener" ariaLabel="X-PULSE" />
-            <span style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 600,
-              color: COACH_BLUE,
-              fontSize: '20px',
-              letterSpacing: '0.4em',
-            }}>
-              PULSE
-            </span>
-            <span
-              className="text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: 'var(--dim)',
-                border: '1px solid var(--line2)',
-                borderRadius: 999,
-                padding: '1px 7px',
-              }}
-            >
-              {VERSJONS_MERKE}
-            </span>
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <TemaBryter accent={COACH_BLUE} storrelse={44} />
-
-          {/* Navigasjon v2: på app-mobil (≤620 / Capacitor) erstattes hamburgeren av glass-linja nederst. */}
-          {!glassNav && <button
-            type="button"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
-            aria-expanded={menuOpen}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              width: '44px', height: '44px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 0,
-            }}
-          >
-            <HamburgerIcon open={menuOpen} />
-          </button>}
-          </div>
-        </nav>
-
-        {menuOpen && !glassNav && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 50,
-              backgroundColor: 'var(--flate-3)',
-              display: 'flex', flexDirection: 'column',
-            }}
-          >
-            <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <XPulseIcon size={35} variant="trener" ariaLabel="X-PULSE" />
-                <span style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 600,
-                  color: COACH_BLUE,
-                  fontSize: '20px',
-                  letterSpacing: '0.4em',
-                }}>
-                  PULSE
-                </span>
-                <span
-                  className="text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    color: COACH_BLUE,
-                    border: `1px solid ${COACH_BLUE}`,
-                    padding: '1px 6px',
-                  }}
-                >
-                  {VERSJONS_MERKE}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(false)}
-                aria-label="Lukk meny"
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  width: '44px', height: '44px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: 0,
-                }}
-              >
-                <HamburgerIcon open={true} />
-              </button>
-            </div>
-            {/* Ikon-rad: Søk, Innboks, Innstillinger */}
-            <div
-              className="flex items-center justify-around px-6 py-3"
-              onClick={e => e.stopPropagation()}
-              style={{ borderBottom: '1px solid var(--line)' }}
-            >
-              <div onClick={() => setMenuOpen(false)}>
-                <SearchIconButton mode="coach" accent={COACH_BLUE} />
-              </div>
-              <Link
-                href={INBOX_HREF}
-                onClick={() => setMenuOpen(false)}
-                aria-label={`Innboks${unreadInboxCount > 0 ? ` (${unreadInboxCount} uleste)` : ''}`}
-                style={{
-                  position: 'relative',
-                  width: '50px', height: '50px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--tekst-1-app)', textDecoration: 'none',
-                }}
-              >
-                <MailIcon />
-                {unreadInboxCount > 0 && (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      position: 'absolute', top: '8px', right: '8px',
-                      width: '10px', height: '10px', borderRadius: '50%',
-                      backgroundColor: COACH_BLUE,
-                    }}
-                  />
-                )}
-              </Link>
-              <Link
-                href="/app/innstillinger"
-                onClick={() => setMenuOpen(false)}
-                aria-label="Innstillinger"
-                style={{
-                  width: '50px', height: '50px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--tekst-1-app)', textDecoration: 'none',
-                }}
-              >
-                <GearIcon />
-              </Link>
-            </div>
-
-            {/* Nav-rute-liste med ikon + tekst */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1">
-              {MOBILE_LINKS.map(({ href, label }) => {
-                const active = href === HOME_HREF
-                  ? pathname === href
-                  : pathname === href || pathname.startsWith(href + '/')
-                const Glyph = COACH_NAV_GLYPHS[href]
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setMenuOpen(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      padding: '14px 12px',
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      fontSize: '17px',
-                      letterSpacing: '0.1em',
-                      color: active ? 'var(--tekst-1-app)' : 'rgb(var(--tekst-land-rgb) / 0.7)',
-                      textDecoration: 'none',
-                      backgroundColor: active ? 'var(--blue-soft)' : 'transparent',
-                      borderRadius: 12,
-                      borderLeft: active ? `3px solid ${COACH_BLUE}` : '3px solid transparent',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {Glyph ? <span style={{ color: active ? COACH_BLUE : 'var(--tekst-5-app)', display: 'inline-flex' }}><Glyph size={22} /></span> : null}
-                    <span>{label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-
-            {/* Bunn: rolle-bytte + brukernavn */}
-            <div
-              className="flex flex-col items-center gap-3 px-6 pt-4 pb-6"
-              onClick={e => e.stopPropagation()}
-              style={{ borderTop: '1px solid var(--line)' }}
-            >
-              <RoleSwitcher
-                activeRole="coach"
-                hasAthleteRole={hasAthleteRole}
-                hasCoachRole={hasCoachRole}
-                hasCoachTier={hasCoachTier}
-              />
-              {userName && (
-                <span style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  color: 'var(--tekst-8-alt)',
-                  fontSize: '13px',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                }}>
-                  {userName}
-                </span>
-              )}
-              <form action={logout} onClick={e => e.stopPropagation()}>
-                <button
-                  type="submit"
-                  style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: '24px',
-                    letterSpacing: '0.1em',
-                    color: 'rgb(var(--tekst-land-rgb) / 0.6)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                  }}
-                >
-                  Logg ut
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-      </>
-    )
-  }
-
   return (
     <nav
       className="flex items-center justify-between px-4 md:px-6 py-0 sticky top-0 z-40"
@@ -387,31 +126,16 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
 
       <div className="flex items-center gap-3">
         <SearchIconButton mode="coach" accent={COACH_BLUE} />
+        {/* Rettelser 6. sep: innboks, rollebytte og lys/mørk står i topplinja på PC (til høyre). */}
+        <InboxIconLink unreadCount={unreadInboxCount} isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')} />
+        <RoleSwitcher activeRole="coach" hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} />
+        <TemaBryter accent={COACH_BLUE} />
         <PcAvatar rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />
       </div>
     </nav>
   )
 }
 
-
-function GearIcon() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  )
-}
 
 function MailIcon() {
   return (
@@ -432,21 +156,47 @@ function MailIcon() {
   )
 }
 
-
-function HamburgerIcon({ open }: { open: boolean }) {
-  const bar: React.CSSProperties = {
-    position: 'absolute',
-    left: 0,
-    width: '100%',
-    height: '2px',
-    backgroundColor: 'var(--tekst-1-app)',
-    transition: 'transform 200ms ease, opacity 150ms ease, top 200ms ease',
-  }
+function InboxIconLink({ unreadCount, isActive }: {
+  unreadCount: number
+  isActive: boolean
+}) {
   return (
-    <span style={{ position: 'relative', display: 'inline-block', width: '22px', height: '16px' }}>
-      <span style={{ ...bar, top: open ? '7px' : '2px',  transform: open ? 'rotate(45deg)'  : 'none' }} />
-      <span style={{ ...bar, top: '7px',                 opacity:   open ? 0 : 1 }} />
-      <span style={{ ...bar, top: open ? '7px' : '12px', transform: open ? 'rotate(-45deg)' : 'none' }} />
-    </span>
+    <Link
+      href={INBOX_HREF}
+      aria-label={`Innboks${unreadCount > 0 ? ` (${unreadCount} uleste)` : ''}`}
+      style={{
+        position: 'relative',
+        width: '40px',
+        height: '40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: isActive ? COACH_BLUE : 'var(--tekst-5-app)',
+        textDecoration: 'none',
+        transition: 'color 150ms',
+      }}
+    >
+      <MailIcon />
+      {unreadCount > 0 && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '4px',
+            right: '2px',
+            backgroundColor: COACH_BLUE,
+            color: 'var(--tekst-1-app)',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '13px',
+            padding: '0 4px',
+            minWidth: '16px',
+            textAlign: 'center',
+            lineHeight: '1.4',
+          }}
+        >
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </Link>
   )
 }

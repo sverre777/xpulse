@@ -3,6 +3,7 @@ import { sporterFraProfil } from '@/lib/har-skiskyting'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { medTid } from '@/lib/ytelse-tid'
 import { GlassLinje } from '@/components/layout/GlassLinje'
+import { PlussKnappAuto } from '@/components/ui/PlussKnapp'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
@@ -89,6 +90,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <InstallHint />
         {visProfilvarsel && <ProfilVarselBanner />}
         <GlassLinje rolle={effectiveRole === 'coach' ? 'coach' : 'athlete'} />
+        {effectiveRole !== 'coach' && <PlussKnappAuto />}
       </div>
     </BrukerSporterProvider>
     </RoleProvider>

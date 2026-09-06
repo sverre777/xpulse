@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { GlassLinje } from '@/components/layout/GlassLinje'
+import { PlussKnappAuto, PlussKnappTrenerAuto } from '@/components/ui/PlussKnapp'
 import { MainNav } from '@/components/layout/MainNav'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { RoleProvider } from '@/lib/role-context'
@@ -59,6 +60,7 @@ export default async function InnstillingerLayout({ children }: { children: Reac
           {children}
         </div>
         <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'} />
+        {activeRole === 'coach' ? <PlussKnappTrenerAuto /> : <PlussKnappAuto />}
       </div>
     </RoleProvider>
   )

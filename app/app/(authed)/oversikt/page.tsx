@@ -1,4 +1,3 @@
-import { PlussKnapp } from '@/components/ui/PlussKnapp'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { LoadError } from '@/components/ui/LoadError'
@@ -101,7 +100,6 @@ export default async function OversiktPage() {
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
 
         <OversiktHero hero={res.hero} todayState={res.todayState} />
-        <PlussKnapp side="hjem" />
 
         {/* HJEM v2 bolk 1 (fasit design/xpulse-hjem-kort-v2-design.html):
             rad 1 = I dag · Ukens totaler · Neste A-konkurranse (plassen er

@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { useErMobilNav } from '@/lib/er-app'
-import { HomeGlyph, CalendarGlyph, BookGlyph, ChartGlyph, CalendarPlusGlyph, CompareGlyph, MerGlyph } from './NavLinkIcons'
+import { HomeGlyph, CalendarGlyph, BookGlyph, ChartGlyph, CalendarPlusGlyph, UsersGlyph, MerGlyph } from './NavLinkIcons'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ORANSJE = '#FF4500'
@@ -33,9 +33,17 @@ const TRENER: Fane[] = [
   { id: 'hjem', navn: 'Hjem', href: '/app/trener', Ikon: HomeGlyph, aktiv: p => p === '/app/trener' },
   { id: 'planlegg', navn: 'Planlegg', href: '/app/trener/planlegg', Ikon: CalendarPlusGlyph, aktiv: p => p.startsWith('/app/trener/planlegg') },
   { id: 'kalender', navn: 'Kalender', href: '/app/trener/kalender', Ikon: CalendarGlyph, aktiv: p => p.startsWith('/app/trener/kalender') },
-  { id: 'sammenligne', navn: 'Sammenligne', href: '/app/trener/sammenligne', Ikon: CompareGlyph, aktiv: p => p.startsWith('/app/trener/sammenligne') },
+  { id: 'utovere', navn: 'Utøvere', href: '/app/trener/utovere', Ikon: UsersGlyph, aktiv: p => p.startsWith('/app/trener/utovere') },
   { id: 'mer', navn: 'Mer', href: '/app/mer', Ikon: MerGlyph, aktiv: () => false },
 ]
+
+// Trenerens egne undersider (Sammenligne, grupper, plasser …) hører til Mer; bare
+// /app/trener/<utøver-id>/… er drilldown der ingen fane skal lyse.
+const TRENER_EGNE_RUTER = new Set(['planlegg', 'kalender', 'sammenligne', 'utovere', 'grupper', 'plasser'])
+function erUtoverDrilldown(p: string): boolean {
+  const m = /^\/app\/trener\/([^/]+)/.exec(p)
+  return !!m && !TRENER_EGNE_RUTER.has(m[1])
+}
 
 export function GlassLinje({ rolle }: { rolle: 'athlete' | 'coach' }) {
   const vis = useErMobilNav()
@@ -64,7 +72,7 @@ export function GlassLinje({ rolle }: { rolle: 'athlete' | 'coach' }) {
         boxShadow: 'inset 0 1px 0 color-mix(in srgb, var(--tekst-1-app) 14%, transparent), 0 12px 32px color-mix(in srgb, #000 35%, transparent)',
       }}>
       {faner.map(f => {
-        const aktiv = f.aktiv(pathname) || (f.id === 'mer' && !noenAktiv && pathname !== '/app' && !pathname.startsWith('/app/trener/') && pathname !== '/app/trener' && !pathname.startsWith('/app/oversikt'))
+        const aktiv = f.aktiv(pathname) || (f.id === 'mer' && !noenAktiv && pathname !== '/app' && !erUtoverDrilldown(pathname) && pathname !== '/app/trener' && !pathname.startsWith('/app/oversikt'))
         return (
           <Link key={f.id} href={f.href} data-glass-fane={f.id} aria-current={aktiv ? 'page' : undefined}
             className="flex flex-col items-center justify-center gap-0.5"

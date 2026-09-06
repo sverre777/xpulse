@@ -17,12 +17,12 @@ interface Props {
   // Server-side fetched i layout. Hvis ikke gitt rendres ikonet som
   // "ikke koblet" inntil videre.
   initialBadge?: KlokkesyncBadge
-  /** Mobilmenyen: menyen lukkes ved trykk, så popupen ville forsvunnet
-   * sammen med den. Naviger rett til klokkesync-innstillingene i stedet. */
-  navigerDirekte?: boolean
 }
 
-export function KlokkesyncStatusButton({ initialBadge, navigerDirekte = false }: Props) {
+// Navigasjon v2-rettelser (Sverre 6. sep): PC-merket ser ut som SYNK-pilla i
+// glass-toppen — grønt når klokka er koblet til, rødt uten tilkobling eller
+// ved feil, oransje prikk når noe er hentet siste døgn.
+export function KlokkesyncStatusButton({ initialBadge }: Props) {
   const badge: KlokkesyncBadge = initialBadge ?? {
     connected: false, lastSyncAt: null, hasError: false,
   }
@@ -35,9 +35,10 @@ export function KlokkesyncStatusButton({ initialBadge, navigerDirekte = false }:
   const [jobber, setJobber] = useState(false)
   const router = useRouter()
 
-  const dotColor = badge.hasError ? '#E11D48'
-    : badge.connected ? '#28A86E'
-    : '#FF4500'
+  const farge = badge.hasError || !badge.connected ? '#E11D48' : '#28A86E'
+  const synkStatus = badge.hasError ? 'feil' : badge.connected ? 'ok' : 'ingen'
+  const [naa] = useState(() => Date.now())
+  const nySynk = !!badge.lastSyncAt && naa - new Date(badge.lastSyncAt).getTime() < 24 * 3600 * 1000
   const tooltip = badge.hasError
     ? 'Synk feilet — re-koble'
     : badge.connected
@@ -48,7 +49,7 @@ export function KlokkesyncStatusButton({ initialBadge, navigerDirekte = false }:
     // Er popupen alt åpen, er lukking gratis — ingen ventetilstand da.
     if (popupOpen) { setPopupOpen(false); return }
     setJobber(true)
-    if (navigerDirekte || !badge.connected || badge.hasError) {
+    if (!badge.connected || badge.hasError) {
       // Navigasjonen tar ogsaa tid. Ventetilstanden nullstilles IKKE her —
       // sida byttes ut, og knappen skal se opptatt ut helt til den er borte.
       router.push('/app/innstillinger/klokkesync')
@@ -83,23 +84,17 @@ export function KlokkesyncStatusButton({ initialBadge, navigerDirekte = false }:
         title={jobber ? 'Henter klokkestatus…' : tooltip}
         aria-label={jobber ? 'Henter klokkestatus…' : tooltip}
         aria-busy={jobber}
-        className="relative inline-flex items-center justify-center"
+        data-pc-synk data-pc-synk-status={synkStatus}
         style={{
-          width: 36, height: 36, background: 'none', border: 'none',
-          color: jobber ? 'var(--accent)' : 'var(--tekst-5-app)',
-          cursor: jobber ? 'wait' : 'pointer', padding: 0,
-          // Ikonet er allerede en sirkelpil — la den snurre i stedet for å
-          // legge til et nytt element som flytter på layouten.
-          animation: jobber ? 'xp-spinn 900ms linear infinite' : undefined,
+          position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 5, height: 34, padding: '0 11px',
+          borderRadius: 999, border: 'none', cursor: jobber ? 'wait' : 'pointer',
+          background: `color-mix(in srgb, ${farge} 22%, transparent)`, color: farge,
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 12.5, letterSpacing: '0.14em', textTransform: 'uppercase',
         }}>
-        <RefreshCwIcon size={20} />
-        <span aria-hidden="true"
-          style={{
-            position: 'absolute', top: 6, right: 6,
-            width: 8, height: 8, borderRadius: '50%',
-            background: dotColor,
-            border: '2px solid var(--flate-3)',
-          }} />
+        {/* Ikonet er allerede en sirkelpil — la den snurre mens vi henter. */}
+        <span style={{ display: 'inline-flex', animation: jobber ? 'xp-spinn 900ms linear infinite' : undefined }}><RefreshCwIcon size={16} /></span>
+        SYNK
+        {nySynk && <span aria-hidden="true" data-pc-synk-prikk style={{ position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: '50%', background: '#FF4500', border: '2px solid var(--flate-3)' }} />}
       </button>
       {popupOpen && fullStatus && (
         <KlokkesyncStatusPopup

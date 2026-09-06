@@ -138,3 +138,23 @@ export function PlussKnappTrener({ variant = 'hjem' }: { variant?: 'hjem' | 'kal
     </div>
   )
 }
+
+/** Rettelser 6. sep («＋ skal være lik overalt»): utøverens ＋ montert i layouten — side etter ruta.
+ *  Skjult i live-økta (egen bunnlinje). Plan/Dagbok i trener-drilldown monterer sin egen (targetUserId). */
+export function PlussKnappAuto() {
+  const pathname = usePathname() ?? ''
+  if (pathname.startsWith('/app/okt/')) return null
+  const side: 'hjem' | 'dagbok' | 'plan' = pathname.startsWith('/app/plan') || pathname.startsWith('/app/periodisering') ? 'plan' : pathname.startsWith('/app/dagbok') ? 'dagbok' : 'hjem'
+  return <PlussKnapp side={side} />
+}
+
+const TRENER_EGNE_RUTER = new Set(['planlegg', 'kalender', 'sammenligne', 'utovere', 'grupper', 'plasser'])
+
+/** Trenerens ＋ montert i trener-layouten — variant etter ruta. Inne på en utøver (/app/trener/<id>/…)
+ *  monterer Plan/Dagbok sin egen ＋ på utøverens vegne, så her returneres null. */
+export function PlussKnappTrenerAuto() {
+  const pathname = usePathname() ?? ''
+  const m = /^\/app\/trener\/([^/]+)/.exec(pathname)
+  if (m && !TRENER_EGNE_RUTER.has(m[1])) return null
+  return <PlussKnappTrener variant={pathname.startsWith('/app/trener/kalender') ? 'kalender' : 'hjem'} />
+}

@@ -132,7 +132,8 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
             i utøverens dagbok; live-modus er uansett utøver-only). */}
         {viewContext.mode !== 'coach-view' && <ResumeSessionBanner />}
         {/* ＋-knappen: flytende, alle bredder. Trener-drilldown: dagbok er lesing → bare Planlegg. */}
-        {(!isCoachView || viewContext.permissions.can_edit_plan) && (
+        {/* Utøverens egen ＋ monteres i layouten (PlussKnappAuto); her bare trener-drilldown på utøverens vegne. */}
+        {isCoachView && viewContext.permissions.can_edit_plan && (
           <PlussKnapp side="dagbok" targetUserId={targetId} basePath={isCoachView ? `/app/trener/${viewContext.userId}` : '/app'} kanForeDagbok={!isCoachView} />
         )}
 

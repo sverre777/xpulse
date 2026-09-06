@@ -113,7 +113,8 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
         </div>
 
         <SeasonContextStrip periods={seasonPeriods} keyDates={seasonKeyDates} todayISO={today} />
-        {(!isCoachView || viewContext.permissions.can_edit_plan) && (
+        {/* Utøverens egen ＋ monteres i layouten (PlussKnappAuto); her bare trener-drilldown på utøverens vegne. */}
+        {isCoachView && viewContext.permissions.can_edit_plan && (
           <PlussKnapp side="plan" targetUserId={targetId} basePath={isCoachView ? `/app/trener/${viewContext.userId}` : '/app'} kanForeDagbok={!isCoachView} />
         )}
 

@@ -1,4 +1,3 @@
-import { PlussKnappTrener } from '@/components/ui/PlussKnapp'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
@@ -51,7 +50,6 @@ export default async function CoachCalendarPage() {
         </p>
 
         <TrenerKalender initialEvents={events} initialNotes={notes} />
-        <PlussKnappTrener variant="kalender" />
       </div>
     </div>
   )

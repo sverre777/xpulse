@@ -15,12 +15,33 @@ import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { tittelForRute, useToppTittelOverstyring } from '@/lib/topp-tittel'
 import { AvatarMeny, type AvatarMenyProps } from './AvatarMeny'
 import { SynkArk } from './SynkArk'
+import { HomeGlyph, CalendarGlyph, BookGlyph, ChartGlyph, CalendarPlusGlyph, CompareGlyph, UsersGlyph, MerGlyph } from './NavLinkIcons'
 
 const FONT = "'Barlow Condensed', sans-serif"
-const BEBAS = "'Bebas Neue', sans-serif"
 const ORANSJE = '#FF4500'
 const COACH_BLUE = '#1A6FD4'
 const GRONN = '#28A86E'
+const ROD = '#E11D48'
+
+/** Fane-glyfen som hører til ruta — tittelen i toppen har samme stil som den aktive fanen i glass-linja (Sverre 6. sep). */
+function glyfForRute(p: string, rolle: 'athlete' | 'coach'): React.ReactNode {
+  const g = { size: 18, strokeWidth: 2 }
+  if (rolle === 'coach') {
+    if (p === '/app/trener') return <HomeGlyph {...g} />
+    if (p.startsWith('/app/trener/planlegg')) return <CalendarPlusGlyph {...g} />
+    if (p.startsWith('/app/trener/kalender')) return <CalendarGlyph {...g} />
+    if (p.startsWith('/app/trener/utovere')) return <UsersGlyph {...g} />
+    if (p.startsWith('/app/trener/sammenligne')) return <CompareGlyph {...g} />
+    if (p === '/app/mer') return <MerGlyph {...g} />
+    return null
+  }
+  if (p === '/app/oversikt' || p === '/app') return <HomeGlyph {...g} />
+  if (p.startsWith('/app/plan') || p.startsWith('/app/periodisering')) return <CalendarGlyph {...g} />
+  if (p.startsWith('/app/dagbok') || p.startsWith('/app/okt/')) return <BookGlyph {...g} />
+  if (p.startsWith('/app/analyse')) return <ChartGlyph {...g} />
+  if (p === '/app/mer') return <MerGlyph {...g} />
+  return null
+}
 
 export const GLASS_STIL: React.CSSProperties = {
   background: 'color-mix(in srgb, var(--flate-3) 72%, transparent)',
@@ -56,12 +77,15 @@ export function GlassTopp(props: GlassToppProps) {
   const t = overstyring ?? tittelForRute(pathname, sp?.get('cd') ?? null, rolle)
   const aksent = rolle === 'coach' ? COACH_BLUE : ORANSJE
   const planSegment = rolle === 'athlete' && (pathname.startsWith('/app/plan') || pathname.startsWith('/app/periodisering'))
+  const glyf = overstyring ? null : glyfForRute(pathname, rolle)
   const [menyAapen, setMenyAapen] = useState(false)
   const [synkAapen, setSynkAapen] = useState(false)
   // Oransje prikk: nye økter hentet i dag (siste synk < 24 t) — nærmeste sannhet uten egen teller.
   // Tidspunktet leses én gang ved montering (Date.now() i render er urent).
   const [naa] = useState(() => Date.now())
   const nySynk = !!klokkesyncBadge?.lastSyncAt && naa - new Date(klokkesyncBadge.lastSyncAt).getTime() < 24 * 3600 * 1000
+  const synkStatus: 'ok' | 'ingen' | 'feil' = klokkesyncBadge?.hasError ? 'feil' : klokkesyncBadge?.connected ? 'ok' : 'ingen'
+  const synkFarge = synkStatus === 'ok' ? GRONN : ROD
 
   return (
     <div data-glass-topp={rolle} style={{ position: 'sticky', top: 0, zIndex: 47, padding: 'calc(env(safe-area-inset-top, 0px) + 8px) 12px 6px' }}>
@@ -79,20 +103,25 @@ export function GlassTopp(props: GlassToppProps) {
         )}
         <div className="flex-1 min-w-0 flex flex-col items-center justify-center" data-topp-tittel style={{ textAlign: 'center' }}>
           {planSegment ? (
-            <div className="xp-seg-pill" role="group" aria-label="Plan eller årsplan" style={{ height: 30 }}>
-              <Link href="/app/plan" data-topp-seg="plan" className={pathname.startsWith('/app/plan') ? 'on' : undefined} style={{ fontSize: 11.5, padding: '4px 12px', minHeight: 28, textDecoration: 'none' }}>Plan</Link>
-              <Link href="/app/periodisering" data-topp-seg="aarsplan" className={pathname.startsWith('/app/periodisering') ? 'on' : undefined} style={{ fontSize: 11.5, padding: '4px 12px', minHeight: 28, textDecoration: 'none' }}>Årsplan</Link>
+            <div role="group" aria-label="Plan eller årsplan" data-topp-segment style={{ display: 'inline-flex', height: 38, padding: 3, gap: 2, borderRadius: 14, border: `1px solid color-mix(in srgb, ${aksent} 45%, var(--line2))`, background: `color-mix(in srgb, ${aksent} 8%, transparent)` }}>
+              {([['plan', '/app/plan', 'Plan', pathname.startsWith('/app/plan')], ['aarsplan', '/app/periodisering', 'Årsplan', pathname.startsWith('/app/periodisering')]] as const).map(([id, href, navn, paa]) => (
+                <Link key={id} href={href} data-topp-seg={id} aria-current={paa ? 'page' : undefined} className={paa ? 'on' : undefined}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 14px', borderRadius: 11, textDecoration: 'none', fontFamily: FONT, fontWeight: 700, fontSize: 13.5, letterSpacing: '0.1em', textTransform: 'uppercase', lineHeight: 1, background: paa ? aksent : 'transparent', color: paa ? 'var(--tekst-1-ren)' : 'var(--tekst-3-app)', transition: 'background .15s, color .15s' }}>
+                  {id === 'plan' ? <CalendarGlyph size={15} strokeWidth={2.2} /> : null}{navn}
+                </Link>
+              ))}
             </div>
           ) : (
-            <>
-              <span style={{ fontFamily: BEBAS, fontSize: 19, letterSpacing: '0.06em', color: 'var(--tekst-1-app)', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{t.tittel}</span>
-              {t.undertekst && <span style={{ fontFamily: FONT, fontSize: 11, color: 'var(--tekst-5-app)', lineHeight: 1.1, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{t.undertekst}</span>}
-            </>
+            <span data-topp-pille style={{ display: 'inline-flex', alignItems: 'center', gap: 7, height: 36, maxWidth: '100%', padding: '0 14px', borderRadius: 14, background: `color-mix(in srgb, ${aksent} 14%, transparent)`, color: aksent, fontFamily: FONT, fontWeight: 700, fontSize: 14.5, letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1, whiteSpace: 'nowrap' }}>
+              {glyf && <span style={{ display: 'inline-flex', flexShrink: 0 }}>{glyf}</span>}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.tittel}</span>
+              {t.undertekst && <span style={{ color: 'var(--tekst-5-app)', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em', textTransform: 'none', overflow: 'hidden', textOverflow: 'ellipsis' }}>· {t.undertekst}</span>}
+            </span>
           )}
         </div>
         {rolle === 'athlete' && (
-          <button type="button" data-topp-synk onClick={() => onSynk ? onSynk() : setSynkAapen(true)} aria-label="Klokkesynk"
-            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 5, height: 34, padding: '0 11px', borderRadius: 999, border: 'none', cursor: 'pointer', background: `color-mix(in srgb, ${GRONN} 22%, transparent)`, color: GRONN, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.12em' }}>
+          <button type="button" data-topp-synk data-topp-synk-status={synkStatus} onClick={() => onSynk ? onSynk() : setSynkAapen(true)} aria-label={synkStatus === 'ok' ? 'Klokkesynk — klokke tilkoblet' : synkStatus === 'feil' ? 'Klokkesynk — feil, koble til på nytt' : 'Klokkesynk — ingen klokke tilkoblet'}
+            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 5, height: 34, padding: '0 11px', borderRadius: 999, border: 'none', cursor: 'pointer', background: `color-mix(in srgb, ${synkFarge} 22%, transparent)`, color: synkFarge, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.12em' }}>
             <SynkIkon /> SYNK
             {nySynk && <span data-topp-synk-prikk aria-label="Nye økter hentet" style={{ position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: 999, background: ORANSJE, border: '2px solid var(--flate-3)' }} />}
           </button>

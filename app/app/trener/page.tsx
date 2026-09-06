@@ -4,7 +4,6 @@ import { getSeatInviteLink } from '@/app/actions/seat-invite'
 import { SeatPanelSection } from '@/components/seats/SeatPanelSection'
 import { redirect } from 'next/navigation'
 import { LoadError } from '@/components/ui/LoadError'
-import { PlussKnappTrener } from '@/components/ui/PlussKnapp'
 import { CoachHero } from '@/components/coach/CoachHero'
 import { CoachActivityFeed } from '@/components/coach/CoachActivityFeed'
 import { CoachAthleteList } from '@/components/coach/CoachAthleteList'
@@ -62,7 +61,6 @@ export default async function CoachDashboardPage() {
       <div data-trener-seksjon="grupper"><CoachGroupsSection groups={res.groups} /></div>
 
       <div data-trener-seksjon="feedback"><FeedbackCard accent="#1A6FD4" /></div>
-      <PlussKnappTrener />
     </div>
   )
 }

@@ -13,6 +13,12 @@ export interface SportPageContent {
     description: string
     // Valgfritt hero-bakgrunnsbilde. Path som er relativt fra public/.
     backgroundImage?: string
+    // UNDERSIDENE v2 bolk B2: basisnavnet i public/underside/ (uten -760/-1280/-1920
+    // og .webp). Er det tomt, brukes backgroundImage direkte.
+    bilde?: string
+    alt?: string
+    /** Bevis-chipsene under ingressen. Maks seks - de skal kunne leses på én linje. */
+    bevis?: string[]
   }
   metaDescription: string
   sections: {
@@ -21,13 +27,20 @@ export interface SportPageContent {
     title: string
     intro?: string
     bullets?: SportFeatureBullet[]
+    /** Kort navn i snarveisraden (bolk B3). Uten dette brukes kicker. */
+    snarvei?: string
   }[]
+  /** Seks spørsmål per side (bolk B5). Gir FAQPage JSON-LD. */
+  faq?: { sporsmal: string; svar: string }[]
 }
 
 export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | null> = {
   langrenn: {
     slug: 'langrenn',
     hero: {
+      bilde: 'langrenn-hoved-rulleski-kollen',
+      alt: 'Langrennsløper på rulleski i Holmenkollen',
+      bevis: ['Skipark og ski-tester', 'Klassisk · skøyting · staking', 'Rulleski og mølle', 'Klokkesynk', 'Øktbygger', 'Trenerpanel'],
       kicker: 'X-PULSE for langrenn',
       titleLines: ['Klassisk.', 'Skøyting.', 'Staking.'],
       description:
@@ -39,6 +52,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'aktivitet',
+        snarvei: 'Økter',
         kicker: 'Aktivitets-basert logging',
         title: 'DRAG, PAUSE OG TERRENG.',
         intro:
@@ -51,6 +65,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'skipark',
+        snarvei: 'Skipark',
         kicker: 'Skipark og ski-tester',
         title: 'ALLE SKIENE DINE — ÉN OVERSIKT.',
         intro:
@@ -63,6 +78,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'analyse',
+        snarvei: 'Analyse',
         kicker: 'Bevegelsesform-spesifikk analyse',
         title: 'KLASSISK VS SKØYTING — SIDE OM SIDE.',
         intro:
@@ -75,6 +91,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'periodisering',
+        snarvei: 'Årsplan',
         kicker: 'Periodisering for sesong',
         title: 'BYGG MOT NASJONALE LØP.',
         intro:
@@ -87,6 +104,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
@@ -103,6 +121,9 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
   skiskyting: {
     slug: 'skiskyting',
     hero: {
+      bilde: 'skiskyting-hoved-tunnel',
+      alt: 'Skiskytter i skitunnel',
+      bevis: ['Skyting L/S med treff%', 'Standplasstid og bomkart', 'Konkurransestruktur', 'Terskel og laktat', 'Klokkesynk', 'Trenerpanel'],
       kicker: 'X-PULSE for skiskyting',
       titleLines: ['Eneste plattformen', 'med dyp', 'skyting-analyse.'],
       description:
@@ -114,6 +135,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'konkurranse',
+        snarvei: 'Konkurranse',
         kicker: 'Konkurranseformater',
         title: 'SPRINT. JAKT. NORMAL. FELLES.',
         intro:
@@ -126,6 +148,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'analyse',
+        snarvei: 'Analyse',
         kicker: 'Skyting-analyse',
         title: 'TREFF% — DELT.',
         intro:
@@ -138,6 +161,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'standplass',
+        snarvei: 'Standplass',
         kicker: 'Som på standplass',
         title: 'SKUDD PÅ BLINK. VIND PÅ VIMPEL.',
         intro:
@@ -150,6 +174,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'custom-graf',
+        snarvei: 'Egne grafer',
         kicker: 'Custom skyting-graf',
         title: 'BYGG DINE EGNE SPØRSMÅL.',
         intro:
@@ -162,6 +187,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'tester',
+        snarvei: 'Tester',
         kicker: 'Skytetester',
         title: 'NSSF-TESTENE LIGGER KLARE.',
         intro:
@@ -174,6 +200,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
@@ -190,6 +217,9 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
   langlop: {
     slug: 'langlop',
     hero: {
+      bilde: 'langlop-hoved-drone-skogslop',
+      alt: 'Langløp på skogsvei sett fra lufta',
+      bevis: ['Birken og Vasaloppet', 'Pacing og ernæring', 'Terreng og høydemeter', 'Lange økter', 'Klokkesynk', 'Årsplan mot rennet'],
       kicker: 'X-PULSE for langløp',
       titleLines: ['Birken.', 'Vasaloppet.', 'Lange økter.'],
       description:
@@ -201,6 +231,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'lang-tur',
+        snarvei: 'Langtur',
         kicker: 'Lang-tur-spesifikke felt',
         title: 'ERNÆRING. KLÆR. GEAR. VÆR.',
         intro:
@@ -213,6 +244,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'terreng',
+        snarvei: 'Terreng',
         kicker: 'Høydemeter og terreng',
         title: 'STIGNINGER PER DRAG.',
         intro:
@@ -225,6 +257,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'periodisering',
+        snarvei: 'Årsplan',
         kicker: 'Periodisering rundt løp',
         title: 'TOPP TIL RIKTIG DATO.',
         intro:
@@ -237,6 +270,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'pacing',
+        snarvei: 'Pacing',
         kicker: 'Pacing-analyse',
         title: 'PACE PER KM ELLER KM/T.',
         intro:
@@ -249,6 +283,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'ernering',
+        snarvei: 'Ernæring',
         kicker: 'Ernæring og innsats',
         title: 'KARBO-INNTAK MOT INNSATS.',
         intro:
@@ -261,6 +296,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
@@ -277,6 +313,9 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
   loping: {
     slug: 'loping',
     hero: {
+      bilde: 'loping-hoved-fjell-gress',
+      alt: 'Løper i fjellterreng',
+      bevis: ['GAP-tempo', 'Soner og terskel', 'Intervall på bane', 'Belastning og form', 'Klokkesynk', 'Øktbygger'],
       kicker: 'X-PULSE for løping',
       titleLines: ['Bane.', 'Asfalt.', 'Terreng.'],
       description:
@@ -288,6 +327,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'soner',
+        snarvei: 'Soner',
         kicker: 'Sone-styrt plan',
         title: 'I1 TIL I5 — RIKTIG.',
         intro:
@@ -300,6 +340,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'pace',
+        snarvei: 'Tempo',
         kicker: 'Pace-utvikling',
         title: 'PER KM, OVER MÅNEDER.',
         intro:
@@ -312,6 +353,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'tester',
+        snarvei: 'Tester',
         kicker: 'Tester og PR',
         title: 'COOPER. 5K. ANNET.',
         intro:
@@ -324,6 +366,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'terreng',
+        snarvei: 'Terreng',
         kicker: 'Terreng og asfalt',
         title: 'BANE OG FJELLØP.',
         intro:
@@ -336,6 +379,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
@@ -352,6 +396,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
   sykling: {
     slug: 'sykling',
     hero: {
+      alt: 'Syklist på landevei',
+      bevis: ['FTP og watt-soner', 'NP og IF per økt', 'Høydemeter', 'Belastning og form', 'Klokkesynk', 'Øktbygger'],
       kicker: 'X-PULSE for sykling',
       titleLines: ['Landevei.', 'Terreng.', 'Effekt.'],
       description:
@@ -363,6 +409,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'effekt',
+        snarvei: 'Watt',
         kicker: 'Effekt og belastning',
         title: 'TSS — BELASTNING I TALL.',
         intro:
@@ -375,6 +422,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'klatring',
+        snarvei: 'Klatring',
         kicker: 'Høydemeter',
         title: 'KLATRING SOM EGEN MUSKEL.',
         intro:
@@ -387,6 +435,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'sesong',
+        snarvei: 'Sesong',
         kicker: 'Sesong-sammenligning',
         title: 'SAMME RUTE — TO ÅR.',
         intro:
@@ -399,6 +448,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'utstyr',
+        snarvei: 'Utstyr',
         kicker: 'Utstyr',
         title: 'SYKKELPARK OG SLITASJE.',
         intro:
@@ -411,6 +461,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
@@ -427,6 +478,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
   multisport: {
     slug: 'multisport',
     hero: {
+      alt: 'Utøver i variert terreng',
+      bevis: ['All trening samlet', 'Soner per bevegelsesform', 'Styrke og live-økt', 'Belastning og form', 'Klokkesynk', 'Årsplan'],
       kicker: 'X-PULSE for multisport',
       titleLines: ['Løp. Sykle. Ski.', 'Styrke. Alt teller.'],
       description:
@@ -438,6 +491,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'alt-samlet',
+        snarvei: 'Alt samlet',
         kicker: 'Én dagbok for alt',
         title: 'ALT DU GJØR — SAMLET.',
         intro:
@@ -450,6 +504,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'hybrid',
+        snarvei: 'Hybrid',
         kicker: 'Hybrid-økter',
         title: 'STYRKE OG KONDISJON I SAMME ØKT.',
         intro:
@@ -462,6 +517,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'kom-i-gang',
+        snarvei: 'Kom i gang',
         kicker: 'Fra enkel logg til full struktur',
         title: 'START ENKELT. VOKS NÅR DU VIL.',
         intro:
@@ -474,6 +530,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
@@ -489,6 +546,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
   triatlon: {
     slug: 'triatlon',
     hero: {
+      alt: 'Triatlet i konkurranse',
+      bevis: ['Tre disipliner, én plan', 'FTP på sykkel', 'GAP på løping', 'Brick-økter', 'Klokkesynk', 'Årsplan mot A-løpet'],
       kicker: 'X-PULSE for triatlon',
       titleLines: ['Svømming.', 'Sykling.', 'Løping.'],
       description:
@@ -500,6 +559,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'tre-i-en',
+        snarvei: 'Tre i én',
         kicker: 'Tre disipliner — én plan',
         title: 'SVØM, SYKKEL, LØP — KOBLET.',
         intro:
@@ -512,6 +572,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'brick',
+        snarvei: 'Brick',
         kicker: 'Brick-økter',
         title: 'OVERGANG SOM EGEN ØKT.',
         intro:
@@ -524,6 +585,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'periodisering',
+        snarvei: 'Årsplan',
         kicker: 'Periodisering',
         title: 'TOPP TIL KONKURRANSEDAGEN.',
         intro:
@@ -536,6 +598,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'analyse',
+        snarvei: 'Analyse',
         kicker: 'Disiplin-analyse',
         title: 'HVOR FALER DU?',
         intro:
@@ -547,6 +610,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
+        snarvei: 'Nytt',
         kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:

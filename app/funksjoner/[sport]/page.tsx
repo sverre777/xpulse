@@ -1,28 +1,16 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { LandingShell } from '@/components/landing/LandingShell'
-import { SportPageHero } from '@/components/landing/SportPageHero'
+import { LandingHero } from '@/components/landing/LandingHero'
+import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
 import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
 import { buildFeatureMetadata, FEATURE_SPORTS, findFeatureSport } from '@/lib/landing-meta'
 import { getSportPageContent } from '@/lib/sport-feature-content'
-import {
-  LangrennIcon, SkiskytingIcon, LanglopIcon, LopingIcon,
-  SyklingIcon, TriatlonIcon,
-} from '@/components/branding/sport-icons'
-
 // Dynamisk rute for alle sport-undersider. Innhold pluk­kes fra
 // SPORT_PAGE_CONTENT etter slug; mangler innhold (fortsatt null for sykling
 // og triatlon) → 404 inntil Chunk 6 fyller dem inn.
 
-const ICONS = {
-  langrenn: LangrennIcon,
-  skiskyting: SkiskytingIcon,
-  langlop: LanglopIcon,
-  loping: LopingIcon,
-  sykling: SyklingIcon,
-  triatlon: TriatlonIcon,
-  multisport: TriatlonIcon,
-} as const
+
 
 export async function generateStaticParams() {
   // Bare sporter med innhold registrert i SPORT_PAGE_CONTENT skal pre-rendres.
@@ -51,31 +39,34 @@ export default async function SportFeaturePage(
 ) {
   const { sport } = await params
   const content = getSportPageContent(sport)
+  const meta = findFeatureSport(sport)
   if (!content) notFound()
-  const Icon = ICONS[content.slug]
+
+  // H1 er SØKEORDET, hentet fra seoTitle i landing-meta - én kilde (bolk B2).
+  const sok = (meta?.seoTitle ?? `Treningsdagbok for ${meta?.label ?? ''}`).split(' - ')[0]
+  const snarveier = [
+    ...content.sections.filter(x => x.id).map(x => ({ id: x.id!, navn: x.snarvei ?? x.kicker ?? x.title })),
+    ...(content.faq?.length ? [{ id: 'faq', navn: 'Spørsmål' }] : []),
+  ]
 
   return (
-    <LandingShell>
-      <SportPageHero
+    <LandingShell aktiv="idretter">
+      <LandingHero
+        bilde={content.hero.bilde ?? 'langrenn-hoved-rulleski-kollen'}
+        alt={content.hero.alt ?? meta?.label ?? ''}
+        smuler={[
+          { navn: 'Forsiden', href: '/xpulse.html' },
+          { navn: 'Idretter', href: '/xpulse.html#sports' },
+          { navn: meta?.label ?? '' },
+        ]}
         kicker={content.hero.kicker}
-        title={
-          <>
-            {content.hero.titleLines.map((line, i) => (
-              <span key={i} style={
-                i === content.hero.titleLines.length - 1
-                  ? { color: '#FF4500' }
-                  : undefined
-              }>
-                {line}
-                {i < content.hero.titleLines.length - 1 && <br />}
-              </span>
-            ))}
-          </>
-        }
-        description={content.hero.description}
-        icon={<Icon size={140} />}
-        backgroundImage={content.hero.backgroundImage}
+        overskrift={sok}
+        ingress={content.hero.description}
+        bevis={content.hero.bevis ?? []}
+        ctaSekHref={`#${content.sections[0]?.id ?? 'okt'}`}
       />
+
+      <LandingSnarvei punkter={snarveier} />
 
       {content.sections.map((s, i) => (
         <SportFeatureSection

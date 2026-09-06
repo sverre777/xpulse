@@ -1588,8 +1588,8 @@ html.js .istep.vis{opacity:1}
 .pan{grid-area:1/1;opacity:0;transform:translateX(70px) scale(.98);transition:opacity .45s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1);pointer-events:none;will-change:transform,opacity}
 .pan.on{opacity:1;transform:none;pointer-events:auto}
 .pan.gone{opacity:0;transform:translateX(-50px) scale(.98)}
-.pan .app{margin:0;max-height:calc(100vh - 360px);overflow:auto;overscroll-behavior:contain}
-.pan .ncard{max-height:calc(100vh - 360px);overflow:auto;overscroll-behavior:contain}
+.pan .app{margin:0;max-height:calc(100vh - 360px);overflow:hidden}
+.pan .ncard{max-height:calc(100vh - 360px);overflow:hidden}
 .hv{display:flex;align-items:center;gap:6px;margin:6px 0 4px;font:600 10.5px/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .hv b{font:700 11px/1 'Barlow Condensed';letter-spacing:.06em;border:1px solid var(--line2);border-radius:999px;padding:5px 9px;color:var(--paper)}
 .hv b.on{border-color:var(--orange);color:var(--orange);background:color-mix(in srgb,var(--orange) 12%,transparent)}
@@ -1603,7 +1603,7 @@ html.js .istep.vis{opacity:1}
 .mflyt[data-side="r"]{transform:translateX(40px)}
 .mflyt.vis{opacity:1;transform:none}
 @media (max-width:900px){.flyt-scrolly{display:none}.flyt-mobil{display:block}}
-@media (prefers-reduced-motion:reduce){.flyt-scrolly{height:auto}.flyt-sticky{position:static;height:auto;grid-template-columns:1fr}.paneler{display:block}.pan{opacity:1;transform:none;margin-top:18px}.pan .app{max-height:none}.sl{opacity:1;transform:none}.mflyt{opacity:1;transform:none}.flyt-hint{display:none}}
+@media (prefers-reduced-motion:reduce){.flyt-scrolly{height:auto}.flyt-sticky{position:static;height:auto;grid-template-columns:1fr}.paneler{display:block}.pan{opacity:1;transform:none;margin-top:18px}.pan .app{max-height:none}.sl{opacity:1;transform:none}.mflyt,.mflyt[data-side="r"]{opacity:1;transform:none}.flyt-hint{display:none}}
 /* ═══ FORSIDE v7 bolk 1 — «Én app. Ikke tre.» som scrolldrevet seksjon ═══ */
 /* problem-seksjonen: tre kort samles til ett */
 .prob-sticky{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;align-items:start;height:auto;min-height:72vh;top:calc(50vh - 36vh)}
@@ -2931,12 +2931,21 @@ html.js .istep.vis{opacity:1}
       var seg=1/o.N, i=Math.min(o.N-1,Math.floor(prog/seg)), inner=(prog-i*seg)/seg;
       setActive(o,i);
       var s=o.sls[i]&&o.sls[i].querySelector('.bar s'); if(s) s.style.width=(Math.min(inner,1)*100).toFixed(1)+'%';
+      /* TILLEGG (Sverre 6. sep): et panel som er høyere enn plassen rulles av SIDENS scroll —
+         de første 75 % av steget ruller innholdet til bunnen, resten holder, så går det videre.
+         Alle som blar ser alt; ingen indre scroll å treffe. */
+      var boks=o.pans[i]&&o.pans[i].querySelector('.app,.ncard');
+      if(boks){ var maks=boks.scrollHeight-boks.clientHeight; if(maks>0) boks.scrollTop=Math.min(1,inner/0.75)*maks; }
     });
   }
   /* rAF-throttlet: scroll-hendelsene samles til én måling per frame (ingen layout-thrash). */
   var venter=false;
   function planlegg(){ if(venter) return; venter=true; requestAnimationFrame(function(){ venter=false; onScroll(); }); }
-  addEventListener('scroll',planlegg,{passive:true}); addEventListener('resize',planlegg); onScroll();
+  /* Scroll-lytteren festes BARE over 900 px (og uten reduced motion) — under 900 er det
+     IntersectionObserver alene som driver .mflyt (TILLEGG: ingen scroll-lytter på mobil). */
+  var lytter=false;
+  function sjekkLytter(){ var skal=!reduced&&innerWidth>900; if(skal&&!lytter){ addEventListener('scroll',planlegg,{passive:true}); lytter=true; } else if(!skal&&lytter){ removeEventListener('scroll',planlegg); lytter=false; } window.__flytLytter=lytter; }
+  addEventListener('resize',function(){ sjekkLytter(); planlegg(); }); sjekkLytter(); onScroll();
   secs.forEach(function(o){o.sls.forEach(function(b){b.addEventListener('click',function(){
     var i=+b.dataset.i, total=o.sc.offsetHeight-innerHeight, top=o.sc.getBoundingClientRect().top+scrollY;
     scrollTo({top:top+total*(i/o.N)+8,behavior:reduced?'auto':'smooth'});

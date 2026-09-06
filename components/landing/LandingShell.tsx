@@ -1,17 +1,16 @@
-import { LandingNav } from './LandingNav'
+import { LandingNav, type LandingNavAktiv } from './LandingNav'
 import { LandingFooter } from './LandingFooter'
+import { LANDING_CSS } from './landing-css'
 
-// Felles wrapper for funksjoner-undersider. Holder bakgrunn, font-arv og
-// nav/footer ett sted så hver side bare bryr seg om innhold.
+// Felles skall for undersidene (funksjoner/*). Holder CSS-en, topplinja og
+// bunnlinja ett sted - hver side leverer bare innhold (bolk B1).
 
-export function LandingShell({ children }: { children: React.ReactNode }) {
+export function LandingShell({ children, aktiv }: { children: React.ReactNode; aktiv?: LandingNavAktiv }) {
   return (
-    <div style={{ background: 'var(--flate-3)', minHeight: '100vh', color: 'var(--tekst-1-land)' }}
-      className="flex flex-col">
-      <LandingNav />
-      <main className="flex-1">
-        {children}
-      </main>
+    <div className="lp flex flex-col" style={{ minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: LANDING_CSS }} />
+      <LandingNav aktiv={aktiv} />
+      <main className="flex-1">{children}</main>
       <LandingFooter />
     </div>
   )

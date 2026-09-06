@@ -1,265 +1,154 @@
 'use client'
 
-import { useState } from 'react'
+// UNDERSIDENE v2 bolk B1 - topplinja (fasit design/xpulse-underside-langrenn-design.html).
+// Ny X-logo (ren hvit, XPulseIcon variant="hvit"), lenkene Funksjoner ▾ · Idretter ▾ ·
+// For trenere · Priser · Om oss, temabryteren som i dag, og to piller til høyre:
+// «Gå til forsiden» (ghost) og «Start gratis prøve» (oransje). Under 1100 px går ghost-
+// pillen og lenkene bort, hamburgeren kommer fram, og panelet beholder fokusfelle,
+// Esc og aria-expanded.
+
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { TemaBryter } from '@/components/layout/TemaBryter'
-import {
-  MenuIcon, CloseIcon, ChevronDownIcon, SearchIcon, MailIcon,
-} from '@/components/branding/nav-icons'
+import { MenuIcon, CloseIcon } from '@/components/branding/nav-icons'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
+import { FEATURE_SPORTS } from '@/lib/landing-meta'
 
-// Topbar for funksjoner-undersider. Speilet xpulse.html-stil men i React,
-// med Funksjoner-dropdown på desktop og slide-in-panel på mobil.
-//
-// Navnet er importert som forenklet versjon av landing-html - alle lenker
-// peker mot offentlige sider eller /app for innlogging.
-
-const SPORT_LINKS = [
-  { slug: 'langrenn',   label: 'Langrenn' },
-  { slug: 'skiskyting', label: 'Skiskyting' },
-  { slug: 'langlop',    label: 'Langløp' },
-  { slug: 'loping',     label: 'Løping' },
-  { slug: 'sykling',    label: 'Sykling' },
-  { slug: 'triatlon',   label: 'Triatlon' },
-  { slug: 'multisport', label: 'Multisport' },
+/** Modulene - samme lenker som forsidens nedtrekk. */
+const MODULER = [
+  { href: '/funksjoner/dagbok-og-plan', label: 'Dagbok og plan' },
+  { href: '/funksjoner/analyse',        label: 'Analyse' },
+  { href: '/funksjoner/klokkesync',     label: 'Klokkesynk' },
+  { href: '/funksjoner/trener',         label: 'For trenere' },
+  { href: '/funksjoner/ai-coach',       label: 'AI Coach', snart: true },
 ] as const
 
-const MODULE_LINKS = [
-  { href: '/funksjoner/dagbok-og-plan', label: 'Dagbok og Plan',                soon: false },
-  { href: '/funksjoner/analyse',        label: 'Analyse',                       soon: false },
-  { href: '/funksjoner/trener',         label: 'Trener',                        soon: false },
-  { href: '/funksjoner/klokkesync',     label: 'Klokkesync',                    soon: false },
-  { href: '/funksjoner/ai-coach',       label: 'AI Coach',                      soon: true },
-] as const
+const IDRETTER = FEATURE_SPORTS.map(s => ({ href: `/funksjoner/${s.slug}`, label: s.label }))
 
-export function LandingNav() {
-  const [panelOpen, setPanelOpen] = useState(false)
+export type LandingNavAktiv = 'funksjoner' | 'idretter' | 'trenere' | 'priser' | 'om'
+
+export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
+  const [aapen, setAapen] = useState<'funksjoner' | 'idretter' | null>(null)
+  const [panel, setPanel] = useState(false)
+  const rot = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // Klikk utenfor lukker nedtrekket.
+  useEffect(() => {
+    if (!aapen) return
+    const ned = (e: MouseEvent) => { if (rot.current && !rot.current.contains(e.target as Node)) setAapen(null) }
+    document.addEventListener('mousedown', ned)
+    return () => document.removeEventListener('mousedown', ned)
+  }, [aapen])
+
+  // Esc lukker begge, og panelet holder fokus inne mens det er åpent.
+  const paaTast = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') { setAapen(null); setPanel(false); return }
+    if (e.key !== 'Tab' || !panelRef.current) return
+    const felt = panelRef.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),summary')
+    if (felt.length === 0) return
+    const forste = felt[0], siste = felt[felt.length - 1]
+    if (e.shiftKey && document.activeElement === forste) { e.preventDefault(); siste.focus() }
+    else if (!e.shiftKey && document.activeElement === siste) { e.preventDefault(); forste.focus() }
+  }, [])
+  useEffect(() => {
+    document.addEventListener('keydown', paaTast)
+    return () => document.removeEventListener('keydown', paaTast)
+  }, [paaTast])
+  useEffect(() => {
+    if (!panel) return
+    const forrige = document.activeElement as HTMLElement | null
+    panelRef.current?.querySelector<HTMLElement>('a[href],button')?.focus()
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = ''; forrige?.focus?.() }
+  }, [panel])
 
   return (
     <>
-      <nav
-        className="flex items-center justify-between px-6 lg:px-14 py-7"
-        style={{
-          position: 'sticky', top: 0, zIndex: 100,
-          background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
-        }}
-      >
-        <Link href="/xpulse.html"
-          className="inline-flex items-center gap-2"
-          aria-label="X-PULSE"
-          style={{ textDecoration: 'none' }}
-        >
-          <XPulseIcon size={35} />
-          <span style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 600, fontSize: '20px', letterSpacing: '0.4em',
-            color: 'var(--tekst-1-land)', textTransform: 'uppercase',
-          }}>PULSE</span>
-        </Link>
-
-        <ul className="hidden lg:flex items-center gap-8 list-none m-0 p-0">
-          <li className="relative group">
-            <button type="button"
-              className="landing-nav-link inline-flex items-center gap-1.5"
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
-                padding: 0,
-              }}
-              aria-haspopup="true"
-            >
-              Funksjoner
-              <ChevronDownIcon size={12} className="group-hover:rotate-180 transition-transform" />
-            </button>
-            <div
-              className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all"
-              style={{
-                position: 'absolute', top: 'calc(100% + 14px)', left: 0,
-                minWidth: '220px', background: 'var(--flate-10)', border: '1px solid var(--kant-5)',
-                padding: '8px 0',
-              }}
-            >
-              {SPORT_LINKS.map(s => (
-                <Link key={s.slug} href={`/funksjoner/${s.slug}`}
-                  className="landing-dropdown-link"
-                  style={{
-                    display: 'block', padding: '11px 20px',
-                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {s.label}
-                </Link>
-              ))}
-              <div style={{ height: 1, background: 'var(--kant-5)', margin: '6px 12px' }} />
-              {MODULE_LINKS.map(m => (
-                <Link key={m.href} href={m.href}
-                  className="landing-dropdown-link"
-                  style={{
-                    display: 'block', padding: '11px 20px',
-                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {m.label}
-                  {m.soon && (
-                    <span style={{
-                      display: 'inline-block', marginLeft: 6, padding: '1px 6px',
-                      background: 'rgba(245,197,66,0.15)', border: '1px solid rgba(245,197,66,0.4)',
-                      color: '#F5C542', fontSize: 9, letterSpacing: '1.5px',
-                      verticalAlign: 'middle',
-                    }}>
-                      Kommer snart
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </li>
-          <li><Link href="/xpulse.html#priser" className="landing-nav-link" style={navLinkStyle}>Priser</Link></li>
-          <li><Link href="/xpulse.html#faq"    className="landing-nav-link" style={navLinkStyle}>FAQ</Link></li>
-          {/* Bryteren staar SYNLIG paa landingssida, ikke gjemt bak et ikon:
-              lys/moerk er en funksjon vi viser fram her, ikke en innstilling. */}
-          <li><TemaBryter accent="#FF4500" variant="tydelig" /></li>
-          <li><Link href="/app"                className="landing-nav-link" style={navLinkStyle}>Logg inn</Link></li>
-          <li>
-            <Link href="/xpulse.html#priser"
-              className="landing-cta"
-              style={{
-                padding: '9px 20px',
-                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
-                textDecoration: 'none',
-              }}>
-              Start gratis prøve
-            </Link>
-          </li>
-        </ul>
-
-        {/* TO monteringsplasser, EN kilde til sannhet. Lista over er
-            `hidden lg:flex`, saa bryteren der forsvinner paa mobil. Denne
-            ligger i selve nav-baren ved siden av menyknappen - synlig UTEN aa
-            aapne noen meny. Tilstanden bor i data-tema og localStorage, ikke
-            i knappene, saa de to kan ikke komme ut av takt. */}
-        <div className="flex items-center gap-1 lg:hidden">
-          <TemaBryter accent="#FF4500" storrelse={44} />
-
-          <button type="button"
-            onClick={() => setPanelOpen(true)}
-            aria-label="Åpne meny"
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-1-land)', padding: 6, cursor: 'pointer' }}
-          >
-            <MenuIcon size={26} />
-          </button>
-        </div>
-      </nav>
-
-      {panelOpen && (
-        <div
-          role="dialog" aria-modal="true" aria-label="Hovedmeny"
-          style={{
-            position: 'fixed', inset: 0, zIndex: 200,
-            background: 'var(--flate-1)', padding: 24,
-            display: 'flex', flexDirection: 'column', gap: 20,
-            overflowY: 'auto',
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <Link href="/xpulse.html" onClick={() => setPanelOpen(false)}
-              className="inline-flex items-center gap-2"
-              style={{ textDecoration: 'none' }}
-            >
-              <XPulseIcon size={32} />
-              <span style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 600, fontSize: '18px', letterSpacing: '0.4em',
-                color: 'var(--tekst-1-land)', textTransform: 'uppercase',
-              }}>PULSE</span>
-            </Link>
-            <button type="button" onClick={() => setPanelOpen(false)}
-              aria-label="Lukk meny"
-              style={{ background: 'none', border: 'none', color: 'var(--tekst-1-land)', padding: 6, cursor: 'pointer' }}
-            >
-              <CloseIcon size={26} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <Link href="/app" onClick={() => setPanelOpen(false)} style={panelIconStyle}>
-              <MailIcon size={22} />
-              Logg inn
-            </Link>
-            <Link href="/xpulse.html#faq" onClick={() => setPanelOpen(false)} style={panelIconStyle}>
-              <SearchIcon size={22} />
-              FAQ
-            </Link>
-            <a href="mailto:support@x-pulse.no" style={panelIconStyle}>
-              <MailIcon size={22} />
-              Kontakt
-            </a>
-          </div>
-
-          <details>
-            <summary style={{ ...panelLinkStyle, listStyle: 'none' }}>
-              Funksjoner
-              <ChevronDownIcon size={14} />
-            </summary>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {[...SPORT_LINKS.map(s => ({ href: `/funksjoner/${s.slug}`, label: s.label })), ...MODULE_LINKS].map(l => (
-                <Link key={l.href} href={l.href} onClick={() => setPanelOpen(false)}
-                  style={{
-                    padding: '14px 28px', background: 'var(--flate-10)',
-                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    fontSize: '13px', letterSpacing: '0.12em', textTransform: 'uppercase',
-                    color: 'rgb(var(--tekst-land-rgb) / 0.7)', textDecoration: 'none',
-                    borderTop: '1px solid var(--kant-5)',
-                  }}>
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          </details>
-
-          <Link href="/xpulse.html#priser" onClick={() => setPanelOpen(false)} style={panelLinkStyle}>Priser</Link>
-          <Link href="/xpulse.html#faq" onClick={() => setPanelOpen(false)} style={panelLinkStyle}>FAQ</Link>
-
-          <Link href="/xpulse.html#priser" onClick={() => setPanelOpen(false)}
-            style={{
-              marginTop: 'auto', padding: 18, background: '#FF4500',
-              color: 'var(--tekst-1-land)', textAlign: 'center', textDecoration: 'none',
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-              fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase',
-            }}>
-            Start 30 dagers gratis prøve
+      <header className="lp-topp">
+        <div className="lp-topp-inn" ref={rot}>
+          <Link href="/xpulse.html" className="lp-merke" aria-label="X-PULSE">
+            <XPulseIcon size={26} variant="hvit" />
+            <b>X-PULSE</b>
           </Link>
+
+          <nav className="lp-lenker" aria-label="Hovedmeny">
+            <div style={{ position: 'relative' }}>
+              <button type="button" className={`lp-ln${aktiv === 'funksjoner' || aapen === 'funksjoner' ? ' on' : ''}`}
+                aria-haspopup="menu" aria-expanded={aapen === 'funksjoner'}
+                onClick={() => setAapen(v => v === 'funksjoner' ? null : 'funksjoner')}>
+                Funksjoner <i aria-hidden>▾</i>
+              </button>
+              {aapen === 'funksjoner' && (
+                <div className="lp-nedtrekk" role="menu">
+                  {MODULER.map(m => (
+                    <Link key={m.href} href={m.href} role="menuitem" onClick={() => setAapen(null)}>
+                      {m.label}{'snart' in m && m.snart && <span className="lp-snart">Kommer</span>}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={{ position: 'relative' }}>
+              <button type="button" className={`lp-ln${aktiv === 'idretter' || aapen === 'idretter' ? ' on' : ''}`}
+                aria-haspopup="menu" aria-expanded={aapen === 'idretter'}
+                onClick={() => setAapen(v => v === 'idretter' ? null : 'idretter')}>
+                Idretter <i aria-hidden>▾</i>
+              </button>
+              {aapen === 'idretter' && (
+                <div className="lp-nedtrekk" role="menu">
+                  {IDRETTER.map(s => (
+                    <Link key={s.href} href={s.href} role="menuitem" onClick={() => setAapen(null)}>{s.label}</Link>
+                  ))}
+                  <hr />
+                  {MODULER.map(m => (
+                    <Link key={m.href} href={m.href} role="menuitem" onClick={() => setAapen(null)}>{m.label}</Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Link href="/funksjoner/trener" className={`lp-ln${aktiv === 'trenere' ? ' on' : ''}`}>For trenere</Link>
+            <Link href="/xpulse.html#priser" className={`lp-ln${aktiv === 'priser' ? ' on' : ''}`}>Priser</Link>
+            <Link href="/xpulse.html#hvorfor" className={`lp-ln${aktiv === 'om' ? ' on' : ''}`}>Om oss</Link>
+          </nav>
+
+          <div className="lp-topp-h">
+            <TemaBryter accent="#FF4500" />
+            <Link href="/xpulse.html" className="lp-pill ghost">Gå til forsiden</Link>
+            <Link href="/xpulse.html#priser" className="lp-pill">Start gratis prøve</Link>
+            <button type="button" className="lp-burger" aria-label="Åpne meny" aria-expanded={panel}
+              aria-controls="lp-panel" onClick={() => setPanel(true)}>
+              <MenuIcon size={20} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {panel && (
+        <div className="lp-panel" id="lp-panel" ref={panelRef} role="dialog" aria-modal="true" aria-label="Hovedmeny">
+          <div className="lp-panel-topp">
+            <Link href="/xpulse.html" className="lp-merke" onClick={() => setPanel(false)} aria-label="X-PULSE">
+              <XPulseIcon size={26} variant="hvit" /><b>X-PULSE</b>
+            </Link>
+            <button type="button" className="lp-burger" style={{ display: 'flex' }} aria-label="Lukk meny" onClick={() => setPanel(false)}>
+              <CloseIcon size={20} />
+            </button>
+          </div>
+          <details>
+            <summary>Idretter <span aria-hidden>▾</span></summary>
+            {IDRETTER.map(s => <Link key={s.href} href={s.href} onClick={() => setPanel(false)}>{s.label}</Link>)}
+          </details>
+          <details>
+            <summary>Funksjoner <span aria-hidden>▾</span></summary>
+            {MODULER.map(m => <Link key={m.href} href={m.href} onClick={() => setPanel(false)}>{m.label}</Link>)}
+          </details>
+          <Link href="/funksjoner/trener" onClick={() => setPanel(false)}>For trenere</Link>
+          <Link href="/xpulse.html#priser" onClick={() => setPanel(false)}>Priser</Link>
+          <Link href="/xpulse.html#hvorfor" onClick={() => setPanel(false)}>Om oss</Link>
+          <Link href="/xpulse.html" onClick={() => setPanel(false)}>Gå til forsiden</Link>
+          <Link href="/xpulse.html#priser" className="lp-pill" onClick={() => setPanel(false)}>Start gratis prøve</Link>
         </div>
       )}
     </>
   )
-}
-
-const navLinkStyle: React.CSSProperties = {
-  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-  fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
-  textDecoration: 'none',
-}
-
-const panelIconStyle: React.CSSProperties = {
-  padding: '14px 8px', background: 'var(--kant-2)', border: '1px solid var(--kant-5)',
-  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-  color: 'var(--tekst-1-land)', textDecoration: 'none',
-  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-  fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase',
-}
-
-const panelLinkStyle: React.CSSProperties = {
-  padding: '18px 16px', background: 'var(--kant-2)',
-  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-  fontSize: '14px', letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: 'var(--tekst-1-land)', textDecoration: 'none',
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  cursor: 'pointer',
 }

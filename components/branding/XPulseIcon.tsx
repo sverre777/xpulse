@@ -23,13 +23,16 @@ const HVIT = 'var(--logo-strek)'
 const BLA = '#1A6FD4'
 const ORANSJE = '#FF4500'
 
-export type XPulseVariant = 'hero' | 'utover' | 'trener'
+/** 'hvit' er den nøytrale varianten: ren hvit X uten farget pil - brukes på
+ *  undersidenes topplinje og i bunnlinja, der logoen ikke skal si noe om rolle. */
+export type XPulseVariant = 'hero' | 'utover' | 'trener' | 'hvit'
 
 /** [diagonal, arm, pil] per variant. */
 const FARGER: Record<XPulseVariant, [string, string, string]> = {
   hero:   [HVIT, BLA,  ORANSJE],
   utover: [HVIT, HVIT, ORANSJE],
   trener: [HVIT, HVIT, BLA],
+  hvit:   [HVIT, HVIT, HVIT],
 }
 
 interface Props {

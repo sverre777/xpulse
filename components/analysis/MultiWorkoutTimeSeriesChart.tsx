@@ -1,5 +1,6 @@
 'use client'
 
+import { ChartWrapper } from './ChartWrapper'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import type { DetailedWorkout } from '@/app/actions/compare-workouts'
 import {
@@ -27,6 +28,8 @@ interface Props {
   title: string
   yLabel: string
   height?: number
+  /** Bolk 1: stjerne på kurven (Sammenligning-nøklene). */
+  chartKey?: string
 }
 
 function valueOf(metric: Metric, a: DetailedWorkout['activities'][number]): number | null {
@@ -42,7 +45,7 @@ interface Point {
   [workoutKey: string]: number | null
 }
 
-export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, height = 280 }: Props) {
+export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, height = 280, chartKey }: Props) {
   // Bygg én step-linje per workout: for hver aktivitet i rekkefølge,
   // legg til et punkt ved kumulert tid i minutter med metrikk-verdien.
   // Tomme verdier hoppes (Recharts connectNulls=false gir hull).
@@ -86,12 +89,7 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
     : (v: number) => String(v)
 
   return (
-    <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
-      <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-        {title}
-      </p>
-      <div style={{ width: '100%', height }}>
+    <ChartWrapper chartKey={chartKey} title={title} height={height}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -120,7 +118,6 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
             ))}
           </LineChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+    </ChartWrapper>
   )
 }

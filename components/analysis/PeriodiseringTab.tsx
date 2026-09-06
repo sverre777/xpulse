@@ -1,5 +1,6 @@
 'use client'
 
+import { MetricCard } from './MetricCard'
 import { useMemo } from 'react'
 import {
   ResponsiveContainer, BarChart, Bar,
@@ -134,36 +135,22 @@ function SeasonHeader({ data }: { data: PeriodizationOverview }) {
   )
 }
 
-function SummaryCards({ data }: { data: PeriodizationOverview }) {
+export function SummaryCards({ data, bare }: { data: PeriodizationOverview; bare?: string }) {
   const current = data.periods.find(p => p.status === 'current') ?? null
+  const kort = [
+    <MetricCard key="p" chartKey="periodisering_perioder" label="Perioder" value={`${data.periods.length}`}
+      sublabel={current ? `Nåværende: ${current.name}` : 'Ingen aktiv periode'} accent="#FF4500" />,
+    <MetricCard key="t" chartKey="periodisering_total_tid" label="Total tid" value={formatHours(data.totals.total_seconds)}
+      sublabel={`${data.totals.sessions} økter i sesongen`} accent="var(--tekst-1-app)" />,
+    <MetricCard key="s" chartKey="periodisering_total_tss" label="Total TSS" value={`${data.totals.total_tss}`}
+      sublabel="Sum belastning (alle perioder)" accent="#38BDF8" />,
+    <MetricCard key="k" chartKey="periodisering_konkurranser" label="Konkurranser" value={`${data.totals.competitions_logged}`}
+      sublabel={`${data.totals.key_dates} nøkkeldatoer`} accent="#E11D48" />,
+  ]
+  if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <StatCard label="Perioder" value={`${data.periods.length}`}
-        sub={current ? `Nåværende: ${current.name}` : 'Ingen aktiv periode'} accent="#FF4500" />
-      <StatCard label="Total tid" value={formatHours(data.totals.total_seconds)}
-        sub={`${data.totals.sessions} økter i sesongen`} accent="var(--tekst-1-app)" />
-      <StatCard label="Total TSS" value={`${data.totals.total_tss}`}
-        sub="Sum belastning (alle perioder)" accent="#38BDF8" />
-      <StatCard label="Konkurranser" value={`${data.totals.competitions_logged}`}
-        sub={`${data.totals.key_dates} nøkkeldatoer`} accent="#E11D48" />
-    </div>
-  )
-}
-
-function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
-  return (
-    <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
-      <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        {label}
-      </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
-        {value}
-      </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {sub}
-      </p>
+      {kort}
     </div>
   )
 }
@@ -509,4 +496,15 @@ function MethodNote() {
       </p>
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Årsplan-analyse-nøklene. */
+export function renderFavoritt(key: string, data: PeriodizationOverview): React.ReactNode | null {
+  switch (key) {
+    case 'periodisering_tss_per_period': return <LoadPerPeriod data={data} />
+    case 'periodisering_competitions_per_period': return <CompetitionsPerPeriod data={data} />
+    case 'periodisering_perioder': case 'periodisering_total_tid': case 'periodisering_total_tss': case 'periodisering_konkurranser':
+      return <SummaryCards data={data} bare={key} />
+    default: return null
+  }
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { MetricCard } from './MetricCard'
 import { useMemo } from 'react'
 import {
   ResponsiveContainer, ScatterChart, Scatter, LineChart, Line,
@@ -64,38 +65,23 @@ export function TerskelTab({ data }: { data: TerskelAnalysis }) {
   )
 }
 
-function EstimateCards({ data }: { data: TerskelAnalysis }) {
+export function EstimateCards({ data, bare }: { data: TerskelAnalysis; bare?: string }) {
   const { lt1_hr, lt2_hr, profile_threshold_hr, regression } = data.estimate
   const r2pct = regression ? Math.round(regression.r2 * 100) : null
-
+  const kort = [
+    <MetricCard key="lt1" chartKey="terskel_lt1" label="LT1 (2 mmol)" value={lt1_hr != null ? `${lt1_hr}` : '—'}
+      sublabel="Aerob terskel — estimert puls" accent={COLOR_LT1} />,
+    <MetricCard key="lt2" chartKey="terskel_lt2" label="LT2 (4 mmol)" value={lt2_hr != null ? `${lt2_hr}` : '—'}
+      sublabel="Anaerob terskel — estimert puls" accent={COLOR_LT2} />,
+    <MetricCard key="p" chartKey="terskel_profil" label="Profil-terskel" value={profile_threshold_hr != null ? `${profile_threshold_hr}` : '—'}
+      sublabel="Fra innstillinger" accent={COLOR_PROFILE} />,
+    <MetricCard key="n" chartKey="terskel_datapunkter" label="Datapunkter" value={regression ? `${regression.n}` : `${data.points.length}`}
+      sublabel={r2pct != null ? `R² = ${r2pct}% — kurvetilpasning` : 'For få punkter for regresjon'} accent={COLOR_REG} />,
+  ]
+  if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <StatCard label="LT1 (2 mmol)" value={lt1_hr != null ? `${lt1_hr}` : '—'}
-        sub="Aerob terskel — estimert puls" accent={COLOR_LT1} />
-      <StatCard label="LT2 (4 mmol)" value={lt2_hr != null ? `${lt2_hr}` : '—'}
-        sub="Anaerob terskel — estimert puls" accent={COLOR_LT2} />
-      <StatCard label="Profil-terskel" value={profile_threshold_hr != null ? `${profile_threshold_hr}` : '—'}
-        sub="Fra innstillinger" accent={COLOR_PROFILE} />
-      <StatCard label="Datapunkter" value={regression ? `${regression.n}` : `${data.points.length}`}
-        sub={r2pct != null ? `R² = ${r2pct}% — kurvetilpasning` : 'For få punkter for regresjon'} accent={COLOR_REG} />
-    </div>
-  )
-}
-
-function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
-  return (
-    <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
-      <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        {label}
-      </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
-        {value}
-      </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {sub}
-      </p>
+      {kort}
     </div>
   )
 }
@@ -220,20 +206,13 @@ export function LactateTrend({ data }: { data: TerskelAnalysis }) {
   )
 }
 
-function TemplateTable({ data }: { data: TerskelAnalysis }) {
+export function TemplateTable({ data }: { data: TerskelAnalysis }) {
   if (data.byTemplate.length === 0) {
     return null
   }
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-2">
-        <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-          Laktat-respons per mal
-        </p>
-      </div>
-      <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+    <ChartWrapper chartKey="terskel_laktat_per_mal" title="Laktat-respons per mal" height="auto">
+      <div className="overflow-x-auto xp-hscroll">
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: 'var(--tekst-5-app)', borderBottom: '1px solid var(--kant-3)' }}>
@@ -263,7 +242,7 @@ function TemplateTable({ data }: { data: TerskelAnalysis }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </ChartWrapper>
   )
 }
 
@@ -331,4 +310,16 @@ function MethodNote() {
       </p>
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Terskel-nøklene. */
+export function renderFavoritt(key: string, data: TerskelAnalysis): React.ReactNode | null {
+  switch (key) {
+    case 'terskel_lactate_profile': return <LactateProfile data={data} />
+    case 'terskel_lactate_trend': return <LactateTrend data={data} />
+    case 'terskel_laktat_per_mal': return <TemplateTable data={data} />
+    case 'terskel_lt1': case 'terskel_lt2': case 'terskel_profil': case 'terskel_datapunkter':
+      return <EstimateCards data={data} bare={key} />
+    default: return null
+  }
 }

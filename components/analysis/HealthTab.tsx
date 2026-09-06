@@ -148,3 +148,14 @@ export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
     </ChartWrapper>
   )
 }
+
+/** Bolk 1: de tre korrelasjonsgrafene lever videre i Favoritter og får
+    hjem i Helse som overlays i bolk 4. */
+export function renderFavoritt(key: string, data: HealthCorrelations): React.ReactNode | null {
+  switch (key) {
+    case 'helse_reflections_trend': return <HealthReflectionsTrend data={data} />
+    case 'helse_injuries_timeline': return <HealthInjuriesTimeline data={data} />
+    case 'helse_sickness_vs_load': return <HealthSicknessVsLoad data={data} />
+    default: return null
+  }
+}

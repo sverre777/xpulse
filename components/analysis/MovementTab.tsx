@@ -149,40 +149,47 @@ export function MovementTab({
   )
 }
 
-function MovementMetricCards({ data, movement }: { data: MovementAnalysis; movement: string }) {
+export function MovementMetricCards({ data, movement, bare }: { data: MovementAnalysis; movement: string; bare?: string }) {
   const prev = data.previous
+  // bare = én nøkkel (Favoritter-fanen viser bare det kortet).
+  const vis = (key: string) => !bare || bare === key
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <MetricCard
+    <div className={bare ? '' : 'grid grid-cols-2 lg:grid-cols-4 gap-3'}>
+      {vis('bevegelse_total_tid') && <MetricCard
+        chartKey="bevegelse_total_tid"
         label="Total tid"
         value={formatDuration(data.current.total_seconds)}
         sublabel={`Forrige: ${formatDuration(prev.total_seconds)}`}
         deltaPercent={data.percent_changes.total_seconds}
         accent="#FF4500"
-      />
-      <MetricCard
+      />}
+      {vis('bevegelse_total_km') && <MetricCard
+        chartKey="bevegelse_total_km"
         label="Total km"
         value={formatKm(data.current.total_meters)}
         sublabel={`Forrige: ${formatKm(prev.total_meters)}`}
         deltaPercent={data.percent_changes.total_meters}
         accent="#1A6FD4"
-      />
-      <MetricCard
+      />}
+      {vis('bevegelse_aktiviteter') && <MetricCard
+        chartKey="bevegelse_aktiviteter"
         label="Aktiviteter"
         value={String(data.current.activity_count)}
         sublabel={`I ${data.current.workout_count} økter · forrige: ${prev.activity_count}`}
         deltaPercent={data.percent_changes.activity_count}
         accent="#28A86E"
-      />
-      <MetricCard
+      />}
+      {vis('bevegelse_snittpuls') && <MetricCard
+        chartKey="bevegelse_snittpuls"
         label="Snittpuls"
         value={data.current.avg_heart_rate != null ? `${data.current.avg_heart_rate} bpm` : '—'}
         sublabel={prev.avg_heart_rate != null ? `Forrige: ${prev.avg_heart_rate} bpm` : null}
         positiveIsGood={false}
         accent="#E11D48"
-      />
-      {PACE_MOVEMENTS.has(movement) && (
+      />}
+      {vis('bevegelse_snittempo') && PACE_MOVEMENTS.has(movement) && (
         <MetricCard
+          chartKey="bevegelse_snittempo"
           label="Snittempo"
           value={formatPace(data.current.avg_pace_sec_per_km)}
           sublabel={prev.avg_pace_sec_per_km != null ? `Forrige: ${formatPace(prev.avg_pace_sec_per_km)}` : null}
@@ -190,8 +197,9 @@ function MovementMetricCards({ data, movement }: { data: MovementAnalysis; movem
           accent="#D4A017"
         />
       )}
-      {WATT_MOVEMENTS.has(movement) && data.current.avg_watts != null && (
+      {vis('bevegelse_snittwatt') && WATT_MOVEMENTS.has(movement) && data.current.avg_watts != null && (
         <MetricCard
+          chartKey="bevegelse_snittwatt"
           label="Snittwatt"
           value={`${data.current.avg_watts} W`}
           sublabel={prev.avg_watts != null ? `Forrige: ${prev.avg_watts} W` : null}
@@ -202,7 +210,7 @@ function MovementMetricCards({ data, movement }: { data: MovementAnalysis; movem
   )
 }
 
-function MovementTimeAndKm({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
+export function MovementTimeAndKm({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
   if (weeks.length === 0) return null
   const data = weeks.map(w => ({
     label: w.label,
@@ -229,7 +237,7 @@ function MovementTimeAndKm({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
   )
 }
 
-function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }) {
+export function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }) {
   const points = activities
     .filter(a => a.avg_heart_rate != null)
     .map(a => ({ x: dateToEpoch(a.date), y: a.avg_heart_rate!, date: a.date }))
@@ -256,7 +264,7 @@ function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }
   )
 }
 
-function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
+export function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
   // Sonespråket (5b): utvidet skala legger eldre Hurtighet i I7 med
   // synlig fotnote — aldri stille (lib/sonesprak-mønsteret).
   const utvidet = useUtvidetSkala()
@@ -342,7 +350,7 @@ function MovementBest({ data, movement }: { data: MovementAnalysis; movement: st
   )
 }
 
-function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; movement: string }) {
+export function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; movement: string }) {
   // Løping: tempo over tid per aktivitet.
   if (movement === 'Løping') {
     const points = data.activities
@@ -444,4 +452,21 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
   }
 
   return null
+}
+
+/** Bolk 1: favoritt-rendring — grafene for fanens valgte bev.form. */
+export function renderFavoritt(key: string, data: MovementAnalysis): React.ReactNode | null {
+  if (!data.hasData) return null
+  const m = data.movementName
+  switch (key) {
+    case 'bevegelse_time_and_km': return <MovementTimeAndKm weeks={data.weeks} />
+    case 'bevegelse_avg_hr': return <MovementHrChart activities={data.activities} />
+    case 'bevegelse_zones_per_week': return <MovementZones weeks={data.weeks} />
+    case 'bevegelse_pace_running': case 'bevegelse_watts': case 'bevegelse_speed_skiing':
+      return <MovementSportSpecific data={data} movement={m} />
+    case 'bevegelse_total_tid': case 'bevegelse_total_km': case 'bevegelse_aktiviteter':
+    case 'bevegelse_snittpuls': case 'bevegelse_snittempo': case 'bevegelse_snittwatt':
+      return <MovementMetricCards data={data} movement={m} bare={key} />
+    default: return null
+  }
 }

@@ -145,7 +145,7 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
         <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
           <SeksjonsTittel tittel="VEKT" merknad="kg · valgt periode" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            <TrendPanel navn="VEKT" enhet="kg" farge="#E8B93C" dager={data.dager}
+            <TrendPanel chartKey="helse_body_weight" navn="VEKT" enhet="kg" farge="#E8B93C" dager={data.dager}
               felt="body_weight_kg" ukesnitt={false} />
           </div>
         </div>
@@ -153,7 +153,7 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
 
       {/* ── Lang trend — HRV, 1 år, ukesnitt ── */}
       <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-        <SeksjonsTittel tittel="LANG TREND — HRV" merknad="1 år · ukesnitt" />
+        <SeksjonsTittel chartKey="helse_hrv_lang" tittel="LANG TREND — HRV" merknad="1 år · ukesnitt" />
         <AarsTrend dager={aarsdata} felt="hrv_ms" farge={HELSE_TREND_FARGER.hrv} />
       </div>
 

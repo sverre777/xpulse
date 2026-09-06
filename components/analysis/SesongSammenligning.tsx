@@ -96,6 +96,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId }: Props) {
 
   return (
     <ChartWrapper
+      chartKey="oversikt_sesong_mot_sesong"
       title="Sesong mot sesong"
       subtitle="Per måned fra sesongstart — sesonggrensene følger årsplanen"
       height="auto">

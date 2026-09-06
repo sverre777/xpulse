@@ -1,5 +1,6 @@
 'use client'
 
+import { ChartWrapper } from './ChartWrapper'
 import {
   ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ZAxis,
 } from 'recharts'
@@ -31,31 +32,10 @@ export function WeatherTab({ data }: { data: WeatherAnalysis | null }) {
     )
   }
 
-  const hrTempPoints = data.points
-    .filter(p => p.temperature != null && p.avg_heart_rate != null)
-    .map(p => ({ x: p.temperature as number, y: p.avg_heart_rate as number, title: p.title, date: p.date }))
-
   return (
     <div className="space-y-6">
       {/* Snittpuls vs temperatur — scatter */}
-      <Section title="Snittpuls vs temperatur" hint="Høyere puls ved varme? Hver prikk er én økt.">
-        {hrTempPoints.length >= 2 ? (
-          <ResponsiveContainer width="100%" height={260}>
-            <ScatterChart margin={{ top: 8, right: 12, bottom: 28, left: 4 }}>
-              <CartesianGrid stroke={CHART_GRID} strokeDasharray="2 2" />
-              <XAxis type="number" dataKey="x" name="Temp" unit="°C" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-                label={{ value: 'Temperatur (°C)', position: 'bottom', offset: 12, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
-              <YAxis type="number" dataKey="y" name="Puls" unit=" bpm" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} domain={['dataMin - 5', 'dataMax + 5']} />
-              <ZAxis range={[60, 60]} />
-              <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#FF4500' }}
-                formatter={(value, name) => [name === 'Temp' ? `${value}°C` : `${value} bpm`, String(name)]} />
-              <Scatter data={hrTempPoints} fill="#FF4500" fillOpacity={0.75} />
-            </ScatterChart>
-          </ResponsiveContainer>
-        ) : (
-          <Empty>Trenger minst 2 økter med både temperatur og puls.</Empty>
-        )}
-      </Section>
+      <PulsVsTemperatur data={data} />
 
       {/* Per værtype */}
       <Section title="Snitt per værtype" hint="Dårligere/hardere ved regn? Puls + RPE per registrert værtype.">
@@ -113,4 +93,36 @@ function Th({ children, left }: { children: React.ReactNode; left?: boolean }) {
 }
 function Td({ children, left }: { children: React.ReactNode; left?: boolean }) {
   return <td style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: left ? 'var(--tekst-1-app)' : 'var(--tekst-3-app)', fontSize: 13 }}>{children}</td>
+}
+
+/** Snittpuls vs temperatur — brukes av fanen og Favoritter (bolk 1). */
+export function PulsVsTemperatur({ data }: { data: WeatherAnalysis }) {
+  const hrTempPoints = data.points
+    .filter(p => p.temperature != null && p.avg_heart_rate != null)
+    .map(p => ({ x: p.temperature as number, y: p.avg_heart_rate as number, title: p.title, date: p.date }))
+  return (
+    <ChartWrapper chartKey="vaer_puls_vs_temperatur" title="Snittpuls vs temperatur" subtitle="Høyere puls ved varme? Hver prikk er én økt." height="auto">
+      {hrTempPoints.length >= 2 ? (
+        <ResponsiveContainer width="100%" height={260}>
+          <ScatterChart margin={{ top: 8, right: 12, bottom: 28, left: 4 }}>
+            <CartesianGrid stroke={CHART_GRID} strokeDasharray="2 2" />
+            <XAxis type="number" dataKey="x" name="Temp" unit="°C" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
+              label={{ value: 'Temperatur (°C)', position: 'bottom', offset: 12, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
+            <YAxis type="number" dataKey="y" name="Puls" unit=" bpm" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} domain={['dataMin - 5', 'dataMax + 5']} />
+            <ZAxis range={[60, 60]} />
+            <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#FF4500' }}
+              formatter={(value, name) => [name === 'Temp' ? `${value}°C` : `${value} bpm`, String(name)]} />
+            <Scatter data={hrTempPoints} fill="#FF4500" fillOpacity={0.75} />
+          </ScatterChart>
+        </ResponsiveContainer>
+      ) : (
+        <Empty>Trenger minst 2 økter med både temperatur og puls.</Empty>
+      )}
+    </ChartWrapper>
+  )
+}
+
+export function renderFavoritt(key: string, data: WeatherAnalysis): React.ReactNode | null {
+  if (!data.hasData) return null
+  return key === 'vaer_puls_vs_temperatur' ? <PulsVsTemperatur data={data} /> : null
 }

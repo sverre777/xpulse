@@ -11,6 +11,7 @@
 // ikke en fargejustering.
 
 import type { ShootingDepthAnalysis } from '@/app/actions/analysis'
+import { MetricCard } from './MetricCard'
 
 /** Liggende — blå. */
 export const COLOR_PRONE = '#38BDF8'
@@ -27,38 +28,24 @@ export function fmtPct(v: number | null): string {
   return v == null ? '—' : `${v.toFixed(1)}%`
 }
 
-export function SkytingSummaryCards({ data }: { data: ShootingDepthAnalysis }) {
+/** Fire treffkort (bolk 1: MetricCard m/ nøkkel — samme kort i Skyting-dybde
+    og under Dagbok). bare = én nøkkel (Favoritter-fanen). */
+export function SkytingSummaryCards({ data, bare }: { data: ShootingDepthAnalysis; bare?: string }) {
   const { series, shots, accuracy_pct, prone_accuracy_pct, standing_accuracy_pct, prone_shots, standing_shots } = data.totals
+  const kort = [
+    <MetricCard key="t" chartKey="skyting_treff_totalt" label="Totalt treff%" value={fmtPct(accuracy_pct)}
+      sublabel={`${shots} skudd · ${series} serier`} accent={COLOR_TOTAL} />,
+    <MetricCard key="l" chartKey="skyting_treff_liggende" label="Liggende" value={fmtPct(prone_accuracy_pct)}
+      sublabel={`${prone_shots} skudd`} accent={COLOR_PRONE} />,
+    <MetricCard key="s" chartKey="skyting_treff_staaende" label="Stående" value={fmtPct(standing_accuracy_pct)}
+      sublabel={`${standing_shots} skudd`} accent={COLOR_STANDING} />,
+    <MetricCard key="k" chartKey="skyting_treff_konkurranse" label="Konkurranse" value={fmtPct(data.trainingVsComp.competition.accuracy_pct)}
+      sublabel={`${data.trainingVsComp.competition.series} serier i konk.`} accent={COLOR_COMP} />,
+  ]
+  if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <StatCard label="Totalt treff%" value={fmtPct(accuracy_pct)}
-        sub={`${shots} skudd · ${series} serier`} accent={COLOR_TOTAL} />
-      <StatCard label="Liggende" value={fmtPct(prone_accuracy_pct)}
-        sub={`${prone_shots} skudd`} accent={COLOR_PRONE} />
-      <StatCard label="Stående" value={fmtPct(standing_accuracy_pct)}
-        sub={`${standing_shots} skudd`} accent={COLOR_STANDING} />
-      <StatCard label="Konkurranse" value={fmtPct(data.trainingVsComp.competition.accuracy_pct)}
-        sub={`${data.trainingVsComp.competition.series} serier i konk.`} accent={COLOR_COMP} />
-    </div>
-  )
-}
-
-export function StatCard({ label, value, sub, accent }: {
-  label: string; value: string; sub: string; accent: string
-}) {
-  return (
-    <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
-      <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        {label}
-      </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
-        {value}
-      </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {sub}
-      </p>
+      {kort}
     </div>
   )
 }

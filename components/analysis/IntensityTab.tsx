@@ -57,14 +57,10 @@ export function IntensityTab({ data }: { data: IntensityDistribution }) {
   )
 }
 
-function PeriodSummary({ data }: { data: IntensityDistribution }) {
+export function PeriodSummary({ data }: { data: IntensityDistribution }) {
   const total = data.totalSeconds
   return (
-    <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-      <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        Total tid i soner
-      </p>
+    <ChartWrapper chartKey="intensitet_total_tid_i_soner" title="Total tid i soner" height="auto">
       <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '48px', lineHeight: 1 }}>
         {formatDuration(total)}
       </p>
@@ -87,11 +83,11 @@ function PeriodSummary({ data }: { data: IntensityDistribution }) {
           ))}
         </div>
       </div>
-    </div>
+    </ChartWrapper>
   )
 }
 
-function WeeklyStack({
+export function WeeklyStack({
   data, unit, onUnitChange,
 }: {
   data: IntensityDistribution; unit: 'pct' | 'min'; onUnitChange: (u: 'pct' | 'min') => void
@@ -327,4 +323,16 @@ export function PolarizedStack({ data, unit }: { data: IntensityDistribution; un
       </ChartWrapper>
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Intensitet-nøklene. */
+export function renderFavoritt(key: string, data: IntensityDistribution): React.ReactNode | null {
+  if (!data.hasData) return null
+  switch (key) {
+    case 'intensitet_total_tid_i_soner': return <PeriodSummary data={data} />
+    case 'intensity_zones_per_week': return <WeeklyStack data={data} unit="pct" onUnitChange={() => {}} />
+    case 'intensity_high_sessions_per_week': return <IntensiveWorkoutsLine data={data} />
+    case 'intensity_polarization_per_week': return <PolarizedStack data={data} unit="pct" />
+    default: return null
+  }
 }

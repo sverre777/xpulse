@@ -173,21 +173,17 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
     <div className="p-4 space-y-5" style={{ borderTop: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-14)' }}>
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard label="Gjennomføringer" value={String(template.usage_count)} />
-        <MetricCard label="Snittpuls"
+        <MetricCard chartKey="mal_analyse_gjennomforinger" label="Gjennomføringer" value={String(template.usage_count)} />
+        <MetricCard chartKey="mal_analyse_snittpuls" label="Snittpuls"
           value={template.avg_heart_rate != null ? `${template.avg_heart_rate}` : '—'}
           sublabel={template.avg_heart_rate != null ? 'bpm' : undefined} />
-        <MetricCard label="Snitt total tid" value={formatDuration(template.avg_duration_seconds)} />
-        <MetricCard label="Snitt total km"
+        <MetricCard chartKey="mal_analyse_snitt_tid" label="Snitt total tid" value={formatDuration(template.avg_duration_seconds)} />
+        <MetricCard chartKey="mal_analyse_snitt_km" label="Snitt total km"
           value={template.avg_total_meters > 0 ? formatKm(template.avg_total_meters) : '—'} />
       </div>
 
       {/* Avg zones bar */}
-      <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-        <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Snitt-sonefordeling (per gjennomføring)
-        </p>
+      <ChartWrapper chartKey="mal_analyse_sonefordeling" title="Snitt-sonefordeling (per gjennomføring)" height="auto">
         <ZoneBar zones={template.avg_zones} height={18} />
         <div className="flex flex-wrap gap-3 mt-2 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
@@ -198,7 +194,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
             </div>
           ))}
         </div>
-      </div>
+      </ChartWrapper>
 
       {/* Trend charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -1153,3 +1153,9 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 
 /* touch 1788634753 */
 /* touch 1788634945 */
+
+/* Favoritter-fanen (Analyse v2 bolk 1): «Fjern» vises ved hover/fokus, alltid på touch. */
+.xp-fav-kort .xp-fav-fjern { opacity: 0; transition: opacity 120ms; }
+.xp-fav-kort:hover .xp-fav-fjern, .xp-fav-kort:focus-within .xp-fav-fjern { opacity: 1; }
+@media (hover: none) { .xp-fav-kort .xp-fav-fjern { opacity: 1; } }
+/* bolk1 css-touch */

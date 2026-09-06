@@ -19,7 +19,9 @@ import {
 import { SPORTS, SURFACE_SUMMER, SURFACE_WINTER, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
 import { FavoritesProvider, useFavorites } from './FavoritesContext'
-import { FavoriteChartsSection, sourceTabForChartKey } from './FavoriteChartsSection'
+import { FavoritterTab } from './FavoritterTab'
+import { dataForGraf, losGrafNokkel, type FaneKey } from '@/lib/graf-register'
+import { getHelseOversikt, type HelseOversiktData } from '@/app/actions/helse-oversikt'
 import { OverviewTab } from './OverviewTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
@@ -69,9 +71,10 @@ const AltitudeHeatTab = dynamic(() => import('./AltitudeHeatTab').then(m => ({ d
 const StandardSessionsTab = dynamic(() => import('./StandardSessionsTab').then(m => ({ default: m.StandardSessionsTab })),
   { loading: () => <LoadingStub label="Laster standardøkter…" />, ssr: false })
 
-// 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
-// Se AGENTS.md for fase-plan.
+// Favoritter først (Analyse v2 bolk 1) — standard landing når brukeren har minst
+// én favoritt. mal_analyse/periodisering er skjulte dyplenke-faner.
 type Tab =
+  | 'favoritter'
   | 'oversikt'
   | 'klokkedata'
   | 'belastning'
@@ -106,6 +109,7 @@ function defaultMovementForSport(sport: Sport): string {
 }
 
 const TABS: [Tab, string][] = [
+  ['favoritter', 'Favoritter'],
   ['oversikt', 'Oversikt'],
   ['klokkedata', 'Klokkedata-trender'],
   ['belastning', 'Belastning'],
@@ -200,7 +204,9 @@ function AnalysisPageInner({
   const searchParams = useSearchParams()
   const initialTab: Tab = (() => {
     const t = searchParams?.get('tab')
-    return t && TAB_KEYS.has(t) ? (t as Tab) : 'oversikt'
+    if (t && TAB_KEYS.has(t)) return t as Tab
+    // Bolk 1: Favoritter er standard landing når det finnes minst én favoritt.
+    return favoriteKeys.length > 0 ? 'favoritter' : 'oversikt'
   })()
   const [tab, setTab] = useState<Tab>(initialTab)
   const [range, setRangeState] = useState<DateRange>(initialRange)
@@ -212,43 +218,21 @@ function AnalysisPageInner({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  // Lazy-state for Fase B+C-faner. Nullstilles i setRange/setSportFilter-callback så tab-åpning fetch-er på nytt.
-  const [competitionsAnalysis, setCompetitionsAnalysis] = useState<CompetitionAnalysis | null>(null)
-  const [movementAnalysis, setMovementAnalysis] = useState<MovementAnalysis | null>(null)
-  const [healthCorrelations, setHealthCorrelations] = useState<HealthCorrelations | null>(null)
-  const [weatherAnalysis, setWeatherAnalysis] = useState<WeatherAnalysis | null>(null)
-  const [altitudeHeatAnalysis, setAltitudeHeatAnalysis] = useState<AltitudeHeatAnalysis | null>(null)
-  const [templateAnalysis, setTemplateAnalysis] = useState<TemplateAnalysis | null>(null)
-  const [compareWorkouts, setCompareWorkouts] = useState<WorkoutsForComparison | null>(null)
-  const [intensityDist, setIntensityDist] = useState<IntensityDistribution | null>(null)
-  const [belastning, setBelastning] = useState<BelastningAnalysis | null>(null)
-  const [terskel, setTerskel] = useState<TerskelAnalysis | null>(null)
-  const [skyting, setSkyting] = useState<ShootingDepthAnalysis | null>(null)
-  const [periodisering, setPeriodisering] = useState<PeriodizationOverview | null>(null)
-  const [testsAndPRs, setTestsAndPRs] = useState<TestsAndPRs | null>(null)
-  const [skiTesterData, setSkiTesterData] = useState<SkiTestAnalysisData | null>(null)
-  const [nutritionAnalysis, setNutritionAnalysis] = useState<NutritionAnalysis | null>(null)
-  const [klokkedata, setKlokkedata] = useState<KlokkedataTrender | null>(null)
-  const [prestasjon, setPrestasjon] = useState<PrestasjonAnalyse | null>(null)
-
-  const resetLazyCache = () => {
-    setCompetitionsAnalysis(null)
-    setMovementAnalysis(null)
-    setHealthCorrelations(null)
-    setWeatherAnalysis(null)
-    setAltitudeHeatAnalysis(null)
-    setTemplateAnalysis(null)
-    setCompareWorkouts(null)
-    setIntensityDist(null)
-    setBelastning(null)
-    setTerskel(null)
-    setSkyting(null)
-    setPeriodisering(null)
-    setTestsAndPRs(null)
-    setSkiTesterData(null)
-    setNutritionAnalysis(null)
-    setKlokkedata(null)
+  // Bolk 1: ÉN cache for fanenes datasett — én server-action per sett, hentet
+  // lazy når fanen (eller en favoritt) trenger det, nullstilt ved periode-,
+  // sport- og føre-bytte. Generasjonstelleren kaster svar fra forrige filter.
+  type FaneData = {
+    klokkedata: KlokkedataTrender; belastning: BelastningAnalysis; prestasjon: PrestasjonAnalyse; terskel: TerskelAnalysis
+    skyting: ShootingDepthAnalysis; sammenlign: WorkoutsForComparison; mal_analyse: TemplateAnalysis; periodisering: PeriodizationOverview
+    konkurranser: CompetitionAnalysis; tester_pr: TestsAndPRs; ski_tester: SkiTestAnalysisData; helse: HelseOversiktData
+    helse_korrelasjon: HealthCorrelations; ernering: NutritionAnalysis; vaer: WeatherAnalysis; hoyde_varme: AltitudeHeatAnalysis
+    per_bevegelsesform: MovementAnalysis; intensitet: IntensityDistribution
   }
+  type FaneDataKey = keyof FaneData
+  const [cache, setCache] = useState<Partial<FaneData>>({})
+  const paagaar = useRef(new Set<string>())
+  const generasjon = useRef(0)
+  const resetLazyCache = () => { generasjon.current += 1; paagaar.current.clear(); setCache({}) }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
   const setSportFilter = (s: Sport | null) => { resetLazyCache(); setSportFilterState(s) }
@@ -282,224 +266,56 @@ function AnalysisPageInner({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to, sportFilter])
 
-  // Lazy-fetch ved tab-åpning. Bruker gjeldende periode + sportFilter (eller primaerSport for movement).
-  useEffect(() => {
-    if (tab === 'konkurranser' && competitionsAnalysis === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getCompetitionAnalysis(range.from, range.to, sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setCompetitionsAnalysis(res)
-      })
+  const hentFaneData = (k: FaneDataKey): Promise<unknown> => {
+    switch (k) {
+      case 'klokkedata': return getKlokkedataTrender(range.from, range.to, sportFilter)
+      case 'belastning': return getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
+      case 'prestasjon': return getPrestasjonAnalyse(range.from, range.to, targetUserId)
+      case 'terskel': return getTerskelAnalysis(range.from, range.to, sportFilter)
+      case 'skyting': return getShootingDepthAnalysis(range.from, range.to, sportFilter)
+      case 'sammenlign': return getWorkoutsForComparison(range.from, range.to, { sport: sportFilter })
+      case 'mal_analyse': return getTemplateAnalysis(range.from, range.to, sportFilter)
+      case 'periodisering': return getPeriodizationOverview(range.from, range.to, sportFilter)
+      case 'konkurranser': return getCompetitionAnalysis(range.from, range.to, sportFilter)
+      case 'tester_pr': return getTestsAndPRs(sportFilter)
+      case 'ski_tester': return getSkiTestAnalysis(range.from, range.to)
+      case 'helse': return getHelseOversikt(range.from, range.to, targetUserId)
+      case 'helse_korrelasjon': return getHealthCorrelations(range.from, range.to)
+      case 'ernering': return getNutritionAnalysis(range.from, range.to, targetUserId)
+      case 'vaer': return getWeatherAnalysis(range.from, range.to, targetUserId)
+      case 'hoyde_varme': return getAltitudeHeatAnalysis(range.from, range.to, targetUserId)
+      case 'per_bevegelsesform': return getMovementAnalysis(range.from, range.to, defaultMovementForSport(overview.primarySport))
+      case 'intensitet': return getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
     }
-    if (tab === 'per_bevegelsesform' && movementAnalysis === null) {
-      const movement = defaultMovementForSport(overview.primarySport)
-      startTransition(async () => {
-        setError(null)
-        const res = await getMovementAnalysis(range.from, range.to, movement)
-        if ('error' in res) { setError(res.error); return }
-        setMovementAnalysis(res)
-      })
-    }
-    if (tab === 'helse' && healthCorrelations === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getHealthCorrelations(range.from, range.to)
-        if ('error' in res) { setError(res.error); return }
-        setHealthCorrelations(res)
-      })
-    }
-    if (tab === 'ernering' && nutritionAnalysis === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getNutritionAnalysis(range.from, range.to, targetUserId)
-        if ('error' in res) { setError(res.error); return }
-        setNutritionAnalysis(res)
-      })
-    }
-    if (tab === 'vaer' && weatherAnalysis === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getWeatherAnalysis(range.from, range.to, targetUserId)
-        if ('error' in res) { setError(res.error); return }
-        setWeatherAnalysis(res)
-      })
-    }
-    if (tab === 'hoyde_varme' && altitudeHeatAnalysis === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getAltitudeHeatAnalysis(range.from, range.to, targetUserId)
-        if ('error' in res) { setError(res.error); return }
-        setAltitudeHeatAnalysis(res)
-      })
-    }
-    if (tab === 'mal_analyse' && templateAnalysis === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getTemplateAnalysis(range.from, range.to, sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setTemplateAnalysis(res)
-      })
-    }
-    if (tab === 'sammenlign') {
-      // Sammenlign-fanen samler tre seksjoner: økt-sammenligning, mal-analyse
-      // og årsplan-analyse. Last alle tre datasettene parallelt så bruker
-      // ikke trenger å bytte fane for å se hver seksjon.
-      if (compareWorkouts === null) {
-        startTransition(async () => {
-          setError(null)
-          const res = await getWorkoutsForComparison(range.from, range.to, { sport: sportFilter })
-          if ('error' in res) { setError(res.error); return }
-          setCompareWorkouts(res)
-        })
-      }
-      if (templateAnalysis === null) {
-        startTransition(async () => {
-          const res = await getTemplateAnalysis(range.from, range.to, sportFilter)
-          if (!('error' in res)) setTemplateAnalysis(res)
-        })
-      }
-      if (periodisering === null) {
-        startTransition(async () => {
-          const res = await getPeriodizationOverview(range.from, range.to, sportFilter)
-          if (!('error' in res)) setPeriodisering(res)
-        })
-      }
-    }
-    if (tab === 'intensitet' && intensityDist === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
-        if ('error' in res) { setError(res.error); return }
-        setIntensityDist(res)
-      })
-    }
-    if (tab === 'belastning' && belastning === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
-        if ('error' in res) { setError(res.error); return }
-        setBelastning(res)
-      })
-    }
-    if (tab === 'terskel' && terskel === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getTerskelAnalysis(range.from, range.to, sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setTerskel(res)
-      })
-    }
-    if (tab === 'skyting' && skyting === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getShootingDepthAnalysis(range.from, range.to, sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setSkyting(res)
-      })
-    }
-    if (tab === 'periodisering' && periodisering === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getPeriodizationOverview(range.from, range.to, sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setPeriodisering(res)
-      })
-    }
-    if (tab === 'tester_pr' && testsAndPRs === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getTestsAndPRs(sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setTestsAndPRs(res)
-      })
-    }
-    if (tab === 'ski_tester' && skiTesterData === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getSkiTestAnalysis(range.from, range.to)
-        setSkiTesterData(res)
-      })
-    }
-    if (tab === 'klokkedata' && klokkedata === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getKlokkedataTrender(range.from, range.to, sportFilter)
-        if ('error' in res) { setError(res.error); return }
-        setKlokkedata(res)
-      })
-    }
-    if (tab === 'prestasjon' && prestasjon === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getPrestasjonAnalyse(range.from, range.to, targetUserId)
-        if ('error' in res) { setError(res.error); return }
-        setPrestasjon(res)
-      })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, weatherAnalysis, altitudeHeatAnalysis, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedata, prestasjon])
+  }
+  const hent = (k: FaneDataKey) => {
+    if (cache[k] !== undefined || paagaar.current.has(k)) return
+    paagaar.current.add(k)
+    const gen = generasjon.current
+    startTransition(async () => {
+      setError(null)
+      const res = await hentFaneData(k)
+      if (gen !== generasjon.current) return   // filteret er byttet mens vi ventet
+      paagaar.current.delete(k)
+      if (res && typeof res === 'object' && 'error' in res) { setError(String((res as { error: string }).error)); return }
+      setCache(c => ({ ...c, [k]: res }))
+    })
+  }
 
-  // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
-  // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
-  // rendret grafene uten at brukeren må åpne fanene selv.
+  // Lazy-henting: fanen som er åpen — eller, i Favoritter, settene
+  // favorittene peker til (aldri alt). Helse og Standardøkter henter selv.
   useEffect(() => {
-    if (tab !== 'oversikt' || favoriteKeys.length === 0) return
-    const neededTabs = new Set<string>()
-    for (const key of favoriteKeys) {
-      const src = sourceTabForChartKey(key)
-      if (src && src !== 'oversikt') neededTabs.add(src)
-    }
-    if (neededTabs.has('belastning') && belastning === null) {
-      startTransition(async () => {
-        const res = await getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
-        if (!('error' in res)) setBelastning(res)
-      })
-    }
-    if (neededTabs.has('terskel') && terskel === null) {
-      startTransition(async () => {
-        const res = await getTerskelAnalysis(range.from, range.to, sportFilter)
-        if (!('error' in res)) setTerskel(res)
-      })
-    }
-    if (neededTabs.has('prestasjon') && prestasjon === null) {
-      startTransition(async () => {
-        const res = await getPrestasjonAnalyse(range.from, range.to, targetUserId)
-        if (!('error' in res)) setPrestasjon(res)
-      })
-    }
-    if (neededTabs.has('skyting') && skyting === null) {
-      startTransition(async () => {
-        const res = await getShootingDepthAnalysis(range.from, range.to, sportFilter)
-        if (!('error' in res)) setSkyting(res)
-      })
-    }
-    if (neededTabs.has('periodisering') && periodisering === null) {
-      startTransition(async () => {
-        const res = await getPeriodizationOverview(range.from, range.to, sportFilter)
-        if (!('error' in res)) setPeriodisering(res)
-      })
-    }
-    if (neededTabs.has('intensitet') && intensityDist === null) {
-      startTransition(async () => {
-        const res = await getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
-        if (!('error' in res)) setIntensityDist(res)
-      })
-    }
-    if (neededTabs.has('konkurranser') && competitionsAnalysis === null) {
-      startTransition(async () => {
-        const res = await getCompetitionAnalysis(range.from, range.to, sportFilter)
-        if (!('error' in res)) setCompetitionsAnalysis(res)
-      })
-    }
-    if (neededTabs.has('helse') && healthCorrelations === null) {
-      startTransition(async () => {
-        const res = await getHealthCorrelations(range.from, range.to)
-        if (!('error' in res)) setHealthCorrelations(res)
-      })
-    }
+    const trengs = new Set<FaneDataKey>()
+    if (tab === 'favoritter') {
+      for (const key of favoriteKeys) {
+        const d = dataForGraf(losGrafNokkel(key))
+        if (d && d !== 'selv' && d !== 'oversikt') trengs.add(d as FaneDataKey)
+      }
+    } else if (tab === 'sammenlign') { trengs.add('sammenlign'); trengs.add('mal_analyse'); trengs.add('periodisering') }
+    else if (tab !== 'oversikt' && tab !== 'helse' && tab !== 'standardokter') trengs.add(tab as FaneDataKey)
+    for (const k of trengs) hent(k)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, favoriteKeys, belastning, terskel, skyting, periodisering, intensityDist, competitionsAnalysis, healthCorrelations, prestasjon])
+  }, [tab, favoriteKeys, cache, range.from, range.to, sportFilter, surfaceFilter])
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -619,21 +435,17 @@ function AnalysisPageInner({
 
         {/* key={tab} remonter innholdet ved fanebytte → kort fade-inn. */}
         <div key={tab} className="xp-tab-in">
+        {tab === 'favoritter' && (
+          <FavoritterTab
+            dataFor={k => k === 'oversikt' ? { stats, overview } : cache[k as FaneDataKey]}
+            ctx={{ range, targetUserId, canSeeHealthData }}
+            readOnly={!!targetUserId}
+            harSkiskyting={harSkiskyting}
+            onOpenTab={(f: FaneKey) => { if (TAB_KEYS.has(f) || f === 'mal_analyse' || f === 'periodisering') setTab(f as Tab) }}
+          />
+        )}
         {tab === 'oversikt' && (
           <div className="space-y-5">
-            <FavoriteChartsSection
-              stats={stats}
-              belastning={belastning}
-              terskel={terskel}
-              skyting={skyting}
-              periodisering={periodisering}
-              intensity={intensityDist}
-              overview={overview}
-              health={healthCorrelations}
-              prestasjon={prestasjon}
-              analysisRange={range}
-              onNavigate={(t) => setTab(t)}
-            />
             <OverviewTab stats={stats} overview={overview} analysisRange={range} targetUserId={targetUserId} canSeeHealthData={canSeeHealthData} />
             {/* Sesong mot sesong (bolk 4) — samme komponent står også
                 nederst under Årsplan (avtalt unntak fra én-plassering). */}
@@ -641,17 +453,17 @@ function AnalysisPageInner({
           </div>
         )}
         {tab === 'konkurranser' && (
-          competitionsAnalysis
-            ? <CompetitionsTab data={competitionsAnalysis} sportFilter={sportFilter} />
+          cache.konkurranser
+            ? <CompetitionsTab data={cache.konkurranser} sportFilter={sportFilter} />
             : <LoadingStub label="Laster konkurranser…" />
         )}
         {tab === 'per_bevegelsesform' && (
-          movementAnalysis
+          cache.per_bevegelsesform
             ? <MovementTab
-                initialData={movementAnalysis}
+                initialData={cache.per_bevegelsesform}
                 from={range.from}
                 to={range.to}
-                availableMovements={movementAnalysis.availableMovements}
+                availableMovements={cache.per_bevegelsesform.availableMovements}
               />
             : <LoadingStub label="Laster bevegelsesdata…" />
         )}
@@ -659,58 +471,58 @@ function AnalysisPageInner({
             HealthTab-trendene/korrelasjonene 27. aug (helse-designet). */}
         {tab === 'helse' && <HelseOversikt targetUserId={targetUserId} />}
         {tab === 'ernering' && (
-          nutritionAnalysis
-            ? <ErneringTab data={nutritionAnalysis} />
+          cache.ernering
+            ? <ErneringTab data={cache.ernering} />
             : <LoadingStub label="Laster ernærings-data…" />
         )}
-        {tab === 'vaer' && <WeatherTab data={weatherAnalysis} />}
-        {tab === 'hoyde_varme' && <AltitudeHeatTab data={altitudeHeatAnalysis} />}
+        {tab === 'vaer' && <WeatherTab data={cache.vaer ?? null} />}
+        {tab === 'hoyde_varme' && <AltitudeHeatTab data={cache.hoyde_varme ?? null} />}
         {tab === 'mal_analyse' && (
-          // Beholdt for backward compat — FavoriteChartsSection og dypkoblinger
-          // kan navigere hit. Innholdet er duplisert i sammenlign-fanen.
-          templateAnalysis
-            ? <TemplateAnalysisTab data={templateAnalysis} />
+          // Skjult dyplenke-fane (Favoritter «Åpne i fane» og gamle lenker).
+          // Innholdet står også i sammenlign-fanen — samles i Standardøkter i bolk 6.
+          cache.mal_analyse
+            ? <TemplateAnalysisTab data={cache.mal_analyse} />
             : <LoadingStub label="Laster mal-analyse…" />
         )}
         {tab === 'sammenlign' && (
           <div className="space-y-8">
             <SammenlignSection title="Økt-sammenligning" accent="#FF4500">
-              {compareWorkouts
-                ? <CompareWorkoutsTab initialData={compareWorkouts} from={range.from} to={range.to} />
+              {cache.sammenlign
+                ? <CompareWorkoutsTab initialData={cache.sammenlign} from={range.from} to={range.to} />
                 : <LoadingStub label="Laster økter…" />}
             </SammenlignSection>
 
             <SammenlignSection title="Mal-analyse" accent="#1A6FD4">
-              {templateAnalysis
-                ? <TemplateAnalysisTab data={templateAnalysis} />
+              {cache.mal_analyse
+                ? <TemplateAnalysisTab data={cache.mal_analyse} />
                 : <LoadingStub label="Laster mal-analyse…" />}
             </SammenlignSection>
 
             <SammenlignSection title="Årsplan-analyse" accent="#28A86E">
-              {periodisering
-                ? <PeriodiseringTab data={periodisering} />
+              {cache.periodisering
+                ? <PeriodiseringTab data={cache.periodisering} />
                 : <LoadingStub label="Laster årsplan-analyse…" />}
             </SammenlignSection>
           </div>
         )}
         {tab === 'intensitet' && (
-          intensityDist
-            ? <IntensityTab data={intensityDist} />
+          cache.intensitet
+            ? <IntensityTab data={cache.intensitet} />
             : <LoadingStub label="Laster intensitetsfordeling…" />
         )}
         {tab === 'belastning' && (
-          belastning
-            ? <BelastningTab data={belastning} />
+          cache.belastning
+            ? <BelastningTab data={cache.belastning} />
             : <LoadingStub label="Laster belastning…" />
         )}
         {tab === 'terskel' && (
-          terskel
-            ? <TerskelTab data={terskel} />
+          cache.terskel
+            ? <TerskelTab data={cache.terskel} />
             : <LoadingStub label="Laster terskel…" />
         )}
         {tab === 'skyting' && (
-          skyting
-            ? <SkytingTab data={skyting} range={range} targetUserId={targetUserId} />
+          cache.skyting
+            ? <SkytingTab data={cache.skyting} range={range} targetUserId={targetUserId} />
             : <LoadingStub label="Laster skyting-dybde…" />
         )}
         {/* Kø #48 bolk 3: standardøkt-biblioteket (selv-hentende). */}
@@ -718,28 +530,28 @@ function AnalysisPageInner({
           <StandardSessionsTab targetUserId={targetUserId} />
         )}
         {tab === 'periodisering' && (
-          periodisering
-            ? <PeriodiseringTab data={periodisering} />
+          cache.periodisering
+            ? <PeriodiseringTab data={cache.periodisering} />
             : <LoadingStub label="Laster årsplan…" />
         )}
         {tab === 'tester_pr' && (
-          testsAndPRs
-            ? <TesterPRTab data={testsAndPRs} targetUserId={targetUserId} />
+          cache.tester_pr
+            ? <TesterPRTab data={cache.tester_pr} targetUserId={targetUserId} />
             : <LoadingStub label="Laster tester og PR…" />
         )}
         {tab === 'ski_tester' && (
-          skiTesterData
-            ? <SkiTesterTab data={skiTesterData} />
+          cache.ski_tester
+            ? <SkiTesterTab data={cache.ski_tester} />
             : <LoadingStub label="Laster ski-tester…" />
         )}
         {tab === 'klokkedata' && (
-          klokkedata
-            ? <KlokkedataTrenderTab data={klokkedata} />
+          cache.klokkedata
+            ? <KlokkedataTrenderTab data={cache.klokkedata} />
             : <LoadingStub label="Laster klokkedata-trender…" />
         )}
         {tab === 'prestasjon' && (
-          prestasjon
-            ? <PrestasjonTab data={prestasjon} />
+          cache.prestasjon
+            ? <PrestasjonTab data={cache.prestasjon} />
             : <LoadingStub label="Laster prestasjonsmål…" />
         )}
         </div>

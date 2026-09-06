@@ -1,5 +1,7 @@
 'use client'
 
+import { MetricCard } from './MetricCard'
+import { ChartWrapper } from './ChartWrapper'
 import {
   ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, Cell, BarChart, Bar,
@@ -62,26 +64,20 @@ export function ErneringTab({ data }: { data: NutritionAnalysis }) {
     <div className="space-y-6">
       <SummaryCards summary={data.summary} />
 
-      <ChartCard
-        title="Karbo per time vs øktens varighet"
-        subtitle="Hvert punkt er en økt. Reference-linjer viser typiske mål: 30 (lav), 60 (moderat), 90 g/t (høy/race). Lange økter under 60 g/t = mulig under-fueling."
-      >
+      <ChartWrapper chartKey="ernering_karbo_vs_varighet" title="Karbo per time vs øktens varighet" height="auto"
+        subtitle="Hvert punkt er en økt. Reference-linjer viser typiske mål: 30 (lav), 60 (moderat), 90 g/t (høy/race). Lange økter under 60 g/t = mulig under-fueling.">
         <CarbsVsDuration workouts={data.workouts} />
-      </ChartCard>
+      </ChartWrapper>
 
-      <ChartCard
-        title="Karbo per time vs snittpuls"
-        subtitle="Viser om fueling-raten matcher intensiteten. Høyere puls krever generelt mer karbo, men din egen kurve er det interessante."
-      >
+      <ChartWrapper chartKey="ernering_karbo_vs_puls" title="Karbo per time vs snittpuls" height="auto"
+        subtitle="Viser om fueling-raten matcher intensiteten. Høyere puls krever generelt mer karbo, men din egen kurve er det interessante.">
         <CarbsVsHeartRate workouts={data.workouts} />
-      </ChartCard>
+      </ChartWrapper>
 
-      <ChartCard
-        title="Type-fordeling"
-        subtitle="Hvilke ernæringskilder dominerer strategien din. Antall logg-rader per type, og samlet karbo per type."
-      >
+      <ChartWrapper chartKey="ernering_typefordeling" title="Type-fordeling" height="auto"
+        subtitle="Hvilke ernæringskilder dominerer strategien din. Antall logg-rader per type, og samlet karbo per type.">
         <TypeDistribution data={data.type_distribution} />
-      </ChartCard>
+      </ChartWrapper>
 
       <ChartCard
         title="Økter med ernæring i perioden"
@@ -93,68 +89,21 @@ export function ErneringTab({ data }: { data: NutritionAnalysis }) {
   )
 }
 
-function SummaryCards({ summary }: { summary: NutritionAnalysis['summary'] }) {
-  const cards: { label: string; value: string; sub?: string }[] = [
-    {
-      label: 'Økter med ernæring',
-      value: String(summary.total_workouts_with_nutrition),
-      sub: 'i perioden',
-    },
-    {
-      label: 'Snitt karbo/time',
-      value: summary.avg_carbs_per_hour !== null ? `${summary.avg_carbs_per_hour}` : '—',
-      sub: 'g/t (varighet-vektet)',
-    },
-    {
-      label: 'Total karbo',
-      value: `${summary.total_carbs_g}`,
-      sub: 'g',
-    },
-    {
-      label: 'Total protein',
-      value: `${summary.total_protein_g}`,
-      sub: 'g',
-    },
-    {
-      label: 'Total fett',
-      value: `${summary.total_fat_g}`,
-      sub: 'g',
-    },
-    ...(summary.total_ketones_g > 0 ? [{
-      label: 'Total ketoner',
-      value: `${summary.total_ketones_g}`,
-      sub: 'g',
-    }] : []),
+export function SummaryCards({ summary, bare }: { summary: NutritionAnalysis['summary']; bare?: string }) {
+  const cards: { key: string; label: string; value: string; sub?: string }[] = [
+    { key: 'ernering_okter', label: 'Økter med ernæring', value: String(summary.total_workouts_with_nutrition), sub: 'i perioden' },
+    { key: 'ernering_karbo_per_time', label: 'Snitt karbo/time', value: summary.avg_carbs_per_hour !== null ? `${summary.avg_carbs_per_hour}` : '—', sub: 'g/t (varighet-vektet)' },
+    { key: 'ernering_total_karbo', label: 'Total karbo', value: `${summary.total_carbs_g}`, sub: 'g' },
+    { key: 'ernering_total_protein', label: 'Total protein', value: `${summary.total_protein_g}`, sub: 'g' },
+    { key: 'ernering_total_fett', label: 'Total fett', value: `${summary.total_fat_g}`, sub: 'g' },
+    ...(summary.total_ketones_g > 0 ? [{ key: 'ernering_total_ketoner', label: 'Total ketoner', value: `${summary.total_ketones_g}`, sub: 'g' }] : []),
   ]
+  const vis = bare ? cards.filter(c => c.key === bare) : cards
+  if (vis.length === 0) return null
+  if (bare) return <MetricCard chartKey={vis[0].key} label={vis[0].label} value={vis[0].value} sublabel={vis[0].sub} valueSize={28} />
   return (
-    <div className="grid gap-2"
-      style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-      {cards.map(c => (
-        <div key={c.label} className="p-4"
-          style={{ background: 'var(--card)', border: '1px solid var(--kant-3)' }}>
-          <div style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 11, letterSpacing: '0.16em',
-            textTransform: 'uppercase', color: 'var(--tekst-8-app)', marginBottom: 6,
-          }}>
-            {c.label}
-          </div>
-          <div style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 28, color: 'var(--tekst-1-app)', lineHeight: 1,
-          }}>
-            {c.value}
-          </div>
-          {c.sub && (
-            <div style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 11, color: 'var(--tekst-5-app)', marginTop: 4,
-            }}>
-              {c.sub}
-            </div>
-          )}
-        </div>
-      ))}
+    <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+      {cards.map(c => <MetricCard key={c.key} chartKey={c.key} label={c.label} value={c.value} sublabel={c.sub} valueSize={28} />)}
     </div>
   )
 }
@@ -189,7 +138,7 @@ function ChartCard({
   )
 }
 
-function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
+export function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
   const points = workouts
     .filter(w => w.duration_minutes && w.duration_minutes > 0 && w.carbs_per_hour !== null)
     .map(w => ({
@@ -244,7 +193,7 @@ function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] })
   )
 }
 
-function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
+export function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
   const points = workouts
     .filter(w => w.avg_heart_rate && w.avg_heart_rate > 0 && w.carbs_per_hour !== null)
     .map(w => ({
@@ -293,7 +242,7 @@ function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }
   )
 }
 
-function TypeDistribution({ data }: { data: NutritionAnalysis['type_distribution'] }) {
+export function TypeDistribution({ data }: { data: NutritionAnalysis['type_distribution'] }) {
   if (data.length === 0) return <Empty msg="Ingen ernærings-rader registrert" />
   const rows = data.map(d => ({
     label: TYPE_LABELS[d.type] ?? d.type,
@@ -386,4 +335,18 @@ function Empty({ msg }: { msg: string }) {
       {msg}
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Ernæring-nøklene. */
+export function renderFavoritt(key: string, data: NutritionAnalysis): React.ReactNode | null {
+  if (data.workouts.length === 0) return null
+  switch (key) {
+    case 'ernering_karbo_vs_varighet': return (
+      <ChartWrapper chartKey={key} title="Karbo per time vs øktens varighet" height="auto"><CarbsVsDuration workouts={data.workouts} /></ChartWrapper>)
+    case 'ernering_karbo_vs_puls': return (
+      <ChartWrapper chartKey={key} title="Karbo per time vs snittpuls" height="auto"><CarbsVsHeartRate workouts={data.workouts} /></ChartWrapper>)
+    case 'ernering_typefordeling': return (
+      <ChartWrapper chartKey={key} title="Type-fordeling" height="auto"><TypeDistribution data={data.type_distribution} /></ChartWrapper>)
+    default: return key.startsWith('ernering_') ? <SummaryCards summary={data.summary} bare={key} /> : null
+  }
 }

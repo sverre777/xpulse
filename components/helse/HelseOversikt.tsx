@@ -10,6 +10,8 @@ import { settDagsform } from '@/app/actions/health'
 import { StarRating } from '@/components/ui/StarRating'
 import { HELSE_TREND_FARGER } from '@/lib/helse-farger'
 import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from '@/components/analysis/chart-theme'
+import { StarButton } from '@/components/analysis/StarButton'
+import { sjekkGrafNokkel } from '@/components/analysis/graf-nokkel'
 import { StadieStabler, formatTimer } from './SovnGrafikk'
 import { HelseDybde } from './HelseDybde'
 
@@ -181,7 +183,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
         <>
           {/* ── Søvnstadier per natt ── */}
           <div data-helse-sovn style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
-            <SeksjonsTittel tittel="SØVNSTADIER — PER NATT" merknad={`timer · siste ${Math.min(14, dager.filter(d => d.total_sleep_minutes != null).length)} netter i perioden`} />
+            <SeksjonsTittel chartKey={forside ? undefined : 'helse_sovnstadier'} tittel="SØVNSTADIER — PER NATT" merknad={`timer · siste ${Math.min(14, dager.filter(d => d.total_sleep_minutes != null).length)} netter i perioden`} />
             <StadieStabler netter={dager.filter(d => d.total_sleep_minutes != null).slice(-14)} />
           </div>
 
@@ -189,9 +191,9 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
           <div style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
             <SeksjonsTittel tittel={`TRENDER — ${periode === '1y' ? '1 ÅR (UKESNITT)' : periode === '7d' ? 'SISTE 7 DAGER' : periode === 'egen' ? 'VALGT PERIODE' : 'SISTE 30 DAGER'}`} merknad={forside ? undefined : 'hold over for verdi per dag'} />
             <div className={forside ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-1 md:grid-cols-3 gap-3.5'} data-helse-trender>
-              <TrendPanel navn="HRV" enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} liten={forside} />
-              <TrendPanel navn="HVILEPULS" enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} liten={forside} />
-              <TrendPanel navn="SØVNSCORE" enhet="" farge={HELSE_TREND_FARGER.sovnscore} dager={dager} felt="sleep_score" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel chartKey={forside ? undefined : 'helse_hrv'} navn="HRV" enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel chartKey={forside ? undefined : 'helse_resting_hr'} navn="HVILEPULS" enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel chartKey={forside ? undefined : 'helse_sovnscore'} navn="SØVNSCORE" enhet="" farge={HELSE_TREND_FARGER.sovnscore} dager={dager} felt="sleep_score" ukesnitt={periode === '1y'} liten={forside} />
             </div>
           </div>
 
@@ -258,7 +260,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, for
 
   return (
     <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-      <SeksjonsTittel tittel="FØLELSE" merknad={forside ? 'manuell · 1–5 · siste 14 dager' : 'manuell · 1–5 · samme skala som øktene · siste 14 dager'} />
+      <SeksjonsTittel chartKey={forside ? undefined : 'helse_folelse'} tittel="FØLELSE" merknad={forside ? 'manuell · 1–5 · siste 14 dager' : 'manuell · 1–5 · samme skala som øktene · siste 14 dager'} />
       <div className="flex items-center gap-2 flex-wrap">
         {sisteDatoer(14, sisteDato).map(dato => {
           const v = dager.find(x => x.date === dato)?.day_form ?? null
@@ -298,13 +300,19 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, for
   )
 }
 
-export function SeksjonsTittel({ tittel, merknad }: { tittel: string; merknad?: string }) {
+/** Seksjonstittel i helseflaten. chartKey (bolk 1) gir stjerne til høyre —
+    seksjonen kan favoriseres i Analyse › Favoritter. */
+export function SeksjonsTittel({ tittel, merknad, chartKey }: { tittel: string; merknad?: string; chartKey?: string }) {
+  sjekkGrafNokkel(chartKey, tittel)
   return (
-    <div className="flex items-baseline justify-between mb-3.5 gap-2 flex-wrap">
+    <div className="flex items-baseline justify-between mb-3.5 gap-2 flex-wrap" data-chart-key={chartKey}>
       <h3 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.16em', fontSize: 13.5, color: 'var(--tekst-5-app)', margin: 0 }}>
         {tittel}
       </h3>
-      {merknad && <span style={{ fontSize: 12, color: 'var(--tekst-8-app)' }}>{merknad}</span>}
+      <span className="flex items-center gap-2">
+        {merknad && <span style={{ fontSize: 12, color: 'var(--tekst-8-app)' }}>{merknad}</span>}
+        {chartKey && <StarButton chartKey={chartKey} size={16} />}
+      </span>
     </div>
   )
 }
@@ -354,8 +362,10 @@ function Flis({ navn, enhet, felt, sisteMed, snittAv, lavereErBedre = false, som
   )
 }
 
-export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = false }: {
+export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = false, chartKey }: {
   liten?: boolean
+  /** Bolk 1: stjerne på panelet (helse_hrv, helse_resting_hr, helse_sovnscore, helse_body_weight). */
+  chartKey?: string
   navn: string
   enhet: string
   farge: string
@@ -382,14 +392,18 @@ export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = 
   }, [dager, felt, ukesnitt])
 
   const siste = punkter.length > 0 ? punkter[punkter.length - 1].v : null
+  sjekkGrafNokkel(chartKey, navn)
 
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 10, padding: liten ? '8px 10px' : '12px 14px', minWidth: 0 }}>
+    <div data-chart-key={chartKey} style={{ background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 10, padding: liten ? '8px 10px' : '12px 14px', minWidth: 0 }}>
       <div className="flex justify-between items-baseline" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, letterSpacing: '0.12em', fontSize: liten ? 10.5 : 12, color: 'var(--tekst-5-app)', gap: 6, flexWrap: 'wrap' }}>
         <span>{navn}</span>
-        <b style={{ fontFamily: "'Inter', sans-serif", fontSize: liten ? 13 : 15, color: 'var(--tekst-1-app)', letterSpacing: 0 }}>
-          {siste != null ? `${siste}${enhet ? ` ${enhet}` : ''}` : '–'}
-        </b>
+        <span className="flex items-center gap-1">
+          <b style={{ fontFamily: "'Inter', sans-serif", fontSize: liten ? 13 : 15, color: 'var(--tekst-1-app)', letterSpacing: 0 }}>
+            {siste != null ? `${siste}${enhet ? ` ${enhet}` : ''}` : '–'}
+          </b>
+          {chartKey && <StarButton chartKey={chartKey} size={14} />}
+        </span>
       </div>
       {punkter.length < 2 ? (
         <p style={{ fontSize: 12, color: 'var(--tekst-8-app)', margin: '18px 0' }}>for lite data</p>

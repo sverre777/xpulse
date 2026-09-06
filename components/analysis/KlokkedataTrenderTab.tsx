@@ -9,6 +9,7 @@ import {
 } from 'recharts'
 import type { KlokkedataTrender, TrendPoint, ZoneWeekPoint } from '@/app/actions/klokkedata-trender'
 import { ChartWrapper } from './ChartWrapper'
+import { MetricCard } from './MetricCard'
 import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import {
@@ -106,29 +107,14 @@ export function KlokkedataTrenderTab({ data }: Props) {
   )
 }
 
-function Summary({ data }: { data: KlokkedataTrender }) {
+export function Summary({ data }: { data: KlokkedataTrender }) {
   const pct = data.workoutsTotal > 0
     ? Math.round((data.workoutsWithKlokkesync / data.workoutsTotal) * 100)
     : 0
   return (
-    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-      <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        Klokkesync-dekning
-      </p>
-      <div className="flex items-baseline gap-3 flex-wrap">
-        <span style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
-          fontSize: '28px', letterSpacing: '0.04em',
-        }}>
-          {data.workoutsWithKlokkesync}/{data.workoutsTotal}
-        </span>
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
-          {pct}% av økter med klokke-data
-        </span>
-      </div>
-    </div>
+    <MetricCard chartKey="klokkedata_dekning" label="Klokkesync-dekning"
+      value={`${data.workoutsWithKlokkesync}/${data.workoutsTotal}`} valueSize={28}
+      sublabel={`${pct}% av økter med klokke-data`} />
   )
 }
 
@@ -230,4 +216,28 @@ function PowerCurveChart({
       </BarChart>
     </ResponsiveContainer>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Klokkedata-nøklene. */
+export function renderFavoritt(key: string, data: KlokkedataTrender): React.ReactNode | null {
+  switch (key) {
+    case 'klokkedata_dekning': return <Summary data={data} />
+    case 'klokke_zones_per_week': return data.zonesPerWeek.length > 0 ? (
+      <ChartWrapper title="Tid i sone per uke" subtitle="Stacked timer per intensitetssone — viser 80/20-polarisering" chartKey="klokke_zones_per_week">
+        <ZonesPerWeekChart points={data.zonesPerWeek} />
+      </ChartWrapper>) : null
+    case 'klokke_power_curve': return data.powerCurve.length > 0 ? (
+      <ChartWrapper title="Power curve" subtitle="Beste snitt-watt over perioden" chartKey="klokke_power_curve">
+        <PowerCurveChart points={data.powerCurve} />
+      </ChartWrapper>) : null
+    case 'klokke_suffer_score': return data.sufferScore.length > 0 ? (
+      <ChartWrapper title="Suffer score" subtitle="Strava sin estimering av øktbelastning" chartKey="klokke_suffer_score">
+        <SimpleLineChart points={data.sufferScore} unitLabel="poeng" color="#E23A5A" />
+      </ChartWrapper>) : null
+    case 'klokke_cadence': return data.cadence.length > 0 ? (
+      <ChartWrapper title="Kadens-utvikling" subtitle="Snitt-kadens per økt" chartKey="klokke_cadence">
+        <SimpleLineChart points={data.cadence} unitLabel="rpm/spm" color="#7AA2FF" />
+      </ChartWrapper>) : null
+    default: return null
+  }
 }

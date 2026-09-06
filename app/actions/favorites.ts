@@ -123,3 +123,19 @@ export async function toggleFavoriteChart(chartKey: string): Promise<{ favorited
   revalidatePath('/app/analyse')
   return { favorited: true }
 }
+
+/** Ny rekkefølge for favorittene (Favoritter-fanen, dra-og-slipp). Skriver
+    sort_order = plass i lista; nøkler som ikke er med beholder sin. */
+export async function reorderFavoriteCharts(chartKeys: string[]): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const keys = chartKeys.map(k => k.trim()).filter(k => k !== '')
+  if (keys.length === 0) return {}
+  const { error } = await supabase
+    .from('user_favorite_charts')
+    .upsert(keys.map((chart_key, sort_order) => ({ user_id: user.id, chart_key, sort_order })), { onConflict: 'user_id,chart_key' })
+  if (error) return { error: error.message }
+  revalidatePath('/app/analyse')
+  return {}
+}

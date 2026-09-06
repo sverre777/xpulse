@@ -8,6 +8,7 @@
 
 // Fargefasiten eies av SkytingSummaryCards — ingen egen kopi her.
 import { COLOR_PRONE, COLOR_STANDING, COLOR_TOTAL } from './SkytingSummaryCards'
+import { MetricCard } from './MetricCard'
 
 export interface ShootingTotals {
   prone_shots?: number
@@ -47,26 +48,27 @@ function deriveStats(t: ShootingTotals): { total: number | null; prone: number |
 }
 
 interface Props {
+  /** Faneprefiks for stjerne-nøklene på kortvarianten (bolk 1), f.eks. 'konkurranser'. */
+  keyPrefix?: string
   totals: ShootingTotals
   variant?: 'cards' | 'inline'
 }
 
-export function TreffPercentageDisplay({ totals, variant = 'inline' }: Props) {
+export function TreffPercentageDisplay({ totals, variant = 'inline', keyPrefix }: Props) {
   const s = deriveStats(totals)
   if (s.totalShots === 0 && s.total == null) return null
 
   if (variant === 'cards') {
+    // Bolk 1: kortene er MetricCard m/ nøkkel «<keyPrefix>_treff_*» (Konkurranser).
+    const k = (navn: string) => keyPrefix ? `${keyPrefix}_treff_${navn}` : undefined
     return (
       <div className="grid grid-cols-3 gap-2">
-        <Card label="Totalt" value={fmtPct(s.total)}
-          sub={s.totalShots > 0 ? `${s.totalShots} skudd` : null}
-          color={COLOR_TOTAL} />
-        <Card label="Liggende" value={fmtPct(s.prone)}
-          sub={s.proneShots > 0 ? `${s.proneShots} skudd` : null}
-          color={COLOR_PRONE} />
-        <Card label="Stående" value={fmtPct(s.standing)}
-          sub={s.standingShots > 0 ? `${s.standingShots} skudd` : null}
-          color={COLOR_STANDING} />
+        <MetricCard chartKey={k('totalt')} label="Totalt" value={fmtPct(s.total)} valueSize={24}
+          sublabel={s.totalShots > 0 ? `${s.totalShots} skudd` : null} accent={COLOR_TOTAL} />
+        <MetricCard chartKey={k('liggende')} label="Liggende" value={fmtPct(s.prone)} valueSize={24}
+          sublabel={s.proneShots > 0 ? `${s.proneShots} skudd` : null} accent={COLOR_PRONE} />
+        <MetricCard chartKey={k('staaende')} label="Stående" value={fmtPct(s.standing)} valueSize={24}
+          sublabel={s.standingShots > 0 ? `${s.standingShots} skudd` : null} accent={COLOR_STANDING} />
       </div>
     )
   }
@@ -79,30 +81,5 @@ export function TreffPercentageDisplay({ totals, variant = 'inline' }: Props) {
       <span style={{ color: 'var(--tekst-8-app)', margin: '0 6px' }}>·</span>
       <span style={{ color: COLOR_STANDING }}>S {fmtPct(s.standing)}</span>
     </span>
-  )
-}
-
-function Card({ label, value, sub, color }: { label: string; value: string; sub: string | null; color: string }) {
-  return (
-    <div className="p-3 flex flex-col gap-1"
-      style={{
-        backgroundColor: 'var(--flate-12-alt)',
-        border: '1px solid var(--kant-3)',
-        borderLeft: `3px solid ${color}`,
-      }}>
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        {label}
-      </span>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', lineHeight: 1, letterSpacing: '0.03em' }}>
-        {value}
-      </span>
-      {sub && (
-        <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          {sub}
-        </span>
-      )}
-    </div>
   )
 }

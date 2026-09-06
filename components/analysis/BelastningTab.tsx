@@ -7,6 +7,8 @@ import {
 } from 'recharts'
 import type { BelastningAnalysis, FormStatus } from '@/app/actions/analysis'
 import { ChartWrapper } from './ChartWrapper'
+import { MetricCard } from './MetricCard'
+import type { ReactNode } from 'react'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE,
   CHART_LEGEND_STYLE, CHART_CURSOR,
@@ -88,51 +90,22 @@ export function BelastningTab({ data }: { data: BelastningAnalysis }) {
   )
 }
 
-function CurrentStatus({ data }: { data: BelastningAnalysis }) {
+export function CurrentStatus({ data, bare }: { data: BelastningAnalysis; bare?: string }) {
   const { atl, ctl, tsb, formStatus } = data.current
   const form = FORM_LABELS[formStatus]
-
+  const kort = [
+    <MetricCard key="ctl" chartKey="belastning_ctl" label="Fitness (CTL)" value={ctl.toFixed(0)} sublabel="42-dagers snitt TSS" accent={COLOR_CTL} />,
+    <MetricCard key="atl" chartKey="belastning_atl" label="Fatigue (ATL)" value={atl.toFixed(0)} sublabel="7-dagers snitt TSS" accent={COLOR_ATL} />,
+    <MetricCard key="tsb" chartKey="belastning_tsb" label="Form (TSB)" value={(tsb >= 0 ? '+' : '') + tsb.toFixed(0)} sublabel="CTL − ATL" accent={COLOR_TSB} />,
+    <MetricCard key="form" chartKey="belastning_formstatus" label="Formstatus" value={form.label} sublabel={form.desc} accent={form.color} valueColor={form.color} valueSize={28} />,
+  ]
+  if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-      <StatCard label="Fitness (CTL)" value={ctl.toFixed(0)} sub="42-dagers snitt TSS"    accent={COLOR_CTL} />
-      <StatCard label="Fatigue (ATL)" value={atl.toFixed(0)} sub="7-dagers snitt TSS"     accent={COLOR_ATL} />
-      <StatCard label="Form (TSB)"    value={(tsb >= 0 ? '+' : '') + tsb.toFixed(0)}
-                sub="CTL − ATL" accent={COLOR_TSB} />
-      <div className="p-4 flex flex-col gap-1"
-        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
-        <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Formstatus
-        </p>
-        <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: form.color, fontSize: '28px', lineHeight: 1.05, letterSpacing: '0.03em' }}>
-          {form.label}
-        </p>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          {form.desc}
-        </p>
-      </div>
+      {kort}
     </div>
   )
 }
-
-function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
-  return (
-    <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
-      <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        {label}
-      </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
-        {value}
-      </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {sub}
-      </p>
-    </div>
-  )
-}
-
 export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
   const rows = useMemo(() => data.daily.map(d => ({
     date: d.date,
@@ -491,4 +464,18 @@ function MethodNote() {
       </p>
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Belastning-nøklene (Favoritter-fanen). */
+export function renderFavoritt(key: string, data: BelastningAnalysis): ReactNode | null {
+  switch (key) {
+    case 'belastning_fitness_fatigue_form': return <FitnessFatigueChart data={data} />
+    case 'belastning_daily_tss': return <DailyTssChart data={data} />
+    case 'belastning_perceived_vs_calculated': return <PerceivedVsCalculatedChart data={data} />
+    case 'belastning_energy_stress_over_time': return <EnergyStressOverTimeChart data={data} />
+    case 'belastning_rest_day_stats': return <RestDayStats data={data} />
+    case 'belastning_ctl': case 'belastning_atl': case 'belastning_tsb': case 'belastning_formstatus':
+      return <CurrentStatus data={data} bare={key} />
+    default: return null
+  }
 }

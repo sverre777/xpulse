@@ -14,6 +14,7 @@
 //   · Snitt regnes kun på FØRTE verdier.
 //   · Trener: read-only — samme RLS-vei (egen + utøvere-vi-coacher).
 
+import { ChartWrapper } from '@/components/analysis/ChartWrapper'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -343,9 +344,8 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
 
           {/* ── Drag-graf: aktivitetslista er draglista ── */}
           {dragData.length >= 2 && (
-            <div>
+            <ChartWrapper chartKey="standardokter_drag_for_drag" title="Drag for drag" height="auto">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span style={T_LABEL}>Drag for drag</span>
                 {DRAG_METRIKKER.map(m => (
                   <button key={m.verdi} type="button" onClick={() => setDragMetrikk(m.verdi)}
                     style={{
@@ -387,13 +387,12 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                   </span>
                 ))}
               </div>
-            </div>
+            </ChartWrapper>
           )}
 
           {/* ── Pulskurver — kun med klokkesynk-data ── */}
           {harPuls && pulsData.length > 2 && (
-            <div>
-              <span style={T_LABEL}>Puls gjennom økta</span>
+            <ChartWrapper chartKey="standardokter_puls_gjennom_okta" title="Puls gjennom økta" height="auto">
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={pulsData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
                   <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -409,7 +408,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                   ))}
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </ChartWrapper>
           )}
 
           {/* ── Styrke: samme øvelse mot seg selv over tid ── */}
@@ -494,8 +493,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
 
           {/* ── Trend over ALLE gjennomføringer ── */}
           {trendData.filter(t => t.verdi != null).length >= 2 && (
-            <div>
-              <span style={T_LABEL}>Trend — alle {alle.length} gjennomføringer (total tid, min)</span>
+            <ChartWrapper chartKey="standardokter_trend_total_tid" title={`Trend — alle ${alle.length} gjennomføringer (total tid, min)`} height="auto">
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={trendData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
                   <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -506,7 +504,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                     dot={{ r: 3, strokeWidth: 0 }} connectNulls isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </ChartWrapper>
           )}
         </div>
       )}

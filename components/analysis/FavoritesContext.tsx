@@ -1,15 +1,18 @@
 'use client'
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { toggleFavoriteChart } from '@/app/actions/favorites'
+import { toggleFavoriteChart, reorderFavoriteCharts } from '@/app/actions/favorites'
 
 // Delt tilstand for stjerne-markerte grafer i Analyse. Leses av StarButton
-// (i ChartWrapper) og av FavoriteChartsSection på Oversikt-fanen.
+// (i ChartWrapper/MetricCard) og av Favoritter-fanen (bolk 1). Optimistisk:
+// stjerne og rekkefølge flippes lokalt først, rulles tilbake ved feil.
 
 interface FavoritesContextValue {
   favorites: Set<string>
   orderedKeys: string[]
   toggle: (chartKey: string) => Promise<void>
+  /** Ny rekkefølge (Favoritter-fanen, dra-og-slipp). */
+  reorder: (keys: string[]) => Promise<void>
   isPending: boolean
   error: string | null
 }
@@ -56,9 +59,17 @@ export function FavoritesProvider({
     }
   }, [orderedKeys])
 
+  const reorder = useCallback(async (keys: string[]) => {
+    const forrige = orderedKeys
+    setOrderedKeys(keys)
+    setError(null)
+    const res = await reorderFavoriteCharts(keys)
+    if (res.error) { setOrderedKeys(forrige); setError(res.error) }
+  }, [orderedKeys])
+
   const value = useMemo<FavoritesContextValue>(() => ({
-    favorites, orderedKeys, toggle, isPending, error,
-  }), [favorites, orderedKeys, toggle, isPending, error])
+    favorites, orderedKeys, toggle, reorder, isPending, error,
+  }), [favorites, orderedKeys, toggle, reorder, isPending, error])
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>
 }
@@ -71,6 +82,7 @@ export function useFavorites(): FavoritesContextValue {
       favorites: new Set(),
       orderedKeys: [],
       toggle: async () => {},
+      reorder: async () => {},
       isPending: false,
       error: null,
     }

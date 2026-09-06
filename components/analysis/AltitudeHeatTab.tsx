@@ -1,6 +1,7 @@
 'use client'
 
 import type { AltitudeHeatAnalysis, AltitudePeriodStat } from '@/app/actions/analysis'
+import { ChartWrapper } from './ChartWrapper'
 
 // Høyde & varme — egen analyse-flate med fokus på FORM rundt høyde-/varmeopphold.
 // Nøytral overflate: vis data, ingen tolkning (tolkning kommer i AI Coach senere).
@@ -34,15 +35,7 @@ export function AltitudeHeatTab({ data }: { data: AltitudeHeatAnalysis | null })
   return (
     <div className="space-y-6">
       {/* Høyde-perioder med form under vs etter */}
-      <Section title="Form rundt høydeopphold" hint="Snittpuls/pace UNDER perioden vs de 3 ukene ETTER (høyderespons). Lavere puls / raskere pace etter kan tyde på respons.">
-        {data.altitudePeriods.length > 0 ? (
-          <div className="space-y-3">
-            {data.altitudePeriods.map(p => <PeriodCard key={p.id} p={p} />)}
-          </div>
-        ) : (
-          <Empty>Ingen høyde-perioder i årsplanen for denne perioden. Enkelt-økter markert som høydetrening: {data.altitudeWorkoutCount}.</Empty>
-        )}
-      </Section>
+      <HoydePerioder data={data} />
 
       {/* Varmeøkter */}
       <Section title="Varmetrening" hint="Kroppstemperatur + snittpuls per varmeøkt — følg akklimatisering over tid.">
@@ -128,4 +121,24 @@ function Th({ children, left }: { children: React.ReactNode; left?: boolean }) {
 }
 function Td({ children, left }: { children: React.ReactNode; left?: boolean }) {
   return <td style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: left ? 'var(--tekst-1-app)' : 'var(--tekst-3-app)', fontSize: 13 }}>{children}</td>
+}
+
+/** Høyde- og varmeperioder — brukes av fanen og Favoritter (bolk 1). */
+export function HoydePerioder({ data }: { data: AltitudeHeatAnalysis }) {
+  return (
+    <ChartWrapper chartKey="hoyde_varme_perioder" title="Form rundt høydeopphold" subtitle="Snittpuls/pace UNDER perioden vs de 3 ukene ETTER (høyderespons). Lavere puls / raskere pace etter kan tyde på respons." height="auto">
+      {data.altitudePeriods.length > 0 ? (
+        <div className="space-y-3">
+          {data.altitudePeriods.map(p => <PeriodCard key={p.id} p={p} />)}
+        </div>
+      ) : (
+        <Empty>Ingen høyde-perioder i årsplanen for denne perioden. Enkelt-økter markert som høydetrening: {data.altitudeWorkoutCount}.</Empty>
+      )}
+    </ChartWrapper>
+  )
+}
+
+export function renderFavoritt(key: string, data: AltitudeHeatAnalysis): React.ReactNode | null {
+  if (!data.hasData) return null
+  return key === 'hoyde_varme_perioder' ? <HoydePerioder data={data} /> : null
 }

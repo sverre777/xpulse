@@ -41,7 +41,7 @@ export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
   )
 }
 
-// Eksportert også til FavoriteChartsSection (stjernede grafer på
+// Eksportert også til Favoritter-fanen (stjernede grafer på
 // Oversikt) — samme komponent begge steder, regel 11. Utvalgs-
 // etikettene er del av grafen: et skjult filter skal aldri være
 // usynlig på flaten (konvensjonen).
@@ -181,4 +181,13 @@ function FrakoblingChart({ punkter }: { punkter: FrakoblingsPunkt[] }) {
       </LineChart>
     </ResponsiveContainer>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Prestasjon-nøklene. */
+export function renderFavoritt(key: string, data: PrestasjonAnalyse): React.ReactNode | null {
+  switch (key) {
+    case 'prestasjon_ef': return <EfSection data={data} />
+    case 'prestasjon_frakobling': return <FrakoblingSection data={data} />
+    default: return null
+  }
 }

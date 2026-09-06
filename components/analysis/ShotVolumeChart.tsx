@@ -137,7 +137,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
 
   return (
     <ChartWrapper
-      chartKey="shot-volume"
+      chartKey="skyting_skuddmengde"
       title={title}
       subtitle={`${grouping === 'week' ? 'Per uke' : 'Per måned'} · ${
         viewMode === 'completed' ? 'gjennomført'

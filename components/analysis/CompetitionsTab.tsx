@@ -463,6 +463,7 @@ export function CompetitionsTab({
                       total_accuracy_pct: rec > 0 ? Math.round(((proneHits + standingHits) / rec) * 1000) / 10 : null,
                     }}
                     variant="cards"
+                    keyPrefix="konkurranser"
                   />
                 )
               })()}

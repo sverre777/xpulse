@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { StarButton } from './StarButton'
+import { sjekkGrafNokkel } from './graf-nokkel'
 
-// Gjenbrukbart kort for Oversikt-fanen. Stort Bebas Neue-tall, liten delta (forrige
+// Gjenbrukbart nøkkeltallkort for alle analysefanene (bolk 1: én kortkomponent). Stort Bebas Neue-tall, liten delta (forrige
 // periode) og uppercase-etikett. Delta fargelegges positivt/negativt avhengig av
 // `positiveIsGood` (f.eks. mer tid = bra, høyere hvilepuls = dårlig).
 
@@ -15,7 +16,9 @@ export interface MetricCardProps {
   positiveIsGood?: boolean        // styrer farge på delta. Default true.
   accent?: string                 // venstre-kant aksent-farge
   children?: ReactNode            // plass for micro-charts (sone-bar, chips)
-  chartKey?: string               // gjør kortet stjerne-bart (Mine grafer)
+  chartKey?: string               // gjør kortet stjerne-bart (Favoritter)
+  valueColor?: string             // f.eks. formstatus-farge
+  valueSize?: number              // px, standard 40
 }
 
 function formatDelta(n: number | null | undefined): string | null {
@@ -27,7 +30,7 @@ function formatDelta(n: number | null | undefined): string | null {
 }
 
 export function MetricCard({
-  label, value, sublabel, deltaPercent, positiveIsGood = true, accent = '#FF4500', children, chartKey,
+  label, value, sublabel, deltaPercent, positiveIsGood = true, accent = '#FF4500', children, chartKey, valueColor, valueSize = 40,
 }: MetricCardProps) {
   const delta = formatDelta(deltaPercent)
   const isPositive = deltaPercent !== null && deltaPercent !== undefined && deltaPercent > 0
@@ -35,10 +38,12 @@ export function MetricCard({
   const good = (positiveIsGood ? isPositive : isNegative)
   const bad = (positiveIsGood ? isNegative : isPositive)
   const deltaColor = good ? '#28A86E' : bad ? '#E23A5A' : 'var(--tekst-5-app)'
+  sjekkGrafNokkel(chartKey, label)
 
   return (
     <div
       className="p-4 flex flex-col gap-1 relative"
+      data-chart-key={chartKey}
       style={{
         backgroundColor: 'var(--card)',
         border: '1px solid var(--line)',
@@ -62,8 +67,8 @@ export function MetricCard({
         <span
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            color: 'var(--tekst-1-app)',
-            fontSize: '40px',
+            color: valueColor ?? 'var(--tekst-1-app)',
+            fontSize: `${valueSize}px`,
             lineHeight: 1,
             letterSpacing: '0.03em',
           }}

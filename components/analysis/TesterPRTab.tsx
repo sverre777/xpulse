@@ -90,7 +90,7 @@ const EMPTY = (
   />
 )
 
-function ProgressionChart({ series }: { series: TestProgressionSeries }) {
+export function ProgressionChart({ series }: { series: TestProgressionSeries }) {
   const data = series.points.map(p => ({
     date: p.date, value: p.value, workout_id: p.workout_id,
   }))
@@ -442,4 +442,10 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
       {modal}
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring — nøkkelfamilien tester_pr_<sport>_<test>. */
+export function renderFavoritt(key: string, data: TestsAndPRs): React.ReactNode | null {
+  const serie = data.progressions.find(s => `tester_pr_${s.sport}_${s.test_type}` === key)
+  return serie ? <ProgressionChart series={serie} /> : null
 }

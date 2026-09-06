@@ -1,5 +1,6 @@
 'use client'
 
+import { ChartWrapper } from './ChartWrapper'
 import { useState, useMemo, useEffect, useTransition } from 'react'
 import Link from 'next/link'
 import {
@@ -244,14 +245,14 @@ export function CompareWorkoutsTab({
         {detailed ? (
           <div className="space-y-4">
             <WeatherCompareRow workouts={detailed} />
-            <MultiWorkoutTimeSeriesChart workouts={detailed} metric="hr"
+            <MultiWorkoutTimeSeriesChart workouts={detailed} metric="hr" chartKey="sammenlign_pulskurve"
               title="Pulskurve over økten" yLabel="bpm" />
             {showWatts && (
-              <MultiWorkoutTimeSeriesChart workouts={detailed} metric="watts"
+              <MultiWorkoutTimeSeriesChart workouts={detailed} metric="watts" chartKey="sammenlign_wattkurve"
                 title="Watt-kurve over økten" yLabel="W" />
             )}
             {showPace && (
-              <MultiWorkoutTimeSeriesChart workouts={detailed} metric="pace"
+              <MultiWorkoutTimeSeriesChart workouts={detailed} metric="pace" chartKey="sammenlign_pacekurve"
                 title="Pace-kurve over økten (min/km)" yLabel="m:ss/km" />
             )}
             <SplitsCompareChart workouts={detailed} />
@@ -966,12 +967,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
     return `${m}:${String(s).padStart(2, '0')}`
   }
   return (
-    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-      <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-        Splits per km
-      </p>
-      <div style={{ width: '100%', height: 260 }}>
+    <ChartWrapper chartKey="sammenlign_splits" title="Splits per km" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -990,8 +986,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
             ))}
           </LineChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+    </ChartWrapper>
   )
 }
 
@@ -1012,12 +1007,7 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
   }).filter(s => s.points.length > 0)
   if (series.length === 0) return null
   return (
-    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-      <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-        Laktat-utvikling
-      </p>
-      <div style={{ width: '100%', height: 240 }}>
+    <ChartWrapper chartKey="sammenlign_laktat" title="Laktat-utvikling" height={240}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -1035,7 +1025,6 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
             ))}
           </LineChart>
         </ResponsiveContainer>
-      </div>
-    </div>
+    </ChartWrapper>
   )
 }

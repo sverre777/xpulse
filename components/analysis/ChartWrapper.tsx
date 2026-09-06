@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react'
 import { StarButton } from './StarButton'
+import { sjekkGrafNokkel } from './graf-nokkel'
 
 export function ChartWrapper({
   title, subtitle, children, height = 280, chartKey,
@@ -14,8 +15,10 @@ export function ChartWrapper({
   height?: number | 'auto'
   chartKey?: string
 }) {
+  // Bolk 1: alle grafer har stjerne — nøkkelen skal stå i registeret.
+  sjekkGrafNokkel(chartKey, title)
   return (
-    <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
+    <div className="p-5" data-chart-key={chartKey} style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs tracking-widest uppercase"

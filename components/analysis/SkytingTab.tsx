@@ -108,7 +108,7 @@ export function SkytingTab({ data, range, targetUserId }: {
 // uke. Veiledningstall — ALDRI røde alarmfarger. Uten satt mål: fordelingen
 // vises, mål-baren skjules. Målet settes på sesongen (rediger sesong i
 // årsplanen). Selvskjulende uten sesong/skyting.
-function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
+export function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
   const [prog, setProg] = useState<ShotSeasonProgress | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -124,7 +124,7 @@ function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
 
   return (
     <ChartWrapper
-      chartKey="shot-goal"
+      chartKey="skyting_skuddmaal"
       title="Skuddmengde mot årsmål"
       subtitle={`${prog.seasonName} · ${prog.from} → ${prog.to} · veiledningstall`}
       height="auto"
@@ -245,7 +245,7 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
   )
 }
 
-function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
+export function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
   const { firstVsLast } = data
   if (firstVsLast.workouts_with_multiple_series === 0) return null
   const delta = (firstVsLast.first_accuracy_pct != null && firstVsLast.last_accuracy_pct != null)
@@ -256,16 +256,8 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
     : null
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-2">
-        <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-          Første vs. siste serie
-        </p>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"
-        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+    <ChartWrapper chartKey="skyting_forste_vs_siste" title="Første vs. siste serie" height="auto">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <InlineStat label="Første serie — treff%" value={fmtPct(firstVsLast.first_accuracy_pct)}
           sub={firstVsLast.first_avg_hr != null ? `snittpuls ${firstVsLast.first_avg_hr}` : undefined} />
         <InlineStat label="Siste serie — treff%" value={fmtPct(firstVsLast.last_accuracy_pct)}
@@ -278,7 +270,7 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
           value={deltaHr == null ? '—' : (deltaHr > 0 ? '+' : '') + deltaHr.toString()}
           sub={`${firstVsLast.workouts_with_multiple_series} økter med ≥2 serier`} />
       </div>
-    </div>
+    </ChartWrapper>
   )
 }
 
@@ -483,4 +475,24 @@ function MethodNote() {
       </p>
     </div>
   )
+}
+
+/** Bolk 1: favoritt-rendring for Skyting-nøklene. Skudd per uke trenger
+    perioden (range) — resten kommer fra fanens data. */
+export function renderFavoritt(key: string, data: ShootingDepthAnalysis | null, ctx: { range: DateRange; targetUserId?: string }): React.ReactNode | null {
+  if (key === 'skyting_skuddmaal') return <ShotGoalCard targetUserId={ctx.targetUserId} />
+  if (key === 'skyting_skuddmengde') return <ShotVolumeChart range={ctx.range} targetUserId={ctx.targetUserId} title="Skudd per uke" />
+  if (!data || !data.hasData || data.sportMismatch) return null
+  switch (key) {
+    case 'skyting_custom': return <CustomSkytingChartBuilder data={data} />
+    case 'skyting_accuracy_over_time': return <AccuracyTrend data={data} />
+    case 'skyting_accuracy_hr_zones': return <HrZoneAccuracy data={data} />
+    case 'skyting_wind_accuracy': return <SkytingVindSiktCard data={data} />
+    case 'skyting_time_per_series': return <TimeTrend data={data} />
+    case 'skyting_training_vs_comp': return <TrainingVsComp data={data} />
+    case 'skyting_forste_vs_siste': return <FirstVsLast data={data} />
+    case 'skyting_treff_totalt': case 'skyting_treff_liggende': case 'skyting_treff_staaende': case 'skyting_treff_konkurranse':
+      return <SkytingSummaryCards data={data} bare={key} />
+    default: return null
+  }
 }

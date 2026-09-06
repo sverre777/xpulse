@@ -513,8 +513,6 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .blinkstats b{color:var(--paper)}
 
 /* problem */
-.problems{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:34px}
-@media(max-width:860px){.problems{grid-template-columns:1fr}}
 .prob{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:24px}
 .prob .n{font:700 11px/1 'Barlow Condensed';letter-spacing:.2em;color:var(--orange);margin-bottom:12px}
 .prob b{display:block;margin-bottom:6px;font-size:15px}
@@ -1049,11 +1047,6 @@ html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-or
   transition:opacity .22s,transform .3s cubic-bezier(.2,1.6,.4,1)}
 html.js .ishot.vis{opacity:1;transform:scale(1)}
 
-/* Problemkortene + svaret */
-html.js .prob{opacity:0;transform:translateY(22px);transition:opacity .38s ease,transform .38s ease}
-html.js .prob.vis{opacity:1;transform:none}
-html.js .solution{opacity:0;transform:translateY(16px);transition:opacity .4s .1s,transform .4s .1s}
-html.js .solution.vis{opacity:1;transform:none}
 
 @media (prefers-reduced-motion: reduce){
   .ipane,.ishot,.prob,.solution,.istep,.idot{transition:none !important}
@@ -1627,6 +1620,32 @@ html.js .solution.vis{opacity:1;transform:none}
 .mflyt.vis{opacity:1;transform:none}
 @media (max-width:900px){.flyt-scrolly{display:none}.flyt-mobil{display:block}}
 @media (prefers-reduced-motion:reduce){.flyt-scrolly{height:auto}.flyt-sticky{position:static;height:auto;grid-template-columns:1fr}.paneler{display:block}.pan{opacity:1;transform:none;margin-top:18px}.pan .app{max-height:none}.sl{opacity:1;transform:none}.mflyt{opacity:1;transform:none}.flyt-hint{display:none}}
+/* ═══ FORSIDE v7 bolk 1 — «Én app. Ikke tre.» som scrolldrevet seksjon ═══ */
+/* problem-seksjonen: tre kort samles til ett */
+.prob-sticky{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;align-items:start;height:auto;min-height:72vh;top:calc(50vh - 36vh)}
+.prob-sticky .hd{padding-top:28px;text-align:center}
+.prob-sticky .hd h2{margin-bottom:24px}
+.probs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-self:start;max-width:1000px;width:100%;margin:0 auto;transition:transform .6s cubic-bezier(.2,.7,.2,1),opacity .5s;position:relative;z-index:1}
+.pk{opacity:0;transform:translateX(-60px);transition:opacity .5s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+.prob-scrolly[data-step="0"] .pk[data-i="0"],.prob-scrolly[data-step="1"] .pk[data-i="0"],.prob-scrolly[data-step="1"] .pk[data-i="1"],.prob-scrolly[data-step="2"] .pk{opacity:1;transform:none}
+.prob-scrolly[data-step="1"] .pk[data-i="0"]{opacity:.55}
+.prob-scrolly[data-step="2"] .pk[data-i="0"],.prob-scrolly[data-step="2"] .pk[data-i="1"]{opacity:.55}
+.prob-scrolly[data-step="3"] .pk{opacity:.12;transform:scale(.9)}
+.prob-scrolly[data-step="3"] .probs{transform:translateY(-40px)}
+.sol{position:absolute;left:50%;width:min(880px,calc(100% - 56px));top:60%;transform:translate(-50%,-30%) scale(.94);opacity:0;background:var(--card);border:1px solid var(--line2);border-radius:20px;padding:34px 38px;box-shadow:0 30px 80px rgba(0,0,0,.35);transition:opacity .5s ease .1s,transform .6s cubic-bezier(.2,.7,.2,1) .1s;z-index:2;margin:0}
+.prob-scrolly[data-step="3"] .sol{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sol .big{font-size:clamp(22px,2.6vw,34px);line-height:1.15}
+.sol .sub{margin-top:10px;font:400 clamp(17px,1.6vw,21px)/1.2 'Bebas Neue';letter-spacing:.06em;color:var(--orange);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.sol .sub::before{content:'';width:26px;height:3px;background:var(--orange);border-radius:2px;flex:none}
+.prob-sticky{position:sticky}
+.solchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.solchips span{font:700 11px/1 'Barlow Condensed';letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:999px;padding:7px 11px;color:var(--paper);opacity:0;transform:translateY(8px) scale(.96)}
+.prob-scrolly[data-step="3"] .solchips span,.solchips.vis span{animation:chipin .35s forwards;animation-delay:calc(.45s + var(--i) * .07s)}
+.solchips span:nth-child(3n+1){border-color:color-mix(in srgb,var(--orange) 55%,transparent)}
+@keyframes chipin{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.solchips span{opacity:1;transform:none;animation:none}}
+.prob-scrolly .flyt-hint{display:none}
+@media (prefers-reduced-motion:reduce){.pk{opacity:1;transform:none}.sol{position:static;opacity:1;transform:none;margin-top:28px}.prob-sticky{position:static;min-height:0}.probs{transform:none}}
 </style>
 </head>
 <body>
@@ -1830,6 +1849,23 @@ html.js .solution.vis{opacity:1;transform:none}
  </div>
 </div>
 </header>
+
+<!-- ═══════════ FORSIDE v7 bolk 1: DU FORTJENER ÉN APP. IKKE TRE. — rett under heroen, scrolldrevet (bolk 0-motoren) ═══════════ -->
+<section id="problem" style="padding:0 0 40px"><div class="flyt-scrolly prob-scrolly" data-n="4" style="height:calc(4 * 60vh + 30vh)">
+  <div class="flyt-sticky prob-sticky">
+    <div class="hd"><h2>DU FORTJENER <span class="o">ÉN APP.</span> IKKE TRE.</h2></div>
+    <div class="probs"><div class="prob pk" data-i="0"><div class="n">PROBLEM 01</div><b>Planen lever i Excel eller på papir</b><p>Den vet ikke om du gjennomførte økten, traff sonene eller måtte flytte den.</p></div>
+<div class="prob pk" data-i="1"><div class="n">PROBLEM 02</div><b>Dagboken er isolert</b><p>Notater og følelse logges ett sted — dataene dine et annet. De møtes aldri.</p></div>
+<div class="prob pk" data-i="2"><div class="n">PROBLEM 03</div><b>Analysen sover i klokkeappen</b><p>Puls, HRV og belastning ligger der — uten å vite hva du planla, følte eller endret.</p></div></div>
+    <div class="solution sol"><div><div class="big">X-PULSE kobler plan, dagbok og analyse i ett — så hver økt faktisk lærer deg noe.</div><div class="sub">Bygget av aktive utøvere som savnet nettopp dette.</div><div class="solchips"><span style="--i:0">Øktbygger</span><span style="--i:1">Klokkesynk</span><span style="--i:2">Plan mot virkelighet</span><span style="--i:3">Skiskyting m/ treff & vind</span><span style="--i:4">Ski-tester</span><span style="--i:5">Vær/føre</span><span style="--i:6">Live styrke</span><span style="--i:7">Analyse & favoritter</span><span style="--i:8">Årsplan</span><span style="--i:9">Maler & standardøkter</span><span style="--i:10">Helse & søvn</span><span style="--i:11">Utstyr & skipark</span><span style="--i:12">Trenerpanel</span><span style="--i:13">AI-coach</span></div></div></div>
+    <div class="flyt-hint"><i></i>Bla videre</div>
+  </div>
+</div>
+<div class="flyt-mobil">
+  <h2>DU FORTJENER <span class="o">ÉN APP.</span> IKKE TRE.</h2>
+  <div class="mflyt" data-side="l"><div class="prob"><div class="n">PROBLEM 01</div><b>Planen lever i Excel eller på papir</b><p>Den vet ikke om du gjennomførte økten, traff sonene eller måtte flytte den.</p></div></div><div class="mflyt" data-side="r"><div class="prob"><div class="n">PROBLEM 02</div><b>Dagboken er isolert</b><p>Notater og følelse logges ett sted — dataene dine et annet. De møtes aldri.</p></div></div><div class="mflyt" data-side="l"><div class="prob"><div class="n">PROBLEM 03</div><b>Analysen sover i klokkeappen</b><p>Puls, HRV og belastning ligger der — uten å vite hva du planla, følte eller endret.</p></div></div>
+  <div class="mflyt" data-side="l"><div class="solution"><div><div class="big">X-PULSE kobler plan, dagbok og analyse i ett — så hver økt faktisk lærer deg noe.</div><div class="sub">Bygget av aktive utøvere som savnet nettopp dette.</div><div class="solchips vis"><span style="--i:0">Øktbygger</span><span style="--i:1">Klokkesynk</span><span style="--i:2">Plan mot virkelighet</span><span style="--i:3">Skiskyting m/ treff & vind</span><span style="--i:4">Ski-tester</span><span style="--i:5">Vær/føre</span><span style="--i:6">Live styrke</span><span style="--i:7">Analyse & favoritter</span><span style="--i:8">Årsplan</span><span style="--i:9">Maler & standardøkter</span><span style="--i:10">Helse & søvn</span><span style="--i:11">Utstyr & skipark</span><span style="--i:12">Trenerpanel</span><span style="--i:13">AI-coach</span></div></div></div></div>
+</div></section>
 
 
 
@@ -2177,22 +2213,6 @@ html.js .solution.vis{opacity:1;transform:none}
 
 <!-- ═══════════ NYTT I V1.3 ═══════════ -->
 <!-- problem - beholdt fra dagens side, strammet -->
-<section id="problem" style="padding-top:20px">
-  <div class="wrap">
-    <h2>DU FORTJENER <span class="o">ÉN APP.</span> IKKE TRE.</h2>
-    <div class="problems" id="probSec">
-      <div class="prob"><div class="n">PROBLEM 01</div><b>Planen lever i Excel eller på papir</b><p>Den vet ikke om du gjennomførte økten, traff sonene eller måtte flytte den.</p></div>
-      <div class="prob"><div class="n">PROBLEM 02</div><b>Dagboken er isolert</b><p>Notater og følelse logges ett sted - dataene dine et annet. De møtes aldri.</p></div>
-      <div class="prob"><div class="n">PROBLEM 03</div><b>Analysen sover i klokkeappen</b><p>Puls, HRV og belastning ligger der - uten å vite hva du planla, følte eller endret.</p></div>
-    </div>
-    <div class="solution" id="solution">
-      <div>
-        <div class="big">X-PULSE kobler plan, dagbok og analyse i ett - så hver økt faktisk lærer deg noe.</div>
-        <div class="sub">Bygget av aktive utøvere som savnet nettopp dette.</div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- funksjoner - beholdt liste, oppdatert med de nye -->
 <section id="features" style="padding-top:20px">
@@ -2494,7 +2514,7 @@ html.js .solution.vis{opacity:1;transform:none}
 <script>
   // Scroll-reveal - samme mønster som før, selektorer for v2-seksjonene.
   const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:0.08});
-  document.querySelectorAll('.prob,.flist li,.ncard,.dtile,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
+  document.querySelectorAll('.flist li,.ncard,.dtile,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
 
   // Scrollspy for desktop-navet.
   window.addEventListener('scroll',()=>{
@@ -2583,14 +2603,10 @@ html.js .solution.vis{opacity:1;transform:none}
       var el=e.target;
       io.unobserve(el);
       if(el.id==='shootSec') stagger(el,'.ishot',140);
-      if(el.id==='probSec'){
-        stagger(el,'.prob',160);
-        setTimeout(function(){var s=document.getElementById('solution');if(s)s.classList.add('vis')},3*160+120);
-      }
       if(el.id==='flowSec') stagger(el,'.istep',180);
     });
   },{threshold:.35});
-  ['shootSec','probSec','flowSec'].forEach(function(id){
+  ['shootSec','flowSec'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) io.observe(el);
   });

@@ -7,7 +7,8 @@
  * Valget huskes per bruker (regel 19) — som de andre visningsvalgene
  * (tema, samlet/splittet, vis plan) i localStorage: det følger
  * nettleseren, ikke kontoen. Uten et husket valg gjelder flatens
- * standard: GRAF i skjemaet/dagboka og oversikten, BEGGE på øktsiden.
+ * standard: GRAF i skjemaet/dagboka, BEGGE på øktsiden, i byggeren og på
+ * Hjem (Sverre 6. sep: «graf-visning i bakgrunn samt stigning» på Hjem-kortet).
  */
 
 
@@ -17,16 +18,15 @@ export const VISNING_NOKKEL = 'xpulse-graf-visning'
 export const VISNING_HENDELSE = 'xpulse-graf-visning-endret'
 
 export function standardVisning(flate: GrafFlate): GrafVisning {
-  // Øktsiden og byggeren: BEGGE (kurven er poenget der). Skjemaet og
-  // oversikten: GRAF.
-  return flate === 'hovedside' || flate === 'bygger' ? 'begge' : 'graf'
+  // Øktsiden, byggeren og Hjem-kortene: BEGGE (kurvene oppå blokkene).
+  // Skjemaet: GRAF.
+  return flate === 'skjema' ? 'graf' : 'begge'
 }
 
 const gyldig = (v: unknown): v is GrafVisning => v === 'graf' || v === 'kurver' || v === 'begge'
 
-/** Husket valg, ellers flatens standard. Oversikten er alltid GRAF. */
+/** Husket valg, ellers flatens standard (Hjem fulgte før alltid GRAF — nå samme regel som resten). */
 export function lesVisning(flate: GrafFlate): GrafVisning {
-  if (flate === 'oversikt') return 'graf'
   if (typeof window === 'undefined') return standardVisning(flate)
   try {
     const v = window.localStorage.getItem(VISNING_NOKKEL)

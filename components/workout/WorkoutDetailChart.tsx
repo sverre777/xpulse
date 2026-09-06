@@ -174,7 +174,13 @@ export function WorkoutDetailChart({
   // Påslåtte serier + hvem som eier aksen. Klikk på en av-chip slår den
   // PÅ og gir den fokus; klikk på fokus-chipen slår serien AV.
   // Styrt utenfra (bolk 5): forelderen eier valget for flere grafer.
-  const [paaIdsEgen, setPaaIds] = useState<string[]>(() => egneSerier.slice(0, 1).map(s => s.id))
+  // Hjem-kortene (Sverre 6. sep): stigningen (høydekurven) er på fra start sammen med pulsen —
+  // «graf-visning i bakgrunn samt stigning». Ellers bare første serie (puls).
+  const [paaIdsEgen, setPaaIds] = useState<string[]>(() => {
+    const paa = egneSerier.slice(0, 1).map(s => s.id)
+    if (flate === 'oversikt' && egneSerier.some(s => s.id === 'hoyde') && !paa.includes('hoyde')) paa.push('hoyde')
+    return paa
+  })
   const [fokusIdEgen, setFokusId] = useState<string | null>(forsteId)
   const paaIds = styrt ? styrt.paaIds : paaIdsEgen
   const fokusId = styrt ? styrt.fokusId : fokusIdEgen
@@ -521,7 +527,7 @@ export function WorkoutDetailChart({
             {/* Planens omriss oppå blokkene i BEGGE (Sverre 5. sep) — til å sammenlikne. */}
             {visPlan && visBlokker && <PlanSpokelse blokker={planBlokker} pct={h.pct} slag="omriss" />}
             {/* Testkrok (E2E): synlig vindu og antall punkter — ingen visning. */}
-            <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} />
+            <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} data-paa-serier={paaIds.join(',')} data-vis-blokker={String(visBlokker)} data-vis-plan={String(visPlan && planBlokker.length > 0)} data-antall-segmenter={segmenter.length} data-antall-blokker={faktiskInn.length} />
 
             {/* Rundegrenser */}
             {visRunder && laps.map((lap, i) => i === 0 ? null : (

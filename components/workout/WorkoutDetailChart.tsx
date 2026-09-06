@@ -29,6 +29,7 @@ import type { GrafPunkt } from './Punkt'
 import { computeZoneSecondsFromSamples, type HeartZone, type ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { beregnSoneTss } from '@/lib/belastning'
+import { gapFart } from '@/lib/prestasjon'
 import { RpeSkala, rpeFarge } from '@/components/ui/RpeSkala'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
@@ -128,6 +129,13 @@ interface Props {
       og radene (bev.form/underkategori per segment). */
   sonerRader?: SoneDbRad[]
   rader?: FaktiskRad[]
+  /** BOLK 5 (Sammenligning): seriene styrt utenfra — felles «På grafen»-chips
+      for flere stablede grafer. Uten: grafen eier valget selv. */
+  styrt?: { paaIds: string[]; fokusId: string | null; velg: (id: string) => void }
+  /** BOLK 5: samme metrikk fra ANDRE økter tegnet oppå (gruppe = metrikk-id). */
+  ekstraSerier?: KurveSerie[]
+  /** BOLK 5: felles tidsakse for stablede grafer (sekunder) — aksen blir aldri kortere. */
+  tidsakseSek?: number
 }
 
 // Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
@@ -156,15 +164,20 @@ export function WorkoutDetailChart({
   height = 300, tetthet = 'full', punktStil = 'etikett', kontroller = 'alle', heartZones = [], rpe = null, onRpe, np = null,
   planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn,
   ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km', sonerRader = [], rader = [],
+  styrt, ekstraSerier, tidsakseSek,
 }: Props) {
   const flate: GrafFlate = flateInn ?? (tetthet === 'skjema' ? 'skjema' : 'hovedside')
-  const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
-  const forsteId = serier[0]?.id ?? null
+  const egneSerier = useMemo(() => byggSerier(sport, samples), [sport, samples])
+  const serier = useMemo(() => (ekstraSerier?.length ? [...egneSerier, ...ekstraSerier] : egneSerier), [egneSerier, ekstraSerier])
+  const forsteId = egneSerier[0]?.id ?? null
 
   // Påslåtte serier + hvem som eier aksen. Klikk på en av-chip slår den
   // PÅ og gir den fokus; klikk på fokus-chipen slår serien AV.
-  const [paaIds, setPaaIds] = useState<string[]>(() => serier.slice(0, 1).map(s => s.id))
-  const [fokusId, setFokusId] = useState<string | null>(forsteId)
+  // Styrt utenfra (bolk 5): forelderen eier valget for flere grafer.
+  const [paaIdsEgen, setPaaIds] = useState<string[]>(() => egneSerier.slice(0, 1).map(s => s.id))
+  const [fokusIdEgen, setFokusId] = useState<string | null>(forsteId)
+  const paaIds = styrt ? styrt.paaIds : paaIdsEgen
+  const fokusId = styrt ? styrt.fokusId : fokusIdEgen
   // Annoteringene (fasitens «PÅ GRAFEN»-gruppe) — uavhengige av seriene.
   const [visSkyting, setVisSkyting] = useState(true)
   const [visSegmenter, setVisSegmenter] = useState(true)
@@ -258,6 +271,7 @@ export function WorkoutDetailChart({
 
 
   const velgSerie = (id: string) => {
+    if (styrt) { styrt.velg(id); return }
     const s = serier.find(x => x.id === id)
     // I GRAF finnes ingen kurve: en serie-chip åpner BEGGE med den serien.
     if (visning === 'graf' && blokkerMulig) {
@@ -308,9 +322,10 @@ export function WorkoutDetailChart({
   // økta (bolk 7): da stikker spøkelset ut forbi der økta stoppet, og
   // avviket leses uten lesepanel. Kortere plan stopper av seg selv.
   const aksSek = useMemo(() => {
-    if (!visPlan || planBlokker.length === 0) return totalSek
-    return Math.max(totalSek, ...planBlokker.map(b => b.sluttSek))
-  }, [visPlan, planBlokker, totalSek])
+    const basis = Math.max(totalSek, tidsakseSek ?? 0)
+    if (!visPlan || planBlokker.length === 0) return basis
+    return Math.max(basis, ...planBlokker.map(b => b.sluttSek))
+  }, [visPlan, planBlokker, totalSek, tidsakseSek])
   const synlig: [number, number] = vindu ?? [0, Math.max(1, aksSek)]
 
   useEffect(() => {
@@ -416,13 +431,13 @@ export function WorkoutDetailChart({
             </Gruppe>
           )}
           {kontroller === 'alle' && <Gruppe navn="På grafen">
-            {visKurve && serier.map(s => (
+            {visKurve && serier.filter(s => !s.gruppe).map(s => (
               <Chip key={s.id} farge={s.farge} etikett={s.navn}
                 paa={paaIds.includes(s.id)}
                 fokus={fokusId === s.id && !s.somAreal}
                 onClick={() => velgSerie(s.id)} />
             ))}
-            {!visKurve && serier.filter(s => !s.somAreal).map(s => (
+            {!visKurve && serier.filter(s => !s.somAreal && !s.gruppe).map(s => (
               <Chip key={s.id} farge={s.farge} etikett={s.navn} paa={false} fokus={false}
                 onClick={() => velgSerie(s.id)} />
             ))}
@@ -693,7 +708,7 @@ export function WorkoutDetailChart({
 // ── Serie-modellen ───────────────────────────────────────────
 // Sport-reglene er de samme som før: watt skjules der det sjelden er
 // meningsfylt, og tempo vises som hastighet for sykling/triatlon.
-function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
+export function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
   const ut: KurveSerie[] = []
   const wattRelevant = sport === 'cycling' || sport === 'triathlon' ||
     sport === 'long_distance_skiing' || sport === 'cross_country_skiing' ||
@@ -726,6 +741,30 @@ function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
         return `${Math.floor(sek / 60)}:${String(Math.round(sek % 60)).padStart(2, '0')}`
       },
     })
+  }
+  // GAP (bolk 5): stigningsjustert tempo for løping — tempo × gapFaktor
+  // (lib/prestasjon) med stigningen fra høydekurven i et ±15 s-vindu.
+  // Flatt = samme som tempo. Bare der både fart og høyde finnes.
+  if (fart?.length && s.altitude_samples?.length && (sport === 'running' || sport === 'triathlon')) {
+    const alt = [...s.altitude_samples].sort((a, b) => a.t - b.t)
+    const gap: { t: number; v: number }[] = []
+    let j = 0
+    for (const p of fart) {
+      if (p.mps <= 0.1) continue
+      while (j < alt.length - 1 && alt[j + 1].t <= p.t - 15) j++
+      let k = j
+      while (k < alt.length - 1 && alt[k + 1].t <= p.t + 15) k++
+      const a0 = alt[j], a1 = alt[k]
+      const dist = p.mps * Math.max(1, a1.t - a0.t)
+      const stigning = dist > 20 && a1.t > a0.t ? ((a1.alt - a0.alt) / dist) * 100 : null
+      gap.push({ t: p.t, v: stigning == null ? p.mps : (gapFart(p.mps, stigning) ?? p.mps) })
+    }
+    if (gap.length > 10) {
+      ut.push({
+        id: 'gap', navn: 'GAP', farge: '#1F8F5C', punkter: gap,
+        format: v => { if (v <= 0.1) return '—'; const sek = 1000 / v; return `${Math.floor(sek / 60)}:${String(Math.round(sek % 60)).padStart(2, '0')}` },
+      })
+    }
   }
   if (s.cadence_samples?.length) {
     ut.push({
@@ -1183,7 +1222,7 @@ function Celle({ etikett, verdi, farge, hale }: {
   )
 }
 
-function Gruppe({ navn, children }: { navn: string; children: React.ReactNode }) {
+export function Gruppe({ navn, children }: { navn: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       <span style={{
@@ -1197,7 +1236,7 @@ function Gruppe({ navn, children }: { navn: string; children: React.ReactNode })
   )
 }
 
-function Chip({ farge, etikett, paa, fokus, onClick }: {
+export function Chip({ farge, etikett, paa, fokus, onClick }: {
   farge: string; etikett: string; paa: boolean; fokus: boolean; onClick: () => void
 }) {
   return (

@@ -137,13 +137,10 @@ export const GRAFER: Record<string, GrafDef> = {
   skyting_skuddmaal: G('skyting', 'Skuddmengde mot årsmål', { data: 'selv' }),
   skyting_skuddmengde: G('skyting', 'Skudd per uke / måned', { data: 'selv', config: true }),
 
-  // ── Sammenligning (økt-delen bygges om i bolk 5 — favoritt = øktsett) ──
-  sammenlign_pulskurve: G('sammenlign', 'Pulskurve over økten'),
-  sammenlign_wattkurve: G('sammenlign', 'Watt-kurve over økten'),
-  sammenlign_pacekurve: G('sammenlign', 'Pace-kurve over økten'),
+  // ── Sammenligning (bolk 5): ØktGraf stablet/oppå + runder + nøkkeltall —
+  // favoritt = øktsett + visning (config). Splits per km står som egen graf.
+  sammenlign_oktsett: G('sammenlign', 'Sammenligning av økter', { data: 'selv', config: true }),
   sammenlign_splits: G('sammenlign', 'Splits per km'),
-  sammenlign_laktat: G('sammenlign', 'Laktat-utvikling'),
-  sammenlign_nokkeltall: G('sammenlign', 'Nøkkeltall per økt'),
 
   // ── Mal-analyse (inne i Sammenligning) ──
   mal_analyse_avg_hr: G('mal_analyse', 'Snittpuls over tid (mal)'),
@@ -257,6 +254,12 @@ export const NOKKEL_ALIAS: Record<string, string> = {
   helse_sleep_hours: 'helse_sovnstadier',
   helse_day_form: 'helse_folelse',
   health_lactate_per_template: 'terskel_laktat_per_mal',
+  // Bolk 5: kurvene, laktat og nøkkeltall bor nå i øktsett-sammenligningen (ØktGraf).
+  sammenlign_pulskurve: 'sammenlign_oktsett',
+  sammenlign_wattkurve: 'sammenlign_oktsett',
+  sammenlign_pacekurve: 'sammenlign_oktsett',
+  sammenlign_laktat: 'sammenlign_oktsett',
+  sammenlign_nokkeltall: 'sammenlign_oktsett',
 }
 
 export function losGrafNokkel(key: string): string {

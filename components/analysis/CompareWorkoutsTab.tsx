@@ -2,19 +2,28 @@
 
 import { ChartWrapper } from './ChartWrapper'
 import { useState, useMemo, useEffect, useTransition } from 'react'
-import Link from 'next/link'
 import {
   getWorkoutsForComparison,
-  type WorkoutsForComparison, type ComparableWorkout, type ComparableDayState, type OverviewZoneSeconds,
+  type WorkoutsForComparison, type ComparableWorkout, type ComparableDayState,
 } from '@/app/actions/analysis'
 import {
-  getTemplateOptions, getWorkoutsByTemplate, compareWorkoutsDetailed,
+  getTemplateOptions, getWorkoutsByTemplate,
   getMyComparisons, saveComparison, deleteComparison,
   type TemplateOption, type DetailedWorkout, type SavedComparison, type WorkoutFromTemplate,
 } from '@/app/actions/compare-workouts'
 import { SPORTS, WORKOUT_TYPES_BIATHLON, WEATHER_LABELS, type Sport, type WorkoutType } from '@/lib/types'
-import { MultiWorkoutTimeSeriesChart } from './MultiWorkoutTimeSeriesChart'
-import { TreffPercentageDisplay } from './TreffPercentageDisplay'
+import { SammenligningVisning, SammenligningFavoritt } from './SammenligningVisning'
+import { hentSammenligning, type SammenligningOkt } from '@/app/actions/sammenligning'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+} from './chart-theme'
+
+const PALETTE = [
+  '#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#A855F7',
+  '#E23A5A', '#0EA5E9', '#F97316', '#10B981', '#8B5CF6',
+]
 
 function formatDuration(sec: number): string {
   if (sec <= 0) return '—'
@@ -34,28 +43,16 @@ function labelWorkoutType(t: WorkoutType): string {
   return WORKOUT_TYPES_BIATHLON.find(x => x.value === t)?.label ?? t
 }
 
-function ZoneBar({ zones, height = 14 }: { zones: OverviewZoneSeconds; height?: number }) {
-  const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + (zones.I6 ?? 0) + (zones.I7 ?? 0) + (zones.I8 ?? 0) + zones.Hurtighet
-  if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
-  const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
-  return (
-    <div style={{ display: 'flex', width: '100%', height, backgroundColor: 'var(--flate-3)' }}>
-      {keys.map(k => {
-        const pct = (zones[k] / total) * 100
-        if (pct <= 0) return null
-        return <div key={k} style={{ width: `${pct}%`, backgroundColor: CHART_ZONE_COLORS[k] }} />
-      })}
-    </div>
-  )
-}
 
 export function CompareWorkoutsTab({
-  initialData, from, to,
+  initialData, from, to, targetUserId,
 }: {
   initialData: WorkoutsForComparison
   from: string
   to: string
+  targetUserId?: string
 }) {
+  const harSki = useHarSkiskyting()
   const [data, setData] = useState<WorkoutsForComparison>(initialData)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +67,8 @@ export function CompareWorkoutsTab({
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const [showCompare, setShowCompare] = useState(false)
-  const [detailed, setDetailed] = useState<DetailedWorkout[] | null>(null)
+  // Bolk 5: øktpakkene (ØktGraf-data + nøkkeltall) fra ÉN action.
+  const [pakker, setPakker] = useState<SammenligningOkt[] | null>(null)
   const [savedComparisons, setSavedComparisons] = useState<SavedComparison[]>([])
   const [savingName, setSavingName] = useState('')
   const [showSaveInput, setShowSaveInput] = useState(false)
@@ -119,8 +117,15 @@ export function CompareWorkoutsTab({
     [selected, data.workouts],
   )
 
+  // 2–4 økter (bolk 5). Én PLANLAGT økt kan være med som referanse (omriss bak alle).
   const toggleSelect = (id: string) => {
-    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    setSelected(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id)
+      if (prev.length >= 4) return prev
+      const w = data.workouts.find(x => x.id === id)
+      if (w && !w.is_completed && prev.some(p => !data.workouts.find(x => x.id === p)?.is_completed)) return prev
+      return [...prev, id]
+    })
   }
 
   // Last mal-valg + lagrede sammenligninger ved mount.
@@ -147,16 +152,17 @@ export function CompareWorkoutsTab({
     return () => { cancelled = true }
   }, [templateFilter])
 
-  // Hent detaljert tidsserie-data når brukeren går inn i sammenligningsvisning.
+  // Hent øktpakkene når brukeren går inn i sammenligningsvisning (bolk 5: én action).
   useEffect(() => {
     if (!showCompare || selected.length < 2) return
     let cancelled = false
-    compareWorkoutsDetailed(selected).then(res => {
+    hentSammenligning(selected, targetUserId).then(res => {
       if (cancelled) return
-      if (Array.isArray(res)) setDetailed(res)
+      if ('error' in res) { setError(res.error); return }
+      setPakker(res)
     })
     return () => { cancelled = true }
-  }, [showCompare, selected])
+  }, [showCompare, selected, targetUserId])
 
   const handleSave = () => {
     const name = savingName.trim()
@@ -181,13 +187,15 @@ export function CompareWorkoutsTab({
   }
 
   if (showCompare && selectedWorkouts.length >= 2) {
-    const sports = new Set(selectedWorkouts.map(w => w.sport))
-    const showWatts = sports.has('cycling')
-    const showPace = sports.has('running') || sports.has('triathlon')
+    // Splits per km og vær-raden leser DetailedWorkout-formen — bygget fra pakkene.
+    const detailed: DetailedWorkout[] | null = pakker ? pakker.map(p => ({
+      id: p.id, date: p.date, title: p.title, sport: p.sport, total_seconds: p.totalSeconds, total_meters: p.totalMeters,
+      avg_heart_rate: p.avgHeartRate, activities: p.aktiviteter, hr_samples: null, lactates: p.laktat, weather: p.vaer,
+    })) : null
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <button type="button" onClick={() => { setShowCompare(false); setDetailed(null) }}
+          <button type="button" onClick={() => { setShowCompare(false); setPakker(null) }}
             className="text-xs tracking-widest uppercase px-3 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
@@ -240,28 +248,17 @@ export function CompareWorkoutsTab({
           )}
         </div>
 
-        <ComparisonGrid workouts={selectedWorkouts} />
-
-        {detailed ? (
+        {pakker && detailed ? (
           <div className="space-y-4">
+            {/* Bolk 5: ØktGraf stablet / oppå hverandre + nøkkeltall-rad + runder side ved side. */}
+            <SammenligningVisning okter={pakker} harSki={harSki} targetUserId={targetUserId} />
             <WeatherCompareRow workouts={detailed} />
-            <MultiWorkoutTimeSeriesChart workouts={detailed} metric="hr" chartKey="sammenlign_pulskurve"
-              title="Pulskurve over økten" yLabel="bpm" />
-            {showWatts && (
-              <MultiWorkoutTimeSeriesChart workouts={detailed} metric="watts" chartKey="sammenlign_wattkurve"
-                title="Watt-kurve over økten" yLabel="W" />
-            )}
-            {showPace && (
-              <MultiWorkoutTimeSeriesChart workouts={detailed} metric="pace" chartKey="sammenlign_pacekurve"
-                title="Pace-kurve over økten (min/km)" yLabel="m:ss/km" />
-            )}
             <SplitsCompareChart workouts={detailed} />
-            <LactateOverTimeChart workouts={detailed} />
           </div>
         ) : (
           <p className="text-xs text-center py-6"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            Laster detaljerte tidsserier…
+            Laster øktene…
           </p>
         )}
       </div>
@@ -398,7 +395,7 @@ export function CompareWorkoutsTab({
         >
           <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            {selectableWorkouts.length} valgbare · {filtered.length - selectableWorkouts.length} planlagte · {filteredDayStates.length} dag-tilstander
+            {selectableWorkouts.length} gjennomførte · {filtered.length - selectableWorkouts.length} planlagte (én kan være referanse) · {filteredDayStates.length} dag-tilstander · 2–4 økter
           </p>
           <div className="space-y-2">
             {filtered.map(w => (
@@ -406,7 +403,7 @@ export function CompareWorkoutsTab({
                 key={w.id}
                 workout={w}
                 selected={selected.includes(w.id)}
-                disabled={!w.is_completed}
+                disabled={!w.is_completed && !selected.includes(w.id) && selected.some(p => !data.workouts.find(x => x.id === p)?.is_completed)}
                 onToggle={() => toggleSelect(w.id)}
               />
             ))}
@@ -669,282 +666,6 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
   )
 }
 
-function ComparisonGrid({ workouts }: { workouts: ComparableWorkout[] }) {
-  const cols = workouts.length
-  const first = workouts[0]
-  const last = workouts[workouts.length - 1]
-
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${cols}, minmax(240px, 1fr))`,
-    gap: '12px',
-  }
-
-  return (
-    <div className="space-y-5">
-      <div className="overflow-x-auto xp-hscroll">
-        <div style={gridStyle}>
-          {workouts.map(w => <WorkoutColumn key={w.id} workout={w} />)}
-        </div>
-      </div>
-
-      {cols >= 2 && <DiffRow first={first} last={last} />}
-    </div>
-  )
-}
-
-function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
-  return (
-    <div className="p-4 space-y-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-      <div>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12px' }}>
-          {workout.date}
-        </p>
-        <Link href={`/app/dagbok?edit=${workout.id}`}
-          style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
-            fontSize: '22px', letterSpacing: '0.03em', textDecoration: 'none',
-          }}>
-          {workout.title || '(uten tittel)'}
-        </Link>
-        <p className="text-xs tracking-widest uppercase mt-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          {labelSport(workout.sport)} · {labelWorkoutType(workout.workout_type)}
-        </p>
-      </div>
-
-      {/* Metrics grid 2x2 */}
-      <div className="grid grid-cols-2 gap-2">
-        <MiniStat label="Tid" value={formatDuration(workout.duration_seconds)} />
-        <MiniStat label="Distanse" value={formatKm(workout.total_meters)} />
-        <MiniStat label="Snittpuls" value={workout.avg_heart_rate != null ? `${workout.avg_heart_rate}` : '—'} suffix={workout.avg_heart_rate != null ? 'bpm' : undefined} />
-        <MiniStat label="Max puls" value={workout.max_heart_rate != null ? `${workout.max_heart_rate}` : '—'} suffix={workout.max_heart_rate != null ? 'bpm' : undefined} />
-      </div>
-
-      {/* Zone bar */}
-      <div>
-        <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Sonefordeling
-        </p>
-        <ZoneBar zones={workout.zones} />
-      </div>
-
-      {/* Movements */}
-      {workout.movement_breakdown.length > 0 && (
-        <div>
-          <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-            Bevegelsesform
-          </p>
-          <ul className="text-xs space-y-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-            {workout.movement_breakdown.map(m => (
-              <li key={m.movement_name} className="flex justify-between">
-                <span>{m.movement_name}</span>
-                <span style={{ color: 'var(--tekst-5-app)' }}>
-                  {formatDuration(m.seconds)}{m.meters > 0 ? ` · ${formatKm(m.meters)}` : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Lactate */}
-      {workout.lactate_values.length > 0 && (
-        <div>
-          <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-            Laktat
-          </p>
-          <ul className="text-xs space-y-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-            {workout.lactate_values.map((l, i) => (
-              <li key={i} className="flex justify-between gap-2">
-                <span style={{ color: 'var(--tekst-5-app)' }}>{l.activity_label}</span>
-                <span>{l.mmol.toFixed(1)} mmol</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Shooting */}
-      {workout.shooting && (
-        <div>
-          <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-            Skyting
-          </p>
-          <TreffPercentageDisplay
-            totals={{
-              prone_shots: workout.shooting.prone_shots,
-              prone_hits: workout.shooting.prone_hits,
-              standing_shots: workout.shooting.standing_shots,
-              standing_hits: workout.shooting.standing_hits,
-              total_accuracy_pct: workout.shooting.accuracy_pct,
-            }}
-            variant="inline"
-          />
-          {/* Kø #49 bolk 6: serie-tid/-puls + vind/sikt-kontekst der ført. */}
-          {(workout.shooting.shooting_time_seconds != null
-            || workout.shooting.shooting_avg_hr != null
-            || workout.shooting.wind
-            || workout.shooting.sikt) && (
-            <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              {[
-                workout.shooting.shooting_time_seconds != null ? `Skytetid ${workout.shooting.shooting_time_seconds}s` : null,
-                workout.shooting.shooting_avg_hr != null ? `Serie-puls ø${workout.shooting.shooting_avg_hr}` : null,
-                workout.shooting.wind ? `⚑${workout.shooting.wind}` : null,
-                workout.shooting.sikt,
-              ].filter(Boolean).join(' · ')}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Notes */}
-      {workout.notes && (
-        <div>
-          <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-            Notat
-          </p>
-          <p className="text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', whiteSpace: 'pre-wrap' }}>
-            {workout.notes}
-          </p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function MiniStat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
-  return (
-    <div>
-      <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {label}
-      </p>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', lineHeight: 1 }}>
-        {value}{suffix && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: 'var(--tekst-5-app)' }}> {suffix}</span>}
-      </p>
-    </div>
-  )
-}
-
-// Diff mellom første (eldst i valg) og siste (nyest i valg). Sammenligningen er
-// nummerisk og nøytral — ingen "bedre/dårligere"-vurdering utover åpenbare tegn:
-// mer tid/km = positivt, raskere snittpuls ved samme tid = positivt.
-function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWorkout }) {
-  type DiffRowEntry = { label: string; firstVal: string; lastVal: string; deltaText: string; color: string }
-  const rows: DiffRowEntry[] = []
-
-  // Tid — mer tid = grønn.
-  const timeDiffSec = last.duration_seconds - first.duration_seconds
-  rows.push({
-    label: 'Tid',
-    firstVal: formatDuration(first.duration_seconds),
-    lastVal: formatDuration(last.duration_seconds),
-    deltaText: formatDeltaDuration(timeDiffSec),
-    color: colorForDelta(timeDiffSec, true),
-  })
-
-  // Distanse.
-  const kmDiff = last.total_meters - first.total_meters
-  rows.push({
-    label: 'Distanse',
-    firstVal: formatKm(first.total_meters),
-    lastVal: formatKm(last.total_meters),
-    deltaText: kmDiff === 0 ? '±0' : `${kmDiff > 0 ? '+' : ''}${(Math.round((kmDiff / 1000) * 10) / 10).toLocaleString('nb-NO')} km`,
-    color: colorForDelta(kmDiff, true),
-  })
-
-  // Snittpuls — lavere = grønn (antas som bedre, uten kontekst).
-  if (first.avg_heart_rate != null && last.avg_heart_rate != null) {
-    const hrDiff = last.avg_heart_rate - first.avg_heart_rate
-    rows.push({
-      label: 'Snittpuls',
-      firstVal: `${first.avg_heart_rate} bpm`,
-      lastVal: `${last.avg_heart_rate} bpm`,
-      deltaText: `${hrDiff > 0 ? '+' : ''}${hrDiff} bpm`,
-      color: colorForDelta(hrDiff, false),
-    })
-  }
-
-  // Max puls — nøytral.
-  if (first.max_heart_rate != null && last.max_heart_rate != null) {
-    const mx = last.max_heart_rate - first.max_heart_rate
-    rows.push({
-      label: 'Max puls',
-      firstVal: `${first.max_heart_rate} bpm`,
-      lastVal: `${last.max_heart_rate} bpm`,
-      deltaText: `${mx > 0 ? '+' : ''}${mx} bpm`,
-      color: 'var(--tekst-5-app)',
-    })
-  }
-
-  return (
-    <div className="p-4" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
-      <p className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-        Endring ({first.date} → {last.date})
-      </p>
-      <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-        <thead>
-          <tr style={{ color: 'var(--tekst-8-app)', borderBottom: '1px solid var(--kant-3)' }}>
-            <th className="text-left py-1 text-xs tracking-widest uppercase">Metrikk</th>
-            <th className="text-right py-1 text-xs tracking-widest uppercase">Første</th>
-            <th className="text-right py-1 text-xs tracking-widest uppercase">Siste</th>
-            <th className="text-right py-1 text-xs tracking-widest uppercase">Δ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(r => (
-            <tr key={r.label} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
-              <td className="py-1">{r.label}</td>
-              <td className="py-1 text-right" style={{ color: 'var(--tekst-5-app)' }}>{r.firstVal}</td>
-              <td className="py-1 text-right">{r.lastVal}</td>
-              <td className="py-1 text-right" style={{ color: r.color }}>{r.deltaText}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function colorForDelta(diff: number, positiveIsGood: boolean): string {
-  if (diff === 0) return 'var(--tekst-5-app)'
-  const good = positiveIsGood ? diff > 0 : diff < 0
-  return good ? '#28A86E' : '#E23A5A'
-}
-function formatDeltaDuration(sec: number): string {
-  if (sec === 0) return '±0'
-  const mins = Math.round(sec / 60)
-  const h = Math.floor(Math.abs(mins) / 60)
-  const m = Math.abs(mins) % 60
-  const sign = sec > 0 ? '+' : '-'
-  if (h > 0 && m > 0) return `${sign}${h}t ${m}min`
-  if (h > 0) return `${sign}${h}t`
-  return `${sign}${m}min`
-}
-
-// ── Multi-line splits per km ───────────────────────────────────
-
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
-import {
-  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
-  CHART_ZONE_COLORS,
-} from './chart-theme'
-
-const PALETTE = [
-  '#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#A855F7',
-  '#E23A5A', '#0EA5E9', '#F97316', '#10B981', '#8B5CF6',
-]
-
 function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
   // Bygg én linje per workout: x = km-nr, y = sekunder for det km-et.
   // Splits ligger i workout_activities.splits_per_km — flat ut til workout-nivå.
@@ -990,41 +711,15 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
   )
 }
 
-function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
-  // Bygg én linje per økt med x = aktivitets-indeks (eller minute_offset hvis
-  // satt) og y = mmol. Viser laktat-utvikling innenfor økten på tvers.
-  const series = workouts.map((w, i) => {
-    const points = w.lactates.map(l => ({
-      x: l.minute_offset != null ? l.minute_offset : l.activity_idx,
-      y: l.mmol,
-    })).sort((a, b) => a.x - b.x)
-    return {
-      id: w.id,
-      name: `${w.title} · ${w.date.slice(5)}`,
-      color: PALETTE[i % PALETTE.length],
-      points,
-    }
-  }).filter(s => s.points.length > 0)
-  if (series.length === 0) return null
-  return (
-    <ChartWrapper chartKey="sammenlign_laktat" title="Laktat-utvikling" height={240}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <LineChart>
-            <CartesianGrid stroke={CHART_GRID} vertical={false} />
-            <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-              label={{ value: 'minutter / aktivitet', position: 'insideBottom', offset: -2, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
-            <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-              width={40}
-              label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }} />
-            <Tooltip content={<XpTooltip />} />
-            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-            {series.map(s => (
-              <Line key={s.id} data={s.points.map(p => ({ x: p.x, y: p.y }))}
-                type="monotone" dataKey="y" name={s.name}
-                stroke={s.color} strokeWidth={2} dot={{ r: 3 }} />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-    </ChartWrapper>
-  )
+/** Bolk 1/5: favoritt = øktsett + visning — henter selv fra config.ids. */
+export function renderFavoritt(key: string, _data: unknown, ctx: { targetUserId?: string; config?: Record<string, unknown> | null }): React.ReactNode | null {
+  if (key !== 'sammenlign_oktsett') return null
+  const ids = Array.isArray(ctx.config?.ids) ? (ctx.config!.ids as unknown[]).filter((x): x is string => typeof x === 'string') : []
+  if (ids.length < 2) return null
+  return <SammenligningFavorittMedSki ids={ids} targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
+}
+
+function SammenligningFavorittMedSki(props: { ids: string[]; targetUserId?: string; initialConfig?: Record<string, unknown> | null }) {
+  const harSki = useHarSkiskyting()
+  return <SammenligningFavoritt {...props} harSki={harSki} />
 }

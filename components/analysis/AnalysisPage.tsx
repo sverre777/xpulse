@@ -489,7 +489,7 @@ function AnalysisPageInner({
           <div className="space-y-8">
             <SammenlignSection title="Økt-sammenligning" accent="#FF4500">
               {cache.sammenlign
-                ? <CompareWorkoutsTab initialData={cache.sammenlign} from={range.from} to={range.to} />
+                ? <CompareWorkoutsTab initialData={cache.sammenlign} from={range.from} to={range.to} targetUserId={targetUserId} />
                 : <LoadingStub label="Laster økter…" />}
             </SammenlignSection>
 

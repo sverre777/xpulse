@@ -35,6 +35,7 @@ const LASTERE: Partial<Record<FaneKey, () => Promise<RenderFavoritt>>> = {
   hoyde_varme: () => import('./AltitudeHeatTab').then(m => m.renderFavoritt as RenderFavoritt),
   per_bevegelsesform: () => import('./MovementTab').then(m => m.renderFavoritt as RenderFavoritt),
   intensitet: () => import('./IntensityTab').then(m => m.renderFavoritt as RenderFavoritt),
+  sammenlign: () => import('./CompareWorkoutsTab').then(m => m.renderFavoritt as RenderFavoritt),
 }
 
 // Korrelasjonsgrafene (helse_korrelasjon-data) ligger i HealthTab-resten.

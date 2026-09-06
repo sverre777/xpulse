@@ -40,6 +40,10 @@ export interface KurveSerie {
   format: (v: number) => string
   /** Tegnes som fylt areal bak kurvene (høyde) — kan aldri være fokus. */
   somAreal?: boolean
+  /** BOLK 5 (Sammenligning oppå hverandre): samme metrikk fra en ANNEN økt.
+      gruppe = metrikkens id ('hr', 'watt', …). Slås på/av med gruppa, deler
+      fokus-seriens skala og tegnes i full styrke med egen farge. Får ingen chip. */
+  gruppe?: string
 }
 
 interface Props {
@@ -141,8 +145,10 @@ export function OktKurve({
   const H = hoyde
   const TOPP = 10, BUNN = 22   // plass til x-etiketter under
 
-  const paa = serier.filter(s => paaIds.includes(s.id))
-  const fokus = paa.find(s => s.id === fokusId && !s.somAreal) ?? paa.find(s => !s.somAreal) ?? null
+  const paa = serier.filter(s => paaIds.includes(s.id) || (s.gruppe != null && paaIds.includes(s.gruppe)))
+  const fokus = paa.find(s => s.id === fokusId && !s.somAreal) ?? paa.find(s => !s.somAreal && !s.gruppe) ?? null
+  // Seriene i fokus-gruppa (andre økters samme metrikk) deler skala med fokus.
+  const medFokus = (s: KurveSerie) => fokus != null && s.gruppe === fokus.id
 
   // Y-skalaen eies av FOKUS-serien alene (fasiten). Kontekst-seriene
   // normaliseres inn i samme flate, men har ingen egen akse og skal
@@ -159,7 +165,17 @@ export function OktKurve({
     }
     return Number.isFinite(lo) ? { lo, hi } : null
   }
-  const fokusSpenn = fokus ? spennFor(fokus) : null
+  const fokusSpenn = (() => {
+    if (!fokus) return null
+    let lo = Infinity, hi = -Infinity
+    for (const s of [fokus, ...paa.filter(medFokus)]) {
+      const sp = spennFor(s)
+      if (!sp) continue
+      if (sp.lo < lo) lo = sp.lo
+      if (sp.hi > hi) hi = sp.hi
+    }
+    return Number.isFinite(lo) ? { lo, hi } : null
+  })()
 
   // Zoom om et punkt: spennet skaleres, punktet under pekeren står stille.
   // Y-AKSEN DRAS ALDRI — den skalerer automatisk etter fokus-serien i det
@@ -177,7 +193,7 @@ export function OktKurve({
   }
 
   const yFor = (s: KurveSerie, v: number): number => {
-    const sp = s.id === fokus?.id ? fokusSpenn : spennFor(s)
+    const sp = (s.id === fokus?.id || medFokus(s)) ? fokusSpenn : spennFor(s)
     if (!sp) return H / 2
     const pad = Math.max(1e-6, (sp.hi - sp.lo) * 0.08)
     const lo = sp.lo - pad, hi = sp.hi + pad
@@ -292,9 +308,14 @@ export function OktKurve({
         <svg viewBox={`0 0 ${VISNING_BREDDE} ${H}`} preserveAspectRatio="none"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
           {/* Kontekst-serier: dempet form, ingen egen akse. */}
-          {paa.filter(s => !s.somAreal && s.id !== fokus?.id).map(s => (
+          {paa.filter(s => !s.somAreal && s.id !== fokus?.id && !medFokus(s)).map(s => (
             <path key={s.id} d={sti(s, false)} fill="none" stroke={s.farge}
               strokeWidth={1.5} opacity={0.4} vectorEffect="non-scaling-stroke" />
+          ))}
+          {/* Andre økters samme metrikk (bolk 5): full styrke, egen farge, fokus-skalaen. */}
+          {paa.filter(medFokus).map(s => (
+            <path key={s.id} d={sti(s, false)} fill="none" stroke={s.farge}
+              strokeWidth={2} opacity={0.9} vectorEffect="non-scaling-stroke" />
           ))}
           {/* Fokus-serien sist = øverst, i full styrke. */}
           {fokus && (

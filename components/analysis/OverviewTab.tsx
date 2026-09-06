@@ -178,7 +178,7 @@ export function OverviewTab({ stats, overview, analysisRange, status = null, har
     <div className="space-y-5">
       {/* BOLK A: «STATUS NÅ» øverst — alt som lå her fra før ligger uendret under. */}
       {overview && (
-        <StatusKort overview={overview} status={status} range={analysisRange} harSkiskyting={harSkiskyting} targetUserId={targetUserId} />
+        <StatusKort overview={overview} status={status} range={analysisRange} harSkiskyting={harSkiskyting} canSeeHealthData={canSeeHealthData} targetUserId={targetUserId} />
       )}
       {plannedHours > 0 && (
         <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />

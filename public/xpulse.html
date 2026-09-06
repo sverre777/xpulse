@@ -533,6 +533,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .skigrid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-top:8px}
 @media(max-width:900px){.skigrid{grid-template-columns:1fr}}
 html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-origin:center;
+  transition:opacity .22s,transform .3s cubic-bezier(.2,1.6,.4,1)}
 html.js .ishot.vis{opacity:1;transform:scale(1)}
 .ski{background:linear-gradient(160deg,var(--bg5),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 

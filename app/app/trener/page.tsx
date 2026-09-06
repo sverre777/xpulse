@@ -33,7 +33,7 @@ export default async function CoachDashboardPage() {
   }
 
   // Navigasjon v2 bolk 6: på app-mobil (≤620) vises dagens seksjoner i mobil-rekkefølge
-  // (Hero → Neste-kort → Utøvere denne uka → Aktivitet → Grupper → Plasser → Feedback)
+  // (Hero → Neste-kort → Utøvere denne uka → Aktivitet + Grupper → Plasser → Feedback)
   // via CSS order på .xp-trener-hjem — innholdet er de samme komponentene.
   return (
     <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 xp-trener-hjem">
@@ -49,16 +49,19 @@ export default async function CoachDashboardPage() {
 
       <div data-trener-seksjon="ny-fellestrening"><NewGroupSessionButton /></div>
 
-      <div data-trener-seksjon="aktivitet"><CoachActivityFeed items={res.feed} /></div>
-
+      {/* BOLK B1 (Sverre 6. sep): utøverlista er hovedsaken — den står FØR aktivitetsfeeden,
+          og feeden deler rad med gruppene på brede skjermer. */}
       <div data-trener-seksjon="utovere"><CoachAthleteList athletes={res.athletes} /></div>
+
+      <div data-trener-seksjon="aktivitet-grupper" className="xp-trener-par">
+        <CoachActivityFeed items={res.feed} />
+        <CoachGroupsSection groups={res.groups} />
+      </div>
 
       {/* Setemodellen: utøverplasser + invitasjonslenka (bolk 4) */}
       {!('error' in seatStatus) && !('error' in seatInvite) && (
         <div data-trener-seksjon="plasser" id="plasser"><SeatPanelSection status={seatStatus} inviteUrl={seatInvite.url} /></div>
       )}
-
-      <div data-trener-seksjon="grupper"><CoachGroupsSection groups={res.groups} /></div>
 
       <div data-trener-seksjon="feedback"><FeedbackCard accent="#1A6FD4" /></div>
     </div>

@@ -524,18 +524,33 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
       </div>
 
       {!kollapset && (
-        <div data-status-bokser className="xp-status-bokser" style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-          <SisteHardBoks status={status} />
-          <NesteBoks status={status} />
-          <BelastningBoks status={status} konkurranser={konkurranser} />
-          <HelseBoks status={status} canSeeHealthData={canSeeHealthData} />
-          <PlanBoks status={status} />
-          <SonerBoks status={status} />
-          {harSkiskyting && <SkytingBoks status={status} />}
-          <BevformBoks rader={overview.current.movement_breakdown} />
-        </div>
+        <StatusBokser status={status} harSkiskyting={harSkiskyting} canSeeHealthData={canSeeHealthData}
+          bevform={overview.current.movement_breakdown} konkurranser={konkurranser} />
       )}
     </section>
+  )
+}
+
+/** De åtte boksene alene. Trenerens detaljpanel under en utøverrad (bolk B1)
+ *  bruker NØYAKTIG de samme boksene — ingen egen variant (regel 11). */
+export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, bevform = [], konkurranser = [] }: {
+  status: OversiktStatus | null
+  harSkiskyting: boolean
+  canSeeHealthData?: boolean
+  bevform?: MovementBreakdownRow[]
+  konkurranser?: string[]
+}) {
+  return (
+    <div data-status-bokser className="xp-status-bokser" style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+      <SisteHardBoks status={status} />
+      <NesteBoks status={status} />
+      <BelastningBoks status={status} konkurranser={konkurranser} />
+      <HelseBoks status={status} canSeeHealthData={canSeeHealthData} />
+      <PlanBoks status={status} />
+      <SonerBoks status={status} />
+      {harSkiskyting && <SkytingBoks status={status} />}
+      {bevform.length > 0 && <BevformBoks rader={bevform} />}
+    </div>
   )
 }
 

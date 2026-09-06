@@ -14,6 +14,7 @@ import type { TrenerUtoverRad } from '@/lib/trener-oversikt-type'
 import { SPORTS, type Sport } from '@/lib/types'
 import { ZoneBar } from '@/components/oversikt/kort-deler'
 import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
+import { UtoverDetaljer } from './UtoverDetaljer'
 import { STATUS_GRONN, STATUS_GUL, STATUS_ROD, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
 
 const COACH_BLUE = TRENER_BLAA
@@ -114,6 +115,8 @@ export function CoachAthleteList({ athletes }: Props) {
     return () => { live = false }
   }, [periode])
   const gjeldende = tall && tall.periode === periode ? tall.kart : null
+  // Kun ÉN rad åpen om gangen (fasit). Valget huskes ikke mellom sidelastinger.
+  const [apen, setApen] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -305,19 +308,27 @@ export function CoachAthleteList({ athletes }: Props) {
                   >
                     Push
                   </Link>
-                  <Link
-                    href={`/app/trener/${a.id}`}
+                  <button
+                    type="button"
+                    data-utover-vismer={a.id}
+                    aria-expanded={apen === a.id}
+                    onClick={() => setApen(apen === a.id ? null : a.id)}
                     className="px-2 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                     style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
-                      textDecoration: 'none',
+                      fontFamily: FONT, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-ren)',
+                      border: 'none', borderRadius: 6, cursor: 'pointer', minHeight: 30,
                     }}
                   >
-                    Profil
-                  </Link>
+                    {apen === a.id ? 'Vis mindre ▴' : 'Vis mer ▾'}
+                  </button>
                 </div>
               </div>
+              {apen === a.id && (() => {
+                const r = gjeldende?.get(a.id) ?? null
+                const { fra, til } = periodeDatoer(periode)
+                return <UtoverDetaljer athleteId={a.id} navn={a.name} fra={fra} til={til}
+                  harSkiskyting={r?.harSkiskyting ?? false} helseDelt={r?.helseDelt ?? false} />
+              })()}
             </li>
           ))}
         </ul>

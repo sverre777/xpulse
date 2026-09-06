@@ -1183,8 +1183,7 @@ html[data-app-nav] .xp-trener-hjem { display: flex; flex-direction: column; }
 html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="hero"] { order: 1; }
 html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="neste"] { order: 2; }
 html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="utovere"] { order: 3; }
-html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="aktivitet"] { order: 4; }
-html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="grupper"] { order: 5; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="aktivitet-grupper"] { order: 4; }
 html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="plasser"] { order: 6; }
 html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="feedback"] { order: 7; }
 html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="kalenderkort"] { order: 8; }
@@ -1214,3 +1213,6 @@ html[data-app-nav] .xp-push-ark > div { max-width: none !important; border-radiu
   .xp-utoverrad { align-items: flex-start; }
   .xp-utoverrad > div[data-utover-tall] { width: 100%; }
 }
+/* BOLK B1: aktivitetsfeeden og gruppene side om side over 1200 px, under hverandre ellers. */
+.xp-trener-par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1200px) { .xp-trener-par { grid-template-columns: minmax(0, 1fr); } }

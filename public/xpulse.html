@@ -1832,6 +1832,8 @@ section[id],header[id]{scroll-margin-top:108px}
 .fu-dag{position:relative;min-height:104px;border:1px solid var(--line);border-radius:9px;padding:5px 5px 6px;background:var(--card)}
 .fu-dag.fu-samling{border-color:rgba(225,29,72,.4);background:rgba(225,29,72,.05)}
 .fu-dn{font-family:'Barlow';font-size:11.5px;color:var(--dim)}
+/* «I dag» i planen - samme markering som kalenderen: tallet i en roed ring. */
+.fu-dn.fu-idag{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 4px;border:1.5px solid #E23A5A;border-radius:999px;color:#E23A5A;font-weight:600}
 .fu-pl{position:absolute;right:6px;top:4px;color:#FF4500;font-size:12px;opacity:.75}
 .fu-okt{margin-top:4px;border:1px dashed rgba(240,240,242,.34);border-radius:7px;padding:4px 6px 5px;background:transparent}
 .fu-okt.fu-ok{border-style:dashed}
@@ -2262,7 +2264,7 @@ section[id],header[id]{scroll-margin-top:108px}
   <span class="fu-ot"><b class="fu-hake">✓</b> 🎯 3 × 10 min I3 + skyting</span>
   <span class="fu-om"><b>1t 28m</b> Skiskyting · rulleski</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="36.5" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="38.0" y="11.0" width="36.5" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="75.5" y="23.8" width="11.5" height="5.2" rx="1.5" fill="#43434B" opacity=".85"/><rect x="88.0" y="11.0" width="36.5" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="125.5" y="19.7" width="24.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
  </div></div>
-   <div class="fu-dag"><span class="fu-dn">5</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
+   <div class="fu-dag"><span class="fu-dn fu-idag" aria-label="I dag">5</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
   <span class="fu-ot"><b class="fu-hake">✓</b> Rolig 1t 05</span>
   <span class="fu-om"><b>1t 05m</b> Langrenn · rulleski</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="149.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
  </div></div>

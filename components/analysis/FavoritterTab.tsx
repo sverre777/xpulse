@@ -82,6 +82,9 @@ function FavorittKort({ chartKey, dataFor, ctx, readOnly, onOpenTab, onFjern }: 
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: chartKey, disabled: readOnly })
   const key = losGrafNokkel(chartKey)
   const info = grafInfo(key)
+  // Brede kort (statuskortet, oektsammenligningen) skal se ut som i sin egen
+  // fane - de klemmes ikke inn i halv bredde paa PC (Sverre 6. sep).
+  const bred = info?.bred === true
   const dataKey = dataForGraf(key)
   const faneKey = info?.fane ?? null
   // Fanens renderFavoritt lastes lazy; null = fanen har ingen (→ «Åpne i fane»).
@@ -104,7 +107,7 @@ function FavorittKort({ chartKey, dataFor, ctx, readOnly, onOpenTab, onFjern }: 
   const faneNavn = fane ? FANE_NAVN[fane] : 'Ukjent'
   const tittel = info?.tittel ?? chartKey
   return (
-    <div ref={setNodeRef} className="xp-fav-kort" data-favoritt={chartKey} data-fane={fane ?? undefined} data-drar={isDragging || undefined}
+    <div ref={setNodeRef} className={`xp-fav-kort${bred ? ' xl:col-span-2' : ''}`} data-favoritt={chartKey} data-bred={bred || undefined} data-fane={fane ?? undefined} data-drar={isDragging || undefined}
       style={{ transform: DndCSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1, position: 'relative', zIndex: isDragging ? 5 : undefined, minWidth: 0 }}>
       <div className="flex items-center gap-2 mb-1.5 flex-wrap" style={{ fontFamily: FONT }}>
         {!readOnly && (

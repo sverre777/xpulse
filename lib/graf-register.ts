@@ -58,6 +58,10 @@ export interface GrafDef {
       oppsett venter på config-kolonne (SQL vist, ikke kjørt) — til da
       favoriseres grafen med standardoppsettet. */
   config?: boolean
+  /** Kortet er bygget for FULL bredde (statuskortet, tabeller, brede rader).
+      Favoritt-lista legger da kortet over begge kolonnene, så det ser likt ut
+      som i sin egen fane (Sverre 6. sep: favoritter ble klemt på PC). */
+  bred?: boolean
 }
 
 const G = (fane: FaneKey, tittel: string, mer: Partial<GrafDef> = {}): GrafDef => ({ fane, tittel, ...mer })
@@ -75,7 +79,7 @@ export const GRAFER: Record<string, GrafDef> = {
   overview_average_stress: G('oversikt', 'Snitt stress 😰'),
   overview_custom_breakdown: G('oversikt', 'Custom graf — fleksibel nedbryting', { data: 'selv', config: true }),
   // BOLK A (6. sep): «STATUS NÅ»-kortet øverst i Oversikt. Boksene får egne nøkler i A2/A3.
-  oversikt_status_kort: G('oversikt', 'Status nå (statuskortet)'),
+  oversikt_status_kort: G('oversikt', 'Status nå (statuskortet)', { bred: true }),
   oversikt_status_siste_hard: G('oversikt', 'Status nå — siste hardøkt'),
   oversikt_status_neste: G('oversikt', 'Status nå — neste hardøkt og neste økt'),
   oversikt_status_plan: G('oversikt', 'Status nå — timer plan vs gjennomført'),
@@ -196,7 +200,7 @@ export const GRAFER: Record<string, GrafDef> = {
 
   // ── Sammenligning (bolk 5): ØktGraf stablet/oppå + runder + nøkkeltall —
   // favoritt = øktsett + visning (config). Splits per km står som egen graf.
-  sammenlign_oktsett: G('sammenlign', 'Sammenligning av økter', { data: 'selv', config: true }),
+  sammenlign_oktsett: G('sammenlign', 'Sammenligning av økter', { data: 'selv', config: true, bred: true }),
   sammenlign_splits: G('sammenlign', 'Splits per km'),
 
   // ── Mal-analyse (inne i Sammenligning) ──

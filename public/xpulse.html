@@ -552,17 +552,144 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .flist .dd{display:block;color:var(--dim);font-size:13.5px;margin-top:3px}
 
 /* skiskyting-spotlight */
-/* bolk 6: KUN stripen - fragmentets «+ Legg til serie» og sumlinja skjules på forsiden */
-.eks[data-eks="skytestripe"] > div > button, .eks[data-eks="skytestripe"] > div > div:not(:has(input)){display:none}
-.blinkwrap{display:flex;gap:16px;align-items:center;margin-top:10px}
-.blinkstats{font-size:13px;color:var(--dim);line-height:2}
-.blinkstats b{color:var(--paper)}
-.skigrid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-top:8px}
-@media(max-width:900px){.skigrid{grid-template-columns:1fr}}
-html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-origin:center;
-  transition:opacity .22s,transform .3s cubic-bezier(.2,1.6,.4,1)}
-html.js .ishot.vis{opacity:1;transform:scale(1)}
-.ski{background:linear-gradient(160deg,var(--bg5),var(--bg));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+/* SKISKYTING-SEKSJONEN (fasit design/xpulse-forside-skyting-design.html).
+   Den gamle .ski/.skigrid/.blinkwrap/.ishot-varianten er slettet (regel 21):
+   skytestripe-fragmentet og den statiske blinken er erstattet av foeringsraden
+   med vind og sikt, og blinkkortet med animert plott. Klassene er prefikset sk-
+   fordi designet bruker generiske navn (.b, .n, .t, .sum, .felt). */
+.sk-skyt{background:linear-gradient(115deg,rgba(226,58,90,.10),rgba(26,111,212,.08) 72%),var(--bg);padding:48px 0;border-block:1px solid var(--line)}
+.sk-skyt-inn{max-width:1320px;margin:0 auto;padding:0 32px;display:grid;grid-template-columns:1fr 400px;gap:56px;align-items:center}
+.sk-kap{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:#E23A5A}
+.sk-skyt h2{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:clamp(32px,4.2vw,56px);line-height:.98;letter-spacing:.02em;margin:8px 0 11px;max-width:14ch}
+.sk-skyt h2 em{font-style:normal;color:#E23A5A}
+.sk-skyt .sk-ing{font-family:'Barlow';font-size:15.5px;line-height:1.6;color:var(--dim);max-width:52ch}
+/* føringsrad */
+.sk-innkort{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:11px 12px;max-width:640px}
+.sk-innrad{display:flex;align-items:stretch;gap:6px;flex-wrap:nowrap}
+.sk-innrad .sk-nr{align-self:center;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:11px;color:var(--mute);width:12px}
+.sk-seg2{display:flex;border:1px solid var(--line2);border-radius:11px;overflow:hidden}
+.sk-seg2 span{padding:9px 12px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:14px;letter-spacing:.14em;color:var(--dim);cursor:pointer}
+.sk-seg2 span.sk-on{background:#FF4500;color:#151519}
+.sk-felt{border:1px solid var(--line2);border-radius:10px;padding:4px 10px 5px;min-width:0;flex:1 1 0;background:var(--surface)}
+.sk-felt small{display:block;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.sk-felt b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:19px;letter-spacing:.03em;white-space:nowrap}
+.sk-felt b em{font-style:normal;font-size:12px;color:var(--dim);margin-left:2px}
+.sk-felt.sk-tom b{color:var(--mute)}
+.sk-knr{display:flex;gap:5px;margin-left:4px;flex:none}
+.sk-ik{width:38px;height:38px;border-radius:10px;flex:none;align-self:center;border:1px solid var(--line2);background:var(--surface);color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px;transition:border-color .2s,color .2s,background .2s}
+.sk-ik svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sk-ik:hover{color:var(--paper);border-color:var(--paper)}
+.sk-ik.sk-on{border-color:#FF4500;background:rgba(255,69,0,.12)}
+.sk-ik.sk-vind{color:#E23A5A;border-color:rgba(226,58,90,.5)}
+.sk-vindkort{margin-top:8px;border:1px solid rgba(226,58,90,.32);background:rgba(226,58,90,.05);border-radius:12px;padding:9px 10px}
+.sk-vk-hode{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.sk-vk-hode .sk-cap{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#E23A5A}
+.sk-vk-hode .sk-d{font-family:'Barlow';font-size:11.5px;color:var(--mute);margin-left:auto}
+.sk-vk-rad{display:flex;align-items:center;gap:8px}
+.sk-retn{display:flex;flex-direction:column;gap:3px;flex:none}
+.sk-retn button{border:1px solid var(--line2);background:var(--surface);color:var(--dim);border-radius:7px;padding:4px 8px;cursor:pointer;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em}
+.sk-retn button.sk-on{color:#151519;background:#E23A5A;border-color:#E23A5A}
+.sk-vskala{display:flex;gap:3px;justify-content:space-between;flex:1;min-width:0}
+.sk-vt{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:0;padding:2px 0 3px;border:1px solid transparent;border-radius:9px;background:transparent;cursor:pointer;opacity:.5;transition:opacity .2s,background .2s,border-color .2s}
+.sk-vt svg{display:block}
+.sk-vt span{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.08em;color:var(--dim)}
+.sk-vt:hover{opacity:.85;background:rgba(255,255,255,.04)}
+.sk-vt.sk-on{opacity:1;background:rgba(226,58,90,.14);border-color:rgba(226,58,90,.5)}
+.sk-vt.sk-on span{color:var(--paper)}
+.sk-siktrad{display:flex;gap:5px;margin-top:6px}
+.sk-siktrad button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line2);background:var(--surface);color:var(--dim);border-radius:8px;padding:4px 4px;cursor:pointer;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.sk-siktrad button.sk-on{color:var(--paper);border-color:#1A6FD4;background:rgba(26,111,212,.12)}
+.sk-vk-fot{font-family:'Barlow';font-size:10.5px;color:var(--mute);margin-top:6px;padding-top:5px;border-top:1px solid var(--line)}
+.sk-leggtil{margin-top:8px;width:100%;border:1px dashed rgba(255,69,0,.55);color:#FF4500;background:transparent;border-radius:11px;padding:9px;
+  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+.sk-leggtil:hover{background:rgba(255,69,0,.08)}
+.sk-sum{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-family:'Barlow';font-size:13px;color:var(--dim)}
+.sk-sum b{color:var(--paper)}
+/* smalt blinkkort */
+.sk-blkort{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:13px 13px 11px;box-shadow:0 26px 60px rgba(0,0,0,.4)}
+.sk-blhode{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.sk-blhode .sk-pos{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.16em;padding:3px 9px;border-radius:999px;border:1px solid}
+.sk-blhode .sk-pos.sk-s{color:#FF4500;border-color:#FF4500}
+.sk-blhode .sk-pos.sk-l{color:#38BDF8;border-color:#38BDF8}
+.sk-blhode b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:19px;letter-spacing:.03em}
+.sk-blhode .sk-tr{margin-left:auto;font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:24px;letter-spacing:.03em}
+.sk-blhode .sk-tr b{font-weight:400}
+.sk-blhode .sk-tr em{font-style:normal;font-size:13px;color:var(--dim)}
+.sk-blrad{display:flex;gap:6px;justify-content:space-between}
+.sk-bl{flex:1 1 0;min-width:0;text-align:center}
+.sk-bl svg{width:100%;height:auto;display:block;overflow:visible}
+.sk-bl .sk-face{fill:#15151A;stroke:rgba(255,255,255,.22);stroke-width:.8;transition:fill .45s cubic-bezier(.2,.7,.2,1),stroke .45s}
+.sk-bl .sk-ring{stroke:rgba(255,255,255,.3);transition:stroke .45s}
+.sk-bl.sk-t.sk-skutt .sk-face{fill:#F4F4F2;stroke:rgba(0,0,0,.3)}
+.sk-bl.sk-t.sk-skutt .sk-ring{stroke:rgba(0,0,0,.3)}
+.sk-bl.sk-b.sk-skutt .sk-face{stroke:rgba(226,58,90,.75)}
+.sk-bl .sk-dot{opacity:0}
+.sk-bl.sk-skutt .sk-dot{opacity:1;animation:pop .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{transform:scale(.25);transform-origin:center}to{transform:scale(1);transform-origin:center}}
+.sk-bl-nr{display:block;margin-top:3px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.14em;color:var(--mute)}
+.sk-blstat{display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.sk-blstat .sk-tall{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;flex:1;min-width:0}
+.sk-blstat .sk-tall div{min-width:0}
+.sk-blstat small{display:block;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.sk-blstat b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:18px;letter-spacing:.03em;white-space:nowrap}
+.sk-blstat b em{font-style:normal;font-size:11px;color:var(--dim);margin-left:2px}
+.sk-monster{text-align:center;flex:none}
+.sk-monster small{display:block;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:5px}
+.sk-mns{overflow:visible}
+.sk-monster .sk-mp{opacity:0;transition:opacity .3s ease}
+.sk-monster .sk-mp.sk-vis{opacity:.92}
+.sk-serier{margin-top:9px;border-top:1px solid var(--line);padding-top:6px}
+.sk-srad{display:grid;grid-template-columns:20px 1fr 38px 38px 30px 34px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-family:'Barlow';font-size:12px}
+.sk-srad:last-child{border-bottom:0}
+.sk-srad.sk-akt{background:rgba(226,58,90,.07);border-radius:9px;padding-inline:7px;margin-inline:-7px}
+.sk-srad .sk-pos{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;padding:1px 0;border-radius:999px;border:1px solid;text-align:center}
+.sk-srad .sk-pos.sk-l{color:#38BDF8;border-color:#38BDF8}
+.sk-srad .sk-pos.sk-s{color:#FF4500;border-color:#FF4500}
+.sk-mini{display:flex;gap:4px}
+.sk-mini i{width:9px;height:9px;border-radius:50%;display:block}
+.sk-mini i.sk-t{background:#28A86E}
+.sk-mini i.sk-b{background:transparent;border:1.5px solid #E23A5A}
+.sk-srad .sk-tr{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:16px;letter-spacing:.03em}
+.sk-srad .sk-tr em{font-style:normal;font-size:10px;color:var(--dim)}
+.sk-srad .sk-n{font-variant-numeric:tabular-nums;font-size:11.5px}
+.sk-srad .sk-d{color:var(--dim)}
+.sk-srad .sk-vind{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;color:var(--dim);text-align:right}
+.sk-hint{font-family:'Barlow';font-size:11px;color:var(--mute);margin-top:7px}
+@media(max-width:1050px){
+  /* minmax(0,...) og ikke bare 1fr: foeringsraden har stor min-bredde og ville
+     ellers dratt hele sida vannrett. */
+  .sk-skyt-inn{grid-template-columns:minmax(0,1fr);gap:28px}
+  .sk-blkort{max-width:400px}
+}
+@media(max-width:760px){
+  /* Paa mobil brekker foeringsraden i to: feltene deler bredden, knappene ligger
+     sist. Vimpelskalaen og sikt-knappene brekker paa samme maate. */
+  .sk-skyt{padding:34px 0}
+  .sk-skyt-inn{padding:0 18px}
+  .sk-innrad{flex-wrap:wrap;gap:6px 5px}
+  .sk-innrad .sk-nr{order:-1}
+  .sk-felt{flex:1 1 28%;min-width:74px}
+  .sk-knr{margin-left:auto}
+  .sk-vk-rad{flex-wrap:wrap;gap:8px}
+  .sk-vskala{flex-wrap:wrap}
+  .sk-siktrad{flex-wrap:wrap}
+  .sk-blkort{max-width:100%}
+  .sk-blrad{gap:5px}
+  .sk-tall{gap:6px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sk-bl .sk-dot{opacity:1;animation:none}
+  .sk-bl.sk-t .sk-face{fill:#F4F4F2;stroke:rgba(0,0,0,.3)}
+  .sk-bl.sk-t .sk-ring{stroke:rgba(0,0,0,.3)}
+  .sk-monster .sk-mp{opacity:.92}
+}
+.notat{margin:40px auto 0;max-width:940px;border:1px solid var(--line2);border-radius:14px;padding:18px 20px}
+.notat h2{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:24px;letter-spacing:.05em;margin-bottom:8px}
+.notat ol{padding-left:18px;font-size:13.5px;line-height:1.62}
+.notat li{margin-bottom:5px}
+.notat code{font-family:ui-monospace,monospace;font-size:12px;color:var(--gold)}
 
 /* trener */
 .trow{display:grid;grid-template-columns:34px 1fr 74px 84px;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bg2);font-size:14px}
@@ -1066,10 +1193,9 @@ html.js .istep.vis{opacity:1}
 
 
 @media (prefers-reduced-motion: reduce){
-  .ishot,.istep,.idot,.hero .btn{transition:none !important}
+  .istep,.idot,.hero .btn{transition:none !important}
   .hero .btn:hover{transform:none}
   .hero .btn:hover::after{animation:none;opacity:0}
-  html.js .ishot{opacity:1;transform:none}
   html.js .istep{opacity:1}
 }
 
@@ -2790,57 +2916,114 @@ section[id],header[id]{scroll-margin-top:108px}
   
 </section>
 
-<!-- ═══════════ FORSIDE v7 bolk 4 (+ hero-fix a): HELE TROPPEN. ETT PANEL. - rett under «Planen møter virkeligheten» ═══════════ -->
-<section id="trener" style="padding:0">
-  <div class="flyt-scrolly" data-n="4">
-    <div class="flyt-sticky">
-      <div class="hd">
-        <div class="label blue">For trenere</div>
-        <h2>HELE TROPPEN. <span class="b">ETT PANEL.</span></h2>
-        <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør - og alle trener-abonnement inkluderer full Athlete Pro til deg selv.</p>
-      </div>
-      <div class="stegliste"><button class="sl on" data-i="0"><span class="fnum">01</span><span class="slt"><b>LAG MALEN - PUSH TIL HELE GRUPPA</b><small>Én uke-mal, åtte utøvere. Hver får sin egen versjon i planen - med soner regnet fra egne terskler.</small></span><i class="bar"><s></s></i></button>
-<button class="sl" data-i="1"><span class="fnum">02</span><span class="slt"><b>KOMMENTER I ØKTA - IKKE I INNBOKSEN</b><small>Trenerens ord ligger på økta, ved siden av grafen og radene. Utøveren svarer samme sted.</small></span><i class="bar"><s></s></i></button>
-<button class="sl" data-i="2"><span class="fnum">03</span><span class="slt"><b>SAMMENLIGN SIDE OM SIDE</b><small>Belastning, soner, tester og treff - to eller flere utøvere i samme bilde, samme periode.</small></span><i class="bar"><s></s></i></button>
-<button class="sl" data-i="3"><span class="fnum">04</span><span class="slt"><b>HELE TROPPEN - DENNE UKA</b><small>% av plan, timer, lav recovery. Alt du trenger for å vite hvem du skal ringe i dag.</small></span><i class="bar"><s></s></i></button><div data-tnote style="margin:10px 12px 0;font-size:12px;color:var(--dim)">Varsler ved høy belastning eller dårlig recovery · Helsedata deles kun når utøveren sier ja - håndhevet i databasen.</div></div>
-      <div class="paneler"><div class="pan on" data-i="0"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Planlegg · gruppe</h4><span class="aux">Uke 37 · 8 utøvere</span></div><div class="app-b"><div class="pushgrid">
-  <div class="mal"><div class="mal-h"><span class="label" style="color:var(--blue)">Uke-mal</span><b>GRUNNTRENING 2 · UKE B</b><small>7 økter · 9t 05m · 2 hardøkter · 1 skyting</small></div>
-    <div class="malrad"><i style="background:#28A86E"></i>Man · Langtur 2t I1</div><div class="malrad"><i style="background:#E8B93C"></i>Tir · 3 × 10 min I3 + skyting</div><div class="malrad"><i style="background:#6E6E78"></i>Tir · Styrke</div><div class="malrad"><i style="background:#28A86E"></i>Ons · Rolig 1t15</div><div class="malrad"><i style="background:#FF8C00"></i>Tor · 4 × 5 min I4</div><div class="malrad"><i style="background:#28A86E"></i>Fre · Rolig 45 min</div><div class="malrad"><i style="background:#28A86E"></i>Søn · Langtur 2t30</div>
-    <div class="pushbtn"><span>Push til 8 utøvere</span><i></i></div>
-  </div>
-  <div class="pil"><svg viewBox="0 0 60 200" preserveAspectRatio="none"><path d="M2 100 C 30 100, 30 12, 58 12 M2 100 C 30 100, 30 60, 58 60 M2 100 C 30 100, 30 100, 58 100 M2 100 C 30 100, 30 140, 58 140 M2 100 C 30 100, 30 188, 58 188" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"/></svg></div>
-  <div class="atl"><div class="pa" style="--d:0.35s"><span class="av">AH</span><span class="nm">Utøver A<small>Skiskyting · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.53s"><span class="av">MB</span><span class="nm">Utøver B<small>Langrenn · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.71s"><span class="av">SK</span><span class="nm">Utøver C<small>Skiskyting · junior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.89s"><span class="av">EL</span><span class="nm">Utøver D<small>Løping · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.07s"><span class="av">JN</span><span class="nm">Utøver E<small>Skiskyting · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.25s"><span class="av">TR</span><span class="nm">Utøver F<small>Langrenn · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.43s"><span class="av">KS</span><span class="nm">Utøver G<small>Skiskyting · junior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.61s"><span class="av">OL</span><span class="nm">Utøver H<small>Løping · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div></div>
+<!-- ═══════════ SKISKYTING (fasit design/xpulse-forside-skyting-design.html): foeringsraden med
+     vind og sikt som i oektskjemaet, og blinkkortet med animert plott. Klassene er prefikset sk-
+     fordi designet bruker generiske navn (.b, .n, .t, .sum, .felt) som finnes fra foer. ═══════════ -->
+<section class="sk-skyt" id="skiskyting"><div class="sk-skyt-inn">
+ <div>
+  <div class="sk-kap">Skiskyting - verktøy ingen andre har</div>
+  <h2>FØR SKYTINGEN SOM <em>PÅ STANDPLASS.</em></h2>
+  <p class="sk-ing">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. Legg skytingen rett på pulskurven i øktbyggeren, så ligger hver serie der den skjedde. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
+  <div class="sk-innkort">
+   <div class="sk-innrad">
+ <span class="sk-nr">1</span>
+ <div class="sk-seg2"><span>L</span><span class="sk-on">S</span></div>
+ <div class="sk-felt"><small>Skudd</small><b>5</b></div>
+ <div class="sk-felt"><small>Treff</small><b>4</b></div>
+ <div class="sk-felt"><small>Skytetid</small><b>28.4<em>s</em></b></div>
+ <div class="sk-felt"><small>Puls inn</small><b>168</b></div>
+ <div class="sk-felt sk-tom"><small>Maks</small><b>-</b></div>
+ <div class="sk-knr">
+  <button class="sk-ik sk-on" title="Plott skuddene">🎯</button>
+  <button class="sk-ik sk-vind" title="Vind og sikt"><svg viewBox="0 0 24 24"><path d="M7 21V4"/><path d="M7 4.5c3.5-2 6.5 2 10 0v7c-3.5 2-6.5-2-10 0z" fill="currentColor" stroke="none" opacity=".9"/></svg></button>
+  <button class="sk-ik" title="Notat"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M14.5 4.5l4 4L9 18H5v-4z"/></svg></button>
+  <button class="sk-ik sk-x" title="Slett serie"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+ </div>
 </div>
-<div class="hint" style="margin-top:10px;color:var(--dim);font-size:12px">Soner og terskler regnes per utøver. Malen lagres i biblioteket - endre én gang, push på nytt.</div></div></div></div>
-<div class="pan" data-i="1"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Utøver A · tirsdag 2. sep</h4><span class="aux">Kommentar på økta</span></div><div class="app-b"><div class="oktkort" style="border-left-color:#E8B93C"><div class="ok-h"><span class="ok-t">3 × 10 min I3 / 2 min + skyting</span><span class="ok-d">1t 11 · Utøver A</span></div><div class="ok-m">Rulleski · Skøyting · Garmin · gjennomført tirsdag</div>
-<div class="minig"><i style="flex:20;height:6px;background:#28A86E"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:2;height:5px;background:#43434B"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:2;height:5px;background:#43434B"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:15;height:6px;background:#64748B"></i></div>
-<div class="nk"><span><b>152</b> snitt</span><span><b>30</b> min I3</span><span><b>17/20</b> treff</span><span><b>7</b>/10 opplevd</span></div></div>
-<div class="komm">
-  <div class="kb trener"><span class="chip-t">Trener</span><p>Drag 3 var 6 slag høyere enn de to første - legg deg på 165 neste gang, det er nok til effekten vi er ute etter. Skytinga: ta 2 s ekstra på liggende, bommene er tidsbommer.</p><small>Ola · i dag 14:12</small></div>
-  <div class="kb svar"><p>Kjente det på drag 3 ja. Prøver 165 torsdag 👍</p><small>Utøver A · 14:40</small></div>
-  <div class="kb skriv"><span>Skriv kommentar …</span><b>Send</b></div>
-</div></div></div></div>
-<div class="pan" data-i="2"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Sammenlign</h4><span class="aux">A vs C · siste 4 uker</span></div><div class="app-b"><div class="samm"><div class="scol"><div class="sh"><span class="av">UT</span><b>Utøver A</b><small>Skiskyting · U23</small></div>
-<div class="sk"><small>CTL</small><b>78</b></div><div class="sk"><small>TSB</small><b style="color:var(--green)">+12</b></div><div class="sk"><small>I3+ / uke</small><b>1t 40</b></div><div class="sk"><small>Treff %</small><b>84</b></div><div class="sk"><small>LT2</small><b>165 / 4,1</b></div>
-<div class="sbar"><i style="--w:82%"></i></div><small class="sbl">Belastning siste 4 uker</small></div><div class="scol"><div class="sh"><span class="av">UT</span><b>Utøver C</b><small>Skiskyting · junior</small></div>
-<div class="sk"><small>CTL</small><b>61</b></div><div class="sk"><small>TSB</small><b style="color:var(--red)">-9</b></div><div class="sk"><small>I3+ / uke</small><b>2t 05</b></div><div class="sk"><small>Treff %</small><b>79</b></div><div class="sk"><small>LT2</small><b>171 / 3,8</b></div>
-<div class="sbar"><i style="--w:95%"></i></div><small class="sbl">Belastning siste 4 uker</small></div></div>
-<div class="sonecmp"><small>Sonefordeling · 4 uker</small><div class="srow"><span>A</span><div class="zs"><i style="flex:74;background:#28A86E"></i><i style="flex:9;background:#1A6FD4"></i><i style="flex:11;background:#E8B93C"></i><i style="flex:6;background:#FF8C00"></i></div></div><div class="srow"><span>C</span><div class="zs"><i style="flex:62;background:#28A86E"></i><i style="flex:12;background:#1A6FD4"></i><i style="flex:16;background:#E8B93C"></i><i style="flex:10;background:#FF8C00"></i></div></div></div>
-<div class="hint" style="color:var(--dim);font-size:12px;margin-top:8px">Utøver C: mer hard tid, lavere form, treff ned - og TSB −9 to uker før Sjusjøen. Det er samtalen.</div></div></div></div>
-<div class="pan" data-i="3"><div class="app">
-        <div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>UTØVERE · DENNE UKA</h4><span class="aux">8 i troppen</span></div>
-        <div class="app-b" style="padding:8px 10px">
-          <div class="trow"><span class="av">AH</span><span class="nm"><b>Utøver A</b><span>Skiskyting · U23</span></span><span class="hrs">9:20 t</span><span class="st" style="color:var(--green)">92 % AV PLAN</span></div>
-          <div class="trow"><span class="av">MB</span><span class="nm"><b>Utøver B</b><span>Langrenn · senior</span></span><span class="hrs">7:05 t</span><span class="st" style="color:var(--green)">88 % AV PLAN</span></div>
-          <div class="trow"><span class="av">SK</span><span class="nm"><b>Utøver C</b><span>Skiskyting · junior</span></span><span class="hrs">3:10 t</span><span class="st" style="color:var(--i4)">LAV RECOVERY</span></div>
-          <div class="trow"><span class="av">EL</span><span class="nm"><b>Utøver D</b><span>Løping · senior</span></span><span class="hrs">6:40 t</span><span class="st" style="color:var(--green)">PÅ PLAN</span></div>
-        </div>
-      </div></div></div>
-      <div class="flyt-hint"><i></i>Bla for neste steg</div>
-    </div>
+   <div class="sk-vindkort">
+ <div class="sk-vk-hode"><span class="sk-cap">Vind og sikt · serie 1</span><span class="sk-d">Vimpel moderat mot høyre (3/5)</span></div>
+ <div class="sk-vk-rad">
+  <div class="sk-retn"><button class="">&#8592; V</button><button class="sk-on">H &#8594;</button></div>
+  <div class="sk-vskala"><button class="sk-vt"><svg viewBox="0 0 92 92" width="26" height="26" aria-hidden="true"><line x1="32" y1="12" x2="32" y2="84" stroke="rgba(255,255,255,.45)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="rgba(255,255,255,.35)"/><path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/></svg><span>0</span></button><button class="sk-vt"><svg viewBox="0 0 92 92" width="26" height="26" aria-hidden="true"><line x1="32" y1="12" x2="32" y2="84" stroke="rgba(255,255,255,.45)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="rgba(255,255,255,.35)"/><g transform="rotate(-15 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span>1</span></button><button class="sk-vt"><svg viewBox="0 0 92 92" width="26" height="26" aria-hidden="true"><line x1="32" y1="12" x2="32" y2="84" stroke="rgba(255,255,255,.45)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="rgba(255,255,255,.35)"/><g transform="rotate(-35 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span>2</span></button><button class="sk-vt sk-on"><svg viewBox="0 0 92 92" width="26" height="26" aria-hidden="true"><line x1="32" y1="12" x2="32" y2="84" stroke="rgba(255,255,255,.45)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="rgba(255,255,255,.35)"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span>3</span></button><button class="sk-vt"><svg viewBox="0 0 92 92" width="26" height="26" aria-hidden="true"><line x1="32" y1="12" x2="32" y2="84" stroke="rgba(255,255,255,.45)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="rgba(255,255,255,.35)"/><g transform="rotate(-75 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span>4</span></button><button class="sk-vt"><svg viewBox="0 0 92 92" width="26" height="26" aria-hidden="true"><line x1="32" y1="12" x2="32" y2="84" stroke="rgba(255,255,255,.45)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="rgba(255,255,255,.35)"/><path d="M32,10 c8,-3 13,3 21,0 c8,-3 13,3 21,0 l0,13 c-8,3 -13,-3 -21,0 c-8,3 -13,-3 -21,0 Z" fill="#E23A5A"/><path d="M78,9 c4,-2 7,1 10,0 M78,26 c4,2 7,-1 10,0" stroke="#E23A5A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/></svg><span>5</span></button></div>
+ </div>
+ <div class="sk-siktrad"><button class="sk-sk sk-on" title="God"><svg viewBox="0 0 18 14" width="14" height="10" aria-hidden="true"><circle cx="9" cy="7" r="5" fill="none" stroke="#28A86E" stroke-width="2"/></svg><span>God</span></button><button class="sk-sk" title="Lett tåke"><svg viewBox="0 0 18 14" width="14" height="10" aria-hidden="true"><path d="M2,3 c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.50"/></svg><span>Lett tåke</span></button><button class="sk-sk" title="Tåke"><svg viewBox="0 0 18 14" width="14" height="10" aria-hidden="true"><path d="M2,3 c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.50"/><path d="M2,7 c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.67"/></svg><span>Tåke</span></button><button class="sk-sk" title="Tett tåke"><svg viewBox="0 0 18 14" width="14" height="10" aria-hidden="true"><path d="M2,3 c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.50"/><path d="M2,7 c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.67"/><path d="M2,11 c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.84"/></svg><span>Tett tåke</span></button></div>
+ <div class="sk-vk-fot">Vinden lagres per serie - treff&nbsp;% kan brytes ned på vindstyrke og retning i analysen.</div>
+</div>
+   <div class="sk-sum"><span><b>10</b> skudd</span><span>Treff <b>9/10</b> · <b>90 %</b></span><span>Skytetid <b>26,3 s</b></span><span>Snittpuls inn <b>165</b></span></div>
   </div>
-  
-</section>
+ </div>
+ <div class="sk-blkort">
+  <div class="sk-blhode"><span class="sk-pos sk-s">STÅENDE</span><b>Serie 2</b><span class="sk-tr"><b id="sk-tell">0</b><em>/5</em></span></div>
+  <div class="sk-blrad"><div class="sk-bl sk-t" data-i="0">
+  <svg viewBox="0 0 48 48" aria-hidden="true">
+   <circle class="sk-face" cx="24" cy="24" r="17.0"/>
+   
+   <circle class="sk-dot" cx="18.22" cy="29.10" r="2.9" fill="#28A86E"/>
+  </svg>
+  <span class="sk-bl-nr">1</span>
+ </div><div class="sk-bl sk-t" data-i="1">
+  <svg viewBox="0 0 48 48" aria-hidden="true">
+   <circle class="sk-face" cx="24" cy="24" r="17.0"/>
+   
+   <circle class="sk-dot" cx="31.14" cy="21.28" r="2.9" fill="#28A86E"/>
+  </svg>
+  <span class="sk-bl-nr">2</span>
+ </div><div class="sk-bl sk-t" data-i="2">
+  <svg viewBox="0 0 48 48" aria-hidden="true">
+   <circle class="sk-face" cx="24" cy="24" r="17.0"/>
+   
+   <circle class="sk-dot" cx="25.70" cy="32.84" r="2.9" fill="#28A86E"/>
+  </svg>
+  <span class="sk-bl-nr">3</span>
+ </div><div class="sk-bl sk-b" data-i="3">
+  <svg viewBox="0 0 48 48" aria-hidden="true">
+   <circle class="sk-face" cx="24" cy="24" r="17.0"/>
+   
+   <circle class="sk-dot" cx="48.14" cy="9.38" r="2.9" fill="#E23A5A"/>
+  </svg>
+  <span class="sk-bl-nr">4</span>
+ </div><div class="sk-bl sk-t" data-i="4">
+  <svg viewBox="0 0 48 48" aria-hidden="true">
+   <circle class="sk-face" cx="24" cy="24" r="17.0"/>
+   
+   <circle class="sk-dot" cx="16.18" cy="20.60" r="2.9" fill="#28A86E"/>
+  </svg>
+  <span class="sk-bl-nr">5</span>
+ </div></div>
+  <div class="sk-blstat">
+   <div class="sk-tall">
+    <div><small>Skytetid</small><b>28,4<em>s</em></b></div>
+    <div><small>Puls inn</small><b>168</b></div>
+    <div><small>Vind</small><b>3<em>→ H</em></b></div>
+    <div><small>Sikt</small><b>God</b></div>
+   </div>
+   <div class="sk-monster"><svg class="sk-mns" viewBox="0 0 48 48" width="76" height="76" aria-hidden="true">
+   <circle cx="24" cy="24" r="17.0" fill="#101014" stroke="rgba(255,255,255,.16)"/>
+   
+   <path d="M24 4v3M24 41v3M4 24h3M41 24h3" stroke="rgba(255,255,255,.16)" stroke-width=".7"/>
+   <circle class="sk-mp" data-i="0" cx="18.22" cy="29.10" r="2.6" fill="#28A86E"/><circle class="sk-mp" data-i="1" cx="31.14" cy="21.28" r="2.6" fill="#28A86E"/><circle class="sk-mp" data-i="2" cx="25.70" cy="32.84" r="2.6" fill="#28A86E"/><circle class="sk-mp" data-i="3" cx="48.14" cy="9.38" r="2.6" fill="#E23A5A"/><circle class="sk-mp" data-i="4" cx="16.18" cy="20.60" r="2.6" fill="#28A86E"/></svg><small>Mønster</small></div>
+  </div>
+  <div class="sk-serier">
+   <div class="sk-srad">
+ <span class="sk-pos sk-l">L</span>
+ <span class="sk-mini"><i class="sk-t"></i><i class="sk-t"></i><i class="sk-t"></i><i class="sk-t"></i><i class="sk-t"></i></span>
+ <span class="sk-tr">5<em>/5</em></span>
+ <span class="sk-n">24.1s</span>
+ <span class="sk-n sk-d">161</span>
+ <span class="sk-vind">H2</span>
+</div>
+   <div class="sk-srad sk-akt">
+ <span class="sk-pos sk-s">S</span>
+ <span class="sk-mini"><i class="sk-t"></i><i class="sk-t"></i><i class="sk-t"></i><i class="sk-b"></i><i class="sk-t"></i></span>
+ <span class="sk-tr">4<em>/5</em></span>
+ <span class="sk-n">28.4s</span>
+ <span class="sk-n sk-d">168</span>
+ <span class="sk-vind">H3</span>
+</div>
+  </div>
+  <div class="sk-hint">Bommene plottes også - mønsteret avslører seg selv.</div>
+ </div>
+</div></section>
 
 <!-- velg din disiplin - slått sammen med bildestripa: tittel fra live-siden, visning som stripa, alle sju med bilde -->
 <section id="sports" style="padding-top:20px;padding-bottom:0">
@@ -3107,38 +3290,58 @@ section[id],header[id]{scroll-margin-top:108px}
   </div>
 </div>
 
-<!-- ═══════════ NY SEKSJON: SKISKYTING-SPOTLIGHT ═══════════ -->
-<section class="ski" id="skiskyting">
-  <!-- FORSIDE v7 bolk 6 (Sverre 6. sep): venstre = lead + skytestripen (den ekte serie-raden fra økt-skjemaet,
-       components/workout/SerieListe, eksportert som fragment - uten «+ Legg til serie» og sumlinja); høyre =
-       blinken med skuddene som før. Vimpel-kortene, sikt-chipsene og plott-kortet er tatt ut. -->
-  <div class="wrap">
-    <div class="label" style="color:var(--red)">Skiskyting - verktøy ingen andre har</div>
-    <h2>FØR SKYTINGEN SOM<br><span style="color:var(--red)">PÅ STANDPLASS.</span></h2>
-    <div class="skigrid">
-      <div>
-        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
-        <div class="eks" data-eks="skytestripe" style="--eks-h:72px;margin-top:22px"></div>
+
+<!-- ═══════════ FORSIDE v7 bolk 4 (+ hero-fix a): HELE TROPPEN. ETT PANEL. - rett under «Planen møter virkeligheten» ═══════════ -->
+<section id="trener" style="padding:0">
+  <div class="flyt-scrolly" data-n="4">
+    <div class="flyt-sticky">
+      <div class="hd">
+        <div class="label blue">For trenere</div>
+        <h2>HELE TROPPEN. <span class="b">ETT PANEL.</span></h2>
+        <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør - og alle trener-abonnement inkluderer full Athlete Pro til deg selv.</p>
       </div>
-      <div class="blinkwrap" id="shootSec">
-        <svg width="230" height="230" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="86" fill="var(--bg3)" stroke="var(--line2)" stroke-width="2"/>
-          <circle cx="100" cy="100" r="40" fill="var(--bg8)" stroke="var(--mute4)" stroke-width="2"/>
-          <circle class="ishot" cx="88" cy="86" r="8" fill="#28A86E"/><circle class="ishot" cx="112" cy="104" r="8" fill="#28A86E"/>
-          <circle class="ishot" cx="96" cy="118" r="8" fill="#28A86E"/><circle class="ishot" cx="118" cy="80" r="8" fill="#28A86E"/>
-          <circle class="ishot ismiss" cx="150" cy="62" r="8" fill="#E23A5A"/>
-        </svg>
-        <div class="blinkstats">
-          Serie 2 · Stående<br>
-          <b>4/5 treff</b> · skytetid <b>28,4 s</b><br>
-          puls inn <b>168</b> · vind <b>3 H</b><br>
-          <span style="color:var(--mute);font-size:12px">Bommen plottes - mønsteret avslører seg selv.</span>
+      <div class="stegliste"><button class="sl on" data-i="0"><span class="fnum">01</span><span class="slt"><b>LAG MALEN - PUSH TIL HELE GRUPPA</b><small>Én uke-mal, åtte utøvere. Hver får sin egen versjon i planen - med soner regnet fra egne terskler.</small></span><i class="bar"><s></s></i></button>
+<button class="sl" data-i="1"><span class="fnum">02</span><span class="slt"><b>KOMMENTER I ØKTA - IKKE I INNBOKSEN</b><small>Trenerens ord ligger på økta, ved siden av grafen og radene. Utøveren svarer samme sted.</small></span><i class="bar"><s></s></i></button>
+<button class="sl" data-i="2"><span class="fnum">03</span><span class="slt"><b>SAMMENLIGN SIDE OM SIDE</b><small>Belastning, soner, tester og treff - to eller flere utøvere i samme bilde, samme periode.</small></span><i class="bar"><s></s></i></button>
+<button class="sl" data-i="3"><span class="fnum">04</span><span class="slt"><b>HELE TROPPEN - DENNE UKA</b><small>% av plan, timer, lav recovery. Alt du trenger for å vite hvem du skal ringe i dag.</small></span><i class="bar"><s></s></i></button><div data-tnote style="margin:10px 12px 0;font-size:12px;color:var(--dim)">Varsler ved høy belastning eller dårlig recovery · Helsedata deles kun når utøveren sier ja - håndhevet i databasen.</div></div>
+      <div class="paneler"><div class="pan on" data-i="0"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Planlegg · gruppe</h4><span class="aux">Uke 37 · 8 utøvere</span></div><div class="app-b"><div class="pushgrid">
+  <div class="mal"><div class="mal-h"><span class="label" style="color:var(--blue)">Uke-mal</span><b>GRUNNTRENING 2 · UKE B</b><small>7 økter · 9t 05m · 2 hardøkter · 1 skyting</small></div>
+    <div class="malrad"><i style="background:#28A86E"></i>Man · Langtur 2t I1</div><div class="malrad"><i style="background:#E8B93C"></i>Tir · 3 × 10 min I3 + skyting</div><div class="malrad"><i style="background:#6E6E78"></i>Tir · Styrke</div><div class="malrad"><i style="background:#28A86E"></i>Ons · Rolig 1t15</div><div class="malrad"><i style="background:#FF8C00"></i>Tor · 4 × 5 min I4</div><div class="malrad"><i style="background:#28A86E"></i>Fre · Rolig 45 min</div><div class="malrad"><i style="background:#28A86E"></i>Søn · Langtur 2t30</div>
+    <div class="pushbtn"><span>Push til 8 utøvere</span><i></i></div>
+  </div>
+  <div class="pil"><svg viewBox="0 0 60 200" preserveAspectRatio="none"><path d="M2 100 C 30 100, 30 12, 58 12 M2 100 C 30 100, 30 60, 58 60 M2 100 C 30 100, 30 100, 58 100 M2 100 C 30 100, 30 140, 58 140 M2 100 C 30 100, 30 188, 58 188" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"/></svg></div>
+  <div class="atl"><div class="pa" style="--d:0.35s"><span class="av">AH</span><span class="nm">Utøver A<small>Skiskyting · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.53s"><span class="av">MB</span><span class="nm">Utøver B<small>Langrenn · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.71s"><span class="av">SK</span><span class="nm">Utøver C<small>Skiskyting · junior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.89s"><span class="av">EL</span><span class="nm">Utøver D<small>Løping · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.07s"><span class="av">JN</span><span class="nm">Utøver E<small>Skiskyting · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.25s"><span class="av">TR</span><span class="nm">Utøver F<small>Langrenn · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.43s"><span class="av">KS</span><span class="nm">Utøver G<small>Skiskyting · junior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.61s"><span class="av">OL</span><span class="nm">Utøver H<small>Løping · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div></div>
+</div>
+<div class="hint" style="margin-top:10px;color:var(--dim);font-size:12px">Soner og terskler regnes per utøver. Malen lagres i biblioteket - endre én gang, push på nytt.</div></div></div></div>
+<div class="pan" data-i="1"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Utøver A · tirsdag 2. sep</h4><span class="aux">Kommentar på økta</span></div><div class="app-b"><div class="oktkort" style="border-left-color:#E8B93C"><div class="ok-h"><span class="ok-t">3 × 10 min I3 / 2 min + skyting</span><span class="ok-d">1t 11 · Utøver A</span></div><div class="ok-m">Rulleski · Skøyting · Garmin · gjennomført tirsdag</div>
+<div class="minig"><i style="flex:20;height:6px;background:#28A86E"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:2;height:5px;background:#43434B"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:2;height:5px;background:#43434B"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:15;height:6px;background:#64748B"></i></div>
+<div class="nk"><span><b>152</b> snitt</span><span><b>30</b> min I3</span><span><b>17/20</b> treff</span><span><b>7</b>/10 opplevd</span></div></div>
+<div class="komm">
+  <div class="kb trener"><span class="chip-t">Trener</span><p>Drag 3 var 6 slag høyere enn de to første - legg deg på 165 neste gang, det er nok til effekten vi er ute etter. Skytinga: ta 2 s ekstra på liggende, bommene er tidsbommer.</p><small>Ola · i dag 14:12</small></div>
+  <div class="kb svar"><p>Kjente det på drag 3 ja. Prøver 165 torsdag 👍</p><small>Utøver A · 14:40</small></div>
+  <div class="kb skriv"><span>Skriv kommentar …</span><b>Send</b></div>
+</div></div></div></div>
+<div class="pan" data-i="2"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Sammenlign</h4><span class="aux">A vs C · siste 4 uker</span></div><div class="app-b"><div class="samm"><div class="scol"><div class="sh"><span class="av">UT</span><b>Utøver A</b><small>Skiskyting · U23</small></div>
+<div class="sk"><small>CTL</small><b>78</b></div><div class="sk"><small>TSB</small><b style="color:var(--green)">+12</b></div><div class="sk"><small>I3+ / uke</small><b>1t 40</b></div><div class="sk"><small>Treff %</small><b>84</b></div><div class="sk"><small>LT2</small><b>165 / 4,1</b></div>
+<div class="sbar"><i style="--w:82%"></i></div><small class="sbl">Belastning siste 4 uker</small></div><div class="scol"><div class="sh"><span class="av">UT</span><b>Utøver C</b><small>Skiskyting · junior</small></div>
+<div class="sk"><small>CTL</small><b>61</b></div><div class="sk"><small>TSB</small><b style="color:var(--red)">-9</b></div><div class="sk"><small>I3+ / uke</small><b>2t 05</b></div><div class="sk"><small>Treff %</small><b>79</b></div><div class="sk"><small>LT2</small><b>171 / 3,8</b></div>
+<div class="sbar"><i style="--w:95%"></i></div><small class="sbl">Belastning siste 4 uker</small></div></div>
+<div class="sonecmp"><small>Sonefordeling · 4 uker</small><div class="srow"><span>A</span><div class="zs"><i style="flex:74;background:#28A86E"></i><i style="flex:9;background:#1A6FD4"></i><i style="flex:11;background:#E8B93C"></i><i style="flex:6;background:#FF8C00"></i></div></div><div class="srow"><span>C</span><div class="zs"><i style="flex:62;background:#28A86E"></i><i style="flex:12;background:#1A6FD4"></i><i style="flex:16;background:#E8B93C"></i><i style="flex:10;background:#FF8C00"></i></div></div></div>
+<div class="hint" style="color:var(--dim);font-size:12px;margin-top:8px">Utøver C: mer hard tid, lavere form, treff ned - og TSB −9 to uker før Sjusjøen. Det er samtalen.</div></div></div></div>
+<div class="pan" data-i="3"><div class="app">
+        <div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>UTØVERE · DENNE UKA</h4><span class="aux">8 i troppen</span></div>
+        <div class="app-b" style="padding:8px 10px">
+          <div class="trow"><span class="av">AH</span><span class="nm"><b>Utøver A</b><span>Skiskyting · U23</span></span><span class="hrs">9:20 t</span><span class="st" style="color:var(--green)">92 % AV PLAN</span></div>
+          <div class="trow"><span class="av">MB</span><span class="nm"><b>Utøver B</b><span>Langrenn · senior</span></span><span class="hrs">7:05 t</span><span class="st" style="color:var(--green)">88 % AV PLAN</span></div>
+          <div class="trow"><span class="av">SK</span><span class="nm"><b>Utøver C</b><span>Skiskyting · junior</span></span><span class="hrs">3:10 t</span><span class="st" style="color:var(--i4)">LAV RECOVERY</span></div>
+          <div class="trow"><span class="av">EL</span><span class="nm"><b>Utøver D</b><span>Løping · senior</span></span><span class="hrs">6:40 t</span><span class="st" style="color:var(--green)">PÅ PLAN</span></div>
         </div>
-      </div>
+      </div></div></div>
+      <div class="flyt-hint"><i></i>Bla for neste steg</div>
     </div>
   </div>
+  
 </section>
-
 
 <!-- ═══════════ NYTT I V1.3 ═══════════ -->
 <!-- problem - beholdt fra dagens side, strammet -->
@@ -3505,11 +3708,10 @@ section[id],header[id]{scroll-margin-top:108px}
       if(!e.isIntersecting) return;
       var el=e.target;
       io.unobserve(el);
-      if(el.id==='shootSec') stagger(el,'.ishot',140);
       if(el.id==='flowSec') stagger(el,'.istep',180);
     });
   },{threshold:.35});
-  ['shootSec','flowSec'].forEach(function(id){
+  ['flowSec'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) io.observe(el);
   });
@@ -3617,9 +3819,9 @@ section[id],header[id]{scroll-margin-top:108px}
     {id:'inside',navn:'Slik ser det ut',ik:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 9h10M7 12.5h7M7 16h4"/>'},
     {id:'nytt',navn:'Planlegging',ik:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'},
     {id:'flyten',navn:'Flyten',ik:'<rect x="7" y="5" width="10" height="14" rx="3"/><path d="M9 5V2.5h6V5M9 19v2.5h6V19"/><path d="M10 12l1.5 1.5L14.5 10"/>'},
-    {id:'trener',navn:'For trenere',ik:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 14.5c2.8.2 4.5 1.9 4.5 4.5"/>'},
-    {id:'sports',navn:'Idretter',ik:'<path d="M4 19.5l14-13M7.5 21l14-13"/><circle cx="15.5" cy="4.5" r="1.6"/>'},
     {id:'skiskyting',navn:'Skiskyting',ik:'<path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/>'},
+    {id:'sports',navn:'Idretter',ik:'<path d="M4 19.5l14-13M7.5 21l14-13"/><circle cx="15.5" cy="4.5" r="1.6"/>'},
+    {id:'trener',navn:'For trenere',ik:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 14.5c2.8.2 4.5 1.9 4.5 4.5"/>'},
     {id:'features',navn:'Funksjoner',ik:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="3" height="4" rx=".8"/>'},
     {id:'hvorfor',navn:'Hvorfor',ik:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 013.9-2c1.6 1 1.2 2.6.1 3.4-.8.6-1.5 1-1.5 2.1M12 17v.01"/>'},
     {id:'testimonials',navn:'Utøverne',ik:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'},
@@ -3705,6 +3907,38 @@ section[id],header[id]{scroll-margin-top:108px}
       e.preventDefault(); velg(el.dataset.slug)
     })
   })
+})();
+</script>
+<script>
+/* Skyting-seksjonen: skuddene faller ett og ett, sekvensen looper mens seksjonen er i
+   bildet, timerne ryddes naar den gaar ut, og klikk spiller om igjen. reduced-motion gir
+   ferdig tilstand. */
+
+(function(){
+  var kort = document.querySelector('.sk-blkort');
+  var blinker = [].slice.call(document.querySelectorAll('.sk-blrad .sk-bl'));
+  var mp = [].slice.call(document.querySelectorAll('.sk-monster .sk-mp'));
+  var tell = document.getElementById('sk-tell');
+  var rolig = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var timere = [], treff = 0, kjorer = false, synlig = false;
+  function nullstill(){ timere.forEach(clearTimeout); timere=[]; treff=0;
+    blinker.forEach(function(b){b.classList.remove('sk-skutt')});
+    mp.forEach(function(m){m.classList.remove('sk-vis')}); if(tell) tell.textContent='0'; }
+  function spill(){
+    if(rolig){ blinker.forEach(function(b){b.classList.add('sk-skutt')}); mp.forEach(function(m){m.classList.add('sk-vis')}); if(tell) tell.textContent='4'; return; }
+    nullstill(); kjorer = true;
+    blinker.forEach(function(b,i){
+      timere.push(setTimeout(function(){
+        b.classList.add('sk-skutt'); if(mp[i]) mp[i].classList.add('sk-vis');
+        if(b.classList.contains('sk-t')){ treff++; if(tell) tell.textContent=String(treff); }
+      }, 500 + i*700));
+    });
+    timere.push(setTimeout(function(){ kjorer=false; if(synlig) spill(); }, 500 + blinker.length*700 + 2600));
+  }
+  var io = new IntersectionObserver(function(es){ es.forEach(function(e){
+    synlig = e.isIntersecting;
+    if(synlig){ if(!kjorer) spill(); } else { timere.forEach(clearTimeout); timere=[]; kjorer=false; } }); }, {threshold:.2});
+  if(kort){ io.observe(kort); kort.addEventListener('click', function(){ timere.forEach(clearTimeout); timere=[]; spill(); }); }
 })();
 </script>
 </body>

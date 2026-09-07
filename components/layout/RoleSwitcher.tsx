@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { switchActiveRole } from '@/app/actions/roles'
+import { startRollebytte, RollebytteSkjelett } from './RollebytteSkjelett'
 import type { Role } from '@/lib/types'
 import { RoleActivationModal } from './RoleActivationModal'
 
@@ -120,7 +121,6 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             label="Utøver-modus"
             color={ATHLETE_ORANGE}
             active={activeRole === 'athlete'}
-            onPick={() => setOpen(false)}
           />
           {canSwitch ? (
             <RoleMenuItem
@@ -128,7 +128,6 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
               label="Trener-modus"
               color={COACH_BLUE}
               active={activeRole === 'coach'}
-              onPick={() => setOpen(false)}
             />
           ) : (
             <AddTrenerProfileMenuItem
@@ -189,13 +188,11 @@ function RoleMenuItem({
   label,
   color,
   active,
-  onPick,
 }: {
   role: Role
   label: string
   color: string
   active: boolean
-  onPick: () => void
 }) {
   const [state, formAction, pending] = useActionState(switchActiveRole, {})
 
@@ -213,7 +210,10 @@ function RoleMenuItem({
   return (
     <form
       action={formAction}
-      onSubmit={() => onPick()}
+      // Menyen lukkes IKKE her: da ble denne komponenten avmontert, og effekten
+      // som navigerer rakk aldri å kjøre - rollen byttet på serveren uten at
+      // nettleseren fulgte etter. Skjelettet dekker skjermen i stedet.
+      onSubmit={() => startRollebytte(role)}
       style={{ display: 'block' }}
     >
       <input type="hidden" name="role" value={role} />

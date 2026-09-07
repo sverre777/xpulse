@@ -11,6 +11,7 @@ import { TemaBryter } from './TemaBryter'
 import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { PcAvatar, MerNedtrekk } from './PcMeny'
+import { RollebytteSkjelett } from './RollebytteSkjelett'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
 import type { Role } from '@/lib/types'
@@ -56,7 +57,7 @@ export function MainNav({
   const glassNav = useErMobilNav()
   // Navigasjon v2 bolk 2: på app-mobil erstattes hele mobil-linja av glass-topplinja.
   if (glassNav) {
-    return <GlassTopp rolle={activeRole === 'coach' ? 'coach' : 'athlete'} userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} klokkesyncBadge={klokkesyncBadge} />
+    return <><RollebytteSkjelett /><GlassTopp rolle={activeRole === 'coach' ? 'coach' : 'athlete'} userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} klokkesyncBadge={klokkesyncBadge} /></>
   }
   return (
     <nav
@@ -128,6 +129,7 @@ export function MainNav({
         </div>
       </div>
 
+      <RollebytteSkjelett />
       <div className="flex items-center gap-3">
         <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
         {/* Navigasjon v2 bolk 7: SYNK (kun utøver) + avatar m/ samme meny som på mobil —

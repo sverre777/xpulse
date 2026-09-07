@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { logout } from '@/app/actions/auth'
 import { switchActiveRole } from '@/app/actions/roles'
+import { startRollebytte } from './RollebytteSkjelett'
 import { gjeldendeTema, nesteTema, settTema } from '@/lib/tema'
 
 const FONT = "'Barlow Condensed', sans-serif"
@@ -46,7 +47,7 @@ function RolleSegment({ rolle }: { rolle: 'athlete' | 'coach' }) {
   const [state, formAction, pending] = useActionState(switchActiveRole, {} as { redirectTo?: string; error?: string })
   useEffect(() => { if (state?.redirectTo) window.location.assign(state.redirectTo) }, [state])
   const knapp = (r: 'athlete' | 'coach', navn: string, farge: string) => (
-    <form action={formAction} style={{ flex: 1, display: 'flex' }}>
+    <form action={formAction} onSubmit={() => startRollebytte(r)} style={{ flex: 1, display: 'flex' }}>
       <input type="hidden" name="role" value={r} />
       <button type="submit" disabled={rolle === r || pending} data-rolle-valg={r}
         style={{ flex: 1, minHeight: 36, borderRadius: 999, border: 'none', cursor: rolle === r ? 'default' : 'pointer', fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase',

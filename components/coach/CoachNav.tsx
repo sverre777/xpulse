@@ -5,6 +5,7 @@ import { GlassTopp } from '@/components/layout/GlassTopp'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
+import { RollebytteSkjelett } from '@/components/layout/RollebytteSkjelett'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { PcAvatar, MerNedtrekk } from '@/components/layout/PcMeny'
 import { VERSJONS_MERKE } from '@/lib/versjon'
@@ -43,7 +44,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
 
   const glassNav = useErMobilNav()
   if (glassNav) {
-    return <GlassTopp rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />
+    return <><RollebytteSkjelett /><GlassTopp rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} /></>
   }
   return (
     <nav
@@ -127,6 +128,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
         <SearchIconButton mode="coach" accent={COACH_BLUE} />
         {/* Rettelser 6. sep: innboks, rollebytte og lys/mørk står i topplinja på PC (til høyre). */}
         <InboxIconLink unreadCount={unreadInboxCount} isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')} />
+        <RollebytteSkjelett />
         <RoleSwitcher activeRole="coach" hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} />
         <TemaBryter accent={COACH_BLUE} />
         <PcAvatar rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />

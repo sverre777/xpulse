@@ -4,6 +4,7 @@
 import Link from 'next/link'
 import { useActionState, useEffect } from 'react'
 import { switchActiveRole } from '@/app/actions/roles'
+import { startRollebytte } from './RollebytteSkjelett'
 import { AvatarMenyProps } from './AvatarMeny'
 
 const FONT = "'Barlow Condensed', sans-serif"
@@ -48,7 +49,7 @@ function Profilrad({ rolle, userName, hasAthleteRole, hasCoachRole, hasCoachTier
   const init = (userName ?? '').trim().split(/\s+/).filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase() || '·'
   const kanBytte = !!hasAthleteRole && !!hasCoachRole && !!hasCoachTier
   const knapp = (r: 'athlete' | 'coach', navn: string, farge: string) => (
-    <form action={formAction} style={{ flex: 1, display: 'flex' }}><input type="hidden" name="role" value={r} />
+    <form action={formAction} onSubmit={() => startRollebytte(r)} style={{ flex: 1, display: 'flex' }}><input type="hidden" name="role" value={r} />
       <button type="submit" disabled={rolle === r || pending} data-mer-rolle={r} style={{ flex: 1, minHeight: 38, borderRadius: 999, border: 'none', cursor: rolle === r ? 'default' : 'pointer', fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', background: rolle === r ? farge : 'transparent', color: rolle === r ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)', opacity: pending ? 0.6 : 1 }}>{navn}</button>
     </form>
   )

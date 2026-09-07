@@ -21,6 +21,7 @@ import {
   SKISKO_TYPES,
   SKISKO_TYPE_LABELS,
   SYKKEL_TYPES,
+  BAAT_GRUPPER,
   CLEAT_SYSTEMS,
   type Equipment,
   type EquipmentCategory,
@@ -34,6 +35,9 @@ export interface KategoriFelterVerdier {
   size: string
   usage_type: string
   length_cm: string
+  // Båt (padling pkt 6) - bredde og vekt; lengde deler feltet over.
+  width_cm: string
+  weight_kg: string
   subtype: string
   wheel_type: string
   resistance: string
@@ -53,7 +57,7 @@ export interface KategoriFelterVerdier {
 
 export function tomKategoriVerdier(): KategoriFelterVerdier {
   return {
-    size: '', usage_type: '', length_cm: '', subtype: '', wheel_type: '',
+    size: '', usage_type: '', length_cm: '', width_cm: '', weight_kg: '', subtype: '', wheel_type: '',
     resistance: '', resistance_front: '', resistance_rear: '', splitResistance: false,
     cleat_system: '', drivetrain: '', wheelset: '',
     ski_length_cm: '', ski_type: '', ski_usage: '', ski_slip: '', ski_slip_date: '',
@@ -66,6 +70,8 @@ export function kategoriVerdierFraEquipment(e: Equipment): KategoriFelterVerdier
     size: e.size ?? '',
     usage_type: e.usage_type ?? '',
     length_cm: e.length_cm != null ? String(e.length_cm) : '',
+    width_cm: e.width_cm != null ? String(e.width_cm) : '',
+    weight_kg: e.weight_kg != null ? String(e.weight_kg) : '',
     subtype: e.subtype ?? '',
     wheel_type: e.wheel_type ?? '',
     resistance: e.resistance ?? '',
@@ -129,6 +135,39 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
           <p className="text-xs px-3 py-2" style={{ color: 'var(--tekst-1-app)', border: '1px solid rgba(40,168,110,0.4)', backgroundColor: 'rgba(40,168,110,0.07)', borderRadius: 8 }}>
             ✓ Skia legges automatisk i skiparken når du lagrer — med type, bruk og slip som filtre der.
           </p>
+        </DetailSection>
+      )}
+
+      {category === 'baat' && (
+        <DetailSection title="Båt-detaljer" aux="Km og timer summeres per båt, som for annet utstyr">
+          <Field label="Type">
+            <div className="flex flex-col gap-2">
+              {BAAT_GRUPPER.map(g => (
+                <div key={g.gruppe}>
+                  <span className="block mb-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-5-app)' }}>{g.gruppe}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {g.typer.map(t => (
+                      <FormChip key={t} active={v.subtype === t} onClick={() => set({ subtype: v.subtype === t ? '' : t })}>{t}</FormChip>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Field>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Lengde (cm)">
+              <input type="text" inputMode="decimal" value={v.length_cm} onChange={e => set({ length_cm: e.target.value })}
+                placeholder="520" className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+            <Field label="Bredde (cm)">
+              <input type="text" inputMode="decimal" value={v.width_cm} onChange={e => set({ width_cm: e.target.value })}
+                placeholder="42" className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+            <Field label="Vekt (kg)">
+              <input type="text" inputMode="decimal" value={v.weight_kg} onChange={e => set({ weight_kg: e.target.value })}
+                placeholder="12" className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+          </div>
         </DetailSection>
       )}
 

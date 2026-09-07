@@ -395,6 +395,8 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
         size: form.size,
         usage_type: form.usage_type,
         length_cm: form.length_cm ? parseDecimal(form.length_cm) : null,
+        width_cm: form.width_cm ? parseDecimal(form.width_cm) : null,
+        weight_kg: form.weight_kg ? parseDecimal(form.weight_kg) : null,
         subtype: form.subtype,
         wheel_type: form.wheel_type,
         // Motstand: én felles ELLER ulik foran/bak — aldri begge deler.

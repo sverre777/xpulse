@@ -212,6 +212,8 @@ export async function saveEquipment(input: SaveEquipmentInput): Promise<{ id?: s
       ...(input.size?.trim() ? { size: input.size.trim() } : {}),
       ...(input.usage_type?.trim() ? { usage_type: input.usage_type.trim() } : {}),
       ...(typeof input.length_cm === 'number' ? { length_cm: input.length_cm } : {}),
+      ...(typeof input.width_cm === 'number' ? { width_cm: input.width_cm } : {}),
+      ...(typeof input.weight_kg === 'number' ? { weight_kg: input.weight_kg } : {}),
       ...(input.subtype?.trim() ? { subtype: input.subtype.trim() } : {}),
       ...(input.wheel_type?.trim() ? { wheel_type: input.wheel_type.trim() } : {}),
       ...(input.resistance?.trim() ? { resistance: input.resistance.trim() } : {}),
@@ -255,6 +257,8 @@ export async function updateEquipment(input: UpdateEquipmentInput): Promise<{ er
   if (input.size !== undefined) patch.size = input.size?.trim() || null
   if (input.usage_type !== undefined) patch.usage_type = input.usage_type?.trim() || null
   if (input.length_cm !== undefined) patch.length_cm = typeof input.length_cm === 'number' ? input.length_cm : null
+  if (input.width_cm !== undefined) patch.width_cm = typeof input.width_cm === 'number' ? input.width_cm : null
+  if (input.weight_kg !== undefined) patch.weight_kg = typeof input.weight_kg === 'number' ? input.weight_kg : null
   if (input.subtype !== undefined) patch.subtype = input.subtype?.trim() || null
   if (input.wheel_type !== undefined) patch.wheel_type = input.wheel_type?.trim() || null
   if (input.resistance !== undefined) patch.resistance = input.resistance?.trim() || null

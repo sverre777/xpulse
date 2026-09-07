@@ -3,8 +3,10 @@
 
 // Fase 99 utvidet fra ['sko','sykkel','ski','klokke','annet'] til ni kategorier.
 // Rekkefølgen følger designfasitens chip-rad (klokke/annet sist).
+// Padling pkt 6 (Sverre 6. sep): baattype er UTSTYR, ikke bevegelsesform -
+// derfor kategorien 'baat' her, og ikke nye underkategorier i MOVEMENT_CATEGORIES.
 export const EQUIPMENT_CATEGORIES = [
-  'ski', 'rulleski', 'skisko', 'lopesko', 'skistaver', 'sykkel', 'sykkelsko', 'klokke', 'annet',
+  'ski', 'rulleski', 'skisko', 'lopesko', 'skistaver', 'sykkel', 'sykkelsko', 'baat', 'klokke', 'annet',
 ] as const
 export type EquipmentCategory = typeof EQUIPMENT_CATEGORIES[number]
 
@@ -16,6 +18,7 @@ export const EQUIPMENT_CATEGORY_LABELS: Record<EquipmentCategory, string> = {
   skistaver: 'Skistaver',
   sykkel: 'Sykkel',
   sykkelsko: 'Sykkelsko',
+  baat: 'Båt',
   klokke: 'Klokke',
   annet: 'Annet',
 }
@@ -24,7 +27,7 @@ export const EQUIPMENT_CATEGORY_LABELS: Record<EquipmentCategory, string> = {
 // Nøkler = normalizeCategory-verdier.
 export const EQUIPMENT_CATEGORY_ICONS: Record<EquipmentCategory, string> = {
   ski: '🎿', rulleski: '🛼', skisko: '🥾', lopesko: '👟', skistaver: '🦯',
-  sykkel: '🚴', sykkelsko: '👟', klokke: '⌚', annet: '🎒',
+  sykkel: '🚴', sykkelsko: '👟', baat: '🛶', klokke: '⌚', annet: '🎒',
 }
 
 // Rader lagret før fase 99-migreringen kan fortsatt ha 'sko'. All lesing av
@@ -77,6 +80,16 @@ export const SKISKO_TYPE_LABELS: Record<typeof SKISKO_TYPES[number], string> = {
 }
 
 export const SYKKEL_TYPES = ['Landevei', 'Terreng', 'Gravel', 'Tempo', 'Rulle/innendørs', 'Annet'] as const
+
+// ── Båt (padling pkt 6) ──────────────────────────────────────
+// Kajakk/kano og robåt i to grupper, med de klassebetegnelsene som faktisk
+// brukes. Lagres i equipment.subtype; bredde og vekt i width_cm / weight_kg,
+// lengde i length_cm (feltet fantes fra før - ingen ny kolonne for lengde).
+export const BAAT_GRUPPER = [
+  { gruppe: 'Kajakk og kano', typer: ['K1', 'K2', 'K4', 'Surfski', 'Havkajakk', 'SUP', 'Kano'] },
+  { gruppe: 'Robåt', typer: ['1x', '2x', '4x', '2-', '4-', '8+'] },
+] as const
+export const BAAT_TYPES = BAAT_GRUPPER.flatMap(g => g.typer as readonly string[])
 export const CLEAT_SYSTEMS = ['SPD-SL', 'SPD', 'Look Keo', 'Speedplay', 'Annet'] as const
 
 export const EQUIPMENT_STATUSES = ['active', 'retired', 'lost'] as const
@@ -109,7 +122,10 @@ export interface Equipment {
   // Fase 99 — kategorispesifikke felter. Null for kategorier de ikke gjelder.
   size?: string | null            // skisko / lopesko / sykkelsko
   usage_type?: string | null      // lopesko / skistaver (ski har sin i ski_data)
-  length_cm?: number | null       // skistaver (ski-lengde ligger i ski_data)
+  length_cm?: number | null       // skistaver og båt (ski-lengde ligger i ski_data)
+  // Padling pkt 6 - kolonnene ble lagt til 7. sep. Båtens bredde og vekt.
+  width_cm?: number | null        // båt
+  weight_kg?: number | null       // båt
   subtype?: string | null         // rulleski/skisko: skøyte/klassisk(/kombi) · sykkel: sykkeltype
   wheel_type?: string | null      // rulleski
   resistance?: string | null      // rulleski — felles motstand
@@ -148,6 +164,8 @@ export interface SaveEquipmentInput {
   size?: string | null
   usage_type?: string | null
   length_cm?: number | null
+  width_cm?: number | null
+  weight_kg?: number | null
   subtype?: string | null
   wheel_type?: string | null
   resistance?: string | null

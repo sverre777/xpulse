@@ -109,6 +109,8 @@ export function EquipmentDetailView({
         size: form.size,
         usage_type: form.usage_type,
         length_cm: form.length_cm ? parseDecimal(form.length_cm) : null,
+        width_cm: form.width_cm ? parseDecimal(form.width_cm) : null,
+        weight_kg: form.weight_kg ? parseDecimal(form.weight_kg) : null,
         subtype: form.subtype,
         wheel_type: form.wheel_type,
         // Motstand: én felles ELLER ulik foran/bak — aldri begge deler.
@@ -207,6 +209,8 @@ export function EquipmentDetailView({
             <Row label="Størrelse" value={equipment.size ?? null} />
             <Row label="Bruk" value={equipment.usage_type ?? null} />
             <Row label="Lengde" value={equipment.length_cm != null ? `${equipment.length_cm} cm` : null} />
+            <Row label="Bredde" value={equipment.width_cm != null ? `${equipment.width_cm} cm` : null} />
+            <Row label="Vekt" value={equipment.weight_kg != null ? `${equipment.weight_kg} kg` : null} />
             <Row label="Type" value={equipment.subtype ?? null} />
             <Row label="Hjultype" value={equipment.wheel_type ?? null} />
             <Row label="Motstand" value={

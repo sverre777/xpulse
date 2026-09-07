@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { CoachUpcomingEvent } from '@/app/actions/coach-dashboard'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -50,9 +51,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
         <Link
           href="/app/trener/kalender"
           className="text-xs tracking-widest uppercase transition-colors hover:opacity-80"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: COACH_BLUE,
+          style={{ ...PILLE_BASIS, color: COACH_BLUE,
             textDecoration: 'none',
           }}>
           Se kalender →

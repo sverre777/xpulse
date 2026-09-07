@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { SPORTS } from '@/lib/types'
 import type { AthleteContext } from '@/app/actions/coach-athlete'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -104,9 +105,7 @@ export function AthleteHeader({ context }: Props) {
           <Link
             href={`/app/innboks?to=${profile.id}`}
             className="flex-1 sm:flex-none text-center px-3 py-2 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
+            style={{ ...PILLE_BASIS, color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
               textDecoration: 'none',
             }}
           >
@@ -115,9 +114,7 @@ export function AthleteHeader({ context }: Props) {
           <Link
             href={`/app/trener/${profile.id}/plan?push=1`}
             className="flex-1 sm:flex-none text-center px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+            style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
               textDecoration: 'none',
             }}
           >

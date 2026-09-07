@@ -11,6 +11,7 @@ import { VERSJONS_MERKE } from '@/lib/versjon'
 import { TemaBryter } from '@/components/layout/TemaBryter'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { COACH_NAV_GLYPHS } from '@/components/layout/NavLinkIcons'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -102,9 +103,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 href={href}
                 title={label}
                 className="px-3 min-[1400px]:px-4 flex items-center gap-2 text-sm uppercase transition-colors"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 600,
+                style={{ ...PILLE_BASIS, fontWeight: 600,
                   letterSpacing: '0.16em',
                   color: active ? COACH_BLUE : 'rgb(var(--tekst-land-rgb) / 0.55)',
                   height: '36px',

@@ -11,6 +11,7 @@ import { PeriodiseringMalBuilder } from '@/components/coach/PeriodiseringMalBuil
 import { PeriodiseringMalEditModal } from '@/components/coach/PeriodiseringMalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -60,9 +61,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
         </p>
         <button type="button" onClick={() => { setBuildingFrom(null); setBuilderOpen(true) }}
           className="px-4 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+          style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
             border: 'none', cursor: 'pointer',
           }}>
           + Ny årsplan-mal
@@ -226,9 +225,7 @@ function ActionBtn({
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className="px-3 py-1.5 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: primary ? 'var(--tekst-1-app)' : danger ? '#FF4500' : 'var(--tekst-5-app)',
+      style={{ ...PILLE_BASIS, color: primary ? 'var(--tekst-1-app)' : danger ? '#FF4500' : 'var(--tekst-5-app)',
         background: primary ? COACH_BLUE : 'none',
         border: primary ? 'none' : `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: disabled ? 'not-allowed' : 'pointer',

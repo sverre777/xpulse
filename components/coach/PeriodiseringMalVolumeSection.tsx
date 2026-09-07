@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
 import { addMonths, formatNorskMaaned } from '@/lib/template-dates'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -166,7 +167,7 @@ function MalVolumeBreakdown({
     <div>
       <button type="button" onClick={() => setOpen(!open)}
         className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0', letterSpacing: '0.06em', minHeight: 36 }}>
+        style={{ ...PILLE_BASIS,  color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0', letterSpacing: '0.06em', minHeight: 36 }}>
         {open ? '▾' : '▸'} Fordeling
         {!open && (zoneSum > 0 || movSum > 0) && (
           <span style={{ color: 'var(--tekst-8-app)' }}>
@@ -186,8 +187,7 @@ function MalVolumeBreakdown({
                   onPatch({ zone_hours: null })
                 }}
                 className="text-xs px-2 py-0.5"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em',
+                style={{ ...PILLE_BASIS, textTransform: 'uppercase', letterSpacing: '0.08em',
                   color: zoneMode === m ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                   background: zoneMode === m ? 'var(--flate-14)' : 'none',
                   border: `1px solid ${zoneMode === m ? 'var(--kant-6-alt)' : 'var(--kant-3)'}`,
@@ -239,7 +239,7 @@ function MalVolumeBreakdown({
             <button type="button"
               onClick={() => onPatch({ movement_hours: { ...(mh ?? {}), 'Ny bevegelsesform': 1 } })}
               className="text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--kant-3)', padding: '3px 8px', cursor: 'pointer' }}>
+              style={{ ...PILLE_BASIS,  color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--kant-3)', padding: '3px 8px', cursor: 'pointer' }}>
               + Bevegelsesform
             </button>
             {movSum > 0 && plannedHours != null && (

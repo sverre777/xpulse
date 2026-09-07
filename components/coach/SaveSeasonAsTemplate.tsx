@@ -7,6 +7,7 @@ import {
   savePeriodizationTemplate,
 } from '@/app/actions/periodization-templates'
 import { PERIOD_SPORT_CATEGORIES, sportToCategory, type Sport } from '@/lib/types'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -59,9 +60,7 @@ export function SaveSeasonAsTemplate({
         type="button"
         onClick={() => { setOpen(true); setDone(false); setErr(null); setName(defaultName) }}
         className="px-3 py-2 text-xs tracking-widest uppercase"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+        style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
           border: 'none', cursor: 'pointer',
         }}
       >
@@ -108,17 +107,14 @@ export function SaveSeasonAsTemplate({
                   <div className="flex gap-2 justify-end">
                     <button type="button" onClick={() => setOpen(false)}
                       className="px-4 py-2 text-xs tracking-widest uppercase"
-                      style={{
-                        fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                      style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
                         background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
                       }}>
                       Lukk
                     </button>
                     <a href="/app/trener/planlegg?tab=periodisering"
                       className="px-4 py-2 text-xs tracking-widest uppercase"
-                      style={{
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+                      style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                         border: 'none', cursor: 'pointer',
                         textDecoration: 'none',
                       }}>
@@ -172,17 +168,14 @@ export function SaveSeasonAsTemplate({
                   <div className="flex gap-2 justify-end pt-2" style={{ borderTop: '1px solid var(--line)' }}>
                     <button type="button" onClick={() => setOpen(false)}
                       className="px-4 py-2 text-xs tracking-widest uppercase"
-                      style={{
-                        fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                      style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
                         background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
                       }}>
                       Avbryt
                     </button>
                     <button type="button" onClick={handleSave} disabled={pending}
                       className="px-4 py-2 text-xs tracking-widest uppercase"
-                      style={{
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+                      style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                         border: 'none',
                         cursor: pending ? 'not-allowed' : 'pointer',
                         opacity: pending ? 0.5 : 1,

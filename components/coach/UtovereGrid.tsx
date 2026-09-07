@@ -16,6 +16,7 @@ import { ZoneBar } from '@/components/oversikt/kort-deler'
 import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
 import { UtoverDetaljer } from './UtoverDetaljer'
 import { STATUS_GRONN, STATUS_GUL, STATUS_ROD, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = TRENER_BLAA
 const FONT = "'Barlow Condensed', sans-serif"
@@ -163,7 +164,7 @@ export function UtovereGrid({ athletes }: Props) {
           style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
           {(['kort', 'tabell'] as const).map(v => (
             <button key={v} type="button" data-utovere-visningsvalg={v} aria-pressed={visning === v} onClick={() => setVisning(v)}
-              style={{ padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: visning === v ? COACH_BLUE : 'transparent', color: visning === v ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
+              style={{ padding: '5px 14px', borderRadius: 999, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: visning === v ? COACH_BLUE : 'transparent', color: visning === v ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
               {v === 'kort' ? 'Kort' : 'Tabell'}
             </button>
           ))}
@@ -173,7 +174,7 @@ export function UtovereGrid({ athletes }: Props) {
           style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
           {(['uke', 'maaned', 'aar'] as Periode[]).map(p => (
             <button key={p} type="button" data-utovere-periodevalg={p} aria-pressed={periode === p} onClick={() => setPeriode(p)}
-              style={{ padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: periode === p ? COACH_BLUE : 'transparent', color: periode === p ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
+              style={{ padding: '5px 14px', borderRadius: 999, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: periode === p ? COACH_BLUE : 'transparent', color: periode === p ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
               {PERIODE_NAVN[p]}
             </button>
           ))}
@@ -376,9 +377,7 @@ function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
         <Link
           href={`/app/innboks?to=${athlete.id}`}
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: COACH_BLUE,
+          style={{ ...PILLE_BASIS, color: COACH_BLUE,
             border: `1px solid ${COACH_BLUE}`,
             textDecoration: 'none',
           }}
@@ -388,9 +387,7 @@ function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
         <Link
           href={`/app/trener/${athlete.id}?push=1`}
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: COACH_BLUE,
+          style={{ ...PILLE_BASIS, color: COACH_BLUE,
             border: `1px solid ${COACH_BLUE}`,
             textDecoration: 'none',
           }}
@@ -400,9 +397,7 @@ function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
         <Link
           href={`/app/trener/${athlete.id}/plan`}
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: 'var(--tekst-5-app)',
+          style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
             border: '1px solid var(--kant-6)',
             textDecoration: 'none',
           }}
@@ -412,9 +407,7 @@ function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
         <Link
           href={`/app/trener/${athlete.id}/analyse`}
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: 'var(--tekst-5-app)',
+          style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
             border: '1px solid var(--kant-6)',
             textDecoration: 'none',
           }}
@@ -425,9 +418,7 @@ function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
         <Link
           href={`/app/trener/${athlete.id}`}
           className="px-3 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE,
+          style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE,
             color: 'var(--tekst-1-app)',
             textDecoration: 'none',
           }}
@@ -436,7 +427,7 @@ function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
         </Link>
         <button type="button" data-utover-vismer={athlete.id} aria-expanded={apen} onClick={onToggle}
           className="px-2 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-          style={{ fontFamily: FONT, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-ren)', border: 'none', borderRadius: 6, cursor: 'pointer', minHeight: 30 }}>
+          style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-ren)', border: 'none', minHeight: 30, padding: '0 12px' }}>
           {apen ? 'Vis mindre ▴' : 'Vis mer ▾'}
         </button>
       </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
 import { updateTemplate } from '@/app/actions/templates'
 import type { Sport, WorkoutTemplate, WorkoutFormData } from '@/lib/types'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 interface Props {
   primarySport: Sport
@@ -103,8 +104,7 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
           {editing && (
             <button type="button" onClick={() => setIsTest(v => !v)}
               className="inline-flex items-center"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+              style={{ ...PILLE_BASIS, fontSize: 13,
                 letterSpacing: '0.05em', borderRadius: 999, padding: '4px 12px',
                 minHeight: 32, cursor: 'pointer', marginLeft: 'auto', marginRight: 8,
                 color: isTest ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',

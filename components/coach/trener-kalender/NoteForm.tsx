@@ -5,6 +5,7 @@ import {
   createTrainerNote, updateTrainerNote, deleteTrainerNote,
   type TrainerCalendarNote,
 } from '@/app/actions/trainer-calendar'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -124,8 +125,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
           <div className="flex gap-2">
             <button type="button" onClick={handleConfirmDelete} disabled={pending}
               className="text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+              style={{ ...PILLE_BASIS, color: '#FF4500',
                 background: 'none', border: '1px solid #FF4500',
                 padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
               }}>
@@ -133,8 +133,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
             </button>
             <button type="button" onClick={() => setConfirmDelete(false)} disabled={pending}
               className="text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
                 background: 'none', border: '1px solid var(--kant-5)',
                 padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
               }}>
@@ -149,8 +148,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
           {isEdit && !confirmDelete && (
             <button type="button" onClick={() => setConfirmDelete(true)} disabled={pending}
               className="text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+              style={{ ...PILLE_BASIS, color: '#FF4500',
                 background: 'none', border: 'none', padding: '6px 0',
                 cursor: pending ? 'not-allowed' : 'pointer',
               }}>
@@ -161,8 +159,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
         <div className="flex gap-2">
           <button type="button" onClick={onCancel} disabled={pending}
             className="text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+            style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
               background: 'none', border: '1px solid var(--kant-5)',
               padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
@@ -171,8 +168,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
           <button type="button" onClick={handleSave}
             disabled={pending || !title.trim()}
             className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE,
+            style={{ ...PILLE_BASIS, color: COACH_BLUE,
               background: 'none', border: `1px solid ${COACH_BLUE}`,
               padding: '6px 12px',
               cursor: (pending || !title.trim()) ? 'not-allowed' : 'pointer',

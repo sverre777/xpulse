@@ -9,6 +9,7 @@ import {
   type CommentContext,
   type CommentScope,
 } from '@/app/actions/coach-comments'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 const ATHLETE_ORANGE = '#FF4500'
@@ -167,9 +168,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
               type="submit"
               disabled={isPending || !text.trim()}
               className="px-3 py-1.5 text-xs tracking-widest uppercase transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: viewerRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE,
+              style={{ ...PILLE_BASIS, backgroundColor: viewerRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE,
                 color: 'var(--tekst-1-app)',
                 border: 'none', cursor: 'pointer',
               }}

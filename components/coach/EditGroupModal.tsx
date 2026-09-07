@@ -16,6 +16,7 @@ import {
   getCoachAthleteRelations,
   type CoachAthleteRelation,
 } from '@/app/actions/coach-settings'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -162,10 +163,9 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
             type="button"
             onClick={onClose}
             aria-label="Lukk"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
+            style={{ ...PILLE_BASIS, background: 'none', border: 'none', cursor: 'pointer',
               color: 'var(--tekst-5-app)',
-              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
+               fontSize: '14px',
               padding: '4px 8px',
             }}
           >
@@ -228,9 +228,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                     onClick={handleSaveMeta}
                     disabled={isPending}
                     className="px-3 py-1.5 text-xs tracking-widest uppercase"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+                    style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                       border: 'none', cursor: isPending ? 'not-allowed' : 'pointer',
                       opacity: isPending ? 0.5 : 1,
                     }}
@@ -250,9 +248,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                     type="button"
                     onClick={async () => { await loadCandidates(); setShowAddPanel(o => !o) }}
                     className="px-2 py-1 text-xs tracking-widest uppercase"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: 'transparent', color: COACH_BLUE,
+                    style={{ ...PILLE_BASIS, backgroundColor: 'transparent', color: COACH_BLUE,
                       border: `1px solid ${COACH_BLUE}`, cursor: 'pointer',
                     }}
                   >
@@ -284,9 +280,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                             onClick={() => handleAdd(c.athleteId)}
                             disabled={isPending}
                             className="text-xs tracking-widest uppercase px-2 py-1"
-                            style={{
-                              fontFamily: "'Barlow Condensed', sans-serif",
-                              color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
+                            style={{ ...PILLE_BASIS, color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
                               background: 'none', cursor: 'pointer',
                             }}
                           >
@@ -325,9 +319,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                       onClick={handleDelete}
                       disabled={isPending}
                       className="px-3 py-1.5 text-xs tracking-widest uppercase"
-                      style={{
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#E11D48', color: 'var(--tekst-1-app)',
+                      style={{ ...PILLE_BASIS, backgroundColor: '#E11D48', color: 'var(--tekst-1-app)',
                         border: 'none', cursor: 'pointer',
                       }}
                     >
@@ -337,9 +329,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       className="px-3 py-1.5 text-xs tracking-widest uppercase"
-                      style={{
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        color: 'var(--tekst-5-app)', border: '1px solid var(--line)',
+                      style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)', border: '1px solid var(--line)',
                         background: 'none', cursor: 'pointer',
                       }}
                     >
@@ -351,9 +341,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                     type="button"
                     onClick={() => setConfirmDelete(true)}
                     className="self-start px-3 py-1.5 text-xs tracking-widest uppercase"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      color: '#E11D48', border: '1px solid #E11D48',
+                    style={{ ...PILLE_BASIS, color: '#E11D48', border: '1px solid #E11D48',
                       background: 'none', cursor: 'pointer',
                     }}
                   >
@@ -415,9 +403,7 @@ function MemberRow({
           onClick={onRemove}
           disabled={isPending}
           className="text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: 'var(--tekst-5-app)', background: 'none', border: 'none',
+          style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)', background: 'none', border: 'none',
             cursor: 'pointer', padding: '4px 6px',
           }}
           aria-label="Fjern medlem"

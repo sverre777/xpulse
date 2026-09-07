@@ -18,6 +18,7 @@ import { SammenligneHealthTab } from './sammenligne/SammenligneHealthTab'
 import { SammenligneCompetitionsTab } from './sammenligne/SammenligneCompetitionsTab'
 import { SammenligneTestTab } from './sammenligne/SammenligneTestTab'
 import { SammenlignePeriodiseringTab } from './sammenligne/SammenlignePeriodiseringTab'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -187,9 +188,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
           <button type="button" onClick={load}
             disabled={!hasValidSelection || isPending}
             className="px-4 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+            style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
               border: 'none', minHeight: '44px',
               opacity: hasValidSelection ? 1 : 0.4, cursor: hasValidSelection ? 'pointer' : 'not-allowed',
             }}>
@@ -197,10 +196,8 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
           </button>
           <button type="button" onClick={lagreOppsett} data-lagre-oppsett={lagret}
             className="px-4 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              background: 'transparent', color: lagret === 'ja' ? '#D4A017' : COACH_BLUE,
-              border: `1px solid ${lagret === 'ja' ? '#D4A017' : COACH_BLUE}`, borderRadius: 8,
+            style={{ ...PILLE_BASIS, background: 'transparent', color: lagret === 'ja' ? '#D4A017' : COACH_BLUE,
+              border: `1px solid ${lagret === 'ja' ? '#D4A017' : COACH_BLUE}`,
               minHeight: '44px', cursor: 'pointer',
             }}>
             {lagret === 'lagrer' ? 'Lagrer…' : lagret === 'ja' ? '★ Oppsett lagret' : '☆ Lagre oppsett'}
@@ -212,9 +209,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
           {TABS.map(t => (
             <button key={t.key} type="button" onClick={() => switchTab(t.key)}
               className="px-4 py-2 text-sm tracking-widest uppercase whitespace-nowrap"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: tab === t.key ? 'var(--card2)' : 'transparent',
+              style={{ ...PILLE_BASIS, backgroundColor: tab === t.key ? 'var(--card2)' : 'transparent',
                 borderBottom: tab === t.key ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
                 color: tab === t.key ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 minHeight: '44px',
@@ -313,9 +308,7 @@ function AthletePicker({
               disabled={disabled}
               className="px-3 py-1 text-xs tracking-widest uppercase"
               title={disabled ? 'Mangler analyse-tilgang' : undefined}
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: active ? COACH_BLUE + '33' : 'transparent',
+              style={{ ...PILLE_BASIS, backgroundColor: active ? COACH_BLUE + '33' : 'transparent',
                 border: `1px solid ${active ? COACH_BLUE : 'var(--line)'}`,
                 color: disabled ? 'var(--kant-6)' : active ? COACH_BLUE : 'var(--tekst-5-app)',
                 minHeight: '36px',

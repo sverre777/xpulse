@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createCoachGroup, type CoachGroupSummary } from '@/app/actions/coach-dashboard'
 import { EditGroupModal } from './EditGroupModal'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -55,9 +56,7 @@ export function CoachGroupsSection({ groups }: Props) {
             type="button"
             onClick={() => setShowForm(true)}
             className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
+            style={{ ...PILLE_BASIS, color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
               background: 'none', cursor: 'pointer',
             }}
           >
@@ -107,9 +106,7 @@ export function CoachGroupsSection({ groups }: Props) {
               type="submit"
               disabled={isPending || !name.trim()}
               className="px-3 py-1.5 text-xs tracking-widest uppercase transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+              style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                 border: 'none', cursor: 'pointer',
               }}
             >
@@ -119,9 +116,7 @@ export function CoachGroupsSection({ groups }: Props) {
               type="button"
               onClick={() => { setShowForm(false); setError(null) }}
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: 'var(--tekst-5-app)', border: '1px solid var(--line)',
+              style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)', border: '1px solid var(--line)',
                 background: 'none', cursor: 'pointer',
               }}
             >

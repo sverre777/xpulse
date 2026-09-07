@@ -8,6 +8,7 @@ import { OktmalTab } from '@/components/coach/OktmalTab'
 import { PlanMalTab } from '@/components/coach/PlanMalTab'
 import { PeriodiseringMalTab } from '@/components/coach/PeriodiseringMalTab'
 import { TestMalTab } from '@/components/coach/TestMalTab'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -101,9 +102,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         return (
           <button key={t.key} type="button" onClick={() => setTab(t.key)} data-planlegg-fane={t.key} data-aktiv={active ? '1' : undefined}
             className="px-4 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? COACH_BLUE : 'var(--tekst-5-app)',
+            style={{ ...PILLE_BASIS, color: active ? COACH_BLUE : 'var(--tekst-5-app)',
               background: 'none',
               border: 'none',
               borderBottom: `2px solid ${active ? COACH_BLUE : 'transparent'}`,

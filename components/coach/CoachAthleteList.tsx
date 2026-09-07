@@ -16,6 +16,7 @@ import { ZoneBar } from '@/components/oversikt/kort-deler'
 import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
 import { UtoverDetaljer } from './UtoverDetaljer'
 import { STATUS_GRONN, STATUS_GUL, STATUS_ROD, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = TRENER_BLAA
 const FONT = "'Barlow Condensed', sans-serif"
@@ -147,7 +148,7 @@ export function CoachAthleteList({ athletes }: Props) {
           style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
           {(['uke', 'maaned', 'aar'] as Periode[]).map(p => (
             <button key={p} type="button" data-utover-periodevalg={p} aria-pressed={periode === p} onClick={() => setPeriode(p)}
-              style={{ padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: periode === p ? COACH_BLUE : 'transparent', color: periode === p ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
+              style={{ padding: '5px 14px', borderRadius: 999, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: periode === p ? COACH_BLUE : 'transparent', color: periode === p ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
               {PERIODE_NAVN[p]}
             </button>
           ))}
@@ -289,9 +290,7 @@ export function CoachAthleteList({ athletes }: Props) {
                   <Link
                     href={`/app/innboks?to=${a.id}`}
                     className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
+                    style={{ ...PILLE_BASIS, color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
                       textDecoration: 'none',
                     }}
                   >
@@ -300,9 +299,7 @@ export function CoachAthleteList({ athletes }: Props) {
                   <Link
                     href={`/app/trener/${a.id}?push=1`}
                     className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
+                    style={{ ...PILLE_BASIS, color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
                       textDecoration: 'none',
                     }}
                   >
@@ -314,10 +311,7 @@ export function CoachAthleteList({ athletes }: Props) {
                     aria-expanded={apen === a.id}
                     onClick={() => setApen(apen === a.id ? null : a.id)}
                     className="px-2 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-                    style={{
-                      fontFamily: FONT, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-ren)',
-                      border: 'none', borderRadius: 6, cursor: 'pointer', minHeight: 30,
-                    }}
+style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-ren)', border: 'none', minHeight: 30, padding: '0 12px' }}
                   >
                     {apen === a.id ? 'Vis mindre ▴' : 'Vis mer ▾'}
                   </button>

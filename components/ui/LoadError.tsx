@@ -1,5 +1,6 @@
 'use client'
 
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 // Vennlig feilvisning når en side ikke fikk lastet data. Sluttbrukere skal
 // ikke møte rå API-/Supabase-feil — den tekniske detaljen ligger bak en fold
 // (nyttig for support-skjermbilder).
@@ -29,11 +30,7 @@ export function LoadError({ what, detail }: { what: string; detail?: string | nu
         type="button"
         onClick={() => window.location.reload()}
         className="mt-3 px-4 py-2 text-xs tracking-widest uppercase"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-          backgroundColor: 'transparent', color: 'var(--tekst-1-app)',
-          border: '1px solid var(--kant-hover)', cursor: 'pointer',
-        }}
+        style={{ ...PILLE_BASIS, backgroundColor: 'transparent', color: 'var(--tekst-1-app)', border: '1px solid var(--kant-hover)' }}
       >
         Last siden på nytt
       </button>

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import type {
   PlanTemplateData, PlanTemplateFocusPoint,
 } from '@/lib/template-types'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
@@ -230,9 +231,7 @@ function FocusPointsEditor({
               <div className="flex justify-end">
                 <button type="button" onClick={() => removePoint(i)}
                   className="px-3 py-1 text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    color: '#FF4500',
+                  style={{ ...PILLE_BASIS, color: '#FF4500',
                     background: 'none', border: '1px solid #FF450066',
                     cursor: 'pointer',
                   }}>
@@ -257,9 +256,7 @@ function AddBtn({ onClick, children }: { onClick: () => void; children: React.Re
   return (
     <button type="button" onClick={onClick}
       className="px-3 py-1.5 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: COACH_BLUE,
+      style={{ ...PILLE_BASIS, color: COACH_BLUE,
         background: 'none', border: `1px solid ${COACH_BLUE}66`,
         cursor: 'pointer',
       }}>

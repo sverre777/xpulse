@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { AthletePermissions } from '@/app/actions/coach-athlete'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -61,9 +62,7 @@ export function AthleteTabsNav({ athleteId, permissions }: Props) {
             key={tab.slug}
             href={href}
             className="px-4 py-3 text-sm tracking-widest uppercase transition-colors"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
+            style={{ ...PILLE_BASIS, color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               borderBottom: active ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
               textDecoration: 'none',
               whiteSpace: 'nowrap',

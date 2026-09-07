@@ -10,6 +10,7 @@ import {
   type CoachTargetAthlete, type CoachTargetGroup,
   type PeriodizationOverlapInfo,
 } from '@/app/actions/coach-push'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -289,9 +290,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       <button type="button"
                         onClick={() => setPlanEndDate(defaultPlanEnd)}
                         className="px-3 py-2 text-xs tracking-widest uppercase whitespace-nowrap"
-                        style={{
-                          fontFamily: "'Barlow Condensed', sans-serif",
-                          color: 'var(--tekst-5-app)', background: 'none',
+                        style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)', background: 'none',
                           border: '1px solid var(--kant-4)', cursor: 'pointer',
                         }}>
                         Forslag
@@ -322,9 +321,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       return (
                         <button key={g.id} type="button" onClick={() => toggleGroup(g)}
                           className="px-3 py-1.5 text-xs tracking-widest uppercase"
-                          style={{
-                            fontFamily: "'Barlow Condensed', sans-serif",
-                            color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
+                          style={{ ...PILLE_BASIS, color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                             backgroundColor: active ? COACH_BLUE : 'transparent',
                             border: `1px solid ${active ? COACH_BLUE : 'var(--kant-4)'}`,
                             cursor: 'pointer',
@@ -425,9 +422,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                 onClick={handleConfirmOverlaps}
                 disabled={isPending}
                 className="px-3 py-1.5 text-xs tracking-widest uppercase"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  color: 'var(--flate-3)', backgroundColor: '#D4A017',
+                style={{ ...PILLE_BASIS, color: 'var(--flate-3)', backgroundColor: '#D4A017',
                   border: 'none',
                   cursor: isPending ? 'not-allowed' : 'pointer',
                   opacity: isPending ? 0.5 : 1,
@@ -440,8 +435,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
                 background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
               }}>
               {allDone ? 'Lukk' : 'Avbryt'}
@@ -450,9 +444,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
               <button type="button" onClick={handlePush}
                 disabled={isPending || !hasTargets || loading}
                 className="px-4 py-2 text-xs tracking-widest uppercase"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+                style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                   border: 'none',
                   cursor: (isPending || !hasTargets) ? 'not-allowed' : 'pointer',
                   opacity: (isPending || !hasTargets) ? 0.5 : 1,

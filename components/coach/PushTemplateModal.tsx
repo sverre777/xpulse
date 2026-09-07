@@ -17,6 +17,7 @@ import {
 } from '@/app/actions/coach-push'
 import { addDays, formatNorskKortDato } from '@/lib/template-dates'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -94,9 +95,7 @@ export function PushTemplateModal({
             type="button"
             onClick={close}
             className="text-xs tracking-widest uppercase px-2 py-1"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
+            style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}
           >
@@ -178,9 +177,7 @@ function TabButton({ label, active, onClick, disabled }: {
       onClick={onClick}
       disabled={disabled}
       className="flex-1 px-3 py-2 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: disabled ? 'var(--tekst-10-alt)' : (active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)'),
+      style={{ ...PILLE_BASIS, color: disabled ? 'var(--tekst-10-alt)' : (active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)'),
         backgroundColor: 'transparent',
         border: 'none',
         borderBottom: active ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
@@ -224,9 +221,7 @@ function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       className="px-4 py-2 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+      style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
         border: 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -474,9 +469,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
               onClick={() => setStartDate(preview.startDate ?? startDate)}
               disabled={usingOriginalStart}
               className="text-xs tracking-widest uppercase px-2 py-1"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: usingOriginalStart ? 'var(--tekst-5-app)' : COACH_BLUE,
+              style={{ ...PILLE_BASIS, color: usingOriginalStart ? 'var(--tekst-5-app)' : COACH_BLUE,
                 background: 'transparent',
                 border: `1px solid ${usingOriginalStart ? 'var(--line)' : COACH_BLUE}`,
                 cursor: usingOriginalStart ? 'default' : 'pointer',
@@ -501,9 +494,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
             type="button"
             onClick={() => setShowDateTable(s => !s)}
             className="text-xs tracking-widest uppercase px-2 py-1"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
+            style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}
           >
@@ -673,9 +664,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
               onClick={() => setStartDate(selected.startDate ?? startDate)}
               disabled={usingOriginalStart}
               className="text-xs tracking-widest uppercase px-2 py-1"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: usingOriginalStart ? 'var(--tekst-5-app)' : COACH_BLUE,
+              style={{ ...PILLE_BASIS, color: usingOriginalStart ? 'var(--tekst-5-app)' : COACH_BLUE,
                 background: 'transparent',
                 border: `1px solid ${usingOriginalStart ? 'var(--line)' : COACH_BLUE}`,
                 cursor: usingOriginalStart ? 'default' : 'pointer',

@@ -7,6 +7,7 @@ import type { PlanTemplateWorkout, PlanTemplateDayState } from '@/lib/template-t
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 // Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
 const COACH_BLUE = 'var(--accent)'
@@ -295,9 +296,7 @@ function BtnPrimary({ onClick, children }: { onClick: () => void; children: Reac
   return (
     <button type="button" onClick={onClick}
       className="px-4 py-2 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+      style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
         border: 'none', cursor: 'pointer',
       }}>
       {children}
@@ -309,9 +308,7 @@ function BtnSecondary({ onClick, children, disabled }: { onClick: () => void; ch
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className="px-4 py-2 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: 'var(--tekst-5-app)',
+      style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
         background: 'none', border: '1px solid var(--kant-4)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -325,9 +322,7 @@ function BtnSm({ onClick, children, danger }: { onClick: () => void; children: R
   return (
     <button type="button" onClick={onClick}
       className="px-3 py-1 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: danger ? '#FF4500' : 'var(--tekst-5-app)',
+      style={{ ...PILLE_BASIS, color: danger ? '#FF4500' : 'var(--tekst-5-app)',
         background: 'none', border: `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: 'pointer',
       }}>

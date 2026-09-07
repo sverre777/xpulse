@@ -8,6 +8,7 @@ import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { OktmalEditModal } from '@/components/coach/OktmalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 // Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
 const COACH_BLUE = 'var(--accent)'
@@ -67,9 +68,7 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
         </p>
         <button type="button" onClick={() => setShowBuilder(true)}
           className="px-4 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+          style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
             border: 'none', cursor: 'pointer',
           }}>
           + Ny økt
@@ -233,9 +232,7 @@ function ActionBtn({
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className="px-3 py-1.5 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: primary ? 'var(--tekst-1-app)' : danger ? '#FF4500' : 'var(--tekst-5-app)',
+      style={{ ...PILLE_BASIS, color: primary ? 'var(--tekst-1-app)' : danger ? '#FF4500' : 'var(--tekst-5-app)',
         background: primary ? COACH_BLUE : 'none',
         border: primary
           ? 'none'

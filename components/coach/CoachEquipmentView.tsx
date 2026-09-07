@@ -18,6 +18,7 @@ import {
   type UserConditionsTemplate,
 } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from '@/components/equipment/NewSkiTestModal'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -228,9 +229,7 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
   return (
     <button type="button" onClick={onClick}
       className="px-4 py-2 text-xs tracking-widest uppercase transition-colors"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        // Pilleform som resten av utstyr-flaten; farge er trener-blaa her
+      style={{ ...PILLE_BASIS, // Pilleform som resten av utstyr-flaten; farge er trener-blaa her
         // (visningen er ikke pakket i .xp-coach, den setter blaatt selv).
         borderRadius: 999,
         color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',

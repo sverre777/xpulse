@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { PushGroupSessionModal } from './PushGroupSessionModal'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -14,9 +15,7 @@ export function NewGroupSessionButton() {
           type="button"
           onClick={() => setOpen(true)}
           className="text-xs tracking-widest uppercase px-3 py-2"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: COACH_BLUE,
+          style={{ ...PILLE_BASIS, color: COACH_BLUE,
             border: `1px solid ${COACH_BLUE}`,
             background: 'none',
             cursor: 'pointer',

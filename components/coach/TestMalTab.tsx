@@ -19,6 +19,7 @@ import {
 import { SPORTS, TEST_TYPES_BY_SPORT, type Sport, type WorkoutTemplate } from '@/lib/types'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 const iSt: React.CSSProperties = {
@@ -50,9 +51,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
         </p>
         <button type="button" onClick={() => setNyTestMal(true)}
           className="px-4 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+          style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
             border: 'none', cursor: 'pointer',
           }}>
           + Ny test-mal
@@ -213,7 +212,7 @@ function TestMalEditModal({
           </div>
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', minHeight: '36px' }}>
+            style={{ ...PILLE_BASIS,  color: 'var(--tekst-5-app)', minHeight: '36px' }}>
             Lukk
           </button>
         </div>
@@ -278,9 +277,7 @@ function TestMalEditModal({
           {template ? (
             <button type="button" onClick={remove} disabled={isPending}
               className="px-3 py-2 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: 'transparent', border: '1px solid #E11D48',
+              style={{ ...PILLE_BASIS, backgroundColor: 'transparent', border: '1px solid #E11D48',
                 color: '#E11D48', minHeight: '40px',
               }}>
               Slett
@@ -288,9 +285,7 @@ function TestMalEditModal({
           ) : <span />}
           <button type="button" onClick={save} disabled={isPending}
             className="px-4 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
+            style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
               color: 'var(--tekst-1-app)', minHeight: '40px',
             }}>
             {isPending ? 'Lagrer…' : template ? 'Oppdater' : 'Lagre mal'}

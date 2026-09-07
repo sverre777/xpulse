@@ -1,5 +1,6 @@
 'use client'
 
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 import { useState } from 'react'
 import { PRESETS, rangeFromPreset, type DateRange, type PresetKey } from './date-range'
 
@@ -39,8 +40,7 @@ export function DateRangePicker({
           type="button"
           onClick={() => applyPreset(p.key)}
           className="px-3 py-1.5 text-xs tracking-widest uppercase transition-colors"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
+          style={{ ...PILLE_BASIS, minHeight: 32, padding: '0 14px',
             backgroundColor: value.preset === p.key ? '#FF4500' : 'var(--flate-14)',
             border: value.preset === p.key ? '1px solid #FF4500' : '1px solid var(--kant-3)',
             color: value.preset === p.key ? 'var(--tekst-1-ren)' : 'var(--tekst-1-app)',

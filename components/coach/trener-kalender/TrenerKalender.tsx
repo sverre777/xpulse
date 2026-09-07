@@ -11,6 +11,7 @@ import {
   toISO, isoWeek, buildMonthGrid, buildWeekDates,
   iterMonthDates, isSameDay, timeToMinutes,
 } from './date-utils'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 const COMP_RED = '#E11D48'
@@ -146,9 +147,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
           {(['måned', 'uke', 'år'] as View[]).map(v => (
             <button key={v} type="button" onClick={() => setView(v)}
               className="px-4 py-2 text-sm tracking-widest uppercase transition-colors"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: view === v ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
+              style={{ ...PILLE_BASIS, color: view === v ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: view === v ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
                 minHeight: '44px',
@@ -172,8 +171,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
             style={navBtnStyle}>→</button>
           <button type="button" onClick={goToday}
             className="ml-2 px-3 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+            style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
               background: 'none', border: '1px solid var(--kant-4)',
               cursor: 'pointer', minHeight: '44px',
             }}>
@@ -181,8 +179,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
           </button>
           <button type="button" onClick={() => setShowAddNote({})} data-kal-notat-knapp
             className="ml-2 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80 xp-kal-notat"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE,
+            style={{ ...PILLE_BASIS, color: COACH_BLUE,
               background: 'none', border: `1px solid ${COACH_BLUE}`,
               cursor: 'pointer', minHeight: '44px',
             }}>
@@ -558,12 +555,11 @@ function YearView({
                 return (
                   <button key={ds} type="button" onClick={() => onSelectDate(d)}
                     title={ev.length > 0 ? `${d.getDate()}. ${MONTHS_SHORT[d.getMonth()]} · ${ev.length} event${ev.length === 1 ? '' : 's'}` : `${d.getDate()}. ${MONTHS_SHORT[d.getMonth()]}`}
-                    style={{
-                      aspectRatio: '1',
+                    style={{ ...PILLE_BASIS, aspectRatio: '1',
                       border: isToday ? `1px solid ${COACH_BLUE}` : 'none',
                       backgroundColor: bg,
                       color: isCurMonth ? 'var(--tekst-3-app)' : 'var(--kant-hover)',
-                      fontFamily: "'Barlow Condensed', sans-serif",
+                      
                       fontSize: '10px',
                       cursor: 'pointer',
                       padding: 0,

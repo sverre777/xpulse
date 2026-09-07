@@ -10,6 +10,7 @@ import {
   type CoachTargetAthlete,
   type CoachTargetGroup,
 } from '@/app/actions/coach-push'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -145,9 +146,8 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
             👥 Ny fellestrening
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif",
+            style={{ ...PILLE_BASIS, background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--tekst-5-app)', 
               fontSize: '14px', padding: '4px 8px',
             }}>
             ESC
@@ -221,16 +221,14 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
               <div className="flex gap-2">
                 <button type="button" onClick={selectAll}
                   className="text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE,
+                  style={{ ...PILLE_BASIS, color: COACH_BLUE,
                     background: 'none', border: '1px solid var(--line)', cursor: 'pointer', padding: '4px 8px',
                   }}>
                   Alle utøvere
                 </button>
                 <button type="button" onClick={() => setSelectedIds(new Set())}
                   className="text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                  style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
                     background: 'none', border: '1px solid var(--line)', cursor: 'pointer', padding: '4px 8px',
                   }}>
                   Tøm
@@ -259,9 +257,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                           <button key={g.id} type="button"
                             onClick={() => toggleGroup(g.athleteIds)}
                             className="text-xs tracking-widest uppercase px-2 py-1"
-                            style={{
-                              fontFamily: "'Barlow Condensed', sans-serif",
-                              color: all ? 'var(--flate-3)' : 'var(--tekst-1-app)',
+                            style={{ ...PILLE_BASIS, color: all ? 'var(--flate-3)' : 'var(--tekst-1-app)',
                               backgroundColor: all ? COACH_BLUE : (some ? 'rgba(26,111,212,0.2)' : 'transparent'),
                               border: `1px solid ${all || some ? COACH_BLUE : 'var(--line)'}`,
                               cursor: 'pointer',
@@ -307,17 +303,14 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
           style={{ borderTop: '1px solid var(--line)' }}>
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase px-3 py-2"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+            style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
               background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
             }}>
             Avbryt
           </button>
           <button type="button" onClick={handleSubmit} disabled={isPending || selectedIds.size === 0 || !title.trim()}
             className="text-xs tracking-widest uppercase px-4 py-2"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+            style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
               border: 'none', cursor: isPending ? 'not-allowed' : 'pointer',
               opacity: isPending || selectedIds.size === 0 || !title.trim() ? 0.5 : 1,
             }}>

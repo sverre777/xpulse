@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { InviteCodeRedeemer } from './InviteCodeRedeemer'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -34,9 +35,7 @@ export function CoachHero({ firstName, activeAthletes, unreadNotifications }: Pr
             <Link
               href="/app/innboks"
               className="px-3 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                border: `1px solid ${COACH_BLUE}`,
+              style={{ ...PILLE_BASIS, border: `1px solid ${COACH_BLUE}`,
                 color: COACH_BLUE,
                 textDecoration: 'none',
               }}

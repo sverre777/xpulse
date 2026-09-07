@@ -18,6 +18,7 @@ import { PeriodiseringMalVolumeSection } from '@/components/coach/PeriodiseringM
 import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
 import { SeasonCanvas, type CanvasPeriodMutators } from '@/components/periodization/SeasonCanvas'
 import type { Season, SeasonPeriod, SeasonMarking, Intensity, PeriodInput } from '@/app/actions/seasons'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 // Del F: malens lerret tegner på en SYNTETISK tidslinje forankret i en
 // mandag — U1 = anker-uka; offsets ⇄ datoer er ren aritmetikk. Anvendelse
@@ -639,17 +640,14 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <button type="button" onClick={requestClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
                 background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
               }}>
               Avbryt
             </button>
             <button type="button" onClick={handleSave} disabled={isPending}
               className="px-4 py-2 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
+              style={{ ...PILLE_BASIS, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                 border: 'none',
                 cursor: isPending ? 'not-allowed' : 'pointer',
                 opacity: isPending ? 0.5 : 1,
@@ -988,9 +986,7 @@ function BtnSm({ onClick, children, danger }: { onClick: () => void; children: R
   return (
     <button type="button" onClick={onClick}
       className="px-3 py-1 text-xs tracking-widest uppercase"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: danger ? '#FF4500' : 'var(--tekst-5-app)',
+      style={{ ...PILLE_BASIS, color: danger ? '#FF4500' : 'var(--tekst-5-app)',
         background: 'none', border: `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: 'pointer',
       }}>

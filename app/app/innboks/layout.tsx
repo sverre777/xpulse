@@ -68,7 +68,8 @@ export default async function InboxLayout({ children }: { children: React.ReactN
           <InboxTabs activeRole={activeRole} />
           <div className="mt-4">{children}</div>
         </main>
-        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'} />
+        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'}
+          meny={{ userName: profile?.full_name ?? null, hasAthleteRole: hasAthleteRole, hasCoachRole: hasCoachRole, hasCoachTier: coachTier, unreadInboxCount: unreadInboxCount, harPlan: true }} />
         {activeRole === 'coach' ? <PlussKnappTrenerAuto /> : <PlussKnappAuto />}
       </div>
     </RoleProvider>

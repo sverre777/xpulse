@@ -59,7 +59,8 @@ export default async function InnstillingerLayout({ children }: { children: Reac
         <div className="flex-1 xp-app-innhold">
           {children}
         </div>
-        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'} />
+        <GlassLinje rolle={activeRole === 'coach' ? 'coach' : 'athlete'}
+          meny={{ userName: profile?.full_name ?? null, hasAthleteRole: hasAthleteRole, hasCoachRole: hasCoachRole, hasCoachTier: coachTier, unreadInboxCount: unreadInboxCount, harPlan: true }} />
         {activeRole === 'coach' ? <PlussKnappTrenerAuto /> : <PlussKnappAuto />}
       </div>
     </RoleProvider>

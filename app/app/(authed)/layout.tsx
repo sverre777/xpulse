@@ -89,7 +89,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <AppFooter />
         <InstallHint />
         {visProfilvarsel && <ProfilVarselBanner />}
-        <GlassLinje rolle={effectiveRole === 'coach' ? 'coach' : 'athlete'} />
+        <GlassLinje rolle={effectiveRole === 'coach' ? 'coach' : 'athlete'}
+          meny={{ userName: profile?.full_name ?? null, hasAthleteRole: hasAthleteRole, hasCoachRole: hasCoachRole, hasCoachTier: coachTier, unreadInboxCount: unreadInboxCount, harPlan: true }} />
         {effectiveRole !== 'coach' && <PlussKnappAuto />}
       </div>
     </BrukerSporterProvider>

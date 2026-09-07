@@ -42,7 +42,8 @@ export default async function CoachLayout({ children }: { children: React.ReactN
       </div>
       <AppFooter />
       <InstallHint />
-      <GlassLinje rolle="coach" />
+      <GlassLinje rolle="coach"
+          meny={{ userName: profile?.full_name ?? null, hasAthleteRole: profile?.has_athlete_role ?? false, hasCoachRole: true, hasCoachTier: true, unreadInboxCount: unreadInboxCount, harPlan: true }} />
       <PlussKnappTrenerAuto />
     </div>
   )

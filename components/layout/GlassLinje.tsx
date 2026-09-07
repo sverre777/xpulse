@@ -9,10 +9,12 @@
 // erMobilNav() er sann (≤ 620 px eller Capacitor).
 
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useErMobilNav } from '@/lib/er-app'
 import { HomeGlyph, CalendarGlyph, BookGlyph, ChartGlyph, CalendarPlusGlyph, UsersGlyph, MerGlyph } from './NavLinkIcons'
+import { MerPanel } from './MerPanel'
+import type { AvatarMenyProps } from './AvatarMeny'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ORANSJE = '#FF4500'
@@ -45,9 +47,14 @@ function erUtoverDrilldown(p: string): boolean {
   return !!m && !TRENER_EGNE_RUTER.has(m[1])
 }
 
-export function GlassLinje({ rolle }: { rolle: 'athlete' | 'coach' }) {
+export function GlassLinje({ rolle, meny }: {
+  rolle: 'athlete' | 'coach'
+  /** Sverre 6. sep: Mer-fanen løfter det samme panelet som PC, opp fra bunnlinja. */
+  meny?: Omit<AvatarMenyProps, 'rolle'> & { harPlan?: boolean }
+}) {
   const vis = useErMobilNav()
   const pathname = usePathname() ?? ''
+  const [merAapen, setMerAapen] = useState(false)
   // Innholdet under scroller under glasset (padding-bottom 130 via .xp-app-innhold);
   // ＋-knappen løftes over linja gjennom --xp-bunnlinje.
   useEffect(() => {
@@ -72,16 +79,30 @@ export function GlassLinje({ rolle }: { rolle: 'athlete' | 'coach' }) {
         boxShadow: 'inset 0 1px 0 color-mix(in srgb, var(--tekst-1-app) 14%, transparent), 0 12px 32px color-mix(in srgb, #000 35%, transparent)',
       }}>
       {faner.map(f => {
-        const aktiv = f.aktiv(pathname) || (f.id === 'mer' && !noenAktiv && pathname !== '/app' && !erUtoverDrilldown(pathname) && pathname !== '/app/trener' && !pathname.startsWith('/app/oversikt'))
-        return (
-          <Link key={f.id} href={f.href} data-glass-fane={f.id} aria-current={aktiv ? 'page' : undefined}
-            className="flex flex-col items-center justify-center gap-0.5"
-            style={{ textDecoration: 'none', color: aktiv ? aksent : 'var(--tekst-5-app)', borderRadius: 18, background: aktiv ? `color-mix(in srgb, ${aksent} 14%, transparent)` : 'transparent', minHeight: 44, transition: 'color .15s, background .15s' }}>
+        const aktiv = f.aktiv(pathname) || (f.id === 'mer' && (merAapen || (!noenAktiv && pathname !== '/app' && !erUtoverDrilldown(pathname) && pathname !== '/app/trener' && !pathname.startsWith('/app/oversikt'))))
+        const stil: React.CSSProperties = { textDecoration: 'none', color: aktiv ? aksent : 'var(--tekst-5-app)', borderRadius: 18, background: aktiv ? `color-mix(in srgb, ${aksent} 14%, transparent)` : 'transparent', minHeight: 44, transition: 'color .15s, background .15s', border: 'none', cursor: 'pointer' }
+        const innhold = (
+          <>
             <f.Ikon size={23} strokeWidth={1.7} />
             <span style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1 }}>{f.navn}</span>
+          </>
+        )
+        // Mer åpner panelet i stedet for å navigere - men bare når vi har menydataene.
+        // Uten dem (eldre montering) står dyplenka til /app/mer.
+        if (f.id === 'mer' && meny) return (
+          <button key={f.id} type="button" data-glass-fane={f.id} aria-haspopup="dialog" aria-expanded={merAapen}
+            onClick={() => setMerAapen(v => !v)} className="flex flex-col items-center justify-center gap-0.5" style={stil}>
+            {innhold}
+          </button>
+        )
+        return (
+          <Link key={f.id} href={f.href} data-glass-fane={f.id} aria-current={aktiv ? 'page' : undefined}
+            className="flex flex-col items-center justify-center gap-0.5" style={stil}>
+            {innhold}
           </Link>
         )
       })}
+      {merAapen && meny && <MerPanel plassering="mobil" rolle={rolle} {...meny} onLukk={() => setMerAapen(false)} />}
     </nav>
   )
 }

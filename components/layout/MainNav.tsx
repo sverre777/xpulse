@@ -122,7 +122,9 @@ export function MainNav({
               </Link>
             )
           })}
-          <MerNedtrekk rolle="athlete" accent={accent} unreadInboxCount={unreadInboxCount} toppLenker={[HOME_HREF, ...NAV_LINKS.map(l => l.href)]} />
+          <MerNedtrekk rolle={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} unreadInboxCount={unreadInboxCount}
+            toppLenker={[HOME_HREF, ...NAV_LINKS.map(l => l.href)]}
+            meny={{ userName, hasAthleteRole, hasCoachRole, hasCoachTier, unreadInboxCount, harPlan: true }} />
         </div>
       </div>
 

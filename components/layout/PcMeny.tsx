@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation'
 import { AvatarMeny, type AvatarMenyProps } from './AvatarMeny'
 import { merPoster } from '@/lib/mer-poster'
 import { MerGlyph } from './NavLinkIcons'
+import { MerPanel } from './MerPanel'
 
 const FONT = "'Barlow Condensed', sans-serif"
 
@@ -34,7 +35,13 @@ export function PcAvatar(props: AvatarMenyProps) {
   )
 }
 
-export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0, toppLenker = [] }: { rolle: 'athlete' | 'coach'; accent: string; unreadInboxCount?: number; /** Rutene som har egen fane i toppen — Mer skal ikke lyse for dem (Sverre 6. sep: Analyse/Maler tente også Mer). */ toppLenker?: string[] }) {
+export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0, toppLenker = [], meny }: {
+  rolle: 'athlete' | 'coach'; accent: string; unreadInboxCount?: number
+  /** Rutene som har egen fane i toppen — Mer skal ikke lyse for dem (Sverre 6. sep: Analyse/Maler tente også Mer). */
+  toppLenker?: string[]
+  /** Sverre 6. sep: Mer åpner samme panel som avatar-menyen, med innholdet fra /app/mer. */
+  meny?: Omit<AvatarMenyProps, 'rolle'> & { harPlan?: boolean }
+}) {
   const [aapen, setAapen] = useState(false)
   const rot = useRef<HTMLDivElement | null>(null)
   const pathname = usePathname() ?? ''
@@ -63,16 +70,20 @@ export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0, toppLenker = 
         <span className="min-[1400px]:hidden sr-only">Mer</span>
       </button>
       {aapen && (
-        <div role="menu" data-pc-mer-meny style={{ position: 'absolute', left: 0, top: 'calc(100% + 8px)', minWidth: 260, zIndex: 120, padding: 6, borderRadius: 14, background: 'color-mix(in srgb, var(--card) 97%, transparent)', WebkitBackdropFilter: 'blur(14px)', backdropFilter: 'blur(14px)', border: '1px solid var(--line2)', boxShadow: '0 16px 40px rgba(0,0,0,.35)' }}>
-          {poster.map(p => (
-            <Link key={p.id} href={p.href} role="menuitem" data-pc-mer-valg={p.id} onClick={() => setAapen(false)} className="flex items-center gap-3"
-              style={{ padding: '9px 12px', borderRadius: 10, textDecoration: 'none', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14.5, fontWeight: 600, minHeight: 40 }}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={p.ikon} /></svg>
-              <span style={{ flex: 1 }}>{p.navn}</span>
-              {p.tall != null && p.tall > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999, background: '#1A6FD4', color: '#fff', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{p.tall}</span>}
-            </Link>
-          ))}
-        </div>
+        meny
+          ? <MerPanel plassering="pc" rolle={rolle} {...meny} unreadInboxCount={unreadInboxCount} onLukk={() => setAapen(false)} />
+          : (
+            <div role="menu" data-pc-mer-meny style={{ position: 'absolute', left: 0, top: 'calc(100% + 8px)', minWidth: 260, zIndex: 120, padding: 6, borderRadius: 14, background: 'color-mix(in srgb, var(--card) 97%, transparent)', WebkitBackdropFilter: 'blur(14px)', backdropFilter: 'blur(14px)', border: '1px solid var(--line2)', boxShadow: '0 16px 40px rgba(0,0,0,.35)' }}>
+              {poster.map(p => (
+                <Link key={p.id} href={p.href} role="menuitem" data-pc-mer-valg={p.id} onClick={() => setAapen(false)} className="flex items-center gap-3"
+                  style={{ padding: '9px 12px', borderRadius: 10, textDecoration: 'none', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14.5, fontWeight: 600, minHeight: 40 }}>
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={p.ikon} /></svg>
+                  <span style={{ flex: 1 }}>{p.navn}</span>
+                  {p.tall != null && p.tall > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999, background: '#1A6FD4', color: '#fff', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{p.tall}</span>}
+                </Link>
+              ))}
+            </div>
+          )
       )}
     </div>
   )

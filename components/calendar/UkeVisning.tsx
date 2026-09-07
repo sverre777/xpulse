@@ -400,6 +400,72 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
 }
 
 // ── Selve ukevisningen ──────────────────────────────────────────
+/** Periodene fra årsplanen som en VANNRETT stripe over dagene de dekker (Sverre 6. sep).
+ *  Samme farger som årsplanen (INTENSITY_COLOR) - ingen nye. Går perioden ut av uka,
+ *  er enden åpen (ingen avrunding, pil-hint), så uka ikke lyver om start og slutt.
+ *  Samlinger og nøkkeldatoer markeres med emoji på sin egen dag, som ellers i appen. */
+function PeriodeStripe({ ukeISO, perioder, keyDates, markeringer }: {
+  ukeISO: string[]; perioder: SeasonPeriod[]; keyDates: SeasonKeyDate[]; markeringer: SeasonMarking[]
+}) {
+  const fra = ukeISO[0], til = ukeISO[6]
+  const iUka = perioder
+    .filter(p => p.start_date <= til && p.end_date >= fra)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+  const emojiPerDag = ukeISO.map(ds => {
+    const ut: { tegn: string; tittel: string }[] = []
+    for (const k of keyDates) if (k.event_date === ds) {
+      const v = KEY_EVENT_VISUALS[k.event_type]
+      ut.push({ tegn: v.icon, tittel: `${v.label}: ${k.name}` })
+    }
+    for (const m of markeringer) if (m.start_date <= ds && m.end_date >= ds && m.start_date === ds) {
+      ut.push({ tegn: m.is_altitude ? '🏔' : '📍', tittel: `${m.name} (${m.start_date} - ${m.end_date})` })
+    }
+    return ut
+  })
+  if (iUka.length === 0 && emojiPerDag.every(e => e.length === 0)) return null
+  return (
+    <div className="px-3 md:px-6 pt-3" data-uke-perioder>
+      {iUka.map(p => {
+        const start = Math.max(0, ukeISO.findIndex(ds => ds >= p.start_date))
+        const sluttI = ukeISO.findIndex(ds => ds > p.end_date)
+        const slutt = sluttI === -1 ? 7 : sluttI
+        const apenVenstre = p.start_date < fra, apenHoyre = p.end_date > til
+        const farge = INTENSITY_COLOR[p.intensity]
+        return (
+          <div key={p.id} className="uke-kolonner" style={{ marginBottom: 4 }}>
+            <div data-uke-periode={p.id} title={`${p.name} · ${INTENSITY_LABEL[p.intensity]} (${p.start_date} - ${p.end_date})`}
+              style={{
+                gridColumn: `${start + 1} / ${slutt + 1}`, minHeight: 20, display: 'flex', alignItems: 'center', gap: 6,
+                padding: '0 8px', background: `color-mix(in srgb, ${farge} 22%, transparent)`,
+                borderTop: `1px solid color-mix(in srgb, ${farge} 55%, transparent)`,
+                borderBottom: `1px solid color-mix(in srgb, ${farge} 55%, transparent)`,
+                borderLeft: apenVenstre ? 'none' : `3px solid ${farge}`,
+                borderRight: apenHoyre ? 'none' : `3px solid ${farge}`,
+                borderRadius: `${apenVenstre ? 0 : 6}px ${apenHoyre ? 0 : 6}px ${apenHoyre ? 0 : 6}px ${apenVenstre ? 0 : 6}px`,
+                overflow: 'hidden',
+              }}>
+              {apenVenstre && <span aria-hidden style={{ color: farge, fontSize: 11 }}>‹</span>}
+              <span style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-1-app)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {p.name}
+              </span>
+              {apenHoyre && <span aria-hidden style={{ marginLeft: 'auto', color: farge, fontSize: 11 }}>›</span>}
+            </div>
+          </div>
+        )
+      })}
+      {emojiPerDag.some(e => e.length > 0) && (
+        <div className="uke-kolonner" data-uke-emoji style={{ marginBottom: 2 }}>
+          {emojiPerDag.map((e, i) => (
+            <div key={ukeISO[i]} style={{ minHeight: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+              {e.map((x, j) => <span key={j} title={x.tittel} aria-label={x.tittel} style={{ fontSize: 13, lineHeight: 1 }}>{x.tegn}</span>)}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function UkeVisning({
   weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [],
   selectedDate, onSelectDate, onPrevWeek, onNextWeek, onEditWorkout, onCreateWorkout,
@@ -465,6 +531,7 @@ export function UkeVisning({
     <DndContext id="uke-dnd" sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setAktiv(null)}>
       <div data-ukevisning>
         <UkeBanner weekDates={weekDates} weekNum={weekNum} byDate={byDate} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} targetUserId={targetUserId} />
+        <PeriodeStripe ukeISO={ukeISO} perioder={seasonPeriods} keyDates={seasonKeyDates} markeringer={seasonMarkings} />
         <div className="px-3 md:px-6 pt-3" tabIndex={0} onKeyDown={onKey} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} aria-label={`Uke ${weekNum} — bruk piltastene for å velge dag`} style={{ outline: 'none' }}>
           <div className="uke-kolonner" data-uke-kolonner>
             {weekDates.map((d, i) => {

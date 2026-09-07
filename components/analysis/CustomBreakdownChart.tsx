@@ -73,15 +73,15 @@ function formatMinutesCompact(mins: number): string {
   return `${m}M`
 }
 
-// «1.–7. jun» under uke-labelen (kun visning — selve labelen er uendret).
+// «1.-7. jun» under uke-labelen (kun visning - selve labelen er uendret).
 function weekPeriodLabel(startIso: string): string {
   const [y, m, d] = startIso.split('-').map(Number)
   const start = new Date(y, m - 1, d)
   const end = new Date(y, m - 1, d + 6)
   const sm = NB_MONTHS_TICK[start.getMonth()]
   const em = NB_MONTHS_TICK[end.getMonth()]
-  if (sm === em) return `${start.getDate()}.–${end.getDate()}. ${em}`
-  return `${start.getDate()}. ${sm} – ${end.getDate()}. ${em}`
+  if (sm === em) return `${start.getDate()}.-${end.getDate()}. ${em}`
+  return `${start.getDate()}. ${sm} - ${end.getDate()}. ${em}`
 }
 
 // Total-tall over øverste synlige stack-segment. Rendres via LabelList —

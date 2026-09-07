@@ -50,7 +50,7 @@ export default function AnalysePage() {
           { tittel: 'Konkurranser på kurven', tekst: 'A-, B- og C-løp vises i belastningsgrafen, så toppformen kan etterprøves.' },
           { tittel: 'RPE når watt mangler', tekst: 'Har økta hverken puls eller watt, brukes opplevd belastning - ingen hull i kurven.' },
         ]}
-        media={{ type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, laktat og ernæring', hoyde: 1140 }}
+        media={{ type: 'app', navn: 'custom-graf', kap: 'Egen graf: timer per uke fordelt på soner', hoyde: 520 }}
       />
 
       <LandingSeksjon
@@ -73,7 +73,7 @@ export default function AnalysePage() {
           { tittel: 'GAP og watt-soner', tekst: 'Stigningsjustert tempo på løping, Coggan-soner og NP/IF på sykkel.' },
           { tittel: 'Prestasjon over tid', tekst: 'Fart og watt ved terskel fulgt gjennom sesongen, sesong mot sesong.' },
         ]}
-        media={{ type: 'app', navn: 'oktgraf-skjema', kap: 'Terskel og laktat i økta', hoyde: 740 }}
+        media={{ type: 'foto', bilde: 'loping-sti-host', alt: 'Løper på sti om høsten' }}
       />
 
       <LandingSeksjon

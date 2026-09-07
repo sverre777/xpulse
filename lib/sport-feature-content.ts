@@ -686,7 +686,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'STIGNINGEN LIGGER I TALLENE.',
         intro:
           'Høydekurven fra klokka vises i økta, og stigning kan føres per rad. Klatringen teller inn i belastningen, så en kupert tur ikke ser lettere ut enn den var.',
-        media: { type: 'foto', bilde: 'sykling-landevei', alt: 'Syklist på landevei med utsikt' },
+        media: { type: 'foto', bilde: 'natur-fjord', alt: 'Fjordlandskap med vei' },
         bullets: [
           { title: 'Høydekurve i økta', body: 'Fra klokka, sammen med puls, watt og fart.' },
           { title: 'Stigning per rad', body: 'Før terrenget der det hører hjemme - rolig, kupert, bratt.' },

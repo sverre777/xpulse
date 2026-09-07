@@ -201,3 +201,46 @@ export function standardoktBlokker(): PlanBlokkInn[] {
   legg('oppvarming', 900, 'I1'); for (let i = 0; i < 3; i++) { legg('aktivitet', 1200, 'I3'); if (i < 2) legg('aktiv_pause', 180) } legg('nedjogg', 720, 'I1')
   return fraActivityRows(ut)
 }
+
+type CustomBreakdownInn = import('@/app/actions/analysis').CustomBreakdown
+
+// ── CUSTOM-GRAF (analyse-undersida, Sverre 7. sep: vis et analysekort, ikke
+//    økt-grafen med pulskurve) — tolv uker med sonetid per uke + styrke.
+//    Tallene er demodata, men formen er nøyaktig den samme som appen leverer.
+export function customBreakdownDemo(): CustomBreakdownInn {
+  const uker = [
+    { u: 27, I1: 4.2, I2: 1.4, I3: 0.9, I4: 0.4, I5: 0.2, styrke: 1.2 },
+    { u: 28, I1: 5.1, I2: 1.6, I3: 1.1, I4: 0.5, I5: 0.2, styrke: 1.5 },
+    { u: 29, I1: 5.8, I2: 1.8, I3: 1.2, I4: 0.6, I5: 0.2, styrke: 1.5 },
+    { u: 30, I1: 3.1, I2: 0.9, I3: 0.5, I4: 0.2, I5: 0.0, styrke: 0.8 },
+    { u: 31, I1: 6.4, I2: 2.1, I3: 1.4, I4: 0.7, I5: 0.3, styrke: 1.5 },
+    { u: 32, I1: 6.9, I2: 2.3, I3: 1.5, I4: 0.8, I5: 0.3, styrke: 1.8 },
+    { u: 33, I1: 7.4, I2: 2.4, I3: 1.6, I4: 0.9, I5: 0.4, styrke: 1.8 },
+    { u: 34, I1: 4.0, I2: 1.2, I3: 0.7, I4: 0.3, I5: 0.1, styrke: 1.0 },
+    { u: 35, I1: 7.8, I2: 2.6, I3: 1.8, I4: 1.0, I5: 0.4, styrke: 2.0 },
+    { u: 36, I1: 8.2, I2: 2.7, I3: 1.9, I4: 1.1, I5: 0.5, styrke: 2.0 },
+    { u: 37, I1: 6.1, I2: 2.0, I3: 1.3, I4: 0.7, I5: 0.3, styrke: 1.5 },
+    { u: 38, I1: 5.4, I2: 1.7, I3: 1.1, I4: 0.6, I5: 0.2, styrke: 1.2 },
+  ]
+  const t = (h: number) => Math.round(h * 3600)
+  const buckets = uker.map(u => {
+    const soner = { I1: t(u.I1), I2: t(u.I2), I3: t(u.I3), I4: t(u.I4), I5: t(u.I5), I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
+    const ikke = { Styrke: t(u.styrke) }
+    const total = Object.values(soner).reduce((a, b) => a + b, 0) + t(u.styrke)
+    // Uke 27 starter mandag 29. juni 2026; hver bøtte får sin egen mandag,
+    // ellers viser x-aksen samme dato på alle søylene.
+    const mandag = new Date(Date.UTC(2026, 5, 29) + (u.u - 27) * 7 * 86400000).toISOString().slice(0, 10)
+    return {
+      bucketKey: `2026-W${u.u}`, label: `U${u.u}`, startDate: mandag,
+      total_seconds: total, endurance_zone_seconds: soner, non_endurance_seconds: ikke,
+    }
+  })
+  return {
+    buckets,
+    enduranceMovementsInUse: ['Langrenn', 'Løping', 'Sykling'],
+    nonEnduranceMovementsInUse: ['Styrke'],
+    allEnduranceMovements: ['Langrenn', 'Løping', 'Sykling', 'Skiskyting', 'Padling', 'Roing'],
+    allNonEnduranceMovements: ['Styrke', 'Annet'],
+    hasData: true,
+  }
+}

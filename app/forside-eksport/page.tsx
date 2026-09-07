@@ -14,6 +14,7 @@ import { WorkoutDetailChart, Detaljrad } from '@/components/workout/WorkoutDetai
 import { AktivitetKnapperad } from '@/components/workout/AktivitetKnapperad'
 import { IntervallBygger } from '@/components/workout/IntervallBygger'
 import { HelseOversikt } from '@/components/helse/HelseOversikt'
+import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
 import { SamletBryter } from '@/components/workout/SamletBryter'
 import { WorkoutChip, CalendarActionsStubProvider } from '@/components/calendar/Calendar'
 import { KompaktKurverProvider } from '@/components/calendar/kompakt-kurver'
@@ -24,7 +25,7 @@ import { SerieListe } from '@/components/workout/SerieListe'
 import { fraTidspunktNotater } from '@/components/workout/Punkt'
 import {
   oktaRader, oktaPlanBlokker, oktaSegmenter, oktaSamples, oktaLaps, OKTA_LAKTAT, OKTA_ERNAERING, OKTA_TOTAL,
-  kalenderUke, helseData, aarsplan, plottTreffGruppe, standardoktBlokker,
+  kalenderUke, helseData, aarsplan, plottTreffGruppe, standardoktBlokker, customBreakdownDemo
 } from '@/lib/forside-eksport-data'
 import type { PlanBlokk } from '@/app/actions/runder'
 
@@ -42,6 +43,7 @@ function Kort({ navn, bredde = 620, children }: { navn: string; bredde?: number;
 
 function ForsideEksportInnhold() {
   const sp = useSearchParams()
+  const customData = useMemo(() => ({ completed: customBreakdownDemo() }), [])
   const tema = sp.get('tema') === 'lys' ? 'lys' : 'mork'
   // Smal eksport (mobil): grafene får mobilhøyden (Sverre 4. sep: 170 px).
   const smal = sp.get('smal') === '1'
@@ -142,6 +144,12 @@ function ForsideEksportInnhold() {
 
       <Kort navn="helse" bredde={500}>
         <HelseOversikt forside forhandsdata={helse} sluttDato="2026-09-04" />
+      </Kort>
+
+      {/* Analyse-undersida (Sverre 7. sep): et ANALYSEKORT, ikke økt-grafen. */}
+      <Kort navn="custom-graf" bredde={620}>
+        <CustomBreakdownChart analysisRange={{ from: '2026-07-06', to: '2026-09-20', preset: '3m' }} initialGrouping="week"
+          initialData={customData} />
       </Kort>
 
       <Kort navn="samlet-bryter" bredde={300}>

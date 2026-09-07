@@ -1997,8 +1997,8 @@ section[id],header[id]{scroll-margin-top:108px}
 /* Topplinja er appens egen (components/layout/MainNav.tsx): 52 px hoy, logo 37 px,
    PULSE 22/.4em i oransje, v-merket i pille, fanene 36 px hoye med 18 px glyf, og
    til hoyre sok - SYNK - innboks - Utover|Trener - tema - avatar. Ekte px-verdier;
-   zoom krymper hele linja sa den far plass i mockup-vinduet (1122 px). */
-.fu-apptopp{zoom:.86;display:flex;align-items:center;justify-content:space-between;gap:24px;height:52px;padding:0 24px;
+   zoom krymper hele linja sa den far plass i mockup-vinduet (1180 px fast bredde). */
+.fu-apptopp{zoom:.8;display:flex;align-items:center;justify-content:space-between;gap:24px;height:52px;padding:0 24px;
   background:linear-gradient(to bottom,var(--fu-navscrim),transparent)}
 .fu-tvenstre{display:flex;align-items:center;gap:24px;min-width:0}
 .fu-merke{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -2218,14 +2218,24 @@ section[id],header[id]{scroll-margin-top:108px}
 .fu-lv-ferdig{width:100%;background:#28A86E;color:#fff;border:0;border-radius:10px;padding:11px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
 .fu-lv-fot{font-family:'Barlow';font-size:11.5px;color:var(--mute);margin-top:9px}
 
-.fu-pcskall{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.fu-pcinner{min-width:1040px}
+/* PC-visningen krympes på mobil (Sverre 7. sep, etter test på telefon):
+   1) FAST bredde (1180 px), aldri prosent - da strekkes topplinja ut og rammen
+      scroller, i stedet for at delene legger seg oppå hverandre.
+   2) zoom, ikke transform: transform endrer ikke layouthøyden, så rammen sto
+      igjen med et stort tomrom under. zoom krymper også høyden.
+   3) rammen tar bare vannrett drag; loddrett går videre til sida. */
+.fu-pcskall{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+.fu-pcinner{width:100%;min-width:1040px;zoom:var(--fu-pcz,1);will-change:transform}
+.fu-pcinner .fu-appvindu{contain:paint}
+.fu-apptopp>*,.fu-tvenstre>*,.fu-tophoyre>*{flex:none;white-space:nowrap}
 @media(max-width:1100px){
   .fu-pcskall{border:1px solid var(--line);border-radius:14px;padding:6px}
-  .fu-pcinner{transform:scale(.82);transform-origin:top left;width:122%;margin-bottom:-16%}
+  /* Fra her krympes visningen: da er bredden FAST (1180 px), aldri prosent, slik at
+     topplinja strekkes ut og rammen scroller i stedet for at delene klemmes sammen. */
+  .fu-pcinner{width:1180px;--fu-pcz:.8}
 }
 @media(max-width:620px){
-  .fu-pcinner{transform:scale(.62);width:161%;margin-bottom:-40%}
+  .fu-pcinner{--fu-pcz:.6}
 }
 .fu-pcskall::-webkit-scrollbar{height:6px}
 .fu-pcskall::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
@@ -2574,7 +2584,7 @@ section[id],header[id]{scroll-margin-top:108px}
  </div>
 
  <button class="fu-fab">+</button>
-</div></div></div>
+</div>
   <div class="fu-livrad"><div class="fu-livekort">
  <div class="fu-lv-hode"><span class="fu-strek fu-gul"></span><b>Live styrkeøkt</b><span class="fu-d">⏱ 12:47</span></div>
  <div class="fu-lv-ovelse">
@@ -2588,6 +2598,7 @@ section[id],header[id]{scroll-margin-top:108px}
  <button class="fu-lv-ferdig">Fullfør økt ✓</button>
  <div class="fu-lv-fot">Plan, «sist» og START per sett - rett i dagboka når du fullfører.</div>
 </div><div class="fu-livtekst"><b>Live styrke ligger i samme app.</b><span>Start økta fra ＋-knappen eller fra en planlagt styrkeøkt - plan og «sist» per øvelse, START per sett, og alt havner i dagboka når du fullfører.</span></div></div>
+ </div></div>
  </div>
 
  <div class="fu-flater fu-skjul" id="fu-mob">

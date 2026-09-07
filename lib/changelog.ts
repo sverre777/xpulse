@@ -63,6 +63,66 @@ export const CHANGELOG: ChangelogEntry[] = [
 
   // ── v1.3 - åpen fra 26. august 2026 ────────────────────────────────────
   {
+    date: '2026-09-07',
+    title: 'Periodene fra årsplanen vises i ukevisningen',
+    body: 'Ukevisningen har fått en stripe over dagene som viser hvilken periode de hører til, i årsplanens egne farger. Fortsetter perioden inn i neste uke, står enden åpen. Samlinger og nøkkeldatoer markeres med emoji på sin egen dag.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-07',
+    title: 'Mer åpner som panel over siden',
+    body: 'Mer er ikke lenger en egen side du navigerer bort til: på PC åpner den som et panel under knappen, på mobil som et ark opp fra bunnlinja - med de samme snarveiene og rollebytte. Dyplenka til /app/mer virker som før.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Ny navigasjon i hele appen',
+    body: 'Mobil har fått glass-linje nederst med fem faner og en topplinje med sidetittel, synk og profil. På PC ligger Hjem, Plan, Dagbok, Analyse og Maler i toppen, med søk, synk, innboks, rollebytte og avatar-meny til høyre. Trener og utøver har hver sin.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Analysen er bygget om',
+    body: 'Analysen har nye faner for belastning, prestasjon, terskel, skyting, helse, standardøkter, styrke og sammenligning - med terskelhistorikk og estimater, GAP, watt-soner med NP og IF, laktatprofil per bevegelsesform, PR i styrke og grafer du bygger selv. Favorittene dine ligger først.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Status nå øverst i Analyse',
+    body: 'Oversikten åpner med et statuskort: timer, distanse, økter, hard tid, prosent av plan og skudd med treff, og under det siste og neste hardøkt, belastning, helse, soner og plan mot gjennomført - alt for perioden du har valgt.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Ukevisning med sju dager og dagdetalj',
+    body: 'Plan og dagbok har fått en ukevisning som viser alle sju dagene ved siden av hverandre, med økta for valgt dag under. Du kan dra økter mellom dager, bytte dag med piltastene og uke med sveip.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: '＋-knappen og live styrkeøkt',
+    body: '＋-knappen åpner det du trenger der du står - ny økt, skyting, styrke eller dagsform. Styrkeøkta kan startes live med plan og «sist gang» per øvelse og START per sett, og alt havner i dagboka når du fullfører.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Trenerpanelet viser hele gruppa',
+    body: 'Trener-hjem åpner med status for hele troppen: timer, prosent av plan, soner, skudd og helse per utøver, med detaljpanel under hver rad. Utøvere kan sammenlignes side om side for samme periode, og oppsettet kan lagres.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Hele øktgrafen på Hjem',
+    body: 'Øktkortene på Hjem viser nå hele grafen med både blokker og kurver, og med høydekurven på - ikke bare en stripe.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-06',
+    title: 'Padling som egen bevegelsesform',
+    body: 'Padling er skilt ut som egen bevegelsesform med maskin og utendørs, og kadens føres i tak per minutt. Gamle økter ført som «Kajak/Padling» følger med av seg selv.',
+    version: '1.3',
+  },
+  {
     date: '2026-09-04',
     title: 'Varsel når treneren endrer en økt',
     body: 'Legger treneren til eller endrer en økt i dagboka eller planen din, får du et varsel i innboksen - ett per økt, og ett for en hel plan. Uleste vises på innboks-ikonet.',
@@ -83,7 +143,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-09-04',
     title: 'Forventet belastning i plan',
-    body: 'Planlagte økter har cellen «Forventet · føres» (1–10) i nøkkeltallsraden under øktkartet - samme skala som opplevd belastning. Etter gjennomføring står forventet ved siden av opplevd, så «forventet 6 → opplevd 8» leses rett av.',
+    body: 'Planlagte økter har cellen «Forventet · føres» (1-10) i nøkkeltallsraden under øktkartet - samme skala som opplevd belastning. Etter gjennomføring står forventet ved siden av opplevd, så «forventet 6 → opplevd 8» leses rett av.',
     version: '1.3',
   },
   {
@@ -154,8 +214,8 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     date: '2026-08-28',
-    title: 'Utvidet intensitetsskala I6–I8',
-    body: 'Slå på I6–I8 på profilen for anaerob trening, så erstatter de Hurtighet i føring, planlegging og grafer - hos deg og treneren din.',
+    title: 'Utvidet intensitetsskala I6-I8',
+    body: 'Slå på I6-I8 på profilen for anaerob trening, så erstatter de Hurtighet i føring, planlegging og grafer - hos deg og treneren din.',
     version: '1.3',
   },
   {
@@ -207,7 +267,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-08-22',
     title: 'Søvnscore i helse',
-    body: 'Før søvnscore (0–100) sammen med resten av søvndataene.',
+    body: 'Før søvnscore (0-100) sammen med resten av søvndataene.',
     version: '1.2',
   },
   {

@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  hentPlottTreff, lagrePlottTreff,
+  hentPlottTreffPakke, lagrePlottTreff,
   type PlottTreffData, type PlottTreffGruppe,
 } from '@/app/actions/plott-treff'
 import { SerieListe } from './SerieListe'
 import { shootingSummary, derivedBlockPosition, POSITION_COLORS } from '@/lib/shooting'
 import { findStandardTest } from '@/lib/shooting-test-templates'
-import { listMyShootingTests, type OwnShootingTest } from '@/app/actions/shooting-tests'
+import type { OwnShootingTest } from '@/app/actions/shooting-tests'
 import { pulsIVindu, fmtKlokkeSek } from '@/lib/segmenter'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import type { ShootingSeriesRow } from '@/lib/types'
@@ -45,18 +45,17 @@ export function PlottTreffPopup({
 
   useEffect(() => {
     let avbrutt = false
-    hentPlottTreff(workoutId)
-      .then(d => {
+    // ÉN action for begge (serier + mine skytetester) - se hentPlottTreffPakke.
+    hentPlottTreffPakke(workoutId)
+      .then(({ plott: d, tester }) => {
         if (avbrutt) return
         setData(d)
         setGrupper(d?.grupper ?? [])
         setUtgangspunkt(JSON.stringify((d?.grupper ?? []).map(g => g.serier)))
+        setOwnTests(tester)
         setLaster(false)
       })
-      .catch(() => { if (!avbrutt) { setLaster(false); setFeil('Kunne ikke laste seriene — prøv igjen') } })
-    listMyShootingTests()
-      .then(res => { if (!avbrutt && Array.isArray(res)) setOwnTests(res) })
-      .catch(() => {})
+      .catch(() => { if (!avbrutt) { setLaster(false); setFeil('Kunne ikke laste seriene - prøv igjen') } })
     return () => { avbrutt = true }
   }, [workoutId])
 

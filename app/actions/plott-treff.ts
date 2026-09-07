@@ -151,6 +151,20 @@ export interface PlottTreffData {
   grupper: PlottTreffGruppe[]
 }
 
+/** YTELSE (Sverre 5. sep: «plott treff tar også tid å laste inn»): popupen fyrte
+ *  to actions ved åpning - seriene og mine skytetester. Denne henter begge i ÉN
+ *  rundtur, med Promise.all på serversiden. Samme mønster som hentOktPakke. */
+export async function hentPlottTreffPakke(workoutId: string): Promise<{
+  plott: PlottTreffData | null
+  tester: import('./shooting-tests').OwnShootingTest[]
+}> {
+  const [plott, tester] = await Promise.all([
+    hentPlottTreff(workoutId),
+    import('./shooting-tests').then(m => m.listMyShootingTests()).catch(() => []),
+  ])
+  return { plott, tester: Array.isArray(tester) ? tester : [] }
+}
+
 export async function hentPlottTreff(workoutId: string): Promise<PlottTreffData | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

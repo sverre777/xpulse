@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { StarRating } from '@/components/ui/StarRating'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { useState, useEffect, useMemo } from 'react'
@@ -28,7 +29,8 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { OktbyggerPopup } from './Oktbygger'
-import { PlottTreffPopup } from './PlottTreff'
+// YTELSE: popupen (m/ SerieListe og skytelogikk) lastes foerst naar den aapnes.
+const PlottTreffPopup = dynamic(() => import('./PlottTreff').then(m => m.PlottTreffPopup), { ssr: false })
 import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, TESTSPORT_TIL_SPORT, type PanelType } from './KonkurransePanel'
 import { createPortal } from 'react-dom'

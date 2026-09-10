@@ -1882,10 +1882,15 @@ html.js .istep.vis{opacity:1}
   /* Panelet skal holde seg INNE i sin rad. .paneler stod med align-self:center,
      og et panel som var hoyere enn raden (100svh - 250px er for hoyt naar
      overskriften er lang, som i trener-seksjonen) rant da ut oppover og la seg
-     rett oppa overskriften. Nå strekkes raden og panelet klippes i raden. */
-  .paneler{min-height:0;align-self:stretch}
-  .pan{max-height:100%;overflow:hidden}
-  .pan .app,.pan .ncard{max-height:100%}
+     rett oppa overskriften. Nå strekkes raden og panelet klippes i raden.
+     HOYE KORT (Sverre 10. sep): panelet maa ha DEFINERT hoyde, ellers loser
+     ikke max-height:100% paa kortet inni, og clientHeight blir hele innholdet -
+     da er scrollHeight === clientHeight og motoren har ingenting aa rulle.
+     Med height:100% paa .pan faar kortet en ekte rullehoyde, og motoren ruller
+     det gjennom de foerste 75 % av steget - som paa PC. */
+  .paneler{min-height:0;align-self:stretch;align-items:stretch}
+  .pan{max-height:100%;height:100%;overflow:hidden;min-height:0}
+  .pan .app,.pan .ncard{max-height:100%;overflow:hidden;overscroll-behavior:contain}
   /* steglista → framdriftsrad nederst (samme markup, samme motor) */
   .stegliste{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-self:end;margin:0;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   .sl{display:block;padding:0;opacity:1;text-align:center;background:none!important;border:none!important;transform:none!important}
@@ -3818,8 +3823,16 @@ section[id],header[id]{scroll-margin-top:108px}
       /* TILLEGG (Sverre 6. sep): et panel som er høyere enn plassen rulles av SIDENS scroll -
          de første 75 % av steget ruller innholdet til bunnen, resten holder, så går det videre.
          Alle som blar ser alt; ingen indre scroll å treffe. */
-      var boks=o.pans[i]&&o.pans[i].querySelector('.app,.ncard');
-      if(boks){ var maks=boks.scrollHeight-boks.clientHeight; if(maks>0) boks.scrollTop=Math.min(1,inner/0.75)*maks; }
+      /* Hoye kort: rull innholdet med sidens scroll. Kortet inni er foerstevalget,
+         men er det ikke det som har rullehoyden (mobil: .newgrid ligger imellom og
+         er ubundet), rulles hele panelet i stedet - saa hele kortet blir sett foer
+         neste steg (Sverre 10. sep). */
+      var pan=o.pans[i], boks=pan&&pan.querySelector('.app,.ncard');
+      if(pan){
+        var maks=boks?boks.scrollHeight-boks.clientHeight:0;
+        if(maks<=0){ boks=pan; maks=pan.scrollHeight-pan.clientHeight; }
+        if(maks>0) boks.scrollTop=Math.min(1,inner/0.75)*maks;
+      }
     });
   }
   /* rAF-throttlet: scroll-hendelsene samles til én måling per frame (ingen layout-thrash). */

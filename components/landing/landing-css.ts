@@ -26,7 +26,7 @@ export const LANDING_CSS = `
   border-bottom:0}
 .lp-topp-inn{max-width:1400px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:26px}
 .lp-merke{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--lp-paper);flex-shrink:0}
-.lp-merke b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:.26em;
+.lp-merke b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;letter-spacing:.26em;
   background-image:linear-gradient(100deg, #A5516C, #4B62AC);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .lp-lenker{display:flex;gap:22px;margin-left:10px;align-items:center}
@@ -66,7 +66,7 @@ export const LANDING_CSS = `
   .lp-pill{padding:8px 13px;font-size:11.5px}
   /* 390 px: ordmerket viker for pilla og hamburgeren, som i appen. */
   /* Merket står øverst til venstre på ALLE undersider, også på mobil. */
-  .lp-merke b{font-size:14px;letter-spacing:.2em}
+  .lp-merke b{font-size:19px;letter-spacing:.2em}
   .lp-topp-inn{padding:10px 14px;gap:10px}
   .lp-topp-h{gap:8px}
 }

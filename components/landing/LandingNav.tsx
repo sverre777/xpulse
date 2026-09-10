@@ -69,7 +69,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
         <div className="lp-topp-inn" ref={rot}>
           <Link href="/xpulse.html" className="lp-merke" aria-label="X-PULSE">
             <XPulseIcon size={26} variant="gradient" />
-            <b>X-PULSE</b>
+            <b>PULSE</b>
           </Link>
 
           <nav className="lp-lenker" aria-label="Hovedmeny">
@@ -128,7 +128,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
         <div className="lp-panel" id="lp-panel" ref={panelRef} role="dialog" aria-modal="true" aria-label="Hovedmeny">
           <div className="lp-panel-topp">
             <Link href="/xpulse.html" className="lp-merke" onClick={() => setPanel(false)} aria-label="X-PULSE">
-              <XPulseIcon size={26} variant="gradient" /><b>X-PULSE</b>
+              <XPulseIcon size={26} variant="gradient" /><b>PULSE</b>
             </Link>
             <button type="button" className="lp-burger" style={{ display: 'flex' }} aria-label="Lukk meny" onClick={() => setPanel(false)}>
               <CloseIcon size={20} />

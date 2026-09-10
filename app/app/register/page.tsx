@@ -115,6 +115,22 @@ export default function RegisterPage() {
             </span>
           </label>
 
+          {state?.bekreftEpost && (
+            <div
+              className="text-sm px-3 py-3"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#28A86E',
+                backgroundColor: 'rgba(40,168,110,0.10)',
+                border: '1px solid rgba(40,168,110,0.35)',
+              }}
+            >
+              <strong style={{ display: 'block', marginBottom: 4 }}>Kontoen er opprettet.</strong>
+              Vi har sendt deg en e-post med en bekreftelseslenke. Klikk på den, så kommer du
+              rett inn og velger abonnement. Sjekk søppelpost hvis den ikke dukker opp.
+            </div>
+          )}
+
           {state?.error && (
             <p
               className="text-sm px-3 py-2"
@@ -132,18 +148,18 @@ export default function RegisterPage() {
           <div className="mt-2">
             <button
               type="submit"
-              disabled={pending}
+              disabled={pending || !!state?.bekreftEpost}
               className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: pending ? '#7A2200' : '#FF4500',
+                backgroundColor: pending || state?.bekreftEpost ? '#7A2200' : '#FF4500',
                 color: 'var(--tekst-1-app)',
-                cursor: pending ? 'not-allowed' : 'pointer',
-                opacity: pending ? 0.7 : 1,
+                cursor: pending || state?.bekreftEpost ? 'not-allowed' : 'pointer',
+                opacity: pending || state?.bekreftEpost ? 0.7 : 1,
                 border: 'none',
               }}
             >
-              {pending ? 'Oppretter konto...' : 'Opprett konto'}
+              {pending ? 'Oppretter konto...' : state?.bekreftEpost ? 'Sjekk e-posten din' : 'Opprett konto'}
             </button>
           </div>
         </form>

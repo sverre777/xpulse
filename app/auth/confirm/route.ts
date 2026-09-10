@@ -18,6 +18,10 @@ import { createClient } from '@/lib/supabase/server'
 
 const ALLOWED_NEXT = new Set([
   '/nytt-passord',
+  // Bekreftelseslenken fra registreringen peker hit (auth.ts). Uten den i
+  // lista faller safeNext tilbake til /app/dagbok, og den nye brukeren
+  // hopper over abonnementsvalget.
+  '/onboarding/abonnement',
   '/app/dagbok',
   '/app/trener',
   '/app/innstillinger/bekreft-epost',

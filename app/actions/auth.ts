@@ -7,6 +7,8 @@ import { Role } from '@/lib/types'
 
 export type AuthState = {
   error?: string
+  /** Kontoen er opprettet, men e-posten må bekreftes før innlogging. */
+  bekreftEpost?: boolean
 }
 
 // Trygg return_to-validering: kun interne paths (starter med /), ikke
@@ -90,6 +92,15 @@ export async function register(prevState: AuthState, formData: FormData): Promis
   // Legacy role: matcher active_role for bakoverkomp.
   const legacyRole: Role = activeRole
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'
+
+  // ÉN kilde til profil-initialisering (regel 11): trigger-en
+  // public.handle_new_user leser NØYAKTIG disse feltene og skriver hele
+  // profilraden. Klienten skriver ikke profiles selv — med
+  // e-postbekreftelse på gir signUp() bruker UTEN sesjon, klienten er da
+  // fortsatt `anon`, og phase39b har med vilje fjernet INSERT/UPDATE fra
+  // anon. Den skrivingen feilet med «permission denied for table profiles»
+  // og blokkerte alle nye brukere (10. sep 2026).
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -97,33 +108,35 @@ export async function register(prevState: AuthState, formData: FormData): Promis
       data: {
         full_name: fullName,
         role: legacyRole,
-        primary_sport: primarySport,
+        primary_sport: primarySport || 'running',
+        has_athlete_role: hasAthlete,
+        has_coach_role: hasCoach,
+        active_role: activeRole,
       },
+      // Uten denne lander bekreftelseslenken på Supabase sin Site URL i
+      // stedet for i onboardingen. Samme mønster som passord-reset under.
+      emailRedirectTo: `${baseUrl}/auth/confirm?next=/onboarding/abonnement`,
     },
   })
 
   if (error) {
-    return { error: error.message }
-  }
-
-  if (data.user) {
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: data.user.id,
-      email,
-      full_name: fullName,
-      role: legacyRole,
-      has_athlete_role: hasAthlete,
-      has_coach_role: hasCoach,
-      active_role: activeRole,
-      primary_sport: primarySport || 'running',
-    })
-
-    if (profileError) {
-      return { error: profileError.message }
+    // Regel 22: brukeren skal aldri se en rå databasefeil — den sier noe
+    // annet enn det som er galt. Tekniske detaljer logges på serveren.
+    console.error('[register] signUp feilet:', error.status, error.message)
+    const teknisk = /database|permission denied|relation|constraint|duplicate key|violates|schema/i.test(error.message)
+    return {
+      error: teknisk
+        ? 'Vi klarte ikke å opprette kontoen akkurat nå. Prøv igjen om litt - er du fortsatt uheldig, si fra til oss.'
+        : error.message,
     }
   }
 
-  void activeRole // unused etter onboarding-tvang — beholder fetch så profil-init kjører
+  // Ingen sesjon = e-postbekreftelse er på. Kontoen ER opprettet; å sende
+  // brukeren inn i appen nå ville bare gitt en tur ut igjen via middleware.
+  if (!data.session) {
+    return { bekreftEpost: true }
+  }
+
   revalidatePath('/', 'layout')
   // Ny bruker skal alltid velge abonnement før de slipper inn i appen.
   // /onboarding/abonnement redirecter videre til /app/oversikt hvis brukeren

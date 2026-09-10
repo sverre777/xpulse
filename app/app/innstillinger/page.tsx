@@ -103,7 +103,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
               href="/app/innstillinger/profil/terskler"
               glyph="♥"
               title="Terskler, soner & helse"
-              description="Terskler per bevegelsesform, pulssoner og helseprofil — under Profil"
+              description="Terskler per bevegelsesform, pulssoner og helseprofil - under Profil"
               accent={accent}
             />
           )}

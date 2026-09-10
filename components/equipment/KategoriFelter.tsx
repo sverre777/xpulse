@@ -130,10 +130,10 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
             </Field>
           </div>
           <p className="text-xs" style={{ color: 'var(--tekst-5-app)' }}>
-            Ny slip legges senere <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> — historikken beholdes.
+            Ny slip legges senere <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> - historikken beholdes.
           </p>
           <p className="text-xs px-3 py-2" style={{ color: 'var(--tekst-1-app)', border: '1px solid rgba(40,168,110,0.4)', backgroundColor: 'rgba(40,168,110,0.07)', borderRadius: 8 }}>
-            ✓ Skia legges automatisk i skiparken når du lagrer — med type, bruk og slip som filtre der.
+            ✓ Skia legges automatisk i skiparken når du lagrer - med type, bruk og slip som filtre der.
           </p>
         </DetailSection>
       )}
@@ -172,7 +172,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
       )}
 
       {category === 'rulleski' && (
-        <DetailSection title="Rulleski-detaljer" aux="Egen kategori — rulleski har ikke slip">
+        <DetailSection title="Rulleski-detaljer" aux="Egen kategori - rulleski har ikke slip">
           <Field label="Type">
             <div className="flex flex-wrap gap-2">
               {RULLESKI_TYPES.map(t => (
@@ -186,7 +186,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
             <Field label="Hjultype">
               <select value={v.wheel_type} onChange={e => set({ wheel_type: e.target.value })}
                 className="w-full px-4 py-3" style={inputStyle}>
-                <option value="">—</option>
+                <option value="">-</option>
                 {RULLESKI_WHEEL_TYPES.map(w => <option key={w} value={w}>{w}</option>)}
               </select>
             </Field>
@@ -194,7 +194,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
               <Field label="Rullemotstand">
                 <select value={v.resistance} onChange={e => set({ resistance: e.target.value })}
                   className="w-full px-4 py-3" style={inputStyle}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {RULLESKI_RESISTANCES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </Field>
@@ -210,14 +210,14 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
               <Field label="Motstand foran">
                 <select value={v.resistance_front} onChange={e => set({ resistance_front: e.target.value })}
                   className="w-full px-4 py-3" style={inputStyle}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {RULLESKI_RESISTANCES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </Field>
               <Field label="Motstand bak">
                 <select value={v.resistance_rear} onChange={e => set({ resistance_rear: e.target.value })}
                   className="w-full px-4 py-3" style={inputStyle}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {RULLESKI_RESISTANCES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </Field>
@@ -286,7 +286,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
           <Field label="Type">
             <select value={v.subtype} onChange={e => set({ subtype: e.target.value })}
               className="w-full px-4 py-3" style={inputStyle}>
-              <option value="">—</option>
+              <option value="">-</option>
               {SYKKEL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </Field>
@@ -313,7 +313,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
             <Field label="Festesystem">
               <select value={v.cleat_system} onChange={e => set({ cleat_system: e.target.value })}
                 className="w-full px-4 py-3" style={inputStyle}>
-                <option value="">—</option>
+                <option value="">-</option>
                 {CLEAT_SYSTEMS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </Field>

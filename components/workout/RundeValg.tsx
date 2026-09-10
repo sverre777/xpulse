@@ -96,7 +96,7 @@ export function RundeValg({ workoutId, onEndret }: { workoutId: string; onEndret
       {valg.resynkVarsel && (
         <p style={{ flexBasis: '100%', margin: 0, fontSize: 12.5, color: '#E8B93C',
                     fontFamily: "'Barlow Condensed', sans-serif" }}>
-          ⚠ Klokka har levert runder på nytt. Backupen fra forrige gang står urørt —
+          ⚠ Klokka har levert runder på nytt. Backupen fra forrige gang står urørt -
           ingenting er overskrevet, og du velger selv hva som skal gjelde.
         </p>
       )}

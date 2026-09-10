@@ -112,21 +112,21 @@ export function SerieAnalyse({ serie, harSki, targetUserId, initialConfig, chart
     const x = kol.hel(r); if (x == null) return null
     const forrige = rader[rader.indexOf(r) - 1]; const fv = forrige ? kol.hel(forrige) : null
     const bv = beste >= 0 ? kol.hel(rader[bestIdx(rader, kol)]) : null
-    const d = (a: number | null) => a == null ? '—' : `${x - a > 0 ? '+' : ''}${kol.fmt(Math.abs(x - a)).replace(/^/, x - a < 0 ? '−' : '')}`
+    const d = (a: number | null) => a == null ? '-' : `${x - a > 0 ? '+' : ''}${kol.fmt(Math.abs(x - a)).replace(/^/, x - a < 0 ? '−' : '')}`
     void i
     return <span style={{ color: 'var(--tekst-8-app)', fontSize: 11, marginLeft: 4 }} title="mot forrige · mot beste">({d(fv)} · {d(bv)})</span>
   }
 
   return (
     <div className="space-y-4" data-serie-analyse={serie.id}>
-      <ChartWrapper chartKey={chartKey} title={`${serie.name} — over tid`} height="auto" config={config}
-        subtitle="Velg gjennomføringer og variabel — per drag (én linje per drag-indeks) eller hele økta. Beste markert. Lavere er bedre for tid, tempo, puls, laktat, opplevd og frakobling.">
+      <ChartWrapper chartKey={chartKey} title={`${serie.name} - over tid`} height="auto" config={config}
+        subtitle="Velg gjennomføringer og variabel - per drag (én linje per drag-indeks) eller hele økta. Beste markert. Lavere er bedre for tid, tempo, puls, laktat, opplevd og frakobling.">
         <div className="flex gap-4 flex-wrap items-center mb-2">
           <Gruppe navn="Gjennomføringer">
             <Chip farge="var(--accent)" etikett="Siste 5" paa={false} fokus={false} onClick={() => hurtig('siste5')} />
             <Chip farge="var(--accent)" etikett="Beste 5" paa={false} fokus={false} onClick={() => hurtig('beste')} />
             {rader.some(r => r.erKonkurranse) && <Chip farge="#E23A5A" etikett="Konkurranser" paa={false} fokus={false} onClick={() => hurtig('konk')} />}
-            <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>{valgte.length} valgt (maks 6) — kryss av i tabellen</span>
+            <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>{valgte.length} valgt (maks 6) - kryss av i tabellen</span>
           </Gruppe>
         </div>
         <div className="flex gap-4 flex-wrap items-center mb-2">
@@ -180,8 +180,8 @@ export function SerieAnalyse({ serie, harSki, targetUserId, initialConfig, chart
                     <tr key={r.workout_id} data-serie-rad={r.workout_id} style={{ background: erBeste ? 'rgba(232,185,60,.10)' : undefined }}>
                       <td style={td}><input type="checkbox" checked={valgte.includes(r.workout_id)} onChange={() => toggle(r.workout_id)} aria-label={`Vis ${fmtDato(r.date)} i grafene`} /></td>
                       <td style={td}>{erBeste ? '★ ' : ''}{fmtDato(r.date)}{r.erKonkurranse ? ' 🏁' : ''}<span style={{ color: 'var(--tekst-8-app)', marginLeft: 6 }}>{r.title}</span></td>
-                      {variabler.map(x => { const val = x.hel(r); return <td key={x.id} style={td}>{val == null ? '—' : x.fmt(val)}{val != null ? delta(r, i, x) : null}</td> })}
-                      <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{r.vaer ? [r.vaer.temperatur != null ? `${r.vaer.temperatur}°` : null, r.vaer.type ? (WEATHER_LABELS[r.vaer.type as keyof typeof WEATHER_LABELS] ?? r.vaer.type) : null, ...r.vaer.fore].filter(Boolean).join(' · ') || '—' : '—'}</td>
+                      {variabler.map(x => { const val = x.hel(r); return <td key={x.id} style={td}>{val == null ? '-' : x.fmt(val)}{val != null ? delta(r, i, x) : null}</td> })}
+                      <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{r.vaer ? [r.vaer.temperatur != null ? `${r.vaer.temperatur}°` : null, r.vaer.type ? (WEATHER_LABELS[r.vaer.type as keyof typeof WEATHER_LABELS] ?? r.vaer.type) : null, ...r.vaer.fore].filter(Boolean).join(' · ') || '-' : '-'}</td>
                     </tr>
                   )
                 })}
@@ -193,7 +193,7 @@ export function SerieAnalyse({ serie, harSki, targetUserId, initialConfig, chart
 
       {data && data.pakker.length >= 2 && (
         <SammenligningVisning okter={data.pakker} harSki={harSki} targetUserId={targetUserId} chartKey="standardokter_grafer"
-          tittel={`${serie.name} — gjennomføringene`} modus={modus} onModus={setModus} skjulTabeller initialConfig={{ metrikk: initialConfig?.metrikk ?? null }} />
+          tittel={`${serie.name} - gjennomføringene`} modus={modus} onModus={setModus} skjulTabeller initialConfig={{ metrikk: initialConfig?.metrikk ?? null }} />
       )}
     </div>
   )

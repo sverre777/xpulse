@@ -48,7 +48,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
     } catch {
-      setError('Kunne ikke kopiere automatisk — marker og kopier manuelt.')
+      setError('Kunne ikke kopiere automatisk - marker og kopier manuelt.')
     }
   }
 

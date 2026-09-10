@@ -568,7 +568,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
 
       <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        Eksisterende hviledager, perioden-notater og fokuspunkter på utøveren beholdes — bare nye legges til.
+        Eksisterende hviledager, perioden-notater og fokuspunkter på utøveren beholdes - bare nye legges til.
       </p>
 
       <div className="flex justify-end mt-2">
@@ -685,20 +685,20 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
           <p className="mb-1">Utøveren har allerede sesong som overlapper:</p>
           <ul className="list-disc pl-4">
             {overlapWarning.map(s => (
-              <li key={s.id}>{s.name} ({s.start_date}–{s.end_date})</li>
+              <li key={s.id}>{s.name} ({s.start_date}-{s.end_date})</li>
             ))}
           </ul>
           <label className="flex items-center gap-2 mt-2 cursor-pointer">
             <input type="checkbox" checked={allowOverlap}
               onChange={e => setAllowOverlap(e.target.checked)} />
-            <span>Behold begge — opprett ny sesong likevel</span>
+            <span>Behold begge - opprett ny sesong likevel</span>
           </label>
         </div>
       )}
 
       <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        Eksisterende sesonger og perioder beholdes — den nye legges ved siden av.
+        Eksisterende sesonger og perioder beholdes - den nye legges ved siden av.
       </p>
 
       <div className="flex justify-end mt-2">

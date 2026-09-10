@@ -8,7 +8,7 @@ import { ChartWrapper } from './ChartWrapper'
 // Data hentes av AnalysisPage og sendes inn (null = laster).
 
 function fmtPace(sec: number | null): string {
-  if (sec == null) return '—'
+  if (sec == null) return '-'
   const m = Math.floor(sec / 60), s = sec % 60
   return `${m}:${String(s).padStart(2, '0')}/km`
 }
@@ -38,7 +38,7 @@ export function AltitudeHeatTab({ data }: { data: AltitudeHeatAnalysis | null })
       <HoydePerioder data={data} />
 
       {/* Varmeøkter */}
-      <Section title="Varmetrening" hint="Kroppstemperatur + snittpuls per varmeøkt — følg akklimatisering over tid.">
+      <Section title="Varmetrening" hint="Kroppstemperatur + snittpuls per varmeøkt - følg akklimatisering over tid.">
         {data.heatWorkouts.length > 0 ? (
           <div className="overflow-x-auto xp-hscroll">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'Barlow Condensed', sans-serif", minWidth: 420 }}>
@@ -52,8 +52,8 @@ export function AltitudeHeatTab({ data }: { data: AltitudeHeatAnalysis | null })
                   <tr key={w.id} style={{ borderBottom: '1px solid var(--kant-1-app)' }}>
                     <Td left>{fmtDate(w.date)}</Td>
                     <Td left>{w.title}</Td>
-                    <Td>{w.body_temperature != null ? `${w.body_temperature}°C` : '—'}</Td>
-                    <Td>{w.avg_heart_rate != null ? `${w.avg_heart_rate} bpm` : '—'}</Td>
+                    <Td>{w.body_temperature != null ? `${w.body_temperature}°C` : '-'}</Td>
+                    <Td>{w.avg_heart_rate != null ? `${w.avg_heart_rate} bpm` : '-'}</Td>
                   </tr>
                 ))}
               </tbody>
@@ -98,7 +98,7 @@ function Block({ label, hr, pace }: { label: string; hr: number | null; pace: nu
     <div style={{ background: 'var(--card)', border: '1px solid var(--kant-3)', padding: '8px 10px' }}>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{label}</p>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14, margin: 0 }}>
-        {hr != null ? `${hr} bpm` : '—'} · {fmtPace(pace)}
+        {hr != null ? `${hr} bpm` : '-'} · {fmtPace(pace)}
       </p>
     </div>
   )

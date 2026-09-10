@@ -148,7 +148,7 @@ export async function POST(req: Request) {
       : await slettStrideeConnection(funn.connection_id)
   if (!hosDem.ok) {
     return NextResponse.json({
-      error: `Frakoblingen hos leverandøren feilet — ingenting er slettet hos oss. Prøv igjen. (${hosDem.feil})`,
+      error: `Frakoblingen hos leverandøren feilet - ingenting er slettet hos oss. Prøv igjen. (${hosDem.feil})`,
     }, { status: 502 })
   }
 
@@ -156,13 +156,13 @@ export async function POST(req: Request) {
   const kontroll = await hentStrideeConnections(lenke.external_user_id)
   if (kontroll.feil) {
     return NextResponse.json({
-      error: `Kunne ikke verifisere frakoblingen (${kontroll.feil}) — ingenting er slettet hos oss. Prøv igjen.`,
+      error: `Kunne ikke verifisere frakoblingen (${kontroll.feil}) - ingenting er slettet hos oss. Prøv igjen.`,
     }, { status: 502 })
   }
   const fortsattDer = (kontroll.data ?? []).some(c => c.id === funn.connection_id)
   if (fortsattDer) {
     return NextResponse.json({
-      error: 'Leverandøren viser tilkoblingen som aktiv fortsatt — ingenting er slettet hos oss. Prøv igjen om litt.',
+      error: 'Leverandøren viser tilkoblingen som aktiv fortsatt - ingenting er slettet hos oss. Prøv igjen om litt.',
     }, { status: 502 })
   }
 
@@ -214,7 +214,7 @@ export async function POST(req: Request) {
 
   revalidatePath('/app/innstillinger/klokkesync')
   console.log(
-    `[stridee-disconnect] ${funn.provider} (${flereIgjen ? 'connection' : 'siste — konto slettet'}) ` +
+    `[stridee-disconnect] ${funn.provider} (${flereIgjen ? 'connection' : 'siste - konto slettet'}) ` +
     `purge: ${purge.cleared} verdier, ${purge.deletedRows} tomme rader, ${merkeSlettet ?? 0} merke-rader, ` +
     `${purge.keptManual} manuelle beholdt`,
   )

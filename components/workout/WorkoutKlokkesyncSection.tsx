@@ -48,7 +48,7 @@ function KlokkedataLaster() {
     <div className="my-4 space-y-3">
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        Klokkesync — sekund-for-sekund og per-lap
+        Klokkesync - sekund-for-sekund og per-lap
       </p>
       <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
         <div className="flex items-center gap-2.5 mb-3">
@@ -151,11 +151,11 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
     <div className="my-4 space-y-3">
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        Klokkesync — sekund-for-sekund og per-lap
+        Klokkesync - sekund-for-sekund og per-lap
       </p>
 
-      {/* Aerob frakobling (bolk 3) — kun jevne økter > 40 min. Farge
-          etter utkastets terskler: < 5 % god, 5–10 middels, > 10 svak. */}
+      {/* Aerob frakobling (bolk 3) - kun jevne økter > 40 min. Farge
+          etter utkastets terskler: < 5 % god, 5-10 middels, > 10 svak. */}
       {data.frakobling && (
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--tekst-5-app)' }}>
           Aerob frakobling{' '}
@@ -166,12 +166,12 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
             {data.frakobling.driftPct.toFixed(1).replace('.', ',')} %
           </b>
           <span style={{ color: 'var(--tekst-8-alt)' }}>
-            {' '}— {data.frakobling.kilde === 'watt' ? 'Pw:Hr' : 'Pa:Hr'}, under 5 % betyr at pulsen holder følge hele veien
+            {' '}- {data.frakobling.kilde === 'watt' ? 'Pw:Hr' : 'Pa:Hr'}, under 5 % betyr at pulsen holder følge hele veien
           </span>
         </p>
       )}
 
-      {/* NP/IF (prestasjonsmodellen bolk 2) — kun der watt finnes.
+      {/* NP/IF (prestasjonsmodellen bolk 2) - kun der watt finnes.
           Uten FTP: ærlig tomtilstand med lenke til terskelen
           (regel 20), aldri et tall som ser komplett ut. */}
       {data.wattMetrikker && (
@@ -180,11 +180,11 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           {data.wattMetrikker.iff != null ? (
             <>
               {' · '}IF <b style={{ color: 'var(--tekst-1-app)' }}>{data.wattMetrikker.iff.toFixed(2).replace('.', ',')}</b>
-              <span style={{ color: 'var(--tekst-8-alt)' }}> — {data.wattMetrikker.merkelapp}</span>
+              <span style={{ color: 'var(--tekst-8-alt)' }}> - {data.wattMetrikker.merkelapp}</span>
             </>
           ) : (
             <>
-              {' · '}IF krever FTP —{' '}
+              {' · '}IF krever FTP -{' '}
               <Link href="/app/innstillinger/profil/terskler"
                 style={{ color: '#FF4500', textDecoration: 'none' }}>
                 sett terskel først →
@@ -245,14 +245,14 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           </button>
           {showDeep && (
             <>
-            {/* Bolk 25: ALLTID klokkas originale runder + GAP — lesevisning. */}
+            {/* Bolk 25: ALLTID klokkas originale runder + GAP - lesevisning. */}
             {hasLaps && <OriginaleRunder laps={data.laps} sport={data.sport} samples={data.samples} kilde={data.lapKilde} />}
             <WorkoutDeepAnalysis
               samples={data.samples}
               sport={data.sport}
               heartZones={data.heartZones}
             />
-            {/* Powered by Strava også på dypere analyse (brand-krav) —
+            {/* Powered by Strava også på dypere analyse (brand-krav) -
                 samples-dataene er Strava-leverte (og slettes etter 7 dager). */}
             {importedFrom === 'strava' && (
               <div className="mt-2 flex justify-end">

@@ -26,7 +26,7 @@ const PALETTE = [
 ]
 
 function formatDuration(sec: number): string {
-  if (sec <= 0) return '—'
+  if (sec <= 0) return '-'
   const mins = Math.round(sec / 60)
   const h = Math.floor(mins / 60)
   const m = mins % 60
@@ -35,7 +35,7 @@ function formatDuration(sec: number): string {
   return `${m}min`
 }
 function formatKm(m: number): string {
-  if (m <= 0) return '—'
+  if (m <= 0) return '-'
   return `${(Math.round((m / 1000) * 10) / 10).toLocaleString('nb-NO')} km`
 }
 function labelSport(s: Sport): string { return SPORTS.find(x => x.value === s)?.label ?? s }
@@ -379,7 +379,7 @@ export function CompareWorkoutsTab({
         </div>
       </div>
 
-      {/* Workout list — egen scroll-container slik at lista scroller uten
+      {/* Workout list - egen scroll-container slik at lista scroller uten
           å dra hele siden når den blir lang. Filters + selected-summary
           over står naturlig fast øverst på siden. */}
       {!data.hasData || (filtered.length === 0 && filteredDayStates.length === 0) ? (
@@ -395,7 +395,7 @@ export function CompareWorkoutsTab({
         >
           <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            {selectableWorkouts.length} gjennomførte · {filtered.length - selectableWorkouts.length} planlagte (én kan være referanse) · {filteredDayStates.length} dag-tilstander · 2–4 økter
+            {selectableWorkouts.length} gjennomførte · {filtered.length - selectableWorkouts.length} planlagte (én kan være referanse) · {filteredDayStates.length} dag-tilstander · 2-4 økter
           </p>
           <div className="space-y-2">
             {filtered.map(w => (
@@ -589,7 +589,7 @@ function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
                 {new Date(w.date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}
               </div>
               <div style={{ color: s ? 'var(--tekst-3-app)' : 'var(--graa-44)', fontSize: 13, lineHeight: 1.4 }}>
-                {s ?? '— ikke registrert'}
+                {s ?? '- ikke registrert'}
               </div>
               {w.weather?.notes && (
                 <div style={{ color: 'var(--graa-77)', fontSize: 12, marginTop: 2, fontStyle: 'italic' }}>{w.weather.notes}</div>
@@ -605,7 +605,7 @@ function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
 // Utvikling over tid for én standard-økt (samme mal/rute/test), MED vær/føre ved
 // siden av hvert resultat — så bruker kan vurdere form vs forhold (#4).
 function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
-  const fmtPace = (sec: number | null) => sec == null ? '—' : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
+  const fmtPace = (sec: number | null) => sec == null ? '-' : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
   const th: React.CSSProperties = { padding: '8px 10px', color: 'rgb(var(--tekst-land-rgb) / 0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
   const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }
   // Kø #49 bolk 6: skytedel (kolonne vises kun når mal-øktene har skyting).
@@ -616,7 +616,7 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
         Utvikling over tid
       </h3>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, margin: '0 0 10px' }}>
-        {rows.length} {rows.length === 1 ? 'gjennomføring' : 'gjennomføringer'} — vurder form vs forhold (vær/føre).
+        {rows.length} {rows.length === 1 ? 'gjennomføring' : 'gjennomføringer'} - vurder form vs forhold (vær/føre).
       </p>
       <div className="overflow-x-auto xp-hscroll">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
@@ -636,9 +636,9 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
                 <td style={{ ...td, textAlign: 'left', color: 'var(--tekst-1-app)' }}>
                   {new Date(r.date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </td>
-                <td style={{ ...td, textAlign: 'center' }}>{r.avg_heart_rate != null ? `${r.avg_heart_rate} bpm` : '—'}</td>
+                <td style={{ ...td, textAlign: 'center' }}>{r.avg_heart_rate != null ? `${r.avg_heart_rate} bpm` : '-'}</td>
                 <td style={{ ...td, textAlign: 'center' }}>{fmtPace(r.pace_seconds_per_km)}</td>
-                <td style={{ ...td, textAlign: 'center' }}>{r.rpe != null ? r.rpe : '—'}</td>
+                <td style={{ ...td, textAlign: 'center' }}>{r.rpe != null ? r.rpe : '-'}</td>
                 {hasShooting && (
                   <td style={{ ...td, textAlign: 'center', whiteSpace: 'nowrap' }}>
                     {r.shooting ? (
@@ -651,11 +651,11 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
                         {r.shooting.wind ? ` · ⚑${r.shooting.wind}` : ''}
                         {r.shooting.sikt ? ` · ${r.shooting.sikt}` : ''}
                       </>
-                    ) : '—'}
+                    ) : '-'}
                   </td>
                 )}
                 <td style={{ ...td, textAlign: 'left', color: rawWeatherSummary(r.weather) ? 'var(--tekst-3-app)' : 'var(--graa-44)' }}>
-                  {rawWeatherSummary(r.weather) ?? '— ikke registrert'}
+                  {rawWeatherSummary(r.weather) ?? '- ikke registrert'}
                 </td>
               </tr>
             ))}
@@ -697,7 +697,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
             <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={48} reversed tickFormatter={fmt} />
             <Tooltip content={<XpTooltip />}
-              formatter={(v) => [typeof v === 'number' ? fmt(v) : '—', 'Tid']}
+              formatter={(v) => [typeof v === 'number' ? fmt(v) : '-', 'Tid']}
               labelFormatter={(v) => `Km ${v}`} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {series.map(s => (

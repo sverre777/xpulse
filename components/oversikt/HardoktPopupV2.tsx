@@ -72,7 +72,7 @@ function Blinker({ s }: { s: OversiktSkyteserie }) {
 }
 
 function Vind({ s }: { s: OversiktSkyteserie }) {
-  if (s.vind_styrke == null && !s.vind_retning) return <span style={{ color: 'var(--tekst-8-alt)' }}>—</span>
+  if (s.vind_styrke == null && !s.vind_retning) return <span style={{ color: 'var(--tekst-8-alt)' }}>-</span>
   const styrke = s.vind_styrke ?? 0
   if (styrke === 0) return <span style={tekst}>stille</span>
   return (
@@ -92,12 +92,12 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
   const soneSek = sone ? (w.zones[sone as keyof typeof w.zones] ?? 0) : 0
   const tss = Math.round(beregnSoneTss(w.zones))
   const celler: NokkeltallCelle[] = [
-    { id: 'varighet', etikett: 'Varighet', verdi: w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '—' },
-    { id: 'km', etikett: 'Distanse', verdi: w.distance_km != null && w.distance_km > 0 ? w.distance_km.toFixed(1).replace('.', ',') : '—', hale: w.distance_km ? 'km' : undefined },
-    { id: 'puls', etikett: 'Snittpuls', verdi: w.avg_heart_rate != null ? String(w.avg_heart_rate) : '—' },
-    { id: 'maks', etikett: 'Makspuls', verdi: w.max_heart_rate != null ? String(w.max_heart_rate) : '—' },
-    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
-    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '—', hale: 'TSS' },
+    { id: 'varighet', etikett: 'Varighet', verdi: w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '-' },
+    { id: 'km', etikett: 'Distanse', verdi: w.distance_km != null && w.distance_km > 0 ? w.distance_km.toFixed(1).replace('.', ',') : '-', hale: w.distance_km ? 'km' : undefined },
+    { id: 'puls', etikett: 'Snittpuls', verdi: w.avg_heart_rate != null ? String(w.avg_heart_rate) : '-' },
+    { id: 'maks', etikett: 'Makspuls', verdi: w.max_heart_rate != null ? String(w.max_heart_rate) : '-' },
+    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '-', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
+    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '-', hale: 'TSS' },
   ]
   const blokker = useMemo(() => fraRaaRader(w.activities.filter(a => harSki || !a.activity_type.startsWith('skyting')).map((a, i) => ({
     id: a.id ?? `${w.id}-${i}`, activity_type: a.activity_type, movement_name: a.movement_name, movement_subcategory: a.movement_subcategory ?? null,
@@ -176,10 +176,10 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
                         <span style={{ width: 8, height: 8, borderRadius: 999, background: lapFarge(l.lap_type), display: 'inline-block' }} />
                         <span style={tall}>{skyting && harSki ? '🎯' : ''} {l.index}</span>
                         <span style={tall}>{fmtKlokke(l.duration_seconds)}{skyting && harSki && skudd > 0 ? <span style={{ ...tekst, marginLeft: 6 }}>{treff}/{skudd}</span> : null}</span>
-                        <span style={tall}>{l.distance_meters ? (l.distance_meters / 1000).toFixed(2).replace('.', ',') : '—'}</span>
-                        <span style={tall}>{l.avg_speed_ms && l.avg_speed_ms > 0 ? formatMinPerKm(1000 / l.avg_speed_ms) : '—'}</span>
-                        <span style={tall}>{l.avg_heart_rate ?? '—'}</span>
-                        <span style={tall}>{l.max_hr ?? '—'}</span>
+                        <span style={tall}>{l.distance_meters ? (l.distance_meters / 1000).toFixed(2).replace('.', ',') : '-'}</span>
+                        <span style={tall}>{l.avg_speed_ms && l.avg_speed_ms > 0 ? formatMinPerKm(1000 / l.avg_speed_ms) : '-'}</span>
+                        <span style={tall}>{l.avg_heart_rate ?? '-'}</span>
+                        <span style={tall}>{l.max_hr ?? '-'}</span>
                       </div>
                     )
                   })}
@@ -193,7 +193,7 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
                 <div className="flex gap-4 flex-wrap" data-popup-skyting>
                   <span style={tekst}><b style={{ color: COLOR_PRONE }}>Ligg</b> {w.shots?.prone.hits ?? 0}/{w.shots?.prone.recorded_shots ?? w.shots?.prone.shots ?? 0}</span>
                   <span style={tekst}><b style={{ color: COLOR_STANDING }}>Stå</b> {w.shots?.standing.hits ?? 0}/{w.shots?.standing.recorded_shots ?? w.shots?.standing.shots ?? 0}</span>
-                  <span style={tekst}>Skytetid snitt <b style={{ color: 'var(--tekst-1-app)' }}>{snittSkytetid != null ? `${snittSkytetid} s` : '—'}</b></span>
+                  <span style={tekst}>Skytetid snitt <b style={{ color: 'var(--tekst-1-app)' }}>{snittSkytetid != null ? `${snittSkytetid} s` : '-'}</b></span>
                 </div>
               </PopupSeksjon>
             )}
@@ -219,7 +219,7 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
                     background: w.rpe === n ? 'var(--accent)' : 'var(--flate-12-alt)', color: w.rpe === n ? 'var(--tekst-1-ren)' : 'var(--tekst-8-alt)',
                   }}>{n}</span>
                 ))}
-                <span style={{ ...tekst, marginLeft: 6 }}>{w.rpe != null ? `${w.rpe}/10` : '— ikke ført'}</span>
+                <span style={{ ...tekst, marginLeft: 6 }}>{w.rpe != null ? `${w.rpe}/10` : '- ikke ført'}</span>
               </div>
               {w.notes && <p style={{ ...tekst, whiteSpace: 'pre-wrap', marginTop: 8 }}>{w.notes}</p>}
             </PopupSeksjon>
@@ -229,7 +229,7 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
                   {w.activities.map((a, i) => (
                     <div key={a.id ?? i} className="flex items-center justify-between gap-3" style={{ ...tekst, padding: '4px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
                       <span style={{ color: 'var(--tekst-1-app)' }}>{a.movement_name || a.lap_notes || a.activity_type || 'Aktivitet'}</span>
-                      <span>{a.duration_seconds ? fmtHM(a.duration_seconds) : '—'}{a.distance_meters ? ` · ${(a.distance_meters / 1000).toFixed(1).replace('.', ',')} km` : ''}</span>
+                      <span>{a.duration_seconds ? fmtHM(a.duration_seconds) : '-'}{a.distance_meters ? ` · ${(a.distance_meters / 1000).toFixed(1).replace('.', ',')} km` : ''}</span>
                     </div>
                   ))}
                 </div>
@@ -252,11 +252,11 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
                     {s.startSek != null && <span style={tekst}>{fmtKlokke(s.startSek)}</span>}
                   </span>
                   <Blinker s={s} />
-                  <span style={tall}>{s.hits != null ? `${s.hits}/${s.shots ?? 5}` : '—'}</span>
-                  <span style={tall}>{s.time_seconds != null ? `${s.time_seconds} s` : '—'}</span>
-                  <span style={tall} className="xp-serie-skjul">{s.avg_heart_rate ?? '—'}{s.max_heart_rate != null ? ` / ${s.max_heart_rate}` : ''}</span>
+                  <span style={tall}>{s.hits != null ? `${s.hits}/${s.shots ?? 5}` : '-'}</span>
+                  <span style={tall}>{s.time_seconds != null ? `${s.time_seconds} s` : '-'}</span>
+                  <span style={tall} className="xp-serie-skjul">{s.avg_heart_rate ?? '-'}{s.max_heart_rate != null ? ` / ${s.max_heart_rate}` : ''}</span>
                   <Vind s={s} />
-                  <span style={tekst} className="xp-serie-skjul">{[s.sikt ? SIKT[s.sikt] ?? s.sikt : null, s.note].filter(Boolean).join(' · ') || '—'}</span>
+                  <span style={tekst} className="xp-serie-skjul">{[s.sikt ? SIKT[s.sikt] ?? s.sikt : null, s.note].filter(Boolean).join(' · ') || '-'}</span>
                 </div>
               ))}
             </div>

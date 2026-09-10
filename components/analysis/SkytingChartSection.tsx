@@ -116,7 +116,7 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
 
       <div className="flex flex-col gap-4">
         {/* Én periodevelger for BEGGE radene. Den fysiske «Custom graf» over
-            har sin egen — de to er ulike spørsmål, og å tvinge dem sammen
+            har sin egen - de to er ulike spørsmål, og å tvinge dem sammen
             ville låst den som vil se fysisk år mot skyting uke. */}
         <ChipSelector
           label="Periode"
@@ -125,7 +125,7 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
           options={PERIODE_VALG}
         />
 
-        {/* Kortene står også i en tom periode — da med «—» og 0, som er et
+        {/* Kortene står også i en tom periode - da med «-» og 0, som er et
             ærlig svar. De forsvinner ikke. */}
         <SkytingSummaryCards data={data} />
 

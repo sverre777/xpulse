@@ -80,13 +80,13 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
           <span style={{ color: 'var(--tekst-8-app)', fontSize: 12 }}>åpne →</span>
         </div>
         <div className="grid grid-cols-2" style={{ gap: 1, background: 'var(--line)' }}>
-          <MiniFlis navn="HVILEPULS" verdi={siste('resting_hr') != null ? String(siste('resting_hr')) : '–'}
+          <MiniFlis navn="HVILEPULS" verdi={siste('resting_hr') != null ? String(siste('resting_hr')) : '-'}
             under={snitt('resting_hr') != null ? `snitt ${snitt('resting_hr')}` : 'for lite data'} />
-          <MiniFlis navn="HRV" verdi={siste('hrv_ms') != null ? String(Math.round(siste('hrv_ms') as number)) : '–'}
+          <MiniFlis navn="HRV" verdi={siste('hrv_ms') != null ? String(Math.round(siste('hrv_ms') as number)) : '-'}
             under={snitt('hrv_ms') != null ? `snitt ${snitt('hrv_ms')}` : 'for lite data'} />
-          <MiniFlis navn="SØVN" verdi={siste('total_sleep_minutes') != null ? formatTimer(siste('total_sleep_minutes') as number) : '–'}
+          <MiniFlis navn="SØVN" verdi={siste('total_sleep_minutes') != null ? formatTimer(siste('total_sleep_minutes') as number) : '-'}
             under={siste('sleep_score') != null ? `score ${siste('sleep_score')}` : 'for lite data'} />
-          <MiniFlis navn="FØLELSE" verdi={folelse != null ? `${folelse}` : '–'} liten={folelse != null ? '/5' : undefined}
+          <MiniFlis navn="FØLELSE" verdi={folelse != null ? `${folelse}` : '-'} liten={folelse != null ? '/5' : undefined}
             under={folelse != null ? 'ført' : '+ før i dag'} />
         </div>
         {natt && (
@@ -115,7 +115,7 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
                 ×
               </button>
             </div>
-            {/* forhandsdata = flisenes 30-dagers henting — ingen dobbelthenting */}
+            {/* forhandsdata = flisenes 30-dagers henting - ingen dobbelthenting */}
             <HelseOversikt targetUserId={targetUserId} kompaktHeader
               forhandsdata={data} sluttDato={sluttDato} foringsDato={sluttDato} />
           </div>

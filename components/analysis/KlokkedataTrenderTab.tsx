@@ -67,7 +67,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
   return (
     <div className="space-y-5">
       {/* Strava-attribution når grunnlaget inneholder Strava-importerte
-          økter (brand-krav — samme badge som øktflatene). */}
+          økter (brand-krav - samme badge som øktflatene). */}
       {data.hasStrava && (
         <div className="flex justify-end">
           <ImportSourceBadge source="strava" />
@@ -77,7 +77,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
 
       {data.zonesPerWeek.length > 0 && (
         <ChartWrapper title="Tid i sone per uke"
-          subtitle="Stacked timer per intensitetssone — viser 80/20-polarisering"
+          subtitle="Stacked timer per intensitetssone - viser 80/20-polarisering"
           chartKey="klokke_zones_per_week">
           <ZonesPerWeekChart points={data.zonesPerWeek} />
         </ChartWrapper>
@@ -97,10 +97,10 @@ export function KlokkedataTrenderTab({ data }: Props) {
       )}
 
       {/* Bolk 7: rå klokkedata. Utviklingen over tid bor i Prestasjon (GAP, EF,
-          frakobling, kurver per økt) og NP/IF + tid i watt-sone i Terskel —
+          frakobling, kurver per økt) og NP/IF + tid i watt-sone i Terskel -
           lenket herfra, ikke duplisert. */}
       {data.paceCurve.length > 0 && (
-        <ChartWrapper title="Pace-kurve" subtitle="Beste snitt-tempo over perioden (løping/ski) — søsteren til power curve" chartKey="klokke_pace_curve">
+        <ChartWrapper title="Pace-kurve" subtitle="Beste snitt-tempo over perioden (løping/ski) - søsteren til power curve" chartKey="klokke_pace_curve">
           <PaceCurveChart points={data.paceCurve} />
         </ChartWrapper>
       )}
@@ -190,7 +190,7 @@ function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
       <p className="mb-2 text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Snitt 80/20-polarisering (I1+I2 av total): <span style={{ color: avgPolarized >= 75 ? '#28A86E' : '#FFB300', fontWeight: 600 }}>{avgPolarized}%</span>
-        {avgPolarized >= 75 ? ' — innenfor 80/20-prinsippet' : ' — for mye høyintensitet'}
+        {avgPolarized >= 75 ? ' - innenfor 80/20-prinsippet' : ' - for mye høyintensitet'}
       </p>
       <ResponsiveContainer width="100%" height={260} minWidth={0}>
         <BarChart data={vistePunkter}>
@@ -273,7 +273,7 @@ export function FartVedPulsChart({ points, initialConfig }: { points: FartVedPul
   const toggle = (m: number) => setValgte(v => v.includes(m) ? (v.length > 1 ? v.filter(x => x !== m) : v) : (v.length >= 3 ? [...v.slice(1), m] : [...v, m]))
   const rader = points.map(p => { const r: Record<string, string | number | null> = { date: p.date, title: p.title }; for (const m of valgte) r[String(m)] = p.kmt[String(m)] ?? null; return r })
   return (
-    <ChartWrapper title="Fart ved gitt puls" subtitle="km/t der pulsen lå innenfor ±3 slag av målet (etter 2 min, minst 60 samples) — inntil tre pulsmål" chartKey="klokke_fart_ved_puls" height="auto" config={{ puls: valgte }}>
+    <ChartWrapper title="Fart ved gitt puls" subtitle="km/t der pulsen lå innenfor ±3 slag av målet (etter 2 min, minst 60 samples) - inntil tre pulsmål" chartKey="klokke_fart_ved_puls" height="auto" config={{ puls: valgte }}>
       <div className="mb-2"><Gruppe navn="Puls">{PULS_MAAL.map(m => <Chip key={m} farge={PULS_FARGER[String(m)]} etikett={`${m}`} paa={valgte.includes(m)} fokus={false} onClick={() => toggle(m)} />)}</Gruppe></div>
       <div style={{ height: 260 }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -344,7 +344,7 @@ export function renderFavoritt(key: string, data: KlokkedataTrender, ctx?: { con
       <ChartWrapper title="Høydemeter per uke" subtitle="Sum av høydemeter ført på radene (m)" chartKey="klokke_hoydemeter_per_uke"><HoydemeterChart points={data.hoydemeterPerUke} /></ChartWrapper>) : null
     case 'klokkedata_dekning': return <Summary data={data} />
     case 'klokke_zones_per_week': return data.zonesPerWeek.length > 0 ? (
-      <ChartWrapper title="Tid i sone per uke" subtitle="Stacked timer per intensitetssone — viser 80/20-polarisering" chartKey="klokke_zones_per_week">
+      <ChartWrapper title="Tid i sone per uke" subtitle="Stacked timer per intensitetssone - viser 80/20-polarisering" chartKey="klokke_zones_per_week">
         <ZonesPerWeekChart points={data.zonesPerWeek} />
       </ChartWrapper>) : null
     case 'klokke_power_curve': return data.powerCurve.length > 0 ? (

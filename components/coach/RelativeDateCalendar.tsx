@@ -116,13 +116,13 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
     const firstDay = row[0]
     const lastDay = row[row.length - 1]
     return startDate && firstDay !== undefined && lastDay !== undefined
-      ? `Uke ${wi + 1} · ${formatNorskKortDato(addDays(startDate, firstDay))}–${formatNorskKortDato(addDays(startDate, lastDay))}`
+      ? `Uke ${wi + 1} · ${formatNorskKortDato(addDays(startDate, firstDay))}-${formatNorskKortDato(addDays(startDate, lastDay))}`
       : `Uke ${wi + 1}`
   }
 
   return (
     <div>
-      {/* Toggle — kun desktop; mobil er alltid liste. */}
+      {/* Toggle - kun desktop; mobil er alltid liste. */}
       <div className="hidden md:flex justify-end mb-2">
         <div className="xp-seg-pill" role="group" aria-label="Mal-kalender-layout">
           <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
@@ -244,7 +244,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                     )}
                   </div>
                   {empty ? (
-                    <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
+                    <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>-</span>
                   ) : (
                     <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
                       {stateLabel(state) && (

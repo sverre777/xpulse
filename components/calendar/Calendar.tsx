@@ -425,13 +425,13 @@ function WeekAnalysisStripe({
       >
         Uke {weekNumber}
       </span>
-      {/* Kø #47 bolk 5: 🎯 skudd-chip (aldri borte på mobil — baren
-          bryter til egen linje) — kun uker m/ skyting. */}
+      {/* Kø #47 bolk 5: 🎯 skudd-chip (aldri borte på mobil - baren
+          bryter til egen linje) - kun uker m/ skyting. */}
       {shotStats && (
         <ShotWeekChip stats={shotStats}
           plannedShots={plannedShotsTotal && plannedShotsTotal > 0 ? plannedShotsTotal : null} />
       )}
-      {/* Samling/høyde-badges fra markeringslaget — emoji + sted/moh. */}
+      {/* Samling/høyde-badges fra markeringslaget - emoji + sted/moh. */}
       {markings?.map(m => (
         <span key={m.id} className="text-xs" title={`${m.name} (${m.start_date} → ${m.end_date})`}
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: m.is_training_camp ? '#D4A017' : '#5B8DEF' }}>
@@ -673,7 +673,7 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
         padding: '2px 5px',
       }}>
         {/* Tittel-blokk: maks 3 linjer, ord brekkes KUN som siste utvei
-            (aldri 'anywhere' — den brakk ord midt i på smale mobilceller).
+            (aldri 'anywhere' - den brakk ord midt i på smale mobilceller).
             Varighet/bev.form ligger alltid i meta-linjen under. */}
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-2)',
@@ -718,7 +718,7 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
               <span style={{ color, marginRight: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
             )}
             {durationLabel ? <span style={{ color: '#FF4500', marginRight: '4px' }}>{durationLabel}</span> : null}
-            {/* Underkategori + bev.form — på mobil kun én av de to (plassen). */}
+            {/* Underkategori + bev.form - på mobil kun én av de to (plassen). */}
             {(w.primary_subcategory || w.primary_movement) ? (
               <span style={{ color: 'var(--tekst-4-kal)', marginRight: '4px' }}>
                 {w.primary_subcategory && w.primary_movement && w.primary_subcategory !== w.primary_movement ? (
@@ -738,7 +738,7 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
           </span>
         )}
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
-        {/* Klokke-grafen i miniatyr (bolk 2) — ellers plan-grafen (bolk 5). */}
+        {/* Klokke-grafen i miniatyr (bolk 2) - ellers plan-grafen (bolk 5). */}
         <ChipKurve w={w} />
       </div>
     </button>
@@ -798,7 +798,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
       <span className="flex items-center gap-2 w-full" style={{ minWidth: 0 }}>
       {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
       {/* Strava-synk = offisiell Strava-logo (attribution), fit = klokke-badge
-          — aldri rød trekant. */}
+          - aldri rød trekant. */}
       {(w.imported_from ?? w.merged_source) && (
         <span style={{ flexShrink: 0, display: 'inline-flex' }}>
           <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
@@ -931,7 +931,7 @@ function CalendarAnalysisPanel({
           <div className="grid grid-cols-3 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,var(--flate-12),var(--flate-7-alt))', borderColor: 'var(--line)' }}>
             <div style={{ padding: '12px 16px' }}>
               <span className="xp-k">Total tid</span>
-              <div className="xp-v" style={{ fontSize: 28 }}>{agg.seconds > 0 ? fmtT(agg.seconds) : '—'}</div>
+              <div className="xp-v" style={{ fontSize: 28 }}>{agg.seconds > 0 ? fmtT(agg.seconds) : '-'}</div>
               {delta != null && (
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 600, color: delta >= 0 ? 'var(--green)' : '#E23A5A' }}>
                   {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}% vs. forrige
@@ -940,7 +940,7 @@ function CalendarAnalysisPanel({
             </div>
             <div style={{ padding: '12px 16px' }}>
               <span className="xp-k">Km</span>
-              <div className="xp-v" style={{ fontSize: 28 }}>{km > 0 ? km.toLocaleString('nb-NO') : '—'}</div>
+              <div className="xp-v" style={{ fontSize: 28 }}>{km > 0 ? km.toLocaleString('nb-NO') : '-'}</div>
             </div>
             <div style={{ padding: '12px 16px' }}>
               <span className="xp-k">Økter</span>
@@ -959,7 +959,7 @@ function CalendarAnalysisPanel({
               <div className="mt-1">
                 <AggZoneBar zoneSeconds={agg.zoneSeconds} height={8} otherSeconds={agg.seconds - zoneTotal} />
               </div>
-              {/* Tid per sone under linjen — samme aggregat som baren. */}
+              {/* Tid per sone under linjen - samme aggregat som baren. */}
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                 {ALL_ZONE_NAMES.map(k => {
                   const secs = agg.zoneSeconds[k] ?? 0
@@ -1198,7 +1198,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       }}
       title={keyDatesOnDay.map(k => `${KEY_EVENT_VISUALS[k.event_type].icon} ${k.name}`).join('\n') || undefined}
     >
-      {/* Periode-kantstreker — absolutt mot cellens rot (dagen der en
+      {/* Periode-kantstreker - absolutt mot cellens rot (dagen der en
           periode starter/slutter); title gir navn + datospenn på hover. */}
       {periodEdges?.map((edge, ei) => (
         <span key={ei} title={edge.title} style={{
@@ -1219,7 +1219,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           {date.getDate()}
         </span>
         <div className="flex items-center gap-1">
-          {/* 📍/🏔 vises maks én gang hver — samling/høyde per dag i spennet. */}
+          {/* 📍/🏔 vises maks én gang hver - samling/høyde per dag i spennet. */}
           {markingsOnDay.some(m => m.is_training_camp) && (
             <span aria-hidden style={{ fontSize: '11px', lineHeight: 1, opacity: 0.85 }}
               title={markingsOnDay.filter(m => m.is_training_camp).map(m => `📍 ${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')}>
@@ -1262,7 +1262,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         </div>
       )}
 
-      {/* Workouts (mode-filtered) — vokser cellen naturlig. Hele uke-raden
+      {/* Workouts (mode-filtered) - vokser cellen naturlig. Hele uke-raden
           har en felles scroll-wrapper i MonthView som tar over når én eller
           flere dager har mange økter (alle 7 cellene strekkes likt via grid
           stretch, raden scrolles internt som én enhet). */}
@@ -1473,7 +1473,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
 
 
-      {/* Del D: mål-linje fra årsplanens månedsvolum — KUN i Plan. Diff mot
+      {/* Del D: mål-linje fra årsplanens månedsvolum - KUN i Plan. Diff mot
           PLANLAGT (dempet oransje ved manko, aldri rød); klikk → årsplanens
           volum-seksjon. Dagbok viser ikke årsplan-timene (får 15/18 i wsum). */}
       {mode === 'plan' && monthVolume?.planned_hours != null && (() => {
@@ -1500,7 +1500,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         )
       })()}
 
-      {/* Del E: «tenkt fordeling» fra årsplanens månedsvolum — ren
+      {/* Del E: «tenkt fordeling» fra årsplanens månedsvolum - ren
           informasjon ved siden av faktisk (sonefarger, 2px gap +
           etiketter), ingen alarmer. Vises kun i Plan når satt. */}
       {mode === 'plan' && monthVolume && (monthVolume.zone_hours || monthVolume.movement_hours) && (() => {
@@ -1547,7 +1547,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
       {/* Column headers: week# + 7 days + totals.
           minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
-          under sitt min-content — uten dette sprenger lange Strava-øktnavn
+          under sitt min-content - uten dette sprenger lange Strava-øktnavn
           grid-bredden på mobil og dager sklir ut horisontalt. */}
       <div className={layout === 'grid' ? 'hidden md:grid' : 'hidden'} style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
@@ -1585,17 +1585,17 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
         return (
           <Fragment key={wi}>
-            {/* ── DESKTOP (≥768px): 7-kolonners grid — uendret (skjules helt
+            {/* ── DESKTOP (≥768px): 7-kolonners grid - uendret (skjules helt
                 når Liste-layout er valgt) ── */}
             <div className={layout === 'grid' ? 'hidden md:block' : 'hidden'}>
-            {/* A2e: lang tynn horisontal periodelinje OVER uka — tett på
+            {/* A2e: lang tynn horisontal periodelinje OVER uka - tett på
                 cellene (unna sonebaren i wsum), skiftende farge m/ start/
                 stopp på riktig dag-posisjon (90°-segmentgradient). */}
             {rowGradient && (
               <div aria-hidden style={{ height: 2.5, margin: '2px 8px 1px 11px', borderRadius: 2, background: rowGradient }} />
             )}
             {/* Uke-raden VOKSER med innholdet (Sverre 4. sep): ingen intern
-                scroll — alle øktene vises, kalenderen blir heller litt
+                scroll - alle øktene vises, kalenderen blir heller litt
                 lengre. Alle 7 celler har samme høyde via grid-stretch. */}
             <div data-ukerad style={{ borderLeft: '3px solid transparent' }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '3px 8px' }}>
@@ -1635,7 +1635,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               </div>
             </div>
 
-            {/* Ukes-analyse-stripe under uken — fullbredde, samme på desktop og mobil */}
+            {/* Ukes-analyse-stripe under uken - fullbredde, samme på desktop og mobil */}
             <WeekAnalysisStripe
               weekNumber={wn}
               totalSeconds={weekAgg.seconds}
@@ -1652,7 +1652,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
             {/* ── MOBIL (<768px): stablet ukeblokk (design/xpulse-mobil-mnd-
                 design.html, bolk 1 variant A). SAMME datakilder som griden:
-                byDate + filterByMode, dayStates, keyDates, health — kun
+                byDate + filterByMode, dayStates, keyDates, health - kun
                 layouten er ny. ── */}
             <div className={layout === 'grid' ? 'md:hidden px-3' : 'px-3'}
               data-week-current={weekHasToday ? '1' : undefined}
@@ -1660,9 +1660,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               <div style={{ position: 'relative', paddingLeft: 13 }}>
                 {/* A2e: periodemarkering i liste = KUN én vertikal strek i
                     siden, tegnet per dagrad (dag-presis) med start/stopp-
-                    kapsler — ingen uke-nivå-stripe her lenger. */}
+                    kapsler - ingen uke-nivå-stripe her lenger. */}
                 {/* Ukelabel. (Sticky-ukelabel droppet: hovednav + to-raders
-                    månedsheader er allerede sticky — tre nivåer blir skjørt.
+                    månedsheader er allerede sticky - tre nivåer blir skjørt.
                     Avvik notert; kan finjusteres etter live-test.) */}
                 <div className="flex items-center gap-2"
                   style={{ margin: '0 0 4px', padding: '4px 0' }}>
@@ -1679,7 +1679,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     </span>
                   ))}
                 </div>
-                {/* Dag-rader — kun dager i inneværende måned. Dagbok
+                {/* Dag-rader - kun dager i inneværende måned. Dagbok
                     kollapser tomme PASSERTE dager (bolk 2, variant B);
                     plan viser alle (variant A). */}
                 {(() => {
@@ -1774,7 +1774,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         )}
                       </div>
                       {empty ? (
-                        <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
+                        <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>-</span>
                       ) : (
                         <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
                           {dayWorkouts.map(w => (
@@ -1855,10 +1855,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase', fontWeight: 700 }}>
                               {single
                                 ? DAYS_NO[(first.getDay() + 6) % 7]
-                                : `${DAYS_NO[(first.getDay() + 6) % 7]}–${DAYS_NO[(last.getDay() + 6) % 7]}`}
+                                : `${DAYS_NO[(first.getDay() + 6) % 7]}-${DAYS_NO[(last.getDay() + 6) % 7]}`}
                             </span>
                             <span style={{ display: 'block', fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, lineHeight: 1.3, color: 'var(--mut)' }}>
-                              {single ? first.getDate() : `${first.getDate()}–${last.getDate()}`}
+                              {single ? first.getDate() : `${first.getDate()}-${last.getDate()}`}
                             </span>
                           </div>
                           <button type="button"
@@ -1875,7 +1875,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             {single ? (
                               <><b style={{ color: 'var(--mut)', fontWeight: 600, letterSpacing: '0.04em' }}>{DAYS_NO_LONG[(first.getDay() + 6) % 7]} {first.getDate()}.</b> ingen økter</>
                             ) : (
-                              <><b style={{ color: 'var(--mut)', fontWeight: 600, letterSpacing: '0.04em' }}>{gapDays.length} dager</b> uten økter — trykk for å utvide</>
+                              <><b style={{ color: 'var(--mut)', fontWeight: 600, letterSpacing: '0.04em' }}>{gapDays.length} dager</b> uten økter - trykk for å utvide</>
                             )}
                             <span style={{ marginLeft: 'auto', color: 'var(--tekst-8-alt)' }}>{single ? '＋' : '▾'}</span>
                           </button>
@@ -1940,7 +1940,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', padding: '4px 8px' }}>×</button>
                     </div>
 
-                    {/* B2 (kø #39): dagens periodiserings-kontekst — belastnings-
+                    {/* B2 (kø #39): dagens periodiserings-kontekst - belastnings-
                         periode + markeringer (📍/🏔) fra markeringslaget, med
                         eksplisitt grensedag-info (starter/slutter i dag). */}
                     {(() => {
@@ -1960,7 +1960,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             </span>
                           )}
                           {dm.map(m => (
-                            <button key={m.id} type="button" title={`${m.start_date} → ${m.end_date}${readOnly ? '' : ' — klikk for å redigere'}`}
+                            <button key={m.id} type="button" title={`${m.start_date} → ${m.end_date}${readOnly ? '' : ' - klikk for å redigere'}`}
                               onClick={() => { if (!readOnly) onEditMarking(m) }}
                               style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#D4A017', border: '1px solid rgba(212,160,23,0.45)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em', background: 'none', cursor: readOnly ? 'default' : 'pointer' }}>
                               {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
@@ -2112,7 +2112,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   </div>
                                 )}
 
-                                {/* Ernæring (read-only) — vises hvis økten har rader */}
+                                {/* Ernæring (read-only) - vises hvis økten har rader */}
                                 {(nutritionByWorkout[w.id]?.length ?? 0) > 0 && (
                                   <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--kant-3)' }}>
                                     <NutritionSummary
@@ -2231,7 +2231,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 )}
                                 {r.notes && (
                                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', fontStyle: 'italic' }}>
-                                    — {r.notes}
+                                    - {r.notes}
                                   </span>
                                 )}
                               </div>
@@ -2250,7 +2250,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       </div>
                     )}
 
-                    {/* Dag-tilstander (hviledag/sykdom) — egne rader; teller ikke som økter. */}
+                    {/* Dag-tilstander (hviledag/sykdom) - egne rader; teller ikke som økter. */}
                     {(dayStatesByDate[ds] ?? []).length > 0 && (
                       <div className="mb-3 space-y-1">
                         {(dayStatesByDate[ds] ?? []).map(s => {
@@ -2282,7 +2282,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 )}
                                 {s.notes && (
                                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', fontStyle: 'italic' }}>
-                                    — {s.notes}
+                                    - {s.notes}
                                   </span>
                                 )}
                               </span>
@@ -2337,7 +2337,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           <button type="button" onClick={() => onMarkDayState(ds, 'reisedag')} style={ghostBtn}>
                             ✈️ Reisedag
                           </button>
-                          {/* Samling/høyde planlegges med fra–til — bor i
+                          {/* Samling/høyde planlegges med fra-til - bor i
                               årsplanens markeringslag (én kilde). */}
                           <button type="button" onClick={() => onPlanSamling(ds)} style={ghostBtn}>
                             📍 Samling
@@ -2374,7 +2374,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         )
       })}
 
-      {/* Den flytende ＋-en bor nå i PlussKnapp (Hjem/Plan/Dagbok) — ikke i kalenderen. */}
+      {/* Den flytende ＋-en bor nå i PlussKnapp (Hjem/Plan/Dagbok) - ikke i kalenderen. */}
     </div>
 
     {/* Ghost-chip som følger markøren under draging (rendres via portal, så
@@ -2448,20 +2448,20 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
 
   return (
     <div>
-      {/* ── Årssammendrag — samme statstripe-språk som analysepanelet ── */}
+      {/* ── Årssammendrag - samme statstripe-språk som analysepanelet ── */}
       <div className="px-4 md:px-6 pt-4">
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,var(--flate-12),var(--flate-7-alt))', borderColor: 'var(--line)' }}>
           <div style={{ padding: '12px 16px' }}>
             <span className="xp-k">Total tid</span>
             <div className="xp-v" style={{ fontSize: 26 }}>
-              {yearAgg.seconds > 0 ? fmtSec(yearAgg.seconds) : '—'}
+              {yearAgg.seconds > 0 ? fmtSec(yearAgg.seconds) : '-'}
               <YearDelta current={yearAgg.seconds} previous={prevAgg.seconds} />
             </div>
           </div>
           <div style={{ padding: '12px 16px' }}>
             <span className="xp-k">Km</span>
             <div className="xp-v" style={{ fontSize: 26 }}>
-              {yearKm > 0 ? yearKm.toLocaleString('nb-NO') : '—'}
+              {yearKm > 0 ? yearKm.toLocaleString('nb-NO') : '-'}
               <YearDelta current={yearAgg.meters} previous={prevAgg.meters} />
             </div>
           </div>
@@ -2615,7 +2615,7 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
                 )}
               </>
             ) : (
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-6)', fontSize: '13px' }}>—</div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-6)', fontSize: '13px' }}>-</div>
             )}
           </button>
         )
@@ -2989,7 +2989,7 @@ export function Calendar({
   const weekNum = isoWeek(weekDates[0])
 
   const titleLabel = view === 'uke'
-    ? `Uke ${weekNum} · ${weekDates[0].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })} – ${weekDates[6].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })}`
+    ? `Uke ${weekNum} · ${weekDates[0].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })} - ${weekDates[6].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })}`
     : view === 'år' ? `${year}`
     : `${MONTHS_NO[month - 1]} ${year}`
 
@@ -3047,7 +3047,7 @@ export function Calendar({
           )}
         </div>
 
-        {/* Navigation + title — sentrert på mobil, høyre på desktop */}
+        {/* Navigation + title - sentrert på mobil, høyre på desktop */}
         <div className="flex items-center justify-center gap-2 relative">
           <button type="button" onClick={prev} aria-label="Forrige periode"
             className="xp-mnav-btn"
@@ -3075,7 +3075,7 @@ export function Calendar({
           )}
         </div>
 
-        {/* Right spacer — skjules på mobil så navigasjon sentreres naturlig */}
+        {/* Right spacer - skjules på mobil så navigasjon sentreres naturlig */}
         <div className="hidden md:block" style={{ minWidth: '120px' }} />
       </div>
 
@@ -3129,7 +3129,7 @@ export function Calendar({
               scope="month"
               periodKey={monthPeriodKey}
               viewerRole={readOnly ? 'coach' : 'athlete'}
-              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — ${MONTHS_NO[month - 1]}`}
+              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - ${MONTHS_NO[month - 1]}`}
             />
           </div>
         </>
@@ -3182,7 +3182,7 @@ export function Calendar({
               scope="week"
               periodKey={weekPeriodKey}
               viewerRole={readOnly ? 'coach' : 'athlete'}
-              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — uke ${weekNum}`}
+              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - uke ${weekNum}`}
             />
           </div>
         </>

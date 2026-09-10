@@ -32,7 +32,7 @@ function LoginInner() {
     >
       <AuthCard title="Logg inn" subtitle="Velkommen tilbake">
         <form action={formAction} className="flex flex-col gap-5">
-          {/* return_to videresendes til login-action via hidden input —
+          {/* return_to videresendes til login-action via hidden input -
               auth.ts validerer at det er en intern path (open-redirect-safe). */}
           {returnTo && <input type="hidden" name="return_to" value={returnTo} />}
           <FormField
@@ -68,7 +68,7 @@ function LoginInner() {
                 backgroundColor: 'rgba(40,168,110,0.1)',
                 border: '1px solid rgba(40,168,110,0.3)',
               }}>
-              Passord oppdatert — logg inn med ditt nye passord.
+              Passord oppdatert - logg inn med ditt nye passord.
             </p>
           )}
 

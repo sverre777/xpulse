@@ -134,7 +134,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
   const weekNum = isoWeek(weekDates[0])
 
   const titleLabel = view === 'uke'
-    ? `Uke ${weekNum} · ${weekDates[0].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })} – ${weekDates[6].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })}`
+    ? `Uke ${weekNum} · ${weekDates[0].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })} - ${weekDates[6].toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })}`
     : view === 'år'
       ? `${year}`
       : `${MONTHS_NO[month - 1]} ${year}`
@@ -412,7 +412,7 @@ function WeekView({
         })}
       </div>
 
-      {/* Time-band — relative grid for absolute-positioned events */}
+      {/* Time-band - relative grid for absolute-positioned events */}
       <div className="grid relative"
         style={{
           gridTemplateColumns: '60px repeat(7, 1fr)',

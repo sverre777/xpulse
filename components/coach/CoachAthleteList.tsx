@@ -48,7 +48,7 @@ function periodeDatoer(p: Periode): { fra: string; til: string } {
 }
 
 function fmtTid(sek: number): string {
-  if (sek <= 0) return '—'
+  if (sek <= 0) return '-'
   const t = Math.floor(sek / 3600), m = Math.round((sek % 3600) / 60)
   return t > 0 ? `${t}:${String(m).padStart(2, '0')}` : `${m} min`
 }
@@ -87,7 +87,7 @@ const STATUS_LABEL: Record<AthleteLoggingStatus, string> = {
 }
 
 function sportLabel(s: Sport | null): string {
-  if (!s) return '—'
+  if (!s) return '-'
   return SPORTS.find(x => x.value === s)?.label ?? s
 }
 
@@ -248,7 +248,7 @@ export function CoachAthleteList({ athletes }: Props) {
                   </p>
                 </div>
 
-                {/* BOLK B1: tallene for valgt periode — én aggregator for hele lista. */}
+                {/* BOLK B1: tallene for valgt periode - én aggregator for hele lista. */}
                 {(() => {
                   const r = gjeldende?.get(a.id) ?? null
                   if (!r) {
@@ -268,13 +268,13 @@ export function CoachAthleteList({ athletes }: Props) {
                       </Celle>
                       {r.harSkiskyting && (
                         <Celle etikett="Skudd · treff" bredde={92}>
-                          {r.skudd ? r.skudd : '—'}
+                          {r.skudd ? r.skudd : '-'}
                           <span style={{ fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)', marginLeft: 5 }}>{r.treffPct != null ? `${r.treffPct} %` : ''}</span>
                         </Celle>
                       )}
                       <Celle etikett="HRV" bredde={78}>
                         {!r.helseDelt ? <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>ikke delt</span>
-                          : r.hrv == null ? '—'
+                          : r.hrv == null ? '-'
                           : <>{r.hrv}{r.hrvEndring != null && r.hrvEndring !== 0 && (
                               <span style={{ fontFamily: FONT, fontSize: 11, marginLeft: 4, color: r.hrvEndring > 0 ? STATUS_GRONN : STATUS_ROD }}>
                                 {r.hrvEndring > 0 ? '▲' : '▼'} {Math.abs(r.hrvEndring)}

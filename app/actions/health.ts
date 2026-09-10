@@ -71,7 +71,7 @@ export async function settDagsform(date: string, verdi: number | null): Promise<
   const supabase = await createClient()
   const resolved = await resolveHealthTargetUser(supabase, undefined)
   if ('error' in resolved) return { error: resolved.error }
-  if (verdi != null && (verdi < 1 || verdi > 5)) return { error: 'Dagsform er 1–5' }
+  if (verdi != null && (verdi < 1 || verdi > 5)) return { error: 'Dagsform er 1-5' }
   const { error } = await supabase.from('daily_health').upsert({
     user_id: resolved.userId,
     date,

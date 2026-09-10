@@ -428,7 +428,7 @@ export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUs
             </SelectField>
           ) : filter.perSkyting === 'accumulated' ? (
             <SelectField label="Økt" value={filter.workoutId ?? ''} onChange={v => set('workoutId', v || null)}>
-              <option value="">— Velg —</option>
+              <option value="">- Velg -</option>
               {allWorkouts.slice(0, 60).map(w => (
                 <option key={w.id} value={w.id}>{w.date}</option>
               ))}
@@ -470,11 +470,11 @@ export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUs
           options={[
             { value: 'serier', label: 'Serier' },
             { value: 'tester', label: 'Testresultater' },
-            { value: 'pivot', label: 'Pivot — alle variabler' },
+            { value: 'pivot', label: 'Pivot - alle variabler' },
           ]}
         />
 
-        {/* Bolk 8: PIVOT — x-akse, gruppe og måltall fritt; hurtigvalg for de vanligste spørsmålene. */}
+        {/* Bolk 8: PIVOT - x-akse, gruppe og måltall fritt; hurtigvalg for de vanligste spørsmålene. */}
         {filter.modus === 'pivot' && (
           <div className="flex flex-col gap-2" data-skyting-pivot>
             <div className="flex flex-wrap gap-2">
@@ -508,7 +508,7 @@ export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUs
           </div>
         )}
 
-        {/* VISNING — samme chip-rad som den fysiske grafens
+        {/* VISNING - samme chip-rad som den fysiske grafens
             Gjennomført/Planlagt/Begge (delt ChipSelector). */}
         {filter.modus === 'serier' && (
         <div className="flex flex-col lg:flex-row gap-3 lg:items-end flex-wrap">
@@ -534,7 +534,7 @@ export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUs
         </div>
         )}
 
-        {/* Skytetype-chips — av/på per type, som sone-chipsene i den
+        {/* Skytetype-chips - av/på per type, som sone-chipsene i den
             fysiske grafen. Fargene er SHOT_TYPE_ORDER sine. */}
         {filter.modus === 'serier' && filter.grupper === 'skytetype' && typerIData.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -563,7 +563,7 @@ export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUs
           </div>
         )}
 
-        {/* Aktive filtre — alltid synlig hva grafen faktisk viser. */}
+        {/* Aktive filtre - alltid synlig hva grafen faktisk viser. */}
         {aktiveFiltre.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs tracking-widest uppercase"
@@ -828,14 +828,14 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
 // Egen tooltip for enkel-serie-grafene: dato · skyting-nr, verdi, puls og
 // vind/sikt-kontekst der ført (CHART_TOOLTIP_BOX = delt tooltip-språk).
 // ── Bolk 8: pivot-bygging ─────────────────────────────────────
-const PULS_TRAPP = (hr: number | null): string | null => hr == null ? null : hr < 130 ? '<130' : hr < 150 ? '130–149' : hr < 170 ? '150–169' : hr < 185 ? '170–184' : '185+'
+const PULS_TRAPP = (hr: number | null): string | null => hr == null ? null : hr < 130 ? '<130' : hr < 150 ? '130-149' : hr < 170 ? '150-169' : hr < 185 ? '170-184' : '185+'
 const PIVOT_REKKEFOLGE: Partial<Record<PivotVar, string[]>> = {
-  pulssone_inn: ['<130', '130–149', '150–169', '170–184', '185+'],
-  pulssone: ['<130', '130–149', '150–169', '170–184', '185+'],
-  skytetid: ['<25 s', '25–35 s', '>35 s'],
+  pulssone_inn: ['<130', '130-149', '150-169', '170-184', '185+'],
+  pulssone: ['<130', '130-149', '150-169', '170-184', '185+'],
+  skytetid: ['<25 s', '25-35 s', '>35 s'],
   forrige_sone: ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet'],
-  tsb: ['Sliten (<−20)', 'Belastet (−20–0)', 'Frisk (0–10)', 'Uthvilt (>10)'],
-  sovn: ['<6 t', '6–7 t', '7–8 t', '>8 t'],
+  tsb: ['Sliten (<−20)', 'Belastet (−20-0)', 'Frisk (0-10)', 'Uthvilt (>10)'],
+  sovn: ['<6 t', '6-7 t', '7-8 t', '>8 t'],
   hrv: ['Lav', 'Normal', 'Høy'],
   stilling: ['Liggende', 'Stående'],
   kontekst: ['Trening', 'Konkurranse'],
@@ -850,12 +850,12 @@ function pivotVerdi(r: ShootingSeriesRow, v: PivotVar, dag: DagKontekst | null, 
     case 'pulssone': return PULS_TRAPP(r.avg_heart_rate)
     case 'sikt': return sightLabel(r.sikt)
     case 'stilling': return r.position === 'L' ? 'Liggende' : 'Stående'
-    case 'skytetid': return r.duration_seconds == null || r.duration_seconds <= 0 ? null : r.duration_seconds < 25 ? '<25 s' : r.duration_seconds <= 35 ? '25–35 s' : '>35 s'
+    case 'skytetid': return r.duration_seconds == null || r.duration_seconds <= 0 ? null : r.duration_seconds < 25 ? '<25 s' : r.duration_seconds <= 35 ? '25-35 s' : '>35 s'
     case 'forrige_sone': return r.forrige_sone
     case 'kontekst': return r.in_competition ? 'Konkurranse' : 'Trening'
     case 'maaned': return r.date.slice(0, 7)
-    case 'tsb': { const t = dag?.get(r.date)?.tsb; return t == null ? null : t < -20 ? 'Sliten (<−20)' : t < 0 ? 'Belastet (−20–0)' : t <= 10 ? 'Frisk (0–10)' : 'Uthvilt (>10)' }
-    case 'sovn': { const t = dag?.get(r.date)?.sovnTimer; return t == null ? null : t < 6 ? '<6 t' : t < 7 ? '6–7 t' : t <= 8 ? '7–8 t' : '>8 t' }
+    case 'tsb': { const t = dag?.get(r.date)?.tsb; return t == null ? null : t < -20 ? 'Sliten (<−20)' : t < 0 ? 'Belastet (−20-0)' : t <= 10 ? 'Frisk (0-10)' : 'Uthvilt (>10)' }
+    case 'sovn': { const t = dag?.get(r.date)?.sovnTimer; return t == null ? null : t < 6 ? '<6 t' : t < 7 ? '6-7 t' : t <= 8 ? '7-8 t' : '>8 t' }
     case 'hrv': { const h = dag?.get(r.date)?.hrv; if (h == null || hrvMedian == null || hrvMedian <= 0) return null; return h < hrvMedian * 0.9 ? 'Lav' : h > hrvMedian * 1.1 ? 'Høy' : 'Normal' }
   }
 }

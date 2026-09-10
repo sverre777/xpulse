@@ -326,7 +326,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
 
   return (
     <div className="space-y-2">
-      {/* Felles knapperad (regel 11) — over radene, i plan OG dagbok.
+      {/* Felles knapperad (regel 11) - over radene, i plan OG dagbok.
           Var tidligere to knapper nederst; fasiten flytter dem hit og
           legger 🎯/⌚-inngangene i samme rad. */}
       <AktivitetKnapperad
@@ -543,12 +543,12 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         </div>
         {expanded && (
           <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
-            {/* Skytetype for ALLE seriene i gruppa (Sverre 5. sep) — som bev.form for aktivitet. */}
+            {/* Skytetype for ALLE seriene i gruppa (Sverre 5. sep) - som bev.form for aktivitet. */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
               <Field label="Skytetype (alle seriene)">
                 <select value={typeNokkel} data-skytetype-gruppe
                   onChange={e => onUpdate({ shooting_type: e.target.value as ActivityRow['shooting_type'] })} style={iSt}>
-                  <option value="">— uten type</option>
+                  <option value="">- uten type</option>
                   {SHOOTING_TYPES_V2.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
                 </select>
               </Field>
@@ -596,7 +596,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
   const samle = (felt: SamleFelt, label: string, opts: { inputMode?: 'numeric' | 'decimal'; placeholder?: string } = {}) => (
     <Field label={label} key={felt}>
       <SamleInput felt={felt} verdi={samleVerdi(gruppe, felt, isPlanMode)} onCommit={v => onSamleFelt(felt, v)}
-        inputMode={opts.inputMode ?? 'numeric'} placeholder={opts.placeholder ?? '—'} />
+        inputMode={opts.inputMode ?? 'numeric'} placeholder={opts.placeholder ?? '-'} />
     </Field>
   )
   const kadensEnhet = bevFelterFor(forste.movement_name, forste.movement_subcategory).kadens || 'rpm'
@@ -627,7 +627,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         )}
         {(alt || meta?.usesMovement) && forste.movement_name && (
           <span className="truncate" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', minWidth: 0 }}>
-            · {forste.movement_name}{forste.movement_subcategory ? ` — ${forste.movement_subcategory}` : ''}
+            · {forste.movement_name}{forste.movement_subcategory ? ` - ${forste.movement_subcategory}` : ''}
           </span>
         )}
         <div className="flex-1" style={{ minWidth: '4px' }} />
@@ -664,7 +664,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         <UtstyrVelgerPopup
           available={equipment ?? []}
           selectedIds={fellesUtstyr}
-          title={alt ? 'Utstyr — alle radene i økta' : 'Utstyr — alle radene i gruppa'}
+          title={alt ? 'Utstyr - alle radene i økta' : 'Utstyr - alle radene i gruppa'}
           hint="Skrives på hver aktive rad (ikke pauser og skyting). Tomt valg = arv fra økta."
           onDone={ids => { for (const r of aktive) onActivityEquipmentChange(r.id, ids) }}
           onClose={() => setUtstyrOpen(false)}
@@ -674,7 +674,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <Field label={alt ? 'Hele økta' : 'Aktivitetstype'}>
-              <div style={{ ...iSt, display: 'flex', alignItems: 'center', opacity: 0.8 }} title={alt ? 'Sonene er en fordeling — ikke redigerbare her' : 'Type endres per rad i splittet visning'}>
+              <div style={{ ...iSt, display: 'flex', alignItems: 'center', opacity: 0.8 }} title={alt ? 'Sonene er en fordeling - ikke redigerbare her' : 'Type endres per rad i splittet visning'}>
                 {alt ? `∑ ${n} rader · soner som fordeling` : `${meta?.icon} ${meta?.label ?? forste.activity_type}`}
               </div>
             </Field>
@@ -682,7 +682,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
               <Field label="Bevegelsesform">
                 <select value={forste.movement_name}
                   onChange={e => onUpdate({ movement_name: e.target.value, movement_subcategory: '' })} style={iSt}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {MOVEMENT_CATEGORIES.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
                   {userMovementTypes.length > 0 && (
                     <optgroup label="Mine egne">
@@ -696,7 +696,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
               <Field label="Skytetype (all skyting)">
                 <select value={gruppe.rader.find(r => r.activity_type.startsWith('skyting'))?.shooting_type ?? ''} data-skytetype-gruppe
                   onChange={e => onUpdate({ shooting_type: e.target.value as ActivityRow['shooting_type'] })} style={iSt}>
-                  <option value="">— uten type</option>
+                  <option value="">- uten type</option>
                   {SHOOTING_TYPES_V2.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
                 </select>
               </Field>
@@ -705,13 +705,13 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
               <Field label="Underkategori">
                 <select value={forste.movement_subcategory}
                   onChange={e => onUpdate({ movement_subcategory: e.target.value })} style={iSt}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {subcatOptions.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </Field>
             )}
           </div>
-          {/* PKT 28 (Sverre 5. sep): feltene for hele gruppa/økta — det som
+          {/* PKT 28 (Sverre 5. sep): feltene for hele gruppa/økta - det som
               skrives her går ut på radene: km fordelt etter varighet, snitt
               likt på rader uten egen verdi, motstand/stigning på alle. */}
           {samleFelter.size > 0 && (
@@ -736,7 +736,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
                 <Field label="Motstand (1-10, alle rader)">
                   <select value={samleVerdi(gruppe, 'resistance_level', isPlanMode)} data-samle-felt="resistance_level"
                     onChange={e => onSamleFelt('resistance_level', e.target.value)} style={iSt}>
-                    <option value="">—</option>
+                    <option value="">-</option>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => <option key={v} value={String(v)}>{v}</option>)}
                   </select>
                 </Field>
@@ -819,7 +819,7 @@ function ActivityRowItem({
   const showFavoritesGroup = visibleFavorites.length >= 2
   const meta = findActivityType(row.activity_type)
   const durSec = parseActivityDuration(row.duration)
-  const durDisplay = durSec != null ? formatActivityDuration(durSec) : row.duration || '—'
+  const durDisplay = durSec != null ? formatActivityDuration(durSec) : row.duration || '-'
   const kind = resolveMovementKind(row.movement_name, userMovementTypes)
   const isStrength = isStrengthFor(row.movement_name, userMovementTypes)
   const isEndurance = isEnduranceFor(row.movement_name, userMovementTypes)
@@ -893,19 +893,19 @@ function ActivityRowItem({
 
   return (
     <div className="xp-act">
-      {/* Compact row — flex-wrap så label/bevegelsesform kan gå på linje 2 på smal skjerm,
+      {/* Compact row - flex-wrap så label/bevegelsesform kan gå på linje 2 på smal skjerm,
           mens ikon+type, varighet og kontroller forblir på topp-raden. */}
       <div
         className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
         onClick={onToggle}
         style={{ userSelect: 'none' }}
       >
-        {/* Gripepanel ⋮⋮ (pkt 18): dra raden opp/ned — mus, langt trykk på
+        {/* Gripepanel ⋮⋮ (pkt 18): dra raden opp/ned - mus, langt trykk på
             mobil, eller fokus + piltast (tilgjengelighet). Erstatter pilene. */}
         <div className="flex items-center justify-center" style={{ width: '24px', minHeight: 36 }} onClick={e => e.stopPropagation()}>
           {dragRef ? (
             <button type="button" ref={dragRef as React.Ref<HTMLButtonElement>} {...dragAttributes} {...dragListeners}
-              data-grip aria-label="Flytt raden — dra, eller bruk piltastene"
+              data-grip aria-label="Flytt raden - dra, eller bruk piltastene"
               onKeyDown={e => {
                 if (e.key === 'ArrowUp' && onMoveUp) { e.preventDefault(); e.stopPropagation(); onMoveUp() }
                 if (e.key === 'ArrowDown' && onMoveDown) { e.preventDefault(); e.stopPropagation(); onMoveDown() }
@@ -938,7 +938,7 @@ function ActivityRowItem({
               fontSize: '13px', minWidth: 0,
             }}>
             · {row.movement_name}
-            {row.movement_subcategory ? ` — ${row.movement_subcategory}` : ''}
+            {row.movement_subcategory ? ` - ${row.movement_subcategory}` : ''}
           </span>
         )}
 
@@ -949,14 +949,14 @@ function ActivityRowItem({
           {durDisplay}
         </span>
 
-        {/* HR — skjules på aller smaleste skjermer for å unngå wrap-bloat */}
+        {/* HR - skjules på aller smaleste skjermer for å unngå wrap-bloat */}
         {row.avg_heart_rate && (
           <span className="hidden sm:inline" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '12px' }}>
             · {row.avg_heart_rate} bpm
           </span>
         )}
 
-        {/* Utstyr-bytte (⇄) — kun der man faktisk byttet fra hele økta-arven */}
+        {/* Utstyr-bytte (⇄) - kun der man faktisk byttet fra hele økta-arven */}
         {onEquipmentChange && (equipment?.length ?? 0) > 0 && (
           <button type="button"
             onClick={e => { e.stopPropagation(); setEquipOpen(true) }}
@@ -985,7 +985,7 @@ function ActivityRowItem({
           ▶
         </span>
 
-        {/* Delete — større touch-mål */}
+        {/* Delete - større touch-mål */}
         <button type="button" onClick={e => { e.stopPropagation(); onDelete() }}
           aria-label="Slett aktivitet"
           style={{
@@ -999,7 +999,7 @@ function ActivityRowItem({
         <UtstyrVelgerPopup
           available={equipment ?? []}
           selectedIds={equipmentIds}
-          title="Bytt utstyr — denne aktiviteten"
+          title="Bytt utstyr - denne aktiviteten"
           hint="Overstyrer hele økta-valget kun for denne raden. Tomt valg = arv."
           onDone={onEquipmentChange}
           onClose={() => setEquipOpen(false)}
@@ -1063,7 +1063,7 @@ function ActivityRowItem({
                 <select value={row.movement_name}
                   onChange={e => handleMovementChange(e.target.value)}
                   style={iSt}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {MOVEMENT_CATEGORIES.map(m => (
                     <option key={m.name} value={m.name}>{m.name}</option>
                   ))}
@@ -1079,7 +1079,7 @@ function ActivityRowItem({
               </Field>
             )}
 
-            {/* Veksling har ingen bevegelsesform, men trenger et NAVN —
+            {/* Veksling har ingen bevegelsesform, men trenger et NAVN -
                 T1/T2 i triatlon. Skrives til movement_name, samme felt
                 triatlon-malen alltid har brukt (ingen ny kolonne). */}
             {row.activity_type === 'veksling' && (
@@ -1149,7 +1149,7 @@ function ActivityRowItem({
               </Field>
             )}
 
-            {/* Høydemeter — utholdenhet + tur. Skjules for innendørs-aktiviteter
+            {/* Høydemeter - utholdenhet + tur. Skjules for innendørs-aktiviteter
                 (SkiErg, Romaskin, Stairmaster, Ellipsemaskin, Spinning,
                 Indoors/Ergo, Air bike, Tredemølle) der høydemeter ikke er meningsfullt,
                 og for skyting: en skyteserie har ingen høydemeter selv om
@@ -1159,22 +1159,22 @@ function ActivityRowItem({
                 <Field label="Høydemeter opp (m)">
                   <input value={row.elevation_gain_m}
                     onChange={e => onUpdate({ elevation_gain_m: e.target.value })}
-                    placeholder="—"
+                    placeholder="-"
                     inputMode="numeric"
                     style={iSt} />
                 </Field>
                 <Field label="Høydemeter ned (m)">
                   <input value={row.elevation_loss_m}
                     onChange={e => onUpdate({ elevation_loss_m: e.target.value })}
-                    placeholder="—"
+                    placeholder="-"
                     inputMode="numeric"
                     style={iSt} />
                 </Field>
               </>
             )}
 
-            {/* BOLK 27: plan = MÅL — watt og motstand der bev.formen har det
-                (spennet fra–til settes i hurtigoppsettet; her står midtpunktet). */}
+            {/* BOLK 27: plan = MÅL - watt og motstand der bev.formen har det
+                (spennet fra-til settes i hurtigoppsettet; her står midtpunktet). */}
             {isPlanMode && felter.wattMaal && !meta?.isShooting && (
               <Field label="Watt (mål)">
                 <input value={row.avg_watts} onChange={e => onUpdate({ avg_watts: e.target.value })}
@@ -1190,7 +1190,7 @@ function ActivityRowItem({
             {isPlanMode && felter.motstand && (
               <Field label="Motstand (1-10)">
                 <select value={row.resistance_level} onChange={e => onUpdate({ resistance_level: e.target.value })} style={iSt}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={String(n)}>{n}</option>)}
                 </select>
               </Field>
@@ -1198,18 +1198,18 @@ function ActivityRowItem({
             {!isPlanMode && (
               <>
                 <Field label="Snittpuls (bpm)">
-                  {/* Uten klokke (bolk 6): en kuttet rad arver ikke pulsen —
+                  {/* Uten klokke (bolk 6): en kuttet rad arver ikke pulsen -
                       dragets snitt står som grå plassholder til brukeren
                       fører sitt eget tall, som da merkes M (manuelt vinner). */}
                   <span className="inline-flex items-center gap-1 w-full">
                     <input value={row.avg_heart_rate}
                       onChange={e => onUpdate({ avg_heart_rate: e.target.value })}
-                      inputMode="numeric" placeholder={row.arvet_puls || '—'}
-                      title={row.arvet_puls ? 'Dragets snitt — vises som hint, lagres ikke' : undefined}
+                      inputMode="numeric" placeholder={row.arvet_puls || '-'}
+                      title={row.arvet_puls ? 'Dragets snitt - vises som hint, lagres ikke' : undefined}
                       data-puls-hint={row.arvet_puls || undefined}
                       style={iSt} />
                     {row.avg_heart_rate.trim() !== '' && (row.arvet_puls || row.window_start_seconds != null) && (
-                      <span data-puls-merke title="Manuelt ført — vinner over det målte"
+                      <span data-puls-merke title="Manuelt ført - vinner over det målte"
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.08em',
                           fontSize: 10, color: '#E8B93C', border: '1px solid #E8B93C88', borderRadius: 5,
@@ -1223,12 +1223,12 @@ function ActivityRowItem({
                   <Field label="Maks puls (bpm)">
                     <input value={row.max_heart_rate}
                       onChange={e => onUpdate({ max_heart_rate: e.target.value })}
-                      inputMode="numeric" placeholder="—"
+                      inputMode="numeric" placeholder="-"
                       style={iSt} />
                   </Field>
                 )}
 
-                {/* Watt (snitt + maks) — sykling, motstands-maskiner OG utholdenhets-
+                {/* Watt (snitt + maks) - sykling, motstands-maskiner OG utholdenhets-
                     former (SkiErg, Ellipsemaskin, Roing osv. har watt-måling).
                     Valgfritt, så det skader ikke å tilby det for løp/ski også. */}
                 {felter.wattFaktisk && !meta?.isShooting && !isStrength && !isAnnet && (
@@ -1236,13 +1236,13 @@ function ActivityRowItem({
                     <Field label="Snittwatt">
                       <input value={row.avg_watts}
                         onChange={e => onUpdate({ avg_watts: e.target.value })}
-                        inputMode="numeric" placeholder="—"
+                        inputMode="numeric" placeholder="-"
                         style={iSt} />
                     </Field>
                     <Field label="Makswatt">
                       <input value={row.max_watts}
                         onChange={e => onUpdate({ max_watts: e.target.value })}
-                        inputMode="numeric" placeholder="—"
+                        inputMode="numeric" placeholder="-"
                         style={iSt} />
                     </Field>
                   </>
@@ -1254,16 +1254,16 @@ function ActivityRowItem({
                   <>
                     <Field label={`Snittkadens (${felter.kadens})`}>
                       <input value={row.avg_cadence} onChange={e => onUpdate({ avg_cadence: e.target.value })}
-                        inputMode="numeric" placeholder="—" data-kadens-snitt style={iSt} />
+                        inputMode="numeric" placeholder="-" data-kadens-snitt style={iSt} />
                     </Field>
                     <Field label={`Makskadens (${felter.kadens})`}>
                       <input value={row.max_cadence} onChange={e => onUpdate({ max_cadence: e.target.value })}
-                        inputMode="numeric" placeholder="—" data-kadens-maks style={iSt} />
+                        inputMode="numeric" placeholder="-" data-kadens-maks style={iSt} />
                     </Field>
                   </>
                 )}
 
-                {/* Motstand 1-10 — kun for innendørs-maskiner med motstand-skala
+                {/* Motstand 1-10 - kun for innendørs-maskiner med motstand-skala
                     (SkiErg, Romaskin, Stairmaster, Ellipsemaskin, Spinning,
                     Indoors/Ergo, Air bike). Tredemølle har incline_percent. */}
                 {felter.motstand && (
@@ -1271,7 +1271,7 @@ function ActivityRowItem({
                     <select value={row.resistance_level}
                       onChange={e => onUpdate({ resistance_level: e.target.value })}
                       style={iSt}>
-                      <option value="">—</option>
+                      <option value="">-</option>
                       {[1,2,3,4,5,6,7,8,9,10].map(n => (
                         <option key={n} value={String(n)}>{n}</option>
                       ))}
@@ -1282,27 +1282,27 @@ function ActivityRowItem({
             )}
           </div>
 
-          {/* Pace per km — utholdenhet + tur. Brukeren ser min/km eller km/t
+          {/* Pace per km - utholdenhet + tur. Brukeren ser min/km eller km/t
               (lokal toggle), kanonisk lagring er sekunder per km. Auto-forslag
               fra distanse + varighet vises når feltet er tomt. */}
           {(isEndurance || isTur) && felter.fart === 'pace' && !meta?.isShooting && !isAnnet && (
             <PaceField row={row} onUpdate={onUpdate} defaultPaceUnit={defaultPaceUnit} />
           )}
 
-          {/* Tur-spesifikke felt — vises for standard 'Tur' og bruker-definerte
+          {/* Tur-spesifikke felt - vises for standard 'Tur' og bruker-definerte
               tur-former. Pulkvekt vises bare når underkategori matcher pulk-liste. */}
           {isTur && (
             <TurFields row={row} onUpdate={onUpdate} />
           )}
 
-          {/* Vekt (vest/våpen) på utholdenhet — DISKRET tillegg (Sverre 22. aug):
+          {/* Vekt (vest/våpen) på utholdenhet - DISKRET tillegg (Sverre 22. aug):
               en liten ghost-knapp til verdien finnes. Skiskyttere får børsa-
               chip (3,5 kg) rett i raden. Lagres i pack_weight_kg (Tur-mønsteret). */}
           {isEndurance && !isTur && !meta?.isShooting && !isAnnet && (
             <VektTillegg row={row} onUpdate={onUpdate} biathlon={sport === 'biathlon'} />
           )}
 
-          {/* Sonefordeling — kun utholdenhet (ikke skyting/pause/styrke) */}
+          {/* Sonefordeling - kun utholdenhet (ikke skyting/pause/styrke) */}
           {isEndurance && !meta?.isShooting && (
             <ZoneEditor
               zones={row.zones}
@@ -1317,7 +1317,7 @@ function ActivityRowItem({
             />
           )}
 
-          {/* Skyting-felt — dagbok viser skudd + treff + %, plan viser kun
+          {/* Skyting-felt - dagbok viser skudd + treff + %, plan viser kun
               planlagt antall skudd. Treff er alltid valgfritt. */}
           {meta?.isShooting && (
             <ShootingFields row={row} onUpdate={onUpdate} planMode={isPlanMode} workoutType={workoutType} />
@@ -1332,7 +1332,7 @@ function ActivityRowItem({
             />
           )}
 
-          {/* Laktat — én eller flere målinger (kun dagbok, ikke plan) */}
+          {/* Laktat - én eller flere målinger (kun dagbok, ikke plan) */}
           {!isPlanMode && (
             <LactateMeasurementsEditor
               measurements={row.lactate_measurements}
@@ -1391,7 +1391,7 @@ function ZoneEditor({
         </span>
       </div>
 
-      {/* Color bar — 6 segmenter når Hurtighet > 0, ellers 5 */}
+      {/* Color bar - 6 segmenter når Hurtighet > 0, ellers 5 */}
       <div className="flex mb-2" style={{ height: '8px', border: '1px solid var(--line)', borderRadius: 4, overflow: 'hidden' }}>
         {keys.map(k => {
           const sec = parseActivityDuration(zones[k] ?? '') ?? 0
@@ -1403,7 +1403,7 @@ function ZoneEditor({
         {totalSec === 0 && <div style={{ flex: 1, backgroundColor: 'var(--kant-2)' }} />}
       </div>
 
-      {/* ÉN grid som pakker N felter — ikke to hardkodede rader. På mobil gir
+      {/* ÉN grid som pakker N felter - ikke to hardkodede rader. På mobil gir
           ZONE_KEYS-rekkefølgen I1·I2·I3 på rad 1 og I4·I5·Hurt. på rad 2, og
           en utvidet soneskala ville flytt videre av seg selv.
           md: er samme brekkpunkt som sonevisningen i WorkoutOverview, så
@@ -1415,7 +1415,7 @@ function ZoneEditor({
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ZONE_COLORS_BAR[k] }}>
               {k === 'Hurtighet' ? (utvidet === true ? 'Hurt. (eldre)' : 'Hurt.') : k}
             </label>
-            {/* padding nulles ut fra iSt her — inline style slår Tailwind, så
+            {/* padding nulles ut fra iSt her - inline style slår Tailwind, så
                 padding-klassene ville ikke hatt effekt ellers. Den delte
                 iSt-konstanten er urørt; kun denne inputen overstyres.
                 min-h-[40px] gir touch-høyde på mobil uansett fontmetrikk, og
@@ -1433,13 +1433,13 @@ function ZoneEditor({
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {'Skriv "60" for 60 minutter, eller "1:30" for 1 min 30 sek.'}{' '}
         {utvidet === true
-          ? 'I6–I8 føres manuelt (innsats/laktat) — beregnes aldri fra puls.'
-          : 'Hurtighet føres manuelt — beregnes ikke fra puls.'}
+          ? 'I6-I8 føres manuelt (innsats/laktat) - beregnes aldri fra puls.'
+          : 'Hurtighet føres manuelt - beregnes ikke fra puls.'}
       </p>
       {utvidet === true && gammelHurtighet && (
         <p className="mt-1 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          Hurtighet-feltet vises fordi økta har en eldre føring — den lagres
+          Hurtighet-feltet vises fordi økta har en eldre føring - den lagres
           urørt og vises som I7 i fordelinger. Nye føres som I7.
         </p>
       )}
@@ -1469,14 +1469,14 @@ function daysAgoLabel(dateStr: string): string {
 // ellers «4 sett · 5/5/3 @ 82.5».
 function summarizeLastSession(ls: LastSessionForExercise): string {
   const sets = ls.sets
-  if (sets.length === 0) return '—'
+  if (sets.length === 0) return '-'
   const w = sets[0].weight_kg
   const allSameW = sets.every(s => s.weight_kg === w)
   const r = sets[0].reps
   const allSameR = sets.every(s => s.reps === r)
   const wPart = w != null ? ` @ ${w} kg` : ''
   if (allSameR && r != null) return `${sets.length}×${r}${allSameW ? wPart : ''}`
-  const reps = sets.map(s => s.reps ?? '–').join('/')
+  const reps = sets.map(s => s.reps ?? '-').join('/')
   return `${sets.length} sett · ${reps}${allSameW ? wPart : ''}`
 }
 
@@ -1703,7 +1703,7 @@ function ExerciseBlock({
         </div>
       )}
 
-      {/* Set rows — Tid-kolonnen er for isometriske hold (planke, statisk
+      {/* Set rows - Tid-kolonnen er for isometriske hold (planke, statisk
           muskeldraining). Bruker kan fylle reps/kg/tid uavhengig. */}
       <div className="space-y-1.5">
         <div className="grid gap-2 px-1 text-xs tracking-widest uppercase"
@@ -1726,20 +1726,20 @@ function ExerciseBlock({
             }}>{s.set_number}</span>
             <input value={s.reps}
               onChange={e => updateSet(s.id, { reps: e.target.value })}
-              inputMode="numeric" placeholder="—"
+              inputMode="numeric" placeholder="-"
               style={{ ...iSt, textAlign: 'center' }} />
             <input value={s.weight_kg}
               onChange={e => updateSet(s.id, { weight_kg: e.target.value })}
-              inputMode="decimal" placeholder="—"
+              inputMode="decimal" placeholder="-"
               style={{ ...iSt, textAlign: 'center' }} />
             <input value={s.duration}
               onChange={e => updateSet(s.id, { duration: e.target.value })}
-              inputMode="numeric" placeholder="—"
+              inputMode="numeric" placeholder="-"
               title="Sekunder (90) eller MM:SS (1:30)"
               style={{ ...iSt, textAlign: 'center' }} />
             <input value={s.rpe}
               onChange={e => updateSet(s.id, { rpe: e.target.value })}
-              inputMode="numeric" placeholder="—"
+              inputMode="numeric" placeholder="-"
               style={{ ...iSt, textAlign: 'center' }} />
             <button type="button" onClick={() => deleteSet(s.id)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '14px' }}
@@ -1871,7 +1871,7 @@ function ExerciseNameAutocomplete({
             </button>
           ))}
           {/* Bla per kategori (kø #46-oppfølger): toggler kategorichips +
-              øvelsesliste fra standardbiblioteket — 287 øvelser. */}
+              øvelsesliste fra standardbiblioteket - 287 øvelser. */}
           <button type="button" onClick={() => setBrowsing(b => !b)}
             className="w-full px-3 transition-colors hover:bg-[var(--kant-3)]"
             style={{
@@ -1930,7 +1930,7 @@ function LactateMeasurementsEditor({
             style={{ gridTemplateColumns: '1fr 1fr 24px' }}>
             <input value={m.value_mmol}
               onChange={e => updateMeasurement(m.id, { value_mmol: e.target.value })}
-              inputMode="decimal" placeholder="—"
+              inputMode="decimal" placeholder="-"
               style={{ ...iSt, color: '#FF4500', textAlign: 'center' }} />
             <input type="time" value={m.measured_at}
               onChange={e => updateMeasurement(m.id, { measured_at: e.target.value })}
@@ -2040,7 +2040,7 @@ function TurFields({
         <Field label="Sekkvekt (kg)">
           <input value={row.pack_weight_kg}
             onChange={e => onUpdate({ pack_weight_kg: e.target.value })}
-            placeholder="—" inputMode="decimal"
+            placeholder="-" inputMode="decimal"
             style={iSt} />
         </Field>
 
@@ -2048,7 +2048,7 @@ function TurFields({
           <Field label="Pulkvekt (kg)">
             <input value={row.sled_weight_kg}
               onChange={e => onUpdate({ sled_weight_kg: e.target.value })}
-              placeholder="—" inputMode="decimal"
+              placeholder="-" inputMode="decimal"
               style={iSt} />
           </Field>
         )}
@@ -2065,7 +2065,7 @@ function TurFields({
           <select value={row.weather}
             onChange={e => onUpdate({ weather: e.target.value })}
             style={iSt}>
-            <option value="">—</option>
+            <option value="">-</option>
             {WEATHER_OPTIONS.map(w => (
               <option key={w} value={w}>{w}</option>
             ))}
@@ -2075,7 +2075,7 @@ function TurFields({
         <Field label="Temperatur (°C)">
           <input value={row.temperature_c}
             onChange={e => onUpdate({ temperature_c: e.target.value })}
-            placeholder="—" inputMode="decimal"
+            placeholder="-" inputMode="decimal"
             style={iSt} />
         </Field>
       </div>
@@ -2199,7 +2199,7 @@ function ShootingFields({
 
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
-      {/* Type-chips — én type per blokk. */}
+      {/* Type-chips - én type per blokk. */}
       <div className="flex items-center flex-wrap" style={{ gap: 6, marginBottom: 8 }}>
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', marginRight: 2 }}>
@@ -2229,12 +2229,12 @@ function ShootingFields({
         {chip('🧪 Skytetest', row.shooting_is_test, '#D4A017',
           () => onUpdate({ shooting_is_test: !row.shooting_is_test }))}
         {isComp && chip('🏁 Konkurranse', true, '#D4A017', undefined,
-          { dashed: true, title: 'Automatisk — følger øktas konkurranse-markering' })}
+          { dashed: true, title: 'Automatisk - følger øktas konkurranse-markering' })}
         {isTestlop && chip('⏱ Testløp', true, '#1A6FD4', undefined,
-          { dashed: true, title: 'Automatisk — følger øktas testløp-markering' })}
+          { dashed: true, title: 'Automatisk - følger øktas testløp-markering' })}
       </div>
 
-      {/* Bolk 4: skytetest-mal (🧪) — forhåndsutfyller serier/underlag. */}
+      {/* Bolk 4: skytetest-mal (🧪) - forhåndsutfyller serier/underlag. */}
       {row.shooting_is_test && (
         <div className="mb-3 p-2" style={{ border: '1px dashed rgba(212,160,23,0.4)', borderRadius: 10 }}>
           <div className="flex flex-wrap items-center" style={{ gap: 6 }}>
@@ -2285,7 +2285,7 @@ function ShootingFields({
                     Lagre som egen mal
                   </button>
                 )}
-                {/* Kø #49 bolk 4: NSSF er låst men KOPIERBART — kopien tas fra
+                {/* Kø #49 bolk 4: NSSF er låst men KOPIERBART - kopien tas fra
                     NSSF-DEFINISJONEN (ikke gjeldende serier) og blir brukerens
                     egen redigerbare test-mal, valgt med én gang. */}
                 {activeStd && (
@@ -2327,7 +2327,7 @@ function ShootingFields({
           </div>
           {(activeStd?.guidance || activeOwn) && (
             <p className="text-xs mt-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>
-              {activeStd?.guidance ?? 'Egen mal — samme mal gir sammenlignbar testserie over tid.'}
+              {activeStd?.guidance ?? 'Egen mal - samme mal gir sammenlignbar testserie over tid.'}
             </p>
           )}
         </div>
@@ -2335,7 +2335,7 @@ function ShootingFields({
 
       {isDry ? (
         <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
-          Tørrtrening: før kun total skytetid i Varighet-feltet over — ingen
+          Tørrtrening: før kun total skytetid i Varighet-feltet over - ingen
           skudd/treff registreres.
           <span style={{ display: 'block', color: 'var(--tekst-8-app)' }}>
             NSSF-tips: 3×5 min er bedre enn 1×15 min.
@@ -2492,7 +2492,7 @@ function CreateMovementTypeModal({
           </div>
 
           <div>
-            <Label>Underkategorier (valgfritt — kommaseparert)</Label>
+            <Label>Underkategorier (valgfritt - kommaseparert)</Label>
             <input value={subcatsText} onChange={e => setSubcatsText(e.target.value)}
               placeholder="F.eks. Teknisk, Taktisk, Styrke"
               style={iSt} />

@@ -104,7 +104,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
               outline: 'none',
             }}
           />
-          <span style={{ color: 'var(--tekst-8-app)' }}>—</span>
+          <span style={{ color: 'var(--tekst-8-app)' }}>-</span>
           <input
             type="date"
             value={filters.toDate ?? ''}

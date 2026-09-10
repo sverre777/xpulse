@@ -24,7 +24,7 @@ export async function createBillingPortalSession(): Promise<{ url?: string; erro
     .eq('user_id', user.id)
     .maybeSingle()
   if (!sub?.stripe_customer_id) {
-    return { error: 'Ingen Stripe-konto knyttet til denne brukeren — start abonnement først.' }
+    return { error: 'Ingen Stripe-konto knyttet til denne brukeren - start abonnement først.' }
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'

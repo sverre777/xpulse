@@ -259,7 +259,7 @@ export async function redeemInviteCode(
         .eq('status', 'active')
       if (cntErr) return { error: cntErr.message }
       if ((count ?? 0) >= BASIC_MAX_ATHLETES) {
-        return { error: `Trener Basic har en grense på ${BASIC_MAX_ATHLETES} aktive utøvere. Oppgrader til Trener Pro for ubegrenset antall — eller avslutt en eksisterende kobling først.` }
+        return { error: `Trener Basic har en grense på ${BASIC_MAX_ATHLETES} aktive utøvere. Oppgrader til Trener Pro for ubegrenset antall - eller avslutt en eksisterende kobling først.` }
       }
     }
   }

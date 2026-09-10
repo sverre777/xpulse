@@ -93,7 +93,7 @@ export function SeasonHeaderBar({
                 boxShadow: '0 0 6px rgba(212, 160, 23, 0.35)',
               }}
               title={p.name}>
-              {fmtDate(p.date)} — {p.name}
+              {fmtDate(p.date)} - {p.name}
             </span>
           ))}
         </div>

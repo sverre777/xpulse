@@ -127,7 +127,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
     <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 overflow-x-hidden">
 
-        {/* Gjenoppta-banneret viser INNLOGGET brukers aktive live-økt —
+        {/* Gjenoppta-banneret viser INNLOGGET brukers aktive live-økt -
             skjules i trener-drilldown (ville vist trenerens egen økt inne
             i utøverens dagbok; live-modus er uansett utøver-only). */}
         {viewContext.mode !== 'coach-view' && <ResumeSessionBanner />}
@@ -151,7 +151,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
           <div className="mb-6">
             <EmptyState
               title="Ingen økter i denne måneden ennå"
-              body="Logg en økt manuelt, eller koble klokken — da kommer øktene inn av seg selv."
+              body="Logg en økt manuelt, eller koble klokken - da kommer øktene inn av seg selv."
               ctaLabel="+ Logg økt"
               ctaHref={`/app/dagbok?new=${today}`}
               secondaryLabel="Koble klokke"
@@ -202,7 +202,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
           </Suspense>
         </div>
 
-        {/* Plan vs. gjennomført — custom-grafen under kalenderen. Starter i
+        {/* Plan vs. gjennomført - custom-grafen under kalenderen. Starter i
             «Begge»/måned/siste 12 mnd; brukeren kan endre alt selv. */}
         <div className="flex items-center gap-3 mb-4 mt-8">
           <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
@@ -223,7 +223,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
             uten skytedata. */}
         {harSkiskyting(userSports) && <SkytingChartSection targetUserId={targetId} />}
 
-        {/* Helse fra klokka — full oversikt NEDERST (helse-designet):
+        {/* Helse fra klokka - full oversikt NEDERST (helse-designet):
             under kalenderen og alle grafene. Skjuler seg selv uten
             helsedata (regel 20). */}
         <div className="mt-8">

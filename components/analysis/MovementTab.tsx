@@ -32,7 +32,7 @@ function formatKm(meters: number): string {
 }
 
 function formatPace(secPerKm: number | null | undefined): string {
-  if (!secPerKm || !Number.isFinite(secPerKm)) return '—'
+  if (!secPerKm || !Number.isFinite(secPerKm)) return '-'
   const m = Math.floor(secPerKm / 60)
   const s = Math.round(secPerKm % 60)
   return `${m}:${String(s).padStart(2, '0')}/km`
@@ -190,7 +190,7 @@ export function MovementMetricCards({ data, movement, bare }: { data: MovementAn
       {vis('bevegelse_snittpuls') && <MetricCard
         chartKey="bevegelse_snittpuls"
         label="Snittpuls"
-        value={data.current.avg_heart_rate != null ? `${data.current.avg_heart_rate} bpm` : '—'}
+        value={data.current.avg_heart_rate != null ? `${data.current.avg_heart_rate} bpm` : '-'}
         sublabel={prev.avg_heart_rate != null ? `Forrige: ${prev.avg_heart_rate} bpm` : null}
         positiveIsGood={false}
         accent="#E11D48"

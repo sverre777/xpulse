@@ -21,7 +21,7 @@ function ErrorPanel({ title, message, stack }: { title: string; message: string;
         <div className="flex items-center gap-3 mb-6">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', letterSpacing: '0.08em' }}>
-            Analyse — feil
+            Analyse - feil
           </h1>
         </div>
         <LoadError what="analysen" detail={[title, message, stack].filter(Boolean).join('\n\n')} />

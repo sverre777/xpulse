@@ -43,7 +43,7 @@ export function SportSubcategorySelector({
     <>
       <Field label="Sport">
         <select value={sport} onChange={e => onSelectSport(e.target.value)} style={fieldStyle ?? inputStyle}>
-          <option value="">— velg sport —</option>
+          <option value="">- velg sport -</option>
           {TEST_PR_SPORTS_AND_SUBCATEGORIES.map(s => (
             <option key={s.value} value={s.value}>{s.label}</option>
           ))}
@@ -53,7 +53,7 @@ export function SportSubcategorySelector({
       {subs.length > 0 && (
         <Field label="Underkategori">
           <select value={subcategory} onChange={e => onPatch({ subcategory: e.target.value })} style={fieldStyle ?? inputStyle}>
-            <option value="">— velg —</option>
+            <option value="">- velg -</option>
             {subs.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}

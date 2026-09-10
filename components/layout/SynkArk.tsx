@@ -37,7 +37,7 @@ export function SynkArk({ onClose }: { onClose: () => void }) {
   const synkNaa = async () => {
     setSynker(true); setMelding(null)
     try { const r = await syncConnectedWatches(); setMelding(r.error ? r.error : `${r.imported} ny${r.imported === 1 ? '' : 'e'} økt${r.imported === 1 ? '' : 'er'} hentet`); await last(); router.refresh() }
-    catch { setMelding('Synk feilet — prøv igjen') } finally { setSynker(false) }
+    catch { setMelding('Synk feilet - prøv igjen') } finally { setSynker(false) }
   }
   const tilkoblede = status?.kilder.filter(k => k.tilkoblet) ?? []
   return (
@@ -49,7 +49,7 @@ export function SynkArk({ onClose }: { onClose: () => void }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: 'var(--tekst-1-app)', margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{k.name}{k.via ? <span style={{ fontWeight: 400, color: 'var(--tekst-8-app)', textTransform: 'none', letterSpacing: 0 }}> · via klokkesynk-leverandør</span> : null}</p>
               <p style={{ fontFamily: FONT, fontSize: 12.5, color: k.feil ? '#E23A5A' : k.tilkoblet ? GRONN : 'var(--tekst-5-app)', margin: '2px 0 0' }}>
-                {k.feil ? 'Synk feilet — re-koble' : k.tilkoblet ? `Tilkoblet${k.autoSynk ? ' · synk automatisk' : ''}${k.lastSyncAt ? ` · ${relativ(k.lastSyncAt)}` : ''}` : 'Ikke tilkoblet'}
+                {k.feil ? 'Synk feilet - re-koble' : k.tilkoblet ? `Tilkoblet${k.autoSynk ? ' · synk automatisk' : ''}${k.lastSyncAt ? ` · ${relativ(k.lastSyncAt)}` : ''}` : 'Ikke tilkoblet'}
               </p>
             </div>
             {k.tilkoblet && !k.feil ? <span aria-hidden style={{ color: GRONN, fontSize: 18 }}>✓</span> : (

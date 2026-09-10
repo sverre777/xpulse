@@ -330,7 +330,7 @@ function TestsSection({ tests, ski, onEdit }: {
                           </span>
                           <span className="shrink-0 text-xs tracking-widest uppercase"
                             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                            {deler.join(' · ') || '—'}
+                            {deler.join(' · ') || '-'}
                           </span>
                         </div>
                       )

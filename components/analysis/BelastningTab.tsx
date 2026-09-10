@@ -36,11 +36,11 @@ const FORM_ZONES: { from: number; to: number; color: string; label: string }[] =
 ]
 
 const FORM_LABELS: Record<FormStatus, { label: string; color: string; desc: string }> = {
-  detrained:      { label: 'Uttrent',          color: 'var(--tekst-5-app)', desc: 'TSB > 20 — for lite belastning, form synker.' },
-  optimal:        { label: 'Optimal form',     color: '#28A86E', desc: 'TSB 10–20 — uthvilt og god form for konkurranse.' },
-  neutral:        { label: 'Nøytral',          color: 'var(--tekst-5-app)', desc: 'TSB −10 til 10 — balansert trening.' },
-  hoy_belastning: { label: 'Høy belastning',   color: '#E8B93C', desc: 'TSB −30 til −10 — kropp jobber, monitorér restitusjon.' },
-  overtrent:      { label: 'Overbelastet',     color: '#E23A5A', desc: 'TSB < −30 — akutt overbelastning, trappa ned.' },
+  detrained:      { label: 'Uttrent',          color: 'var(--tekst-5-app)', desc: 'TSB > 20 - for lite belastning, form synker.' },
+  optimal:        { label: 'Optimal form',     color: '#28A86E', desc: 'TSB 10-20 - uthvilt og god form for konkurranse.' },
+  neutral:        { label: 'Nøytral',          color: 'var(--tekst-5-app)', desc: 'TSB −10 til 10 - balansert trening.' },
+  hoy_belastning: { label: 'Høy belastning',   color: '#E8B93C', desc: 'TSB −30 til −10 - kropp jobber, monitorér restitusjon.' },
+  overtrent:      { label: 'Overbelastet',     color: '#E23A5A', desc: 'TSB < −30 - akutt overbelastning, trappa ned.' },
 }
 
 function formatDateShort(iso: string): string {
@@ -87,7 +87,7 @@ export function BelastningTab({ data, helse }: { data: BelastningAnalysis; helse
       <PerceivedVsCalculatedChart data={data} />
       <EnergyStressOverTimeChart data={data} />
       <RestDayStats data={data} />
-      {/* Bolk 4: helse mot belastning — egen datasett (getHelseBelastning), lastes med fanen. */}
+      {/* Bolk 4: helse mot belastning - egen datasett (getHelseBelastning), lastes med fanen. */}
       {helse ? <HelseBelastningSeksjon data={helse} /> : (
         <div className="py-10 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
           <p className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>Laster helse mot belastning…</p>
@@ -176,7 +176,7 @@ export function FitnessFatigueChart({ data, hendelser = [] }: { data: Belastning
                 fill="rgba(91, 141, 239, 0.14)" stroke="#5B8DEF" strokeOpacity={0.4} strokeDasharray="3 3"
                 label={{ value: `🏔️ ${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
             ))}
-            {/* Bolk 4: sykdom/skade som lag — samme på alle belastnings-/helsegrafer. */}
+            {/* Bolk 4: sykdom/skade som lag - samme på alle belastnings-/helsegrafer. */}
             {hendelser.filter(h => rows.some(r => r.date === h.date)).map((h, i) => (
               <ReferenceArea key={`h-${i}`} yAxisId="ctl" x1={formatDateShort(h.date)} x2={formatDateShort(h.date)}
                 fill={h.type === 'sykdom' ? 'rgba(226,58,90,.22)' : 'rgba(255,140,0,.22)'} stroke="none" ifOverflow="extendDomain" />
@@ -258,7 +258,7 @@ export function PerceivedVsCalculatedChart({ data }: { data: BelastningAnalysis 
   return (
     <ChartWrapper chartKey="belastning_perceived_vs_calculated"
       title="Opplevd vs. beregnet belastning"
-      subtitle="Perceived load (1–10, høyre akse) opp mot gjennomsnittlig ATL per uke (venstre akse)"
+      subtitle="Perceived load (1-10, høyre akse) opp mot gjennomsnittlig ATL per uke (venstre akse)"
       height={260}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
@@ -275,10 +275,10 @@ export function PerceivedVsCalculatedChart({ data }: { data: BelastningAnalysis 
             <YAxis yAxisId="perceived" orientation="right" tick={CHART_AXIS_TICK}
               axisLine={CHART_AXIS_LINE} tickLine={false} width={32} domain={[0, 10]} />
             <Tooltip content={<XpTooltip />}
-              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
+              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '-'), String(k)]} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line yAxisId="atl" type="monotone" dataKey="atl" stroke={COLOR_ATL} strokeWidth={2} dot={{ r: 3 }} name="ATL (snitt)" connectNulls />
-            <Line yAxisId="perceived" type="monotone" dataKey="perceived" stroke="#E8B93C" strokeWidth={2.5} dot={{ r: 3 }} name="Opplevd (1–10)" connectNulls />
+            <Line yAxisId="perceived" type="monotone" dataKey="perceived" stroke="#E8B93C" strokeWidth={2.5} dot={{ r: 3 }} name="Opplevd (1-10)" connectNulls />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -298,7 +298,7 @@ export function EnergyStressOverTimeChart({ data }: { data: BelastningAnalysis }
   return (
     <ChartWrapper chartKey="belastning_energy_stress_over_time"
       title="Overskudd og stress over tid"
-      subtitle="Ukentlig refleksjon · grønn = overskudd 🙂, rød = stress 😰 (skala 1–10)"
+      subtitle="Ukentlig refleksjon · grønn = overskudd 🙂, rød = stress 😰 (skala 1-10)"
       height={260}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
@@ -313,7 +313,7 @@ export function EnergyStressOverTimeChart({ data }: { data: BelastningAnalysis }
             <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
             <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} domain={[0, 10]} />
             <Tooltip content={<XpTooltip />}
-              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
+              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '-'), String(k)]} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line type="monotone" dataKey="energy" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} name="Overskudd 🙂" connectNulls />
             <Line type="monotone" dataKey="stress" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
@@ -359,7 +359,7 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
             <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Snitt dager mellom</p>
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', lineHeight: 1 }}>
-              {r.avg_days_between_rest != null ? r.avg_days_between_rest : '—'}
+              {r.avg_days_between_rest != null ? r.avg_days_between_rest : '-'}
             </span>
             <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {r.avg_days_between_rest != null ? 'dager' : 'Trenger ≥ 2 hviledager'}
@@ -431,7 +431,7 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
         </p>
         <p className="text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-          Last ned daglige tall eller ukesrefleksjoner som CSV — for videre analyse i Excel eller egne verktøy.
+          Last ned daglige tall eller ukesrefleksjoner som CSV - for videre analyse i Excel eller egne verktøy.
         </p>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -475,8 +475,8 @@ function MethodNote() {
         {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>ATL</strong> (akutt tretthet) og <strong style={{ color: 'var(--tekst-1-app)' }}>CTL</strong> (form-base)
         er eksponentielt vektede glidende snitt med tidskonstant 7 hhv. 42 dager. <strong style={{ color: 'var(--tekst-1-app)' }}>TSB</strong> (form) = CTL − ATL.
         {' '}Tallene forbehandles med 42 dagers oppvarming før periodestart for at CTL skal være stabilt.
-        {' '}Positive TSB betyr uthvilt — kropp er klar for høy belastning eller konkurranse.
-        {' '}Negative TSB betyr akkumulert belastning — planlegg restitusjon.
+        {' '}Positive TSB betyr uthvilt - kropp er klar for høy belastning eller konkurranse.
+        {' '}Negative TSB betyr akkumulert belastning - planlegg restitusjon.
       </p>
     </div>
   )

@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(settingsUrl('feil-state', 'state-format'))
   }
   if (!csrfFromCookie) {
-    return NextResponse.redirect(settingsUrl('feil-state', 'cookie mangler — sjekk SameSite/Secure'))
+    return NextResponse.redirect(settingsUrl('feil-state', 'cookie mangler - sjekk SameSite/Secure'))
   }
   if (csrfFromCookie !== csrfFromUrl) {
     return NextResponse.redirect(settingsUrl('feil-state', 'csrf-mismatch'))

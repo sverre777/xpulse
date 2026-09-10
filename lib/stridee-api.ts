@@ -173,7 +173,7 @@ export async function lastNedStrideeFil(
   const bytes = Buffer.from(await filSvar.arrayBuffer())
   if (bytes.length === 0) return { feil: 'fila var tom' }
   if (bytes.length > STRIDEE_FIL_MAKS_BYTE) {
-    return { feil: `fila er ${(bytes.length / 1048576).toFixed(1)} MB — grensen er 20 MB` }
+    return { feil: `fila er ${(bytes.length / 1048576).toFixed(1)} MB - grensen er 20 MB` }
   }
   return { data: bytes }
 }

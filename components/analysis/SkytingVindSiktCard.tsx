@@ -179,7 +179,7 @@ export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
           </div>
 
           <Blokk
-            tittel={retning === 'samlet' ? 'Vind (vimpel) — styrke slått sammen' : 'Vind (vimpel)'}
+            tittel={retning === 'samlet' ? 'Vind (vimpel) - styrke slått sammen' : 'Vind (vimpel)'}
             rader={vind.rader}
             utelatt={vind.utelatt}
             utelattTekst="uten ført vind"
@@ -264,7 +264,7 @@ function Maler({ navn, farge, rec, hits }: {
           </>
         ) : (
           <span style={{ color: 'var(--tekst-8-app)' }}>
-            {rec === 0 ? '—' : `for lite data · ${rec}`}
+            {rec === 0 ? '-' : `for lite data · ${rec}`}
           </span>
         )}
       </span>
@@ -276,7 +276,7 @@ function Forklaring() {
   return (
     <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       Tallene er veiledende, ikke en dom: de sier hvor du har skutt mye og hvor du har skutt lite.
-      Serier uten ført vind eller sikt telles aldri som vindstille eller god sikt — de holdes utenfor.
+      Serier uten ført vind eller sikt telles aldri som vindstille eller god sikt - de holdes utenfor.
     </p>
   )
 }

@@ -293,13 +293,13 @@ export function OktKurve({
         {bakgrunn?.(hjelpere)}
         <svg viewBox={`0 0 ${VISNING_BREDDE} ${H}`} preserveAspectRatio="none"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          {/* Y-streker fra fokus-serien — eneste akse på flata. */}
+          {/* Y-streker fra fokus-serien - eneste akse på flata. */}
           {ticks.map(v => {
             const y = fokus ? yFor(fokus, v) : 0
             return <line key={`g${v}`} x1={0} x2={VISNING_BREDDE} y1={y} y2={y}
               stroke="var(--kant-3)" strokeWidth={1} vectorEffect="non-scaling-stroke" opacity={0.5} />
           })}
-          {/* Høyde som fylt areal BAK alt — kontekst, aldri likestilt linje. */}
+          {/* Høyde som fylt areal BAK alt - kontekst, aldri likestilt linje. */}
           {paa.filter(s => s.somAreal).map(s => (
             <path key={s.id} d={sti(s, true)} fill={s.farge} opacity={0.13} stroke="none" />
           ))}
@@ -336,7 +336,7 @@ export function OktKurve({
           </span>
         ))}
 
-        {/* Krysshår — leses i panelet under, ikke i en tooltip. */}
+        {/* Krysshår - leses i panelet under, ikke i en tooltip. */}
         {krysshaarSek != null && krysshaarSek >= fraSek && krysshaarSek <= tilSek && (
           <span aria-hidden style={{
             position: 'absolute', left: hjelpere.pct(krysshaarSek), top: 0, bottom: BUNN,

@@ -205,7 +205,7 @@ export function EquipmentDetailView({
             <Row label="Kjøpsdato" value={equipment.purchase_date} />
             <Row label="Pris" value={equipment.price_kr != null ? `${equipment.price_kr} kr` : null} />
             <Row label="Start-km" value={equipment.start_km ? `${equipment.start_km} km` : null} />
-            {/* Fase 99 — kategorispesifikke felter (vises kun når satt) */}
+            {/* Fase 99 - kategorispesifikke felter (vises kun når satt) */}
             <Row label="Størrelse" value={equipment.size ?? null} />
             <Row label="Bruk" value={equipment.usage_type ?? null} />
             <Row label="Lengde" value={equipment.length_cm != null ? `${equipment.length_cm} cm` : null} />
@@ -296,7 +296,7 @@ export function EquipmentDetailView({
                 onChange={e => set({ start_km: e.target.value })}
                 placeholder="0" className="w-full px-4 py-3" style={inputStyle} />
             </Field>
-            {/* Kategorispesifikke felter — delt komponent, samme fasit som ny-skjemaet.
+            {/* Kategorispesifikke felter - delt komponent, samme fasit som ny-skjemaet.
                 Ski-feltene redigeres i Ski-data-seksjonen under (visSki=false). */}
             <KategoriFelter category={form.category} verdier={form} onChange={set} />
             <Field label="Notater">
@@ -453,7 +453,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
           <select value={form.ski_type}
             onChange={e => setForm(f => ({ ...f, ski_type: e.target.value as SkiType | '' }))}
             className="w-full px-4 py-3" style={inputStyle}>
-            <option value="">— ikke satt —</option>
+            <option value="">- ikke satt -</option>
             {SKI_TYPES.map(t => <option key={t} value={t}>{SKI_TYPE_LABELS[t]}</option>)}
           </select>
         </Field>
@@ -468,7 +468,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
           <select value={form.usage_type}
             onChange={e => setForm(f => ({ ...f, usage_type: e.target.value as SkiUsageType | '' }))}
             className="w-full px-4 py-3" style={inputStyle}>
-            <option value="">— ikke satt —</option>
+            <option value="">- ikke satt -</option>
             {SKI_USAGE_TYPES.map(u => <option key={u} value={u}>{SKI_USAGE_LABELS[u]}</option>)}
           </select>
         </Field>
@@ -484,7 +484,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
           className="w-full px-4 py-3" style={inputStyle} />
       </Field>
       <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
-        Slip registreres i sliphistorikken under — «+ Ny slip» legger alltid en ny rad oppå.
+        Slip registreres i sliphistorikken under - «+ Ny slip» legger alltid en ny rad oppå.
       </p>
       <Field label="Notater">
         <textarea value={form.notes} rows={3}
@@ -528,7 +528,7 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
     setError(null)
     const dato = slipDatoTilDate(form.dato)
     if (!form.grind.trim()) { setError('Slip-navn er påkrevd'); return }
-    if (!dato) { setError('Årstall eller dato er påkrevd — «2026» holder'); return }
+    if (!dato) { setError('Årstall eller dato er påkrevd - «2026» holder'); return }
     startTransition(async () => {
       const result = await addGrind({
         equipment_id: equipmentId,
@@ -580,7 +580,7 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
             </Field>
           </div>
           <p className="text-xs" style={{ color: 'var(--tekst-5-app)' }}>
-            Ny slip legges <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> — historikken beholdes, og
+            Ny slip legges <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> - historikken beholdes, og
             «km siden siste slip» nullstilles.
           </p>
           {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
@@ -749,7 +749,7 @@ function SkiTestHistorySection({
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-xs tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                    {stats.join(' · ') || '—'}
+                    {stats.join(' · ') || '-'}
                   </span>
                   <button type="button" onClick={() => setEditTest(test)}
                     className="xp-pill xp-pill-ghost xp-pill-sm"

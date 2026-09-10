@@ -45,7 +45,7 @@ export function AthleteHeader({ context }: Props) {
       {/* På mobil: avatar+navn på én linje, knappene stables under (2 knapper
           ved siden av hverandre, full bredde). På sm+: alt på samme linje med
           knappene høyre-justert. Tidligere overlapp på mobil ved lange navn
-          som "Jørgen Kjos Barkenes" — knappene la seg oppå navnet fordi
+          som "Jørgen Kjos Barkenes" - knappene la seg oppå navnet fordi
           flex-wrap på outer-div ikke ble utløst når shrink-0 på knappene
           presset dem ut over viewporten. */}
       <div className="p-5 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4">
@@ -100,7 +100,7 @@ export function AthleteHeader({ context }: Props) {
           </div>
         </div>
 
-        {/* Handlinger — full bredde stack på mobil, høyre-justert på sm+ */}
+        {/* Handlinger - full bredde stack på mobil, høyre-justert på sm+ */}
         <div className="flex items-center gap-2 sm:shrink-0 w-full sm:w-auto">
           <Link
             href={`/app/innboks?to=${profile.id}`}

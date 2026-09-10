@@ -475,7 +475,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       kicker: 'X-PULSE for løping',
       titleLines: ['Bane.', 'Asfalt.', 'Terreng.'],
       description:
-        'Sone-styrt plan, pace-utvikling over tid og tester for å se om treningen faktisk gir fremgang. Funksjoner som dekker hele bredden — fra 800-meter-intervall til ultra på fjellet.',
+        'Sone-styrt plan, pace-utvikling over tid og tester for å se om treningen faktisk gir fremgang. Funksjoner som dekker hele bredden - fra 800-meter-intervall til ultra på fjellet.',
       backgroundImage: '/photos/loping.jpg',
     },
     metaDescription:
@@ -759,7 +759,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       kicker: 'X-PULSE for multisport',
       titleLines: ['Løp. Sykle. Ski.', 'Styrke. Alt teller.'],
       description:
-        'For deg som trener variert — eller bare vil komme i gang. All trening i én dagbok, én plan og én belastningsmodell, uansett hvor mange idretter du blander.',
+        'For deg som trener variert - eller bare vil komme i gang. All trening i én dagbok, én plan og én belastningsmodell, uansett hvor mange idretter du blander.',
       backgroundImage: '/photos/multisport.jpg',
     },
     metaDescription:
@@ -900,7 +900,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       kicker: 'X-PULSE for triatlon',
       titleLines: ['Svømming.', 'Sykling.', 'Løping.'],
       description:
-        'Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurransedato — uten å måtte hoppe mellom tre apper for å holde oversikt.',
+        'Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurransedato - uten å måtte hoppe mellom tre apper for å holde oversikt.',
       backgroundImage: '/photos/triatlon.jpg',
     },
     metaDescription:

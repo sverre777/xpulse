@@ -44,7 +44,7 @@ export function InviteCodeRedeemer() {
       const name = res.athleteName ?? 'utøveren'
       const msg = res.alreadyConnected
         ? `Du er allerede koblet til ${name}.`
-        : `Invitasjon godtatt — du er nå koblet til ${name}.`
+        : `Invitasjon godtatt - du er nå koblet til ${name}.`
       setFeedback({ kind: 'ok', message: msg })
       setCode('')
       router.refresh()

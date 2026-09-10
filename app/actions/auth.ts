@@ -213,7 +213,7 @@ export async function resetPassword(
     return { error: `Kunne ikke endre passord: ${error.message}` }
   }
   if (!data.user) {
-    console.warn('[resetPassword] updateUser returned no user — sesjon antakelig ugyldig')
+    console.warn('[resetPassword] updateUser returned no user - sesjon antakelig ugyldig')
     return { error: 'Passord-endring feilet. Be om en ny reset-link.' }
   }
   console.log('[resetPassword] success for user:', data.user.id)

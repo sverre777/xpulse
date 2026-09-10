@@ -106,7 +106,7 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
   const usernameRaw = nullifyEmpty(input.username ?? '')
   const username = usernameRaw ? usernameRaw.toLowerCase() : null
   if (username && !BRUKERNAVN_REGEX.test(username)) {
-    return { error: 'Brukernavn må være 3–20 tegn: små bokstaver a–z, tall, punktum eller understrek' }
+    return { error: 'Brukernavn må være 3-20 tegn: små bokstaver a-z, tall, punktum eller understrek' }
   }
   const birthDate = nullifyEmpty(input.birth_date ?? '')
   if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
@@ -144,7 +144,7 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
   if (error) {
     // Unik-indeksen på lower(username): ærlig melding, ikke DB-språk.
     if (error.code === '23505' && error.message.includes('username')) {
-      return { error: 'Brukernavnet er opptatt — velg et annet' }
+      return { error: 'Brukernavnet er opptatt - velg et annet' }
     }
     return { error: error.message }
   }

@@ -45,14 +45,14 @@ export const FILTYPE_FORKLARING: Record<string, string> = {
   monitoring_a: 'Dette er en døgnmåling (skritt/puls), ikke en treningsøkt. Helsedata hentes via klokkesynk, ikke .fit-opplasting.',
   monitoring_b: 'Dette er en døgnmåling (skritt/puls), ikke en treningsøkt. Helsedata hentes via klokkesynk, ikke .fit-opplasting.',
   monitoring_daily: 'Dette er en døgnmåling (skritt/puls), ikke en treningsøkt. Helsedata hentes via klokkesynk, ikke .fit-opplasting.',
-  workout: 'Dette er et treningsprogram fra klokka, ikke en gjennomført økt — eksporter aktiviteten i stedet.',
-  course: 'Dette er en løype/bane, ikke en gjennomført økt — eksporter aktiviteten i stedet.',
+  workout: 'Dette er et treningsprogram fra klokka, ikke en gjennomført økt - eksporter aktiviteten i stedet.',
+  course: 'Dette er en løype/bane, ikke en gjennomført økt - eksporter aktiviteten i stedet.',
   settings: 'Dette er en innstillingsfil fra klokka, ikke en treningsøkt.',
   device: 'Dette er en enhetsfil fra klokka, ikke en treningsøkt.',
   sport: 'Dette er en sport-profil fra klokka, ikke en treningsøkt.',
   totals: 'Dette er en totalsum-fil fra klokka, ikke en enkelt økt.',
   goals: 'Dette er en mål-fil fra klokka, ikke en treningsøkt.',
-  segment: 'Dette er et segment, ikke en gjennomført økt — eksporter aktiviteten i stedet.',
+  segment: 'Dette er et segment, ikke en gjennomført økt - eksporter aktiviteten i stedet.',
   segment_list: 'Dette er en segmentliste, ikke en treningsøkt.',
   blood_pressure: 'Dette er en blodtrykksmåling, ikke en treningsøkt.',
 }
@@ -226,7 +226,7 @@ export async function createWorkoutFromFit(
       console.error(`[fit-import] workout_activities insert FAILED for ${filename}:`, lapErr.message, lapErr.details ?? '')
     } else {
       activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>
-      console.log(`[fit-import] ${filename} — ${activityIds.length} laps lagret`)
+      console.log(`[fit-import] ${filename} - ${activityIds.length} laps lagret`)
     }
   }
 
@@ -264,12 +264,12 @@ export async function createWorkoutFromFit(
     // avbrutt cron-kjøring fortsatte i bakgrunnen ved siden av retry-kallet,
     // og taperen beholdt økta si — fire dublett-økter i dagboka. Taperen
     // skal rydde etter seg, uansett feilårsak.
-    console.error(`[fit-import] imported_activities-insert feilet (${impErr.code}: ${impErr.message}) — ruller tilbake økta`)
+    console.error(`[fit-import] imported_activities-insert feilet (${impErr.code}: ${impErr.message}) - ruller tilbake økta`)
     await supabase.from('workouts').delete().eq('id', workout.id).eq('user_id', userId)
     return {
       ok: false,
       error: impErr.code === '23505'
-        ? 'en parallell kjøring importerte samme aktivitet — dubletten er fjernet'
+        ? 'en parallell kjøring importerte samme aktivitet - dubletten er fjernet'
         : `import-sporing feilet: ${impErr.message}`,
     }
   }

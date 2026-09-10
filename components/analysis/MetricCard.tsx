@@ -10,7 +10,7 @@ import { sjekkGrafNokkel } from './graf-nokkel'
 
 export interface MetricCardProps {
   label: string
-  value: string                   // ferdigformatert — "12t 30min", "123 km", "—"
+  value: string                   // ferdigformatert - "12t 30min", "123 km", "-"
   sublabel?: string | null        // f.eks. "Forrige periode: 10t 15min"
   deltaPercent?: number | null    // +/- prosent vs. forrige periode
   positiveIsGood?: boolean        // styrer farge på delta. Default true.

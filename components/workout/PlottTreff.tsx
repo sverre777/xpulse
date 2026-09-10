@@ -124,7 +124,7 @@ export function PlottTreffPopup({
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
             color: 'var(--tekst-8-alt)', maxWidth: 330, textAlign: 'right',
           }}>
-            Samme serier som skyting-kortene og statistikken — endringer her slår gjennom overalt
+            Samme serier som skyting-kortene og statistikken - endringer her slår gjennom overalt
           </span>
         </div>
 
@@ -136,7 +136,7 @@ export function PlottTreffPopup({
           )}
           {!laster && grupper.length === 0 && (
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14, padding: '12px 0' }}>
-              Økta har ingen skyting-rader ennå. Legg til skyting i økta først — så samles alle seriene her.
+              Økta har ingen skyting-rader ennå. Legg til skyting i økta først - så samles alle seriene her.
             </p>
           )}
 
@@ -240,8 +240,8 @@ export function Gruppe({
         </span>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: plassert ? 'var(--tekst-8-alt)' : 'var(--mut)' }}>
           {plassert
-            ? `plassert ${fmtKlokkeSek(gruppe.startSek!)}–${fmtKlokkeSek(gruppe.sluttSek!)} ⌚`
-            : 'ikke plassert i tid — puls føres manuelt'}
+            ? `plassert ${fmtKlokkeSek(gruppe.startSek!)}-${fmtKlokkeSek(gruppe.sluttSek!)} ⌚`
+            : 'ikke plassert i tid - puls føres manuelt'}
         </span>
         <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-5-app)' }}>
           {sum.totalSeries > 0 ? (
@@ -253,7 +253,7 @@ export function Gruppe({
                 </b></>
               )}
             </>
-          ) : <>Sum <b style={{ color: 'var(--tekst-1-app)' }}>—</b></>}
+          ) : <>Sum <b style={{ color: 'var(--tekst-1-app)' }}>-</b></>}
         </span>
       </div>
 

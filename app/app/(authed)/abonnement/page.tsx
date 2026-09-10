@@ -23,7 +23,7 @@ const STATUS_INFO: Record<string, { text: string; color: string }> = {
 }
 
 function fmtDate(iso: string | null): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   return new Date(iso).toLocaleDateString('nb-NO', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 function daysUntil(iso: string | null): number | null {
@@ -93,7 +93,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
             }}>
             <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
               Utøverplassen din{seat.coachName ? ` fra ${seat.coachName}` : ''} er avsluttet.
-              All treningsdata er trygt bevart — fortsett med Athlete Pro for 59 kr/mnd, så tar du opp tråden der du slapp.
+              All treningsdata er trygt bevart - fortsett med Athlete Pro for 59 kr/mnd, så tar du opp tråden der du slapp.
             </p>
             <Link href="/onboarding/abonnement"
               className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
@@ -122,10 +122,10 @@ export default async function AbonnementPage({ searchParams }: Props) {
               </span>
             </div>
             <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-              <Row label="Betaling" value="Plassen betales av treneren din — ingenting trekkes deg, og du trenger aldri legge inn kort." />
+              <Row label="Betaling" value="Plassen betales av treneren din - ingenting trekkes deg, og du trenger aldri legge inn kort." />
               {seat!.utloper ? (
                 <Row label="Plassen løper ut"
-                  value={`${fmtDate(seat!.currentPeriodEnd)} — etterpå kan du fortsette selv for 59 kr/mnd.`} />
+                  value={`${fmtDate(seat!.currentPeriodEnd)} - etterpå kan du fortsette selv for 59 kr/mnd.`} />
               ) : (
                 <Row label="Fornyes" value={`Følger trenerens abonnement (neste periodeslutt ${fmtDate(seat!.currentPeriodEnd)}).`} />
               )}
@@ -138,7 +138,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
               Ingen aktivt abonnement
             </h2>
             <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px', lineHeight: 1.6 }}>
-              30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Promo-kode kan brukes ved kassen.
+              30 dagers gratis prøve på Athlete Pro og Trener Basic - Trener Pro faktureres fra start. Promo-kode kan brukes ved kassen.
             </p>
             <Link href="/onboarding/abonnement"
               className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
@@ -165,7 +165,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                       border: `1px solid ${statusInfo.color}`,
                     }}>
                     {sub.status === 'trialing' && daysUntil(sub.trial_end) != null
-                      ? `${statusInfo.text} — ${daysUntil(sub.trial_end)} dager igjen`
+                      ? `${statusInfo.text} - ${daysUntil(sub.trial_end)} dager igjen`
                       : statusInfo.text}
                   </span>
                 )}
@@ -177,7 +177,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                 )}
                 {sub.status === 'active' && sub.cancel_at_period_end && (
                   <Row label="Abonnement kanselleres"
-                    value={`${fmtDate(sub.current_period_end)} — du beholder tilgang til denne datoen`} />
+                    value={`${fmtDate(sub.current_period_end)} - du beholder tilgang til denne datoen`} />
                 )}
                 {sub.status === 'active' && !sub.cancel_at_period_end && (
                   <Row label="Neste fakturering" value={fmtDate(sub.current_period_end)} />
@@ -218,7 +218,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                   borderLeft: '3px solid #28A86E',
                 }}>
                 <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', lineHeight: 1.6 }}>
-                  ✓ Trener-abonnementet ditt inkluderer egen utøver-profil — du har også full tilgang til utøver-funksjonene (dagbok, plan, klokkesync og analyse). Bytt til utøver-modus øverst til høyre.
+                  ✓ Trener-abonnementet ditt inkluderer egen utøver-profil - du har også full tilgang til utøver-funksjonene (dagbok, plan, klokkesync og analyse). Bytt til utøver-modus øverst til høyre.
                 </p>
               </div>
             )}
@@ -229,7 +229,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                 Administrer abonnement
               </h3>
               <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', lineHeight: 1.6 }}>
-                Endre tier, oppdater betalingsmetode, last ned faktura eller kanseller — alt via Stripe sin sikre kundeportal.
+                Endre tier, oppdater betalingsmetode, last ned faktura eller kanseller - alt via Stripe sin sikre kundeportal.
               </p>
               <ManageBillingButton
                 label={

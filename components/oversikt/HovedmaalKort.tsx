@@ -92,7 +92,7 @@ export function HovedmaalKort({ goal, shotGoal, resultGoals, todayISO }: {
           under={[iRute, planPct != null ? `plan ${planPct} %` : null, snittUke ? `${snittUke} t/uke snitt` : null].filter(Boolean).join(' · ') || null} />
       ) : (
         <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-alt)', margin: '10px 0 0' }} data-framdrift="timer-mangler">
-          Timer hittil: {timer != null ? fmtT(timer) : '—'} · ingen planlagt volum å måle mot
+          Timer hittil: {timer != null ? fmtT(timer) : '-'} · ingen planlagt volum å måle mot
         </p>
       )}
       {harSki && shotGoal && shotGoal.annual_shot_goal ? (

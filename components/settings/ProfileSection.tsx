@@ -151,7 +151,7 @@ export function ProfileSection(props: Props) {
         <Field label="Brukernavn">
           <Input value={username} onChange={v => setUsername(v.toLowerCase())}
             placeholder="f.eks. sverre_h" />
-          <Hint>3–20 tegn: a–z, tall, punktum, understrek — små bokstaver</Hint>
+          <Hint>3-20 tegn: a-z, tall, punktum, understrek - små bokstaver</Hint>
         </Field>
         <Field label="E-post">
           <Input value={props.email ?? ''} onChange={() => {}} disabled />
@@ -160,18 +160,18 @@ export function ProfileSection(props: Props) {
         <Field label="Fødselsdato">
           <Input value={birthDate} onChange={setBirthDate} type="date" />
           {!birthDate && birthYear && (
-            <Hint>Fødselsår {birthYear} er registrert — sett full dato når du vil</Hint>
+            <Hint>Fødselsår {birthYear} er registrert - sett full dato når du vil</Hint>
           )}
         </Field>
         <Field label="Hovedsport">
           <Select value={primarySport} onChange={setPrimarySport}>
-            <option value="">— Velg —</option>
+            <option value="">- Velg -</option>
             {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </Select>
         </Field>
         <Field label="Kjønn">
           <Select value={gender} onChange={setGender}>
-            <option value="">— Velg —</option>
+            <option value="">- Velg -</option>
             {Object.entries(GENDER_LABELS).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
             ))}
@@ -182,7 +182,7 @@ export function ProfileSection(props: Props) {
         </Field>
         <Field label="Land">
           <Select value={country} onChange={setCountry}>
-            <option value="">— Velg —</option>
+            <option value="">- Velg -</option>
             {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
           </Select>
         </Field>
@@ -191,11 +191,11 @@ export function ProfileSection(props: Props) {
         </Field>
         <Field label="Vekt (kg)">
           <Input value={vektKg} onChange={setVektKg} placeholder="f.eks. 72,4" />
-          <Hint>Samme felt som helse-loggen — lagres som dagens måling</Hint>
+          <Hint>Samme felt som helse-loggen - lagres som dagens måling</Hint>
         </Field>
         <Field label="Sekundærsport (valgfri)">
           <Select value={secondarySport} onChange={setSecondarySport}>
-            <option value="">— Ingen —</option>
+            <option value="">- Ingen -</option>
             {SPORTS.filter(sp => sp.value !== primarySport).map(sp => (
               <option key={sp.value} value={sp.value}>{sp.label}</option>
             ))}

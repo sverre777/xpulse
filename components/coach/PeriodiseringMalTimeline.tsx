@@ -61,7 +61,7 @@ export function PeriodiseringMalTimeline({
             ))}
           </div>
 
-          {/* Period bars (stacked vertically — sortert etter start) */}
+          {/* Period bars (stacked vertically - sortert etter start) */}
           <div className="flex flex-col gap-1 mt-2">
             {sortedPeriods.length === 0 ? (
               <p className="text-xs py-3 text-center"
@@ -125,7 +125,7 @@ function PeriodBar({
 
   return (
     <div style={{ position: 'relative', height: '28px' }}
-      title={`${period.name} · ${startLabel}–${endLabel} · ${INTENSITY_LABEL[intensity]}`}>
+      title={`${period.name} · ${startLabel}-${endLabel} · ${INTENSITY_LABEL[intensity]}`}>
       <div style={{
         position: 'absolute',
         left: `${leftPct}%`,

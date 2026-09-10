@@ -23,7 +23,7 @@ export function LoadError({ what, detail }: { what: string; detail?: string | nu
           fontSize: 14, lineHeight: 1.6, maxWidth: 560,
         }}
       >
-        Noe gikk galt ved henting av data. Prøv å laste siden på nytt — hjelper
+        Noe gikk galt ved henting av data. Prøv å laste siden på nytt - hjelper
         ikke det, send oss gjerne en beskjed på support@x-pulse.no.
       </p>
       <button

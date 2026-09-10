@@ -50,7 +50,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
           </div>
         </div>
 
-        {/* Title — alltid synlig, men trunkert med ellipsis hvis lengre enn
+        {/* Title - alltid synlig, men trunkert med ellipsis hvis lengre enn
             2 linjer (lange Strava-titler ødela ellers kort-layouten). Full
             tittel i title-attributtet → tooltip ved hover. Stats-raden (sport/
             tid/km) er en egen rad under og presses aldri ut. */}

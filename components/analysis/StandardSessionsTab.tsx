@@ -26,7 +26,7 @@ function fmtDate(iso: string): string {
 }
 
 function fmtDur(sec: number | null): string {
-  if (sec == null || sec <= 0) return '—'
+  if (sec == null || sec <= 0) return '-'
   const m = Math.round(sec / 60)
   const h = Math.floor(m / 60)
   return h > 0 ? `${h}t ${m % 60}m` : `${m}m`
@@ -106,10 +106,10 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
           ⟳ Standardøkter
         </p>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--tekst-5-app)', maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
-          En standardøkt-serie er samme økt gjennomført mange ganger — en fast terskeltest,
+          En standardøkt-serie er samme økt gjennomført mange ganger - en fast terskeltest,
           en standard intervalløkt, en fast rute. Koble økter til en serie fra økt-skjemaet
           («⟳ Standardøkt»), så samles alle gjennomføringene her og kan sammenlignes over tid.
-          Maler er planlegging — standardøkter er analyse.
+          Maler er planlegging - standardøkter er analyse.
         </p>
       </div>
     )
@@ -133,7 +133,7 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
     }
     const doDelete = async () => {
       const ok = await xpConfirm(
-        `Slette serien «${selected.name}»? Øktene beholdes — kun koblingen til serien fjernes.`)
+        `Slette serien «${selected.name}»? Øktene beholdes - kun koblingen til serien fjernes.`)
       if (!ok) return
       const res = await deleteSessionSeries(selected.id)
       if (res.error) { void xpAlert(res.error); return }
@@ -224,7 +224,7 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
                 <div key={e.workout_id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2"
                   style={{ borderTop: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
                   <span style={{ color: 'var(--tekst-1-app)', minWidth: 90 }}>{fmtDate(e.date)}</span>
-                  <span style={{ color: 'var(--tekst-3-app)', flex: 1, minWidth: 120 }}>{e.title || '—'}</span>
+                  <span style={{ color: 'var(--tekst-3-app)', flex: 1, minWidth: 120 }}>{e.title || '-'}</span>
                   <span style={{ color: 'var(--tekst-5-app)' }}>{fmtDur(e.total_seconds)}</span>
                   {e.distance_meters != null && e.distance_meters > 0 && (
                     <span style={{ color: 'var(--tekst-5-app)' }}>{(e.distance_meters / 1000).toLocaleString('nb-NO', { maximumFractionDigits: 1 })} km</span>
@@ -236,7 +236,7 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
           )}
         </div>
 
-        {/* Kø #48 bolk 4–6: sammenligningen — innholdsavhengig fra start. */}
+        {/* Kø #48 bolk 4-6: sammenligningen - innholdsavhengig fra start. */}
         <SerieAnalyse serie={selected} harSki={harSki} targetUserId={targetUserId} />
       </div>
     )
@@ -280,7 +280,7 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
                   </span>
                 </div>
                 <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
-                  {[sportLabel, r.movement_name, r.location].filter(Boolean).join(' · ') || '—'}
+                  {[sportLabel, r.movement_name, r.location].filter(Boolean).join(' · ') || '-'}
                 </p>
                 <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
                   {r.workout_count} gjennomføring{r.workout_count !== 1 ? 'er' : ''}

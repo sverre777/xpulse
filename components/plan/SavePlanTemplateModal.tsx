@@ -105,7 +105,7 @@ export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onCl
         <label style={label}>Beskrivelse</label>
         <textarea value={description} onChange={e => setDescription(e.target.value)}
           rows={3}
-          placeholder="Valgfritt — kort notat om hva malen inneholder"
+          placeholder="Valgfritt - kort notat om hva malen inneholder"
           style={iSt} className="w-full px-3 py-2 mb-3" />
 
         <label style={label}>Kategori</label>

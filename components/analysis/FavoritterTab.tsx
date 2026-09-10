@@ -45,7 +45,7 @@ export function FavoritterTab({ dataFor, ctx, harSkiskyting, onOpenTab }: {
         style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px dashed var(--kant-3)' }}>
         <span aria-hidden="true" style={{ fontSize: 28, color: '#FF4500', lineHeight: 1 }}>★</span>
         <p style={{ fontFamily: FONT, color: 'var(--tekst-1-app)', fontSize: 15 }}>
-          {readOnly ? 'Utøveren har ingen favoritter ennå.' : 'Marker grafer med ★ i fanene — de samles her.'}
+          {readOnly ? 'Utøveren har ingen favoritter ennå.' : 'Marker grafer med ★ i fanene - de samles her.'}
         </p>
       </div>
     )
@@ -145,7 +145,7 @@ function FavorittKort({ chartKey, dataFor, ctx, readOnly, onOpenTab, onFjern }: 
             <div className="min-w-0">
               <p className="text-xs tracking-widest uppercase" style={{ fontFamily: FONT, color: 'var(--tekst-1-app)' }}>{tittel}</p>
               <p className="text-xs mt-0.5" style={{ fontFamily: FONT, color: 'var(--tekst-8-app)' }}>
-                {info ? `Vises i fanen ${faneNavn} — åpne den for å se grafen.` : 'Ukjent graf — kan ha blitt fjernet.'}
+                {info ? `Vises i fanen ${faneNavn} - åpne den for å se grafen.` : 'Ukjent graf - kan ha blitt fjernet.'}
               </p>
             </div>
             {fane && (

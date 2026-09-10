@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(settingsUrl('feil-state', 'state-format'))
   }
   if (!csrfFromCookie) {
-    return NextResponse.redirect(settingsUrl('feil-state', 'cookie mangler — sjekk SameSite/Secure'))
+    return NextResponse.redirect(settingsUrl('feil-state', 'cookie mangler - sjekk SameSite/Secure'))
   }
   if (csrfFromCookie !== csrfFromUrl) {
     return NextResponse.redirect(settingsUrl('feil-state', 'csrf-mismatch'))
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
   const reg = await registerPolarUser(tokens.access_token, user.id, tokens.x_user_id)
   if (!reg.ok) {
     if (reg.reason === 'consents') {
-      console.warn(`[polar-callback] 403 fra /v3/users for user ${user.id} — manglende samtykker`)
+      console.warn(`[polar-callback] 403 fra /v3/users for user ${user.id} - manglende samtykker`)
       return NextResponse.redirect(settingsUrl('samtykke-mangler'))
     }
     if (reg.reason === 'member_id_conflict') {

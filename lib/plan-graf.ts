@@ -84,7 +84,7 @@ export interface PlanBlokk extends PlanBlokkInn {
 
 /** «I1–I3» for en stablet blokk, ellers sonen. */
 export function soneSpennTekst(b: Pick<PlanBlokk, 'sone' | 'soneAndeler'>): string | null {
-  if (b.soneAndeler.length >= 2) return `${b.soneAndeler[0].sone}–${b.soneAndeler[b.soneAndeler.length - 1].sone}`
+  if (b.soneAndeler.length >= 2) return `${b.soneAndeler[0].sone}-${b.soneAndeler[b.soneAndeler.length - 1].sone}`
   return b.sone
 }
 

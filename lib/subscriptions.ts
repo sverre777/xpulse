@@ -49,7 +49,7 @@ export function hasActiveAccess(sub: ActiveSubscription | null): boolean {
   if (sub.granted_by_subscription_id && !sub.current_period_end) return false
   const now = Date.now()
   if (sub.status === 'trialing') {
-    if (!sub.trial_end) return true  // ingen frist registrert — gi tilgang
+    if (!sub.trial_end) return true  // ingen frist registrert - gi tilgang
     return new Date(sub.trial_end).getTime() > now
   }
   // active

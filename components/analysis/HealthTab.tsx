@@ -37,7 +37,7 @@ export function HealthReflectionsTrend({ data }: { data: HealthCorrelations }) {
   return (
     <ChartWrapper chartKey="helse_reflections_trend"
       title="Overskudd, stress og opplevd belastning over tid"
-      subtitle="Ukentlig refleksjon — skala 1–10"
+      subtitle="Ukentlig refleksjon - skala 1-10"
       height={280}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
@@ -52,7 +52,7 @@ export function HealthReflectionsTrend({ data }: { data: HealthCorrelations }) {
             <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
             <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} domain={[0, 10]} />
             <Tooltip content={<XpTooltip />}
-              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
+              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '-'), String(k)]} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line type="monotone" dataKey="energy" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} name="Overskudd 🙂" connectNulls />
             <Line type="monotone" dataKey="stress" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />

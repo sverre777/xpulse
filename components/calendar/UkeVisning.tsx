@@ -275,7 +275,7 @@ function DagKolonne({ d, ds, i, valgt, iDag, okter, tilstander, mode, onVelg, on
         </span>
       ))}
       {okter.map(w => <KolonneChip key={w.id} w={w} dateStr={ds} mode={mode} onVelg={onVelgOkt} dndEnabled={dndEnabled} />)}
-      <span style={{ display: 'block', fontFamily: "'Barlow', sans-serif", fontSize: 10.5, color: 'var(--tekst-8-app)', marginTop: 6 }}>{antall === 0 ? '—' : `${antall} økt${antall === 1 ? '' : 'er'}`}</span>
+      <span style={{ display: 'block', fontFamily: "'Barlow', sans-serif", fontSize: 10.5, color: 'var(--tekst-8-app)', marginTop: 6 }}>{antall === 0 ? '-' : `${antall} økt${antall === 1 ? '' : 'er'}`}</span>
       {valgt && <span aria-hidden style={{ position: 'absolute', left: '50%', bottom: -8, width: 13, height: 13, background: 'var(--card)', borderRight: '1px solid var(--accent)', borderBottom: '1px solid var(--accent)', transform: 'translateX(-50%) rotate(45deg)' }} />}
     </div>
   )
@@ -338,20 +338,20 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
   const skudd = mode === 'plan' ? w.planned_shot_stats : w.shot_stats
   const tss = Math.round(beregnSoneTss(zs as Record<ExtendedZoneName, number>))
   const celler: NokkeltallCelle[] = styrke ? [
-    { id: 'tonnasje', etikett: 'Tonnasje', verdi: pakke ? `${(tonnasje(pakke) / 1000).toFixed(1).replace('.', ',')}` : '—', hale: pakke ? 't' : undefined },
-    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '—', hale: 'TSS' },
-    { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '—', hale: '/10' },
-    { id: 'varighet', etikett: 'Varighet', verdi: sek > 0 ? fmtHM(sek) : '—' },
+    { id: 'tonnasje', etikett: 'Tonnasje', verdi: pakke ? `${(tonnasje(pakke) / 1000).toFixed(1).replace('.', ',')}` : '-', hale: pakke ? 't' : undefined },
+    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '-', hale: 'TSS' },
+    { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '-', hale: '/10' },
+    { id: 'varighet', etikett: 'Varighet', verdi: sek > 0 ? fmtHM(sek) : '-' },
   ] : !planlagt ? [
-    { id: 'puls', etikett: 'Snittpuls', verdi: w.avg_heart_rate != null ? String(w.avg_heart_rate) : '—', hale: w.avg_heart_rate != null ? 'slag' : undefined },
-    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone] : undefined },
-    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '—', hale: 'TSS' },
-    { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '—', hale: '/10' },
+    { id: 'puls', etikett: 'Snittpuls', verdi: w.avg_heart_rate != null ? String(w.avg_heart_rate) : '-', hale: w.avg_heart_rate != null ? 'slag' : undefined },
+    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '-', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone] : undefined },
+    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '-', hale: 'TSS' },
+    { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '-', hale: '/10' },
   ] : [
-    { id: 'varighet', etikett: 'Varighet', verdi: sek > 0 ? fmtHM(sek) : '—' },
-    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone] : undefined },
-    ...(harSki ? [{ id: 'skyting', etikett: 'Skyting', verdi: skudd && skudd.shots > 0 ? String(skudd.shots) : '—', hale: skudd && skudd.shots > 0 ? 'skudd' : undefined } as NokkeltallCelle] : []),
-    { id: 'km', etikett: 'Distanse', verdi: meter > 0 ? (fmtKm(meter) ?? '—') : '—' },
+    { id: 'varighet', etikett: 'Varighet', verdi: sek > 0 ? fmtHM(sek) : '-' },
+    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '-', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone] : undefined },
+    ...(harSki ? [{ id: 'skyting', etikett: 'Skyting', verdi: skudd && skudd.shots > 0 ? String(skudd.shots) : '-', hale: skudd && skudd.shots > 0 ? 'skudd' : undefined } as NokkeltallCelle] : []),
+    { id: 'km', etikett: 'Distanse', verdi: meter > 0 ? (fmtKm(meter) ?? '-') : '-' },
   ]
   const kanLive = !readOnly && !targetUserId && planlagt && styrke
   const { farge } = chipFarge(w, mode)
@@ -532,7 +532,7 @@ export function UkeVisning({
       <div data-ukevisning>
         <UkeBanner weekDates={weekDates} weekNum={weekNum} byDate={byDate} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} targetUserId={targetUserId} />
         <PeriodeStripe ukeISO={ukeISO} perioder={seasonPeriods} keyDates={seasonKeyDates} markeringer={seasonMarkings} />
-        <div className="px-3 md:px-6 pt-3" tabIndex={0} onKeyDown={onKey} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} aria-label={`Uke ${weekNum} — bruk piltastene for å velge dag`} style={{ outline: 'none' }}>
+        <div className="px-3 md:px-6 pt-3" tabIndex={0} onKeyDown={onKey} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} aria-label={`Uke ${weekNum} - bruk piltastene for å velge dag`} style={{ outline: 'none' }}>
           <div className="uke-kolonner" data-uke-kolonner>
             {weekDates.map((d, i) => {
               const ds = ukeISO[i]

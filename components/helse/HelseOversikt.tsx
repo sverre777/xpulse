@@ -150,7 +150,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
         style={{ padding: kompaktHeader ? '14px 18px' : '18px 22px', borderBottom: '1px solid var(--line)' }}>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.16em', fontSize: 15, color: 'var(--tekst-1-app)' }}>
           <span style={{ display: 'inline-block', width: 26, height: 4, borderRadius: 2, background: '#FF4500', marginRight: 10, verticalAlign: 'middle' }} />
-          {visDybde ? 'HELSE — DETALJER' : 'HELSE'}
+          {visDybde ? 'HELSE - DETALJER' : 'HELSE'}
           {chartKey && !forside && <span style={{ marginLeft: 8, verticalAlign: 'middle', display: 'inline-flex' }} data-chart-key={chartKey}><StarButton chartKey={chartKey} size={16} title="Hele helsekortet som favoritt" /></span>}
           {kildeNavn && (
             <span style={{ color: 'var(--tekst-8-app)', fontWeight: 500, letterSpacing: '0.06em', marginLeft: 10, fontSize: 12.5, textTransform: 'none' }}>
@@ -186,13 +186,13 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
         <>
           {/* ── Søvnstadier per natt ── */}
           <div data-helse-sovn style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
-            <SeksjonsTittel chartKey={forside ? undefined : 'helse_sovnstadier'} tittel="SØVNSTADIER — PER NATT" merknad={`timer · siste ${Math.min(14, dager.filter(d => d.total_sleep_minutes != null).length)} netter i perioden`} />
+            <SeksjonsTittel chartKey={forside ? undefined : 'helse_sovnstadier'} tittel="SØVNSTADIER - PER NATT" merknad={`timer · siste ${Math.min(14, dager.filter(d => d.total_sleep_minutes != null).length)} netter i perioden`} />
             <StadieStabler netter={dager.filter(d => d.total_sleep_minutes != null).slice(-14)} />
           </div>
 
-          {/* ── Trender: TRE småpaneler, hver sin skala — aldri dobbel y-akse ── */}
+          {/* ── Trender: TRE småpaneler, hver sin skala - aldri dobbel y-akse ── */}
           <div style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
-            <SeksjonsTittel tittel={`TRENDER — ${periode === '1y' ? '1 ÅR (UKESNITT)' : periode === '7d' ? 'SISTE 7 DAGER' : periode === 'egen' ? 'VALGT PERIODE' : 'SISTE 30 DAGER'}`} merknad={forside ? undefined : 'hold over for verdi per dag'} />
+            <SeksjonsTittel tittel={`TRENDER - ${periode === '1y' ? '1 ÅR (UKESNITT)' : periode === '7d' ? 'SISTE 7 DAGER' : periode === 'egen' ? 'VALGT PERIODE' : 'SISTE 30 DAGER'}`} merknad={forside ? undefined : 'hold over for verdi per dag'} />
             <div className={forside ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-1 md:grid-cols-3 gap-3.5'} data-helse-trender>
               <TrendPanel chartKey={forside ? undefined : 'helse_hrv'} navn="HRV" hendelser={data.hendelser ?? []} enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} liten={forside} />
               <TrendPanel chartKey={forside ? undefined : 'helse_resting_hr'} navn="HVILEPULS" hendelser={data.hendelser ?? []} enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} liten={forside} />
@@ -200,7 +200,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
             </div>
           </div>
 
-          {/* ── Følelse (daglig dagsform, manuell 1–5 — SAMME skala som
+          {/* ── Følelse (daglig dagsform, manuell 1-5 - SAMME skala som
                  øktenes, fase 108). Føringsdagens prikk er hurtigføring
                  rett på kortet; de andre lenker til dagens føringsskjema. ── */}
           <FolelseRad dager={dager} foringsDato={foring} snitt={snitt('day_form')}
@@ -223,7 +223,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
               return { ...s, data: { ...s.data, dager } }
             })} />
 
-          {/* ── Handlingsrad (ikke på forsiden — knappene er døde der) ── */}
+          {/* ── Handlingsrad (ikke på forsiden - knappene er døde der) ── */}
           {!forside && <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
             <button type="button" onClick={() => setVisDybde(true)} style={btnPrimar}>VIS MER</button>
             <Link href={`/app/health/${foring}`} style={btnGhost}>✎ FØR MANUELT</Link>
@@ -263,7 +263,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, for
 
   return (
     <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-      <SeksjonsTittel chartKey={forside ? undefined : 'helse_folelse'} tittel="FØLELSE" merknad={forside ? 'manuell · 1–5 · siste 14 dager' : 'manuell · 1–5 · samme skala som øktene · siste 14 dager'} />
+      <SeksjonsTittel chartKey={forside ? undefined : 'helse_folelse'} tittel="FØLELSE" merknad={forside ? 'manuell · 1-5 · siste 14 dager' : 'manuell · 1-5 · samme skala som øktene · siste 14 dager'} />
       <div className="flex items-center gap-2 flex-wrap">
         {sisteDatoer(14, sisteDato).map(dato => {
           const v = dager.find(x => x.date === dato)?.day_form ?? null
@@ -281,7 +281,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, for
                 outline: erForing ? '2px solid #FF4500' : undefined,
                 outlineOffset: 2,
               }}>
-              {v != null ? v : '–'}
+              {v != null ? v : '-'}
             </Link>
           )
         })}
@@ -341,10 +341,10 @@ function Flis({ navn, enhet, felt, sisteMed, snittAv, lavereErBedre = false, som
     <div style={{ background: 'var(--card2)', padding: '18px 20px' }}>
       <div style={FLIS_L}>{navn}</div>
       <div style={FLIS_V}>
-        {verdi != null ? fmt(verdi) : '–'}
+        {verdi != null ? fmt(verdi) : '-'}
         {verdi != null && enhet && <small style={{ fontSize: 19, color: 'var(--tekst-5-app)', letterSpacing: '0.04em' }}>{enhet}</small>}
         {manuell && (
-          <span title="manuelt ført — vinner over klokka" style={{
+          <span title="manuelt ført - vinner over klokka" style={{
             display: 'inline-block', fontSize: 10, border: '1px solid var(--line2)', borderRadius: 4,
             padding: '0 5px', color: 'var(--tekst-8-app)', marginLeft: 6, verticalAlign: 6,
             fontFamily: "'Inter', sans-serif",
@@ -405,7 +405,7 @@ export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = 
         <span>{navn}</span>
         <span className="flex items-center gap-1">
           <b style={{ fontFamily: "'Inter', sans-serif", fontSize: liten ? 13 : 15, color: 'var(--tekst-1-app)', letterSpacing: 0 }}>
-            {siste != null ? `${siste}${enhet ? ` ${enhet}` : ''}` : '–'}
+            {siste != null ? `${siste}${enhet ? ` ${enhet}` : ''}` : '-'}
           </b>
           {chartKey && <StarButton chartKey={chartKey} size={14} />}
         </span>

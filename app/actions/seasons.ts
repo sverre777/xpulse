@@ -1130,7 +1130,7 @@ export async function createMarkingForDates(
       .limit(1)
       .maybeSingle()
     if (!season) {
-      return { error: 'Ingen sesong i årsplanen dekker datoene — opprett eller utvid sesongen under Periodisering først.' }
+      return { error: 'Ingen sesong i årsplanen dekker datoene - opprett eller utvid sesongen under Periodisering først.' }
     }
     return createMarking({ ...input, season_id: season.id as string })
   } catch (e) {

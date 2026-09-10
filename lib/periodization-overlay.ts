@@ -25,7 +25,7 @@ export interface KeyEventVisual {
   label: string
   color: string
   icon: string
-  borderWidth: number   // px — A har tykkere ramme enn B
+  borderWidth: number   // px - A har tykkere ramme enn B
 }
 
 export const KEY_EVENT_VISUALS: Record<KeyEventType, KeyEventVisual> = {
@@ -203,8 +203,8 @@ export function formatSpanNO(startISO: string, endISO: string): string {
   if (startISO === endISO) return `${s.getDate()}. ${m(s)}`
   const sameMonth = s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()
   return sameMonth
-    ? `${s.getDate()}.–${e.getDate()}. ${m(e)}`
-    : `${s.getDate()}. ${m(s)} – ${e.getDate()}. ${m(e)}`
+    ? `${s.getDate()}.-${e.getDate()}. ${m(e)}`
+    : `${s.getDate()}. ${m(s)} - ${e.getDate()}. ${m(e)}`
 }
 
 function addDays(isoDate: string, days: number): string {

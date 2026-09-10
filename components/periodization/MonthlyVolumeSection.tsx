@@ -126,7 +126,7 @@ export function MonthlyVolumeSection({
             </span>
             <span className="text-xs"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
-              {canEdit ? 'Planlagte timer per måned — søylene oppdateres live.' : 'Planlagte timer per måned.'}
+              {canEdit ? 'Planlagte timer per måned - søylene oppdateres live.' : 'Planlagte timer per måned.'}
             </span>
           </div>
           <span className="text-xs tracking-wider uppercase"
@@ -180,7 +180,7 @@ export function MonthlyVolumeSection({
                         scheduleQuickSave(year, month, e.target.value)
                       }}
                       onBlur={e => quickSave(year, month, e.target.value)}
-                      placeholder="—"
+                      placeholder="-"
                       inputMode="decimal"
                       aria-label={`Timer ${MONTHS_SHORT_NO[month - 1]} ${year}`}
                       style={{
@@ -198,7 +198,7 @@ export function MonthlyVolumeSection({
                     />
                   ) : (
                     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: hours > 0 ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }}>
-                      {hours > 0 ? fmtN(hours) : '—'}
+                      {hours > 0 ? fmtN(hours) : '-'}
                     </span>
                   )}
                   <button
@@ -235,7 +235,7 @@ export function MonthlyVolumeSection({
             {totalKm > 0 && <span style={{ marginLeft: 10 }}>{totalKm.toFixed(0)} km</span>}
           </div>
 
-          {/* ── Detaljrad for valgt måned: km/notat/fordeling (del E) —
+          {/* ── Detaljrad for valgt måned: km/notat/fordeling (del E) -
               eksisterende editor med full paritet. Re-mountes når timene
               hurtig-endres så feltene alltid viser lagret tilstand. ── */}
           {detailKey && (() => {
@@ -257,7 +257,7 @@ export function MonthlyVolumeSection({
                   {existing?.movement_hours && Object.keys(existing.movement_hours).length > 0 && (
                     <span> · {Object.entries(existing.movement_hours).map(([k, v]) => `${k} ${v}t`).join(' / ')}</span>
                   )}
-                  {!hasData && <span>—</span>}
+                  {!hasData && <span>-</span>}
                 </div>
               )
             }

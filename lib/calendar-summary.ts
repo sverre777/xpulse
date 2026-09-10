@@ -80,7 +80,7 @@ export type RawCalendarWorkout = {
 function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
   total: number       // ren treningstid (ekskl. pause, veksling + skyting)
   pause: number
-  veksling: number    // bytt-tid (T1/T2) — EGEN kategori, aldri i pause
+  veksling: number    // bytt-tid (T1/T2) - EGEN kategori, aldri i pause
   shooting: number    // skyting (alle typer + tørrtrening)
 } {
   if (!acts || acts.length === 0) return { total: 0, pause: 0, veksling: 0, shooting: 0 }

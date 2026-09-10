@@ -13,7 +13,7 @@ interface Props {
 }
 
 const SPORT_LABEL = new Map<string, string>(SPORTS.map(s => [s.value, s.label]))
-const ZONE_KEYS = ALL_ZONE_NAMES // bolk 7: I6–I8 med (rader uten verdi skjules)
+const ZONE_KEYS = ALL_ZONE_NAMES // bolk 7: I6-I8 med (rader uten verdi skjules)
 
 function fmtMinutes(mins: number): string {
   if (mins <= 0) return '0t'

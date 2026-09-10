@@ -96,7 +96,7 @@ export function KurveBrush({
           {sti && <path d={sti} fill="none" stroke={serie?.farge ?? 'var(--tekst-8-alt)'}
             strokeWidth={1} opacity={0.55} vectorEffect="non-scaling-stroke" />}
         </svg>
-        {/* Segmentbåndet i miniatyr — stedsansen kommer like mye herfra. */}
+        {/* Segmentbåndet i miniatyr - stedsansen kommer like mye herfra. */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 3, height: 7 }}>
           {segmenter.map(sg => (
             <span key={sg.aktivitetId} aria-hidden style={{
@@ -126,7 +126,7 @@ export function KurveBrush({
             e.currentTarget.setPointerCapture?.(e.pointerId)
           }}
           role="slider" tabIndex={0}
-          aria-label={`Synlig del av økta: ${fmtKlokkeSek(fra)}–${fmtKlokkeSek(til)}`}
+          aria-label={`Synlig del av økta: ${fmtKlokkeSek(fra)}-${fmtKlokkeSek(til)}`}
           aria-valuemin={0} aria-valuemax={Math.round(totalSek)} aria-valuenow={Math.round(fra)}
           style={{
             position: 'absolute', top: 0, bottom: 0, left: pct(fra),

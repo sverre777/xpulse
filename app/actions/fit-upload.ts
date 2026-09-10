@@ -64,7 +64,7 @@ export async function uploadFitFile(
   // dagen grensene endres hver for seg. (Var 20 MB: død kode over et
   // rammeverkstak på 1 MB, og meldingen løy.)
   if (file.size > FIT_MAX_BYTES) {
-    return { ok: false, error: `Fila er ${formatMB(file.size)} — grensen er ${formatMB(FIT_MAX_BYTES)}` }
+    return { ok: false, error: `Fila er ${formatMB(file.size)} - grensen er ${formatMB(FIT_MAX_BYTES)}` }
   }
 
   // Buffer + hash for anti-duplikat. Hash er deterministisk så samme fil
@@ -109,7 +109,7 @@ export async function uploadFitFile(
     return {
       ok: false,
       error: filtype && filtype !== 'activity'
-        ? `Dette er en «${filtype}»-fil, ikke en treningsøkt — eksporter aktiviteten i stedet`
+        ? `Dette er en «${filtype}»-fil, ikke en treningsøkt - eksporter aktiviteten i stedet`
         : '.fit-fila mangler session-data',
     }
   }
@@ -142,7 +142,7 @@ export async function uploadFitFile(
   // Testen traff derfor bare ID-er biblioteket IKKE kjenner, og alt annet ble
   // 'fit'. mapFitManufacturerToSource tar begge former.
   const importedFrom = mapFitManufacturerToSource(fileId?.manufacturer)
-  const title = `${file.name.replace(/\.fit$/i, '')} — ${formatFitDuration(durationMin)}`
+  const title = `${file.name.replace(/\.fit$/i, '')} - ${formatFitDuration(durationMin)}`
 
   // Konflikt-deteksjon.
   const conflict = await detectFitConflict(supabase, user.id, dateStr, timeStr)

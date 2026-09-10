@@ -54,7 +54,7 @@ export function SecuritySection({ currentEmail, pendingEmail }: Props) {
       <div className="mb-6">
         <p className="text-xs mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          E-post — nåværende: <span style={{ color: 'var(--tekst-1-app)' }}>{currentEmail}</span>
+          E-post - nåværende: <span style={{ color: 'var(--tekst-1-app)' }}>{currentEmail}</span>
         </p>
         {pendingEmail && (
           <p className="text-xs mb-2"
@@ -89,7 +89,7 @@ export function SecuritySection({ currentEmail, pendingEmail }: Props) {
       <div>
         <p className="text-xs mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Endre passord — minst 8 tegn
+          Endre passord - minst 8 tegn
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <input type="password" value={newPw} placeholder="Nytt passord"

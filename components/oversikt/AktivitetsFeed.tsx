@@ -16,7 +16,7 @@ function fmtDate(iso: string): string {
 }
 
 function fmtDuration(mins: number | null): string {
-  if (!mins || mins <= 0) return '—'
+  if (!mins || mins <= 0) return '-'
   const h = Math.floor(mins / 60)
   const m = mins % 60
   if (h > 0 && m > 0) return `${h}t ${m}m`
@@ -54,7 +54,7 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
               className="py-3 flex items-center justify-between gap-3"
               style={{ borderTop: i === 0 ? 'none' : '1px solid var(--kant-3)' }}>
               {/* Sonefarge-prikk: dominerende sone i oekta. Uten sonedata
-                  staar den daempet — aldri en falsk farge. */}
+                  staar den daempet - aldri en falsk farge. */}
               <span aria-hidden style={{
                 width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                 background: e.primary_intensity_zone
@@ -76,8 +76,8 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
                 </p>
               </Link>
               {/* To linjer til hoyre: tid/distanse oeverst, puls/skudd under.
-                  Styrkeoekter har verken distanse eller interessant puls —
-                  de maales i oevelser (notat pkt 5). «—» der ingenting er
+                  Styrkeoekter har verken distanse eller interessant puls -
+                  de maales i oevelser (notat pkt 5). «-» der ingenting er
                   foert, aldri 0. */}
               <div className="flex flex-col items-end shrink-0 text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
@@ -94,7 +94,7 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
                       ? `${e.shots.shots} skudd${e.shots.accuracy_pct != null ? ` · ${e.shots.accuracy_pct} %` : ''}`
                       : e.avg_heart_rate != null
                         ? `${e.avg_heart_rate} bpm`
-                        : '—'}
+                        : '-'}
                 </span>
               </div>
             </li>

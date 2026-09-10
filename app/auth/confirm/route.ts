@@ -130,5 +130,5 @@ export async function GET(request: NextRequest) {
   }
 
   console.warn('[auth/confirm] mangler både code og token_hash', { allParams: Object.fromEntries(searchParams.entries()) })
-  return errorRedirect(origin, 'Ugyldig bekreftelses-lenke (mangler code/token_hash). Sjekk Supabase Email Template — body må inneholde {{ .ConfirmationURL }}.')
+  return errorRedirect(origin, 'Ugyldig bekreftelses-lenke (mangler code/token_hash). Sjekk Supabase Email Template - body må inneholde {{ .ConfirmationURL }}.')
 }

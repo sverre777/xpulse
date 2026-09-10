@@ -189,7 +189,7 @@ function ManualRevokeBody({ url, onDone }: { url: string; onDone: () => void }) 
       </h2>
       <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
         Alle Strava-data er slettet fra X-PULSE. Men vi klarte ikke å trekke
-        tilbake tilgangen automatisk hos Strava — dette må du gjøre selv:
+        tilbake tilgangen automatisk hos Strava - dette må du gjøre selv:
       </p>
       <ol className="mb-4 pl-5 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5 }}>
         <li>1. Åpne lenken under (Strava sine app-innstillinger)</li>
@@ -206,7 +206,7 @@ function ManualRevokeBody({ url, onDone }: { url: string; onDone: () => void }) 
       </a>
       <p className="mb-4 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
         Hvis du ikke fjerner X-PULSE fra Strava, blir den fortsatt telt som
-        tilkoblet app der — men siden vi har slettet alle tokens og data
+        tilkoblet app der - men siden vi har slettet alle tokens og data
         vår side, kan vi ikke lese aktiviteter fra Strava lenger.
       </p>
       <div className="flex justify-end">

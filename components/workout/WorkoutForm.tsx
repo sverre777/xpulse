@@ -814,7 +814,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       })
     } catch (e) {
       console.error('saveAsTemplate kastet:', e)
-      setTemplateError(e instanceof Error ? e.message : 'Lagringen feilet — prøv igjen')
+      setTemplateError(e instanceof Error ? e.message : 'Lagringen feilet - prøv igjen')
       setSavingTemplate(false)
       return
     }
@@ -977,7 +977,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {/* ── KOBLINGS-KNAPPER (høyt plassert: før tittel/dato/sport).
           Kun for eksisterende økter (workoutId finnes), ikke i template-bygging.
-          "Marker som fullført" vises kun i Plan-modus — Dagbok-modus har egen
+          "Marker som fullført" vises kun i Plan-modus - Dagbok-modus har egen
           CTA lenger ned i samme form. Knappene skjuler seg selv hvis dato er
           fremtidig eller ingen kandidater finnes. ── */}
       {workoutId && !templateBuildingMode && defaultValues && (
@@ -997,7 +997,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {/* ── TOPP-CTA-RAD: Merk som gjennomført + Start live (styrke) ──
           Side om side øverst når begge gjelder; ellers alene i full bredde.
-          Samme handlere/vilkår som før — kun plassering og stil. ── */}
+          Samme handlere/vilkår som før - kun plassering og stil. ── */}
       {(showMarkCompletedCTA || showPlanMarkCTA) && (
         <div className="mb-4">
           <div className="flex gap-2">
@@ -1035,7 +1035,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
           {showMarkCompletedCTA && (
             <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              Planinnholdet forhåndsutfylles — juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
+              Planinnholdet forhåndsutfylles - juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
             </p>
           )}
         </div>
@@ -1062,12 +1062,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <div className="mb-2">
           {/* Kategorisering av mal-lista (bev.form + kategori) ved >4 maler. */}
           {/* Hurtigfilter (#50): samme sett som /app/maler + ⟳ Standardøkt.
-              SF-16: toppen skal ta MAKS 3 rader på mobil —
+              SF-16: toppen skal ta MAKS 3 rader på mobil -
               rad 1 = chips (scroller) + 🔧 til høyre · rad 2 = de tre
               nedtrekkene · rad 3 = søk + FRA MAL-chipsene (scroller).
               🔧-knappen bor nå her i stedet for på filterlinja: den linja
               finnes bare når man har mer enn fire maler, så knappen var
-              usynlig for alle andre — den skal alltid være der. */}
+              usynlig for alle andre - den skal alltid være der. */}
           <div className="flex items-center gap-1.5 mb-1.5">
             <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0 xp-scrollrow xp-scrollfade">
               {([
@@ -1090,7 +1090,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 </button>
               ))}
             </div>
-            {/* Bolk 26 (Sverre 5. sep): «Lagre som mal» på mal-linja — økta slik
+            {/* Bolk 26 (Sverre 5. sep): «Lagre som mal» på mal-linja - økta slik
                 den er bygd (rader, soner, punkt-plasseringer, skytinger) blir
                 en ny mal via samme mal-modell som ellers. */}
             {!templateBuildingMode && !captureOnlyMode && (
@@ -1143,7 +1143,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             </div>
           )}
           {/* Rad 3: søket ligger her på mobil (på desktop står det på
-              filterlinja over) — resten av linja er mal-chipsene, som
+              filterlinja over) - resten av linja er mal-chipsene, som
               scroller horisontalt som før. */}
           <div className="flex items-start gap-2">
             {malSokFelt('md:hidden shrink-0', 108)}
@@ -1163,7 +1163,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   else loadTemplate(t)
                 }} className="xp-mal"
                 style={erBibliotekMal(t) ? { color: 'var(--tekst-4-alt)', borderStyle: 'dashed' } : undefined}
-                title={erBibliotekMal(t) ? 'Fra biblioteket — alt kan endres etter valg' : undefined}>
+                title={erBibliotekMal(t) ? 'Fra biblioteket - alt kan endres etter valg' : undefined}>
                 {erBibliotekMal(t) ? '📚 ' : ''}{t.is_test ? '🧪 ' : ''}{t.standard_session_series_id ? '⟳ ' : ''}{t.name}
               </button>
             ))}
@@ -1176,7 +1176,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {/* ── GRUNNINFO ── SF-17 (4. sep): komprimert layout etter fasiten
           design/xpulse-grunninfo-design.html (V9). INGENTING fjernes: samme
-          felter, samme rekkefølge, samme valgfrihet — tittel alene på full
+          felter, samme rekkefølge, samme valgfrihet - tittel alene på full
           bredde, metadata-raden i ett grid (tre trinn), felthøyde 42 px,
           chipsene fast gruppert (linje 1 = hva økta betyr, linje 2 = hva
           den er, forholdene HØYDE/VARME stablet til høyre), utstyr på én
@@ -1211,7 +1211,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             </div>
             <div className="sf17-type">
               <label className="xp-label sf17-label" htmlFor="sf17-type">Økttype <span className="xp-opt">(valgfritt)</span></label>
-              {/* Kompakt nedtrekksliste — «Vanlig økt» (other) er default. Taggene
+              {/* Kompakt nedtrekksliste - «Vanlig økt» (other) er default. Taggene
                   brukes til analyse-gruppering + «Siste hardøkt» på hjem. */}
               <select id="sf17-type"
                 value={MEANINGFUL_WORKOUT_TYPES.includes(form.workout_type) ? form.workout_type : 'other'}
@@ -1225,10 +1225,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             </div>
           </div>
 
-          {/* Chipsene — fast gruppering, aldri fritt flytende (fasiten):
-                linje 1: VIKTIG ØKT · FELLESTRENING · (SKAL DELTA) · STANDARDØKT — hva økta BETYR
-                linje 2: KONKURRANSE · TESTLØP · TEST — hva den ER
-                til høyre, stablet: HØYDE · VARME — FORHOLDENE.
+          {/* Chipsene - fast gruppering, aldri fritt flytende (fasiten):
+                linje 1: VIKTIG ØKT · FELLESTRENING · (SKAL DELTA) · STANDARDØKT - hva økta BETYR
+                linje 2: KONKURRANSE · TESTLØP · TEST - hva den ER
+                til høyre, stablet: HØYDE · VARME - FORHOLDENE.
               Begge linjene nowrap; blir det trangt er det teksten som gir
               (11,5 px), aldri grupperingen. Mobil (<560): høyde/varme som
               ikon-knapper 44 × 36 med aria-label, fortsatt til høyre. */}
@@ -1240,7 +1240,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 {showCoachAttendChip && (
                   <SfChip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4" ikon="👥" tekst="Skal delta" kort="Delta" />
                 )}
-                {/* Fase 97: standardøkt som markering — én chip blant markeringene,
+                {/* Fase 97: standardøkt som markering - én chip blant markeringene,
                     fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
                     klokkesynk-importert). Trykk = serie-velger; aktiv chip viser
                     serien; trykk på aktiv = fjern kobling (bekreft hvis ført). */}
@@ -1267,7 +1267,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 ))}
               </div>
             </div>
-            {/* Kort tekst med vilje — ikonet bærer betydningen. Lesevisningene
+            {/* Kort tekst med vilje - ikonet bærer betydningen. Lesevisningene
                 (WorkoutOverview, WorkoutCard, Calendar, AltitudeHeatTab) beholder
                 «Høydetrening»/«Varmetrening». */}
             <div className="sf17-forhold">
@@ -1277,8 +1277,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
         </div>
 
-        {/* Serie-UI (velger/aktiv kobling) — åpnes fra ⟳-chipen over. */}
-          {/* Kø #48 bolk 2: smart forslag — mal/sted matcher en serie.
+        {/* Serie-UI (velger/aktiv kobling) - åpnes fra ⟳-chipen over. */}
+          {/* Kø #48 bolk 2: smart forslag - mal/sted matcher en serie.
               Aldri automatikk; dismissbart, vises én gang per skjema. */}
           {serieSuggestion && !standardPickerOpen && (
             <div className="mt-2 mb-1 p-3 flex flex-wrap items-center gap-2"
@@ -1303,7 +1303,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           {standardPickerOpen && (
             <div className="mt-1 mb-3 p-3" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
               <p className="text-xs mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>
-                Koble økta til en <b>standardøkt-serie</b> — samme økt over tid, sammenlignbar i analysen.
+                Koble økta til en <b>standardøkt-serie</b> - samme økt over tid, sammenlignbar i analysen.
                 Henter <b>ikke</b> mal-data; økta beholder sine egne tall.
               </p>
               {(seriesList?.length ?? 0) > 4 && (
@@ -1387,7 +1387,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             </div>
           )}
 
-          {/* Legacy-tagg (før serie-modellen) uten serie-kobling — vises
+          {/* Legacy-tagg (før serie-modellen) uten serie-kobling - vises
               lesbart til bolk 6-oppryddingen; ny kobling via velgeren over. */}
           {!form.standard_session_series_id && form.standard_workout_template_id && (
             <div className="mt-3 flex items-center gap-2 flex-wrap">
@@ -1399,7 +1399,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           )}
 
 
-        {/* B2 (kø #39): arven kommer fra MARKERINGSLAGET (dag-presis) —
+        {/* B2 (kø #39): arven kommer fra MARKERINGSLAGET (dag-presis) -
             teksten sier «høyde-oppholdet», ikke belastningsperioden. */}
         {inheritedAltitude && (
           <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', lineHeight: 1.5 }}>
@@ -1407,7 +1407,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             {inheritedAltitude.altitude_meters ? ` (${inheritedAltitude.altitude_meters} moh)` : ''}.
             {form.is_altitude_training && form.altitude_meters != null && form.altitude_meters !== inheritedAltitude.altitude_meters
               ? ` Egen høyde for økten: ${form.altitude_meters} moh (overstyrer oppholdet).`
-              : ' Økten arver høyden fra oppholdet — sett egen moh under for å overstyre.'}
+              : ' Økten arver høyden fra oppholdet - sett egen moh under for å overstyre.'}
           </p>
         )}
 
@@ -1417,7 +1417,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               <div>
                 <label className="text-xs tracking-widest uppercase block mb-1"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                  Høyde (moh){inheritedAltitude && (form.altitude_meters == null || form.altitude_meters === inheritedAltitude.altitude_meters) ? ' — arvet' : ''}
+                  Høyde (moh){inheritedAltitude && (form.altitude_meters == null || form.altitude_meters === inheritedAltitude.altitude_meters) ? ' - arvet' : ''}
                 </label>
                 <input
                   type="number" inputMode="numeric" min={0} max={9000} step={50}
@@ -1487,7 +1487,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
       </Section>
 
-      {/* ── OPPSUMMERING (auto — read-only) ── */}
+      {/* ── OPPSUMMERING (auto - read-only) ── */}
       {form.activities.length > 0 && (
         <div className="mt-4">
           <ActivitySummary
@@ -1509,7 +1509,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </div>
       )}
 
-      {/* ── SAMMENLIGN MED PLAN — togglable ── */}
+      {/* ── SAMMENLIGN MED PLAN - togglable ── */}
       {!isPlanMode && (form.planned_activities?.length ?? 0) > 0 && form.activities.length > 0 && (
         <div className="mt-3">
           <button type="button"
@@ -1533,11 +1533,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </div>
       )}
 
-      {/* ── AKTIVITETER (kronologisk liste — erstatter Bevegelsesformer + Skyting) ──
+      {/* ── AKTIVITETER (kronologisk liste - erstatter Bevegelsesformer + Skyting) ──
           Plassert høyt i skjemaet siden dette er hovedinnsats-feltet. Test/
           Konkurranse-undersettene under setter ekstra-data og kan auto-generere
           aktivitets-struktur. */}
-      {/* #50 bolk 1: KONKURRANSE-/TESTLØP-/TEST-PANELET — ALLTID over
+      {/* #50 bolk 1: KONKURRANSE-/TESTLØP-/TEST-PANELET - ALLTID over
           aktivitets- og skyteføringen, med auto-stripa synlig FØR føring.
           Type-chips i panelet speiler workout_type (samme felt som chip-raden). */}
       {(form.workout_type === 'competition' || form.workout_type === 'testlop' || form.workout_type === 'test') && (
@@ -1676,7 +1676,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
 
 
-      {/* ── ERNÆRING — vises i dagbok-modus (gjennomført økt) ── */}
+      {/* ── ERNÆRING - vises i dagbok-modus (gjennomført økt) ── */}
       {showExecutionFields && (
         <Section label="Ernæring" collapsible
           defaultCollapsed={(form.nutrition_entries?.length ?? 0) === 0}
@@ -1698,7 +1698,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </Section>
       )}
 
-      {/* ── VÆR OG FØRE — kollapset som standard; alle sporter, dagbok-modus ── */}
+      {/* ── VÆR OG FØRE - kollapset som standard; alle sporter, dagbok-modus ── */}
       {showExecutionFields && (
         <Section label="Vær og føre" collapsible defaultCollapsed
           summary={weatherSummaryLine(form.weather)}>
@@ -1710,19 +1710,19 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </Section>
       )}
 
-      {/* ── PLAN-REFERANSE (read-only) — vises mens bruker registrerer actuals ── */}
+      {/* ── PLAN-REFERANSE (read-only) - vises mens bruker registrerer actuals ── */}
       {markingCompleted && planReference && (
         <PlanReferenceCard plan={planReference} />
       )}
 
-      {/* ── MERK SOM GJENNOMFØRT — CTA for planlagt økt åpnet i Dagbok (i dag / tidligere) ── */}
+      {/* ── MERK SOM GJENNOMFØRT - CTA for planlagt økt åpnet i Dagbok (i dag / tidligere) ── */}
       {/* «Merk som gjennomført» ligger nå i topp-CTA-raden øverst i skjemaet. */}
 
-      {/* Allerede gjennomført — vis status */}
+      {/* Allerede gjennomført - vis status */}
       {isPlanned && isCompleted && !isPlanMode && (
         <div className="my-4 p-3" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', borderLeft: '3px solid #28A86E' }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', letterSpacing: '0.1em' }}>
-            ✓ GJENNOMFØRT — endringer oppdaterer faktiske verdier (planen bevares i Plan-kalenderen)
+            ✓ GJENNOMFØRT - endringer oppdaterer faktiske verdier (planen bevares i Plan-kalenderen)
           </span>
         </div>
       )}
@@ -1740,8 +1740,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               <StarRating value={form.day_form_mental} onChange={v => set('day_form_mental', v)} />
             </div>
             <div>
-              <Label>RPE (1–10)</Label>
-              <RpeSkala value={form.rpe} onChange={v => set('rpe', v)} etikett="RPE 1–10" />
+              <Label>RPE (1-10)</Label>
+              <RpeSkala value={form.rpe} onChange={v => set('rpe', v)} etikett="RPE 1-10" />
             </div>
           </div>
         </Section>
@@ -1789,7 +1789,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
       </Section>
 
-      {/* ── KLOKKESYNC-DATA — pulskurve + fartsgraf + lap-tabell + dypere analyse.
+      {/* ── KLOKKESYNC-DATA - pulskurve + fartsgraf + lap-tabell + dypere analyse.
           Komponenten henter workout_samples + workout_activities for økten
           og rendrer kun hvis det finnes sample-data eller laps fra import.
           Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
@@ -1843,14 +1843,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         />
       )}
 
-      {/* Strava API Agreement § 2.3 — synlig attribusjon for Strava-data. */}
+      {/* Strava API Agreement § 2.3 - synlig attribusjon for Strava-data. */}
       {workoutId && (defaultValues?.imported_from === 'strava' || defaultValues?.merged_source === 'strava') && (
         <div className="my-4 flex justify-center">
           <PoweredByStravaAttribution />
         </div>
       )}
 
-      {/* ── SUBMIT — sticky savebar i modalens scroll-container ──
+      {/* ── SUBMIT - sticky savebar i modalens scroll-container ──
           Sticky MÅ ligge på denne wrapperen: containing block er da hele
           <form>-en, så baren følger med i bunnen av viewporten gjennom hele
           skjemaet. (.xp-savebar sin egen sticky er virkningsløs alene fordi
@@ -1891,7 +1891,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 : 'Lagre økt'}
             </button>
           )}
-          {/* ＋-knapp bolk 3: «Start live» ved siden av Lagre — begge alltid når økta har Styrke. */}
+          {/* ＋-knapp bolk 3: «Start live» ved siden av Lagre - begge alltid når økta har Styrke. */}
           {showStartLive && (
             <button type="button" onClick={startLiveFlow} disabled={startingLive || saving} data-start-live
               className="xp-btn"
@@ -1899,7 +1899,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               {startingLive ? 'Starter…' : '▶ Start live'}
             </button>
           )}
-          {/* Save as template — sekundær CTA; skjules i template-building/capture-modus. */}
+          {/* Save as template - sekundær CTA; skjules i template-building/capture-modus. */}
           {!templateBuildingMode && !captureOnlyMode && (
             <button type="button" onClick={openTemplateModal}
               className="xp-btn xp-icon" title="Lagre som mal" aria-label="Lagre som mal">
@@ -2137,13 +2137,13 @@ function SaveAsTemplateModal({
 
           {typeGitt && !isTest && (
             <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              {typeGitt === 'Konkurranse' ? '🏁' : '⏱'} Lagres som {typeGitt.toLowerCase()}-mal — kategorien følger økt-typen.
+              {typeGitt === 'Konkurranse' ? '🏁' : '⏱'} Lagres som {typeGitt.toLowerCase()}-mal - kategorien følger økt-typen.
             </p>
           )}
 
-          {/* Fase 97: økttype (fasit = OKT_MAL_TYPER) — brukes av filteret i
+          {/* Fase 97: økttype (fasit = OKT_MAL_TYPER) - brukes av filteret i
               mal-velgeren og stempler økter laget fra malen. Valgfritt.
-              Typen gitt: skjult — kategorien følger typen. */}
+              Typen gitt: skjult - kategorien følger typen. */}
           {!typeGitt && (
           <div className="mt-3">
             <label className="block text-xs mb-1"
@@ -2153,15 +2153,15 @@ function SaveAsTemplateModal({
             <select value={oktType} onChange={e => onOktType(e.target.value)}
               className="w-full px-3 py-2"
               style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
-              <option value="">— Ingen —</option>
+              <option value="">- Ingen -</option>
               {OKT_MAL_TYPER.map(t => <option key={t.verdi} value={t.verdi}>{t.etikett}</option>)}
             </select>
           </div>
           )}
 
-          {/* Fase 97: mal som standardøkt — økter fra malen får serien
+          {/* Fase 97: mal som standardøkt - økter fra malen får serien
               forhåndsvalgt (endrebar før lagring). Malen viser ⟳-badge.
-              Typen gitt: skjult — konkurranse/testløp/test er ikke standardøkt. */}
+              Typen gitt: skjult - konkurranse/testløp/test er ikke standardøkt. */}
           {!typeGitt && seriesList.length > 0 && (
             <div className="mt-3">
               <label className="block text-xs mb-1"
@@ -2171,7 +2171,7 @@ function SaveAsTemplateModal({
               <select value={serieId} onChange={e => onSerieId(e.target.value)}
                 className="w-full px-3 py-2"
                 style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
-                <option value="">— Ikke standardøkt —</option>
+                <option value="">- Ikke standardøkt -</option>
                 {seriesList.map(se => <option key={se.id} value={se.id}>{se.name}</option>)}
               </select>
             </div>
@@ -2247,11 +2247,11 @@ function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
         <div>
           <div className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>Varighet</div>
-          <div>{totalMinutes > 0 ? `${totalMinutes} min` : '—'}</div>
+          <div>{totalMinutes > 0 ? `${totalMinutes} min` : '-'}</div>
         </div>
         <div>
           <div className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>Distanse</div>
-          <div>{totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'}</div>
+          <div>{totalKm > 0 ? `${totalKm.toFixed(1)} km` : '-'}</div>
         </div>
         <div>
           <div className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>Type</div>
@@ -2318,7 +2318,7 @@ function Section({ label, children, collapsible = false, defaultCollapsed = fals
             flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis',
             whiteSpace: 'nowrap', textAlign: 'right',
           }}>
-            {summary || '— ikke satt'}
+            {summary || '- ikke satt'}
           </span>
           <span className="xp-chev">▶</span>
         </>

@@ -49,7 +49,7 @@ export interface ActivityLike {
 }
 
 export interface ActivityTotals {
-  totalSeconds: number      // sum av varighet — pauser OG skyting ekskludert ("ren treningstid")
+  totalSeconds: number      // sum av varighet - pauser OG skyting ekskludert ("ren treningstid")
   pauseSeconds: number
   /** Veksling/bytt-tid — egen kategori, aldri i pauseSeconds. */
   vekslingSeconds: number

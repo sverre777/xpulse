@@ -79,14 +79,14 @@ export function EstimateCards({ data, bare }: { data: TerskelAnalysis; bare?: st
   const { lt1_hr, lt2_hr, profile_threshold_hr, regression } = data.estimate
   const r2pct = regression ? Math.round(regression.r2 * 100) : null
   const kort = [
-    <MetricCard key="lt1" chartKey="terskel_lt1" label="LT1 (2 mmol)" value={lt1_hr != null ? `${lt1_hr}` : '—'}
-      sublabel="Aerob terskel — estimert puls" accent={COLOR_LT1} />,
-    <MetricCard key="lt2" chartKey="terskel_lt2" label="LT2 (4 mmol)" value={lt2_hr != null ? `${lt2_hr}` : '—'}
-      sublabel="Anaerob terskel — estimert puls" accent={COLOR_LT2} />,
-    <MetricCard key="p" chartKey="terskel_profil" label="Profil-terskel" value={profile_threshold_hr != null ? `${profile_threshold_hr}` : '—'}
+    <MetricCard key="lt1" chartKey="terskel_lt1" label="LT1 (2 mmol)" value={lt1_hr != null ? `${lt1_hr}` : '-'}
+      sublabel="Aerob terskel - estimert puls" accent={COLOR_LT1} />,
+    <MetricCard key="lt2" chartKey="terskel_lt2" label="LT2 (4 mmol)" value={lt2_hr != null ? `${lt2_hr}` : '-'}
+      sublabel="Anaerob terskel - estimert puls" accent={COLOR_LT2} />,
+    <MetricCard key="p" chartKey="terskel_profil" label="Profil-terskel" value={profile_threshold_hr != null ? `${profile_threshold_hr}` : '-'}
       sublabel="Fra innstillinger" accent={COLOR_PROFILE} />,
     <MetricCard key="n" chartKey="terskel_datapunkter" label="Datapunkter" value={regression ? `${regression.n}` : `${data.points.length}`}
-      sublabel={r2pct != null ? `R² = ${r2pct}% — kurvetilpasning` : 'For få punkter for regresjon'} accent={COLOR_REG} />,
+      sublabel={r2pct != null ? `R² = ${r2pct}% - kurvetilpasning` : 'For få punkter for regresjon'} accent={COLOR_REG} />,
   ]
   if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
@@ -130,7 +130,7 @@ export function LactateProfile({ data, initialConfig }: { data: TerskelAnalysis;
           Laktatprofil
         </p>
         <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          Ingen målinger med snittpuls på samme aktivitet — legg inn pulsdata for å se mmol vs HR.
+          Ingen målinger med snittpuls på samme aktivitet - legg inn pulsdata for å se mmol vs HR.
         </p>
       </div>
     )
@@ -142,7 +142,7 @@ export function LactateProfile({ data, initialConfig }: { data: TerskelAnalysis;
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-          Laktatprofil — mmol/L vs puls
+          Laktatprofil - mmol/L vs puls
         </p>
       </div>
       <ChartWrapper chartKey="terskel_lactate_profile" title="Scatter med regresjon" config={{ bev }}
@@ -257,9 +257,9 @@ export function TemplateTable({ data }: { data: TerskelAnalysis }) {
                 <td className="px-3 py-2 text-right" style={{ color: '#FF8C00' }}>{t.avg_mmol.toFixed(2)}</td>
                 <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>{t.min_mmol.toFixed(1)}</td>
                 <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>{t.max_mmol.toFixed(1)}</td>
-                <td className="px-3 py-2 text-right">{t.avg_hr ?? '—'}</td>
+                <td className="px-3 py-2 text-right">{t.avg_hr ?? '-'}</td>
                 <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>
-                  {t.recent_date ? `${formatDateShort(t.recent_date)} (${t.recent_mmol?.toFixed(1) ?? '—'})` : '—'}
+                  {t.recent_date ? `${formatDateShort(t.recent_date)} (${t.recent_mmol?.toFixed(1) ?? '-'})` : '-'}
                 </td>
               </tr>
             ))}
@@ -326,11 +326,11 @@ function MethodNote() {
       <p className="text-xs leading-relaxed"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         <strong style={{ color: 'var(--tekst-1-app)' }}>LT1/LT2</strong> er puls-estimater ved 2 mmol hhv. 4 mmol, beregnet via lineær regresjon på (mmol, snittpuls) for alle aktiviteter med begge verdier.
-        Pulsen er aktivitetens snittpuls — den beste proxyen vi har når målingen ikke kommer med eget pulstag.
-        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>R²</strong> viser hvor godt linjen passer — jo høyere, jo mer pålitelig estimatet.
+        Pulsen er aktivitetens snittpuls - den beste proxyen vi har når målingen ikke kommer med eget pulstag.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>R²</strong> viser hvor godt linjen passer - jo høyere, jo mer pålitelig estimatet.
         Gode data krever 5+ målinger spredt over lav til høy intensitet.
-        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Profil-terskel</strong> er verdien du selv har satt i innstillinger — sammenlign med LT2-estimatet for å validere.
-        {' '}Trenden viser om laktat synker ved tilsvarende intensitet — et tegn på aerob forbedring.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Profil-terskel</strong> er verdien du selv har satt i innstillinger - sammenlign med LT2-estimatet for å validere.
+        {' '}Trenden viser om laktat synker ved tilsvarende intensitet - et tegn på aerob forbedring.
       </p>
     </div>
   )

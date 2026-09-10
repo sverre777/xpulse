@@ -310,7 +310,7 @@ export const OKT_MAL_BIBLIOTEK: readonly OktMalDef[] = [
       B(m(10), 'I4', 'arbeid'),
       ned(10),
     ],
-    notat: '50 sekunder på, 10 sekunder av, ti ganger per drag. Progressiv: første drag i I3, de to siste i I4. Mikropausene føres ikke som egne blokker — pulsen rekker ikke å falle ut av sonen på ti sekunder.' },
+    notat: '50 sekunder på, 10 sekunder av, ti ganger per drag. Progressiv: første drag i I3, de to siste i I4. Mikropausene føres ikke som egne blokker - pulsen rekker ikke å falle ut av sonen på ti sekunder.' },
 
   // ══ D · I5 / MAKSIMAL ══════════════════════════════════════════════════
   { ref: 'd1', navn: '4 × 4 min / 3 min', type: 'i5_intervall', locked: true,
@@ -401,7 +401,7 @@ export const OKT_MAL_BIBLIOTEK: readonly OktMalDef[] = [
       B(m(1), 'I4', 'arbeid'),
       ned(10),
     ],
-    notat: 'Pausen er like lang som draget. Opp og ned igjen — siste drag skal være det raskeste.' },
+    notat: 'Pausen er like lang som draget. Opp og ned igjen - siste drag skal være det raskeste.' },
 
   { ref: 'g2', navn: 'Fartslek 45 min variert', type: 'fartslek', locked: true,
     blokker: [
@@ -412,7 +412,7 @@ export const OKT_MAL_BIBLIOTEK: readonly OktMalDef[] = [
       ]).flat(),
       ned(10),
     ],
-    notat: 'Veksler mellom terskeldrag og korte harde drag. Fri fordeling — juster etter terrenget.' },
+    notat: 'Veksler mellom terskeldrag og korte harde drag. Fri fordeling - juster etter terrenget.' },
 
   { ref: 'g3', navn: 'Stigningsløp i langtur', type: 'fartslek', locked: true,
     blokker: [
@@ -426,7 +426,7 @@ export const OKT_MAL_BIBLIOTEK: readonly OktMalDef[] = [
   // ══ H · LAGTUR ═════════════════════════════════════════════════════════
   { ref: 'h1', navn: 'Lagtur 2 t rolig', type: 'lagtur', locked: true,
     blokker: [B(m(120), 'I1', 'arbeid')],
-    notat: 'Rolig sammen med laget. Sosial økt — hold farten nede.' },
+    notat: 'Rolig sammen med laget. Sosial økt - hold farten nede.' },
 
   { ref: 'h2', navn: 'Lagtur 90 min I2', type: 'lagtur', locked: true,
     blokker: [opp(15), B(m(90), 'I2', 'arbeid'), ned(10)],
@@ -472,7 +472,7 @@ export const OKT_MAL_BIBLIOTEK: readonly OktMalDef[] = [
 
   { ref: 'i5', navn: 'Konkurransesimulering', type: 'komb_hard', locked: true,
     blokker: intervalløkt(4, 8, 'I4', 3),
-    notat: 'Fire runder med skyting liggende–stående–liggende–stående, som i et normalprogram.',
+    notat: 'Fire runder med skyting liggende-stående-liggende-stående, som i et normalprogram.',
     skyting: { serier: 4, type: 'hard_komb' } },
 
   { ref: 'i6', navn: 'Komb rolig med mange serier', type: 'komb_rolig', locked: true,
@@ -510,7 +510,7 @@ export const OKT_MAL_BIBLIOTEK: readonly OktMalDef[] = [
 
   { ref: 'j4', navn: '3000 m test', type: 'test', locked: true,
     blokker: [opp(30), B(m(12), 'I5', 'arbeid'), ned(10)],
-    notat: 'Tiden er resultatet. Blokkvarigheten er et anslag — juster til faktisk tid etter gjennomføring.',
+    notat: 'Tiden er resultatet. Blokkvarigheten er et anslag - juster til faktisk tid etter gjennomføring.',
   },
 ] as const
 

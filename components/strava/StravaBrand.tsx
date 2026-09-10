@@ -28,7 +28,7 @@ export function StravaLogo({ size = 22, color = '#FFFFFF' }: { size?: number; co
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* Stilisert "S"-symbol — placeholder for offisielt logomark. */}
+      {/* Stilisert "S"-symbol - placeholder for offisielt logomark. */}
       <path
         d="M11.4.4 4.3 14.6h4.3l3.1-5.9 3.1 5.9h4.3L11.7.4h-.3Z"
         fill={color}

@@ -40,7 +40,7 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
   const [naa] = useState(() => Date.now())
   const nySynk = !!badge.lastSyncAt && naa - new Date(badge.lastSyncAt).getTime() < 24 * 3600 * 1000
   const tooltip = badge.hasError
-    ? 'Synk feilet — re-koble'
+    ? 'Synk feilet - re-koble'
     : badge.connected
       ? `Sist synket: ${badge.lastSyncAt ? formatRelative(badge.lastSyncAt) : 'aldri'}`
       : 'Koble til klokken'
@@ -91,7 +91,7 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
           background: `color-mix(in srgb, ${farge} 22%, transparent)`, color: farge,
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 12.5, letterSpacing: '0.14em', textTransform: 'uppercase',
         }}>
-        {/* Ikonet er allerede en sirkelpil — la den snurre mens vi henter. */}
+        {/* Ikonet er allerede en sirkelpil - la den snurre mens vi henter. */}
         <span style={{ display: 'inline-flex', animation: jobber ? 'xp-spinn 900ms linear infinite' : undefined }}><RefreshCwIcon size={16} /></span>
         SYNK
         {nySynk && <span aria-hidden="true" data-pc-synk-prikk style={{ position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: '50%', background: '#FF4500', border: '2px solid var(--flate-3)' }} />}

@@ -140,13 +140,13 @@ export function DayStateModal({
       <form onSubmit={handleSubmit}>
         <p className="text-xs mb-4"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          {date}{isPlanned ? ' (planlagt)' : ''} — teller ikke som økt i totaler.
+          {date}{isPlanned ? ' (planlagt)' : ''} - teller ikke som økt i totaler.
         </p>
 
-        {/* Flerdags-markering — kun ved ny markering. */}
+        {/* Flerdags-markering - kun ved ny markering. */}
         {!editing && (
           <div className="mb-3">
-            <FieldLabel>Til og med (valgfritt — marker flere dager)</FieldLabel>
+            <FieldLabel>Til og med (valgfritt - marker flere dager)</FieldLabel>
             <input type="date" value={toDate} min={date}
               max={plannable ? undefined : today}
               onChange={e => setToDate(e.target.value)}
@@ -155,7 +155,7 @@ export function DayStateModal({
               <p className="text-xs mt-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--accent)' }}>
                 {datesToMark.length} dager markeres ({date} → {toDate})
-                {plannable && toDate > today ? ' — fremtidige dager blir planlagte' : ''}
+                {plannable && toDate > today ? ' - fremtidige dager blir planlagte' : ''}
               </p>
             )}
           </div>
@@ -174,7 +174,7 @@ export function DayStateModal({
         <div className="mb-3">
           <FieldLabel>{subTypeLabel}</FieldLabel>
           <select value={subType} onChange={e => setSubType(e.target.value)} style={INPUT_STYLE}>
-            <option value="">—</option>
+            <option value="">-</option>
             {Object.entries(SUBTYPES).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
@@ -182,14 +182,14 @@ export function DayStateModal({
         </div>
         )}
 
-        {/* Følelse føres kun på faktiske dager (dagbok) — ikke ved planlegging.
+        {/* Følelse føres kun på faktiske dager (dagbok) - ikke ved planlegging.
             Reisedag holder seg til timer + notat. */}
         {!isPlanned && !isTravel && (
         <div className="mb-3">
           <FieldLabel>Følelse</FieldLabel>
           <select value={feeling} onChange={e => setFeeling(e.target.value === '' ? '' : Number(e.target.value))}
             style={INPUT_STYLE}>
-            <option value="">—</option>
+            <option value="">-</option>
             {[1, 2, 3, 4, 5].map(n => (
               <option key={n} value={n}>{FEELING_LABELS[n]}</option>
             ))}

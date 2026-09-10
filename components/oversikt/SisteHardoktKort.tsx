@@ -90,21 +90,21 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
   const laktatVerdier = (klokke?.lactate ?? []).map(l => l.mmol).filter(v => Number.isFinite(v))
   const laktatMaks = w.lactate_mmol ?? (laktatVerdier.length > 0 ? Math.max(...laktatVerdier) : null)
   const karbo = (klokke?.nutrition ?? []).reduce((s, n) => s + (n.carbs_g ?? 0), 0)
-  const soneCelle: NokkeltallCelle = { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined }
+  const soneCelle: NokkeltallCelle = { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '-', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined }
   const celler: NokkeltallCelle[] = harKurve ? [
-    { id: 'varighet', etikett: 'Varighet', verdi: w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '—' },
-    { id: 'puls', etikett: 'Snittpuls', verdi: w.avg_heart_rate != null ? String(w.avg_heart_rate) : '—' },
-    { id: 'maks', etikett: 'Makspuls', verdi: w.max_heart_rate != null ? String(w.max_heart_rate) : '—' },
+    { id: 'varighet', etikett: 'Varighet', verdi: w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '-' },
+    { id: 'puls', etikett: 'Snittpuls', verdi: w.avg_heart_rate != null ? String(w.avg_heart_rate) : '-' },
+    { id: 'maks', etikett: 'Makspuls', verdi: w.max_heart_rate != null ? String(w.max_heart_rate) : '-' },
     soneCelle,
-    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '—', hale: 'TSS' },
+    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '-', hale: 'TSS' },
     laktatMaks != null
       ? { id: 'laktat', etikett: 'Laktat', verdi: fmtMmol(laktatMaks), hale: 'maks', farge: LAKTAT }
-      : { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '—', hale: '/10' },
+      : { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '-', hale: '/10' },
   ] : [
-    { id: 'varighet', etikett: 'Varighet', verdi: w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '—' },
+    { id: 'varighet', etikett: 'Varighet', verdi: w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '-' },
     soneCelle,
-    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '—', hale: 'TSS' },
-    { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '—', hale: '/10' },
+    { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '-', hale: 'TSS' },
+    { id: 'rpe', etikett: 'Opplevd', verdi: w.rpe != null ? String(w.rpe) : '-', hale: '/10' },
   ]
   const ligg = w.shots?.prone ?? null, staa = w.shots?.standing ?? null
 
@@ -125,7 +125,7 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
         <span>{typeLabel(w.workout_type)}</span>
         {w.activities.find(a => a.movement_name)?.movement_name && <><span style={{ color: 'var(--tekst-8-alt)' }}>·</span><span>{w.activities.find(a => a.movement_name)?.movement_name}</span></>}
         {sone && <><span style={{ color: 'var(--tekst-8-alt)' }}>·</span><SoneChip sone={sone} /></>}
-        {!harKurve && <><span style={{ color: 'var(--tekst-8-alt)' }}>·</span><span data-puls-ikke-fort style={{ color: 'var(--tekst-8-alt)' }}>— puls ikke ført</span></>}
+        {!harKurve && <><span style={{ color: 'var(--tekst-8-alt)' }}>·</span><span data-puls-ikke-fort style={{ color: 'var(--tekst-8-alt)' }}>- puls ikke ført</span></>}
       </p>
 
       <div className="mt-3" data-hardokt-graf={harKurve ? 'kurve' : 'blokker'}>

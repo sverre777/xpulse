@@ -18,7 +18,7 @@ function colorFor(i: number): string { return PALETTE[i % PALETTE.length]! }
 function fmtHours(seconds: number): string { return `${(seconds / 3600).toFixed(1)} t` }
 function fmtKm(meters: number): string { return `${(meters / 1000).toFixed(1)} km` }
 function fmtPace(secPerKm: number | null): string {
-  if (secPerKm === null) return '—'
+  if (secPerKm === null) return '-'
   const m = Math.floor(secPerKm / 60)
   const s = Math.round(secPerKm % 60)
   return `${m}:${String(s).padStart(2, '0')}/km`
@@ -53,7 +53,7 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
     <div className="space-y-5">
       <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        Bevegelse vises basert på hver utøvers primærsport — løping, langrenn, sykling, etc.
+        Bevegelse vises basert på hver utøvers primærsport - løping, langrenn, sykling, etc.
       </p>
 
       <MovementTable rows={data.athletes} />
@@ -158,7 +158,7 @@ function MovementTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
                 <Td>{fmtHours(m.current.total_seconds)}</Td>
                 <Td>{fmtKm(m.current.total_meters)}</Td>
                 <Td>{m.current.workout_count}</Td>
-                <Td>{m.current.avg_heart_rate?.toFixed(0) ?? '—'}</Td>
+                <Td>{m.current.avg_heart_rate?.toFixed(0) ?? '-'}</Td>
                 <Td>{fmtPace(m.current.avg_pace_sec_per_km)}</Td>
               </tr>
             )

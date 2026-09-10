@@ -120,7 +120,7 @@ export function KonkurransePanel({
       {/* ── Header: tittel + type-chips (ikke dropdown) ── */}
       <div className="flex items-center gap-3 flex-wrap px-4 py-3.5" style={{ borderBottom: '1px solid var(--line)' }}>
         <span style={{ fontFamily: FONT, fontWeight: 800, letterSpacing: '0.14em', fontSize: 13.5, color: GULL }}>
-          — {tittel}{isPlan ? ' · PLAN' : ''}
+          - {tittel}{isPlan ? ' · PLAN' : ''}
         </span>
         <span className="flex flex-wrap sm:ml-auto" style={{ border: '1px solid var(--line2)', borderRadius: 10, overflow: 'hidden' }}>
           {TYPE_CHIPS.map(c => (
@@ -137,14 +137,14 @@ export function KonkurransePanel({
         </span>
       </div>
 
-      {/* ── Auto-strip: alltid synlig når formatet kan generere — FØR føring ── */}
+      {/* ── Auto-strip: alltid synlig når formatet kan generere - FØR føring ── */}
       {canAutoGenerate && (
         <div className="flex items-center gap-3 flex-wrap mx-4 mt-4 px-4 py-3"
           style={{ border: '1px solid rgba(232,185,60,.35)', background: 'rgba(232,185,60,.06)', borderRadius: 11 }}>
           <span style={{ fontFamily: FONT, fontSize: 14.5, color: 'var(--tekst-1-app)', minWidth: 180, flex: 1 }}>
             ⚡ <b style={{ color: GULL }}>{data.distance_format}</b>
             {type === 'testlop' ? ' (testløp)' : ''} genererer aktivitets-strukturen
-            {sport === 'biathlon' ? ' — runder og skyteserier klare til føring' : ' — klar til føring'}
+            {sport === 'biathlon' ? ' - runder og skyteserier klare til føring' : ' - klar til føring'}
           </span>
           <button type="button" onClick={() => onRequestGenerate(data.distance_format, activityCount > 0)}
             style={{
@@ -160,7 +160,7 @@ export function KonkurransePanel({
       {/* ── TEST: «Hvilken test?» + protokoll-skjemaet ── */}
       {erTest ? (
         <div className="px-4 pb-4 pt-2">
-          {/* Navn på testen — fylles fra valgt mal, fritt redigerbart. */}
+          {/* Navn på testen - fylles fra valgt mal, fritt redigerbart. */}
           <div className="mb-3">
             <label style={LBL}>Navn på testen</label>
             <input value={(testData ?? emptyTestData()).custom_label}
@@ -177,11 +177,11 @@ export function KonkurransePanel({
             aktivTestMalId={aktivTestMalId}
             kanLageNyMal={kanLageNyMal}
             onNyMal={onNyMal} />
-          {/* Protokoll/resultat hører til GJENNOMFØRINGEN — i plan holder
+          {/* Protokoll/resultat hører til GJENNOMFØRINGEN - i plan holder
               navn + valgt test; resultatfeltene kommer i dagbok. */}
           {isPlan ? (
             <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-alt)' }}>
-              Resultat og protokoll føres når testen er gjennomført — feltene ligger klare i dagbok-visningen.
+              Resultat og protokoll føres når testen er gjennomført - feltene ligger klare i dagbok-visningen.
             </p>
           ) : (
             <TestDataModule data={testData ?? emptyTestData()} onChange={onTestDataChange} mode={mode} variant="panel" />
@@ -190,7 +190,7 @@ export function KonkurransePanel({
       ) : (
         <div className="px-4 pb-4 pt-1">
           {/* Rad 1: Sport · Format · (Prioritet kun konk). Konkurransetype-
-              selecten er FJERNET (Sverre 21. aug) — typen velges alt med
+              selecten er FJERNET (Sverre 21. aug) - typen velges alt med
               chipene; feltet settes implisitt og stafett avledes av formatet. */}
           <div className={`grid grid-cols-2 gap-3 mt-3 ${erKonk ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
             {onSportChange ? (
@@ -228,7 +228,7 @@ export function KonkurransePanel({
                   }
                 }}
                 style={FELT} disabled={formats.length === 0}>
-                <option value="">—</option>
+                <option value="">-</option>
                 {formats.map(f => <option key={f} value={f}>{f}</option>)}
               </select>
             </div>
@@ -254,7 +254,7 @@ export function KonkurransePanel({
                 {keyDate && (
                   <div className="flex items-center gap-2 mt-2" style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--mut)' }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#28A86E', flexShrink: 0 }} />
-                    Hentet fra <b style={{ color: 'var(--tekst-1-app)' }}>årsplanen</b> — kan overstyres
+                    Hentet fra <b style={{ color: 'var(--tekst-1-app)' }}>årsplanen</b> - kan overstyres
                   </div>
                 )}
               </div>
@@ -317,7 +317,7 @@ export function KonkurransePanel({
                   {etterApen ? '▾' : '▸'}
                 </span>
                 <span style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
-                  Etter løpet — fyll ut når du er i mål
+                  Etter løpet - fyll ut når du er i mål
                 </span>
                 <span style={{ flex: 1, height: 1, background: 'var(--line)' }} />
               </button>
@@ -350,13 +350,13 @@ export function KonkurransePanel({
         </div>
       )}
 
-      {/* Mal-rad: ny mal i EGEN popup — ren struktur-bygger. Aldri fra
+      {/* Mal-rad: ny mal i EGEN popup - ren struktur-bygger. Aldri fra
           utfylt panel-innhold; sted/plasseringer/resultater hoerer til oekta.
-          Skjules inne i mal-byggeren — ingen meta-oppretting av maler der. */}
+          Skjules inne i mal-byggeren - ingen meta-oppretting av maler der. */}
       {kanLageNyMal && (
       <div className="flex items-center gap-3 flex-wrap px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
         <span style={{ fontFamily: FONT, fontSize: 13, color: 'var(--mut)', flex: 1, minWidth: 200 }}>
-          💾 <b style={{ color: 'var(--tekst-1-app)' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> — ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
+          💾 <b style={{ color: 'var(--tekst-1-app)' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> - ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
         </span>
         <button type="button" onClick={onNyMal}
           style={{ fontFamily: FONT, fontWeight: 700, fontSize: 13, color: 'var(--mut)', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
@@ -441,23 +441,23 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
           {(egne ?? []).map(t =>
             rad(t.id, t.name, `Din egen · ${t.config.series.length} serier`,
               'Egen test-mal', true, aktivSkytetestRef === t.id, () => onVelgSkytetest({ ref: t.id, navn: t.name, surface: t.config.surface ?? null, serier: t.config.series })))}
-          {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Lag din egen — lagres i biblioteket', null, false, false, onNyMal)}
+          {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Lag din egen - lagres i biblioteket', null, false, false, onNyMal)}
           <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-alt)', marginTop: 8 }}>
-            Samme bibliotek som skytetest-malene i skyting-delen — NSSF-malene er låste, dine egne er redigerbare. Ingen A/B/C på test.
+            Samme bibliotek som skytetest-malene i skyting-delen - NSSF-malene er låste, dine egne er redigerbare. Ingen A/B/C på test.
           </p>
         </div>
       ) : (
         <div style={{ maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
           {relevanteMaler.length === 0 && (
             <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-8-alt)', marginTop: 6 }}>
-              Ingen test-maler for idretten ennå — lag en med «+ Ny test-mal».
+              Ingen test-maler for idretten ennå - lag en med «+ Ny test-mal».
             </p>
           )}
           {relevanteMaler.map(t =>
             rad(t.id, `${t.erBibliotek ? '📚 ' : ''}🧪 ${t.navn}`,
               t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
               null, !t.erBibliotek, aktivTestMalId === t.id, () => onVelgTestMal(t.id)))}
-          {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg — lagres i biblioteket', null, false, false, onNyMal)}
+          {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg - lagres i biblioteket', null, false, false, onNyMal)}
         </div>
       )}
     </div>

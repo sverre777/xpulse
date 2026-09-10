@@ -22,7 +22,7 @@ export function VolumeProgressBar({
       <div className="flex items-baseline justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          {label ?? 'Planlagt volum — gjeldende periode'}
+          {label ?? 'Planlagt volum - gjeldende periode'}
         </span>
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif",

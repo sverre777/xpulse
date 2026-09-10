@@ -40,7 +40,7 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
             : TYPE_LABELS[e.nutrition_type] ?? e.nutrition_type
           const time = e.time_offset_minutes
             ? `${e.time_offset_minutes} min`
-            : '—'
+            : '-'
           const macros: string[] = []
           if (e.carbs_g) macros.push(`${e.carbs_g} g karbo`)
           if (e.protein_g) macros.push(`${e.protein_g} g protein`)
@@ -59,7 +59,7 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
               <span style={{ color: 'rgb(var(--tekst-land-rgb) / 0.55)' }}>{macros.join(' · ')}</span>
               {e.notes && (
                 <span style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic', marginLeft: 'auto' }}>
-                  — {e.notes}
+                  - {e.notes}
                 </span>
               )}
             </li>

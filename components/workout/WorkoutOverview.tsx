@@ -330,7 +330,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── HANDLINGSRAD (planlagt økt): marker/live/rediger øverst ── */}
       {isPlannedView && canEdit && (onMarkCompleted || onStartLive) && (
         <div className="flex gap-2 mb-4 items-stretch flex-wrap">
-          {/* Kobling til synket økt — alternativet til manuell markering,
+          {/* Kobling til synket økt - alternativet til manuell markering,
               rett ved siden av CTA-en (Sverre 27. aug). Rendres kun når
               kandidater finnes (komponentens egen logikk). */}
           {workoutId && data.date && (
@@ -385,7 +385,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           ) : (
             <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}>✓ Gjennomført</span>
           )}
-          {/* Strava-synk vises med offisiell Strava-logo (attribution) —
+          {/* Strava-synk vises med offisiell Strava-logo (attribution) -
               aldri den røde trekanten. */}
           {(data.imported_from === 'strava' || data.merged_source === 'strava') && (
             <ImportSourceBadge source="strava" />
@@ -402,14 +402,14 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           {fromTemplate && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
           )}
-          {/* Kø #48: standardøkt-serie — diskret pille i heroen. */}
+          {/* Kø #48: standardøkt-serie - diskret pille i heroen. */}
           {data.standard_session_series_name && (
             <span style={pillStyle('#FF8A5C', 'rgba(255,69,0,.08)', 'rgba(255,69,0,.35)')}>
               ⟳ Standardøkt: {data.standard_session_series_name}
             </span>
           )}
         </div>
-        {/* Kobling mot planlagt økt — lever i VISNINGEN, øverst (Sverre
+        {/* Kobling mot planlagt økt - lever i VISNINGEN, øverst (Sverre
             27. aug: knappen fantes bare i redigeringsskjemaet, og der
             fant ingen den). Viser også «Fjern kobling»/✓ når koblet. */}
         {!isPlannedView && canEdit && workoutId && data.date && (
@@ -447,7 +447,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             )}
             {data.is_heat_training && <span style={chipStyle}>🌡 Varmetrening</span>}
             {data.is_group_session && <span style={chipStyle}>👥 Fellestrening</span>}
-            {/* Planlagt økt: utstyret er en intensjon — km/tid telles først
+            {/* Planlagt økt: utstyret er en intensjon - km/tid telles først
                 når økta markeres gjennomført. */}
             {gearNames.map(n => (
               <span key={n} style={chipStyle}>{isPlannedView ? 'Planlagt utstyr' : 'Utstyr'} · <b style={{ color: 'var(--ink)' }}>{n}</b></span>
@@ -470,20 +470,20 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         </div>
       )}
 
-      {/* ── PLAN-GRAFEN (bolk 5) — øktkartet er det første man ser på en
+      {/* ── PLAN-GRAFEN (bolk 5) - øktkartet er det første man ser på en
           planlagt økt, og på en gjennomført økt uten klokke. Klokkeøkter
           har klokke-grafen i seksjonen under. ── */}
       {!harKlokkeRader && activities.length > 0 && (
         <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
           <div data-plan-graf-hovedside>
             {/* Sverre 5. sep: «plan i bakgrunn» også på oversikten for en dagbok-økt uten
-                klokke — planen bak (tvilling, snapshot eller planlagt økt samme dag) som spøkelse. */}
+                klokke - planen bak (tvilling, snapshot eller planlagt økt samme dag) som spøkelse. */}
             {!isPlannedView && planBakBlokker.length > 0 && (
               <div className="mb-2 flex justify-end">
                 <VisPlanBryter paa={visPlanBak_} antall={planBakBlokker.length} onEndre={p2 => settVisPlanBak(workoutId ?? '', p2)} />
               </div>
             )}
-            {/* Sverre 5. sep: punktene som på øktkartet — pille/etikett med strek, emoji og verdi (ikke bare ikon). */}
+            {/* Sverre 5. sep: punktene som på øktkartet - pille/etikett med strek, emoji og verdi (ikke bare ikon). */}
             <PlanGraf blokker={fraActivityRows(activities)} tetthet="full"
               spokelser={!isPlannedView && visPlanBak_ ? planBakBlokker : []}
               punkter={oversiktPunkter(data.tidspunkt_notater, data.lactate, data.nutrition_entries, data.time_of_day)} />
@@ -503,7 +503,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             {visningsFordeling(totals.zoneSeconds, utvidetSkala).map(v => {
               if (v.sek <= 0) return null
               return <div key={v.navn}
-                title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
+                title={v.inklHurtighet ? 'I7 - inkl. Hurtighet-føringer' : v.navn}
                 style={{ width: `${(v.sek / zoneTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
             })}
           </div>
@@ -530,17 +530,17 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         </Card>
       )}
 
-      {/* ── PLAN VS GJENNOMFØRT — samme sammenligning som skjemaet viser etter
+      {/* ── PLAN VS GJENNOMFØRT - samme sammenligning som skjemaet viser etter
           «Marker som gjennomført» (der ekspandert som standard). Flettede økter
           (fase 109) har planen i planned_snapshot og klokkas rader som
-          activities — blokka står MELLOM øktas egne kort og klokkedataene. */}
+          activities - blokka står MELLOM øktas egne kort og klokkedataene. */}
       {!isPlannedView && (data.planned_activities?.length ?? 0) > 0 && activities.length > 0 && (
         <div className="mb-3.5">
           <PlanVsActualComparison plan={data.planned_activities ?? []} actual={activities} />
         </div>
       )}
 
-      {/* ── KLOKKEDATA — HØYT og synlig (pulskurve/høyde/watt + laps).
+      {/* ── KLOKKEDATA - HØYT og synlig (pulskurve/høyde/watt + laps).
           Gjenbruker WorkoutKlokkesyncSection 1:1 (WorkoutDetailChart er på
           graf-temaet); egen data-finnes-sjekk, kun importerte økter. ── */}
       {workoutId && (data.imported_from || data.merged_source) && (
@@ -562,11 +562,11 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
 
       {/* ── FRA KLOKKA (fase 109, fasit seksjon 3): flettet klokkedata +
           angre-raden. Angre er uten frist; dialogen varsler når målet er
-          endret ETTER fletten (krav 3) — aldri stille gjenoppretting. ── */}
+          endret ETTER fletten (krav 3) - aldri stille gjenoppretting. ── */}
       {data.merged_source && flett && (
         <div className="mb-3.5 p-4" style={{ border: '1px solid rgba(26,111,212,.35)', borderRadius: 14, background: 'rgba(26,111,212,.05)' }}>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#1A6FD4', textTransform: 'uppercase' }}>
-            ⌚ Fra klokka — {flett.modus === 'legg_bak' ? 'lagt bak' : 'aktivitetene byttet'}
+            ⌚ Fra klokka - {flett.modus === 'legg_bak' ? 'lagt bak' : 'aktivitetene byttet'}
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: 'var(--mut)' }}>
             {flett.snittpuls != null && <span>Snittpuls <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{flett.snittpuls}</b></span>}
@@ -583,7 +583,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                   ))}
                 </div>
                 <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--mut)' }}>
-                  Sonefordeling regnet fra pulskurven — radene dine er ikke rørt.
+                  Sonefordeling regnet fra pulskurven - radene dine er ikke rørt.
                 </p>
               </>
             ) : null
@@ -624,7 +624,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 fontFamily: "'Barlow Condensed', sans-serif", color: '#E2A33A', lineHeight: 1.5,
                 border: '1px solid rgba(226,163,58,.4)', background: 'rgba(226,163,58,.08)',
               }}>
-                ⚠ Økta er endret ETTER fletten — de endringene går tapt når
+                ⚠ Økta er endret ETTER fletten - de endringene går tapt når
                 fletten angres.
               </p>
             )}
@@ -672,7 +672,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           halvtom ut.
 
           Teksten sa tidligere «Ingen detaljdata fulgte med denne økta», og det
-          er misvisende: totalene OVER — km, tid, puls — kom fra samme import og
+          er misvisende: totalene OVER - km, tid, puls - kom fra samme import og
           stemmer. Det som mangler er RUNDE-inndelingen. Målt i prod: økter uten
           aktivitetsrader har km, tid og høyde utfylt på selve økta i 100 % av
           tilfellene, så «ingen detaljdata» var feil om nettopp de øktene. */}
@@ -693,7 +693,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── AKTIVITETER (read-only tidslinje) ── */}
       {activities.length > 0 && (
         <Card title="AKTIVITETER" aux={visning === 'samlet' ? 'Samlet' : visning === 'alt' ? 'Hele økta' : 'Kronologisk'}>
-          {/* ÉN samlet/splittet-bryter (bolk 4) — samme komponent som over
+          {/* ÉN samlet/splittet-bryter (bolk 4) - samme komponent som over
               radene i skjemaet. Ren visning: dataene lagres alltid splittet. */}
           {activities.length > 1 && (
             <SamletBryter visning={visning} onVisning={velgVisning} />
@@ -753,7 +753,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                           {visningsFordeling(zones, utvidetSkala).map(v => {
                             if (v.sek <= 0) return null
                             return <div key={v.navn}
-                              title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
+                              title={v.inklHurtighet ? 'I7 - inkl. Hurtighet-føringer' : v.navn}
                               style={{ width: `${(v.sek / zTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
                           })}
                         </div>
@@ -798,7 +798,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                       {visningsFordeling(aZones.zoneSeconds, utvidetSkala).map(v => {
                         if (v.sek <= 0) return null
                         return <div key={v.navn}
-                          title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
+                          title={v.inklHurtighet ? 'I7 - inkl. Hurtighet-føringer' : v.navn}
                           style={{ width: `${(v.sek / aZoneTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
                       })}
                     </div>
@@ -819,8 +819,8 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── SKYTING ── Vises når skyte-data finnes ELLER økta er skiskyting
           (også uten førte skudd): etter #40 åpner alle eksisterende økter som
           oversikt, og uten en synlig inngang her var treff-føringen «borte»
-          for skiskyttere — skjemaets skytefelter lå gjemt bak ✎ Rediger.
-          Kø #47 bolk 9: seriemodellen — totalene regnes m/ delt kun-førte-
+          for skiskyttere - skjemaets skytefelter lå gjemt bak ✎ Rediger.
+          Kø #47 bolk 9: seriemodellen - totalene regnes m/ delt kun-førte-
           funksjon, og hver blokk vises m/ type, markeringer og serie-liste. ── */}
       {(() => {
         const blocks = activities.filter(a => SHOOTING_TYPES.has(a.activity_type))
@@ -931,7 +931,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 {s.hits === '' && (
                   <span style={{ color: 'var(--tekst-8-alt)', fontSize: 12.5 }}>treff ikke ført</span>
                 )}
-                {/* Kø #49 bolk 3: vind & sikt der ført — mini-vimpel + korttekst. */}
+                {/* Kø #49 bolk 3: vind & sikt der ført - mini-vimpel + korttekst. */}
                 {(s.vind_styrke != null || s.sikt) && (
                   <span className="inline-flex items-center" style={{ gap: 4, color: 'var(--mut)', fontSize: 12.5 }}>
                     {s.vind_styrke != null && <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke} size={18} />}
@@ -975,7 +975,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                       {blockHeader(a, idx)}
                       {isDryBlock(a) ? (
                         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--mut)', marginTop: 5 }}>
-                          Tørrtrening — kun skytetid føres.
+                          Tørrtrening - kun skytetid føres.
                         </p>
                       ) : (
                         <div className="flex flex-col gap-1 mt-2">
@@ -1003,7 +1003,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         )
       })()}
 
-      {/* ── SPLITS PER KM (fase 2 — kun når splits finnes) ── */}
+      {/* ── SPLITS PER KM (fase 2 - kun når splits finnes) ── */}
       {(() => {
         const rows: { km: string; sec: number }[] = []
         for (const a of activities) {
@@ -1033,7 +1033,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         )
       })()}
 
-      {/* ── DAGSFORM OG BELASTNING (fase 2 — hvis ført) ── */}
+      {/* ── DAGSFORM OG BELASTNING (fase 2 - hvis ført) ── */}
       {(data.day_form_physical != null || data.day_form_mental != null || data.rpe != null) && (
         <Card title="DAGSFORM OG BELASTNING" beamColor="#F5C542">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
@@ -1072,7 +1072,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         </Card>
       )}
 
-      {/* ── VÆR/FØRE + ERNÆRING side ved side (fase 2 — hvis ført) ── */}
+      {/* ── VÆR/FØRE + ERNÆRING side ved side (fase 2 - hvis ført) ── */}
       {(() => {
         const w = data.weather
         const hasWeather = !!w && !!(w.temperature || w.weather_type || w.wind_strength || (w.surface_conditions?.length ?? 0) > 0 || w.notes)
@@ -1118,7 +1118,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         )
       })()}
 
-      {/* ── NOTATER + tagger (fase 2 — hvis ført) ── */}
+      {/* ── NOTATER + tagger (fase 2 - hvis ført) ── */}
       {(data.notes || (data.tags?.length ?? 0) > 0) && (
         <Card title="NOTATER">
           {data.notes && (

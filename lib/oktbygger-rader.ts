@@ -463,7 +463,7 @@ export function snappTilKlokkerunder(
     : runder.filter(r => !PAUSE_TYPER.has(r.type) && !VEKSLING_TYPER.has(r.type) && r.type !== 'oppvarming' && r.type !== 'nedjogg')
   if (drag.length === 0) return { ok: false, melding: 'Bygget har ingen drag å snappe.' }
   if (kandidater.length !== drag.length) {
-    return { ok: false, melding: `Bygget har ${drag.length} drag, klokka har ${kandidater.length} runder — ingenting endret.` }
+    return { ok: false, melding: `Bygget har ${drag.length} drag, klokka har ${kandidater.length} runder - ingenting endret.` }
   }
   const ny = s.map(u => ({ ...u }))
   const endret = new Set<string>()

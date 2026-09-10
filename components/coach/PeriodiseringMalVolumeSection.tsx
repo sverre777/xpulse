@@ -106,7 +106,7 @@ export function PeriodiseringMalVolumeSection({
                 placeholder="…"
               />
             </div>
-            {/* Del E/F: valgfri nedbryting per måned — følger med ved push. */}
+            {/* Del E/F: valgfri nedbryting per måned - følger med ved push. */}
             <div className="col-span-2 md:col-span-4">
               <MalVolumeBreakdown
                 key={`bd-${i}`}
@@ -193,7 +193,7 @@ function MalVolumeBreakdown({
                   border: `1px solid ${zoneMode === m ? 'var(--kant-6-alt)' : 'var(--kant-3)'}`,
                   cursor: 'pointer',
                 }}>
-                {m === 'gruppert' ? 'I1–2 / I3 / I4–5' : 'I1…I5'}
+                {m === 'gruppert' ? 'I1-2 / I3 / I4-5' : 'I1…I5'}
               </button>
             ))}
           </div>

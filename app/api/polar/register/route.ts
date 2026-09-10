@@ -44,7 +44,7 @@ export async function POST() {
       ? 'Polar nekter datatilgang til obligatoriske samtykker er godtatt. Logg inn på flow.polar.com, godta samtykkene, og prøv igjen.'
       : reg.reason === 'member_id_conflict'
       ? 'Polar har en eldre registrering på kontoen din som blokkerer den nye. Koble fra Polar (som avregistrerer oss hos Polar) og koble til på nytt.'
-      : 'Registreringen hos Polar gikk ikke igjennom. Tilkoblingen er beholdt — prøv igjen, eller koble til på nytt.'
+      : 'Registreringen hos Polar gikk ikke igjennom. Tilkoblingen er beholdt - prøv igjen, eller koble til på nytt.'
     return NextResponse.json({
       ok: false,
       reason: reg.reason,
@@ -74,7 +74,7 @@ export async function POST() {
     polar_status: reg.status,
     registered_at: registeredAt,
     note: reg.alreadyRegistered
-      ? 'Brukeren var allerede registrert hos Polar (409) — behandlet som suksess.'
+      ? 'Brukeren var allerede registrert hos Polar (409) - behandlet som suksess.'
       : 'Registrert hos Polar. Kun økter lastet opp etter dette tidspunktet er tilgjengelige.',
   })
 }

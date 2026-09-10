@@ -52,7 +52,7 @@ export function TrenerPlanleggPage({
         </div>
         <p className="mb-6 text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Bygg øktmaler, plan-maler og årsplan-maler — push til utøvere eller grupper.
+          Bygg øktmaler, plan-maler og årsplan-maler - push til utøvere eller grupper.
         </p>
 
         <TabBar tab={tab} setTab={setTab} />

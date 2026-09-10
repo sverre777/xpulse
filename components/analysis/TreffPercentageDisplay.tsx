@@ -30,7 +30,7 @@ function pct(hits: number | null | undefined, shots: number | undefined): number
 }
 
 function fmtPct(v: number | null): string {
-  return v == null ? '—' : `${v.toFixed(1)}%`
+  return v == null ? '-' : `${v.toFixed(1)}%`
 }
 
 function deriveStats(t: ShootingTotals): { total: number | null; prone: number | null; standing: number | null; totalShots: number; proneShots: number; standingShots: number } {

@@ -72,14 +72,14 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
       {/* ── Siste natt ── */}
       <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
         <SeksjonsTittel
-          tittel={natt?.stadier?.length ? 'SISTE NATT — HYPNOGRAM' : 'SISTE NATT'}
+          tittel={natt?.stadier?.length ? 'SISTE NATT - HYPNOGRAM' : 'SISTE NATT'}
           merknad={nattDag ? [
             nattTidspunkt(nattDag.sleep_start) ? `leggetid ${nattTidspunkt(nattDag.sleep_start)}` : null,
             nattTidspunkt(nattDag.sleep_end) ? `våknet ${nattTidspunkt(nattDag.sleep_end)}` : null,
           ].filter(Boolean).join(' · ') || nattDag.date : undefined}
         />
         {!nattDag ? (
-          <p style={tomTekst}>For lite data — ingen netter i perioden.</p>
+          <p style={tomTekst}>For lite data - ingen netter i perioden.</p>
         ) : (
           <>
             {natt?.stadier?.length ? (
@@ -98,7 +98,7 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
             </div>
             {!natt?.stadier?.length && (
               <p style={{ ...tomTekst, marginTop: 8 }}>
-                Stadie-tidslinja (hypnogram) krever serie-data fra klokka — vises automatisk når natta har det.
+                Stadie-tidslinja (hypnogram) krever serie-data fra klokka - vises automatisk når natta har det.
               </p>
             )}
           </>
@@ -115,30 +115,30 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
         <Gruppe tittel="SØVN">
           <Rad k="Total søvn" v={nattDag?.total_sleep_minutes != null ? formatTimer(nattDag.total_sleep_minutes) : null} />
           <Rad k="Søvnscore" v={nattDag?.sleep_score != null ? String(nattDag.sleep_score) : null} />
-          <Rad k="Dypsøvn-andel" v={dypAndel != null ? `${dypAndel} %${kval('deepPercentage') ? ` — «${kval('deepPercentage')}»` : ''}` : null} />
-          <Rad k="REM-andel" v={remAndel != null ? `${remAndel} %${kval('remPercentage') ? ` — «${kval('remPercentage')}»` : ''}` : null} />
+          <Rad k="Dypsøvn-andel" v={dypAndel != null ? `${dypAndel} %${kval('deepPercentage') ? ` - «${kval('deepPercentage')}»` : ''}` : null} />
+          <Rad k="REM-andel" v={remAndel != null ? `${remAndel} %${kval('remPercentage') ? ` - «${kval('remPercentage')}»` : ''}` : null} />
         </Gruppe>
-        <Gruppe tittel="AKTIVITET" fotnote="Kalorier vises ikke — estimatene spriker for mye mellom merker.">
+        <Gruppe tittel="AKTIVITET" fotnote="Kalorier vises ikke - estimatene spriker for mye mellom merker.">
           <Rad k="Skritt" v={sisteAktivitet?.steps != null ? sisteAktivitet.steps.toLocaleString('nb-NO') : null} />
           <Rad k="Daglig distanse" v={sisteAktivitet?.daily_distance_m != null ? `${(sisteAktivitet.daily_distance_m / 1000).toLocaleString('nb-NO', { maximumFractionDigits: 1 })} km` : null} />
           <Rad k="Etasjer" v={sisteAktivitet?.stairs_climbed != null ? String(sisteAktivitet.stairs_climbed) : null} />
         </Gruppe>
         {merkeNavn && (
-          <Gruppe tittel={`FRA ${merkeNavn.toUpperCase()} — DERES SKALA`}
+          <Gruppe tittel={`FRA ${merkeNavn.toUpperCase()} - DERES SKALA`}
             fotnote={`${merkeNavn}s egne skårer, på ${merkeNavn}s skala. Regnes ikke inn i trendene, som bruker verdier som er sammenlignbare på tvers av kilder.`}>
             <Rad k="Body Battery ladet / tappet"
               v={tall(mv.body_battery_charged) != null || tall(mv.body_battery_drained) != null
-                ? `${tall(mv.body_battery_charged) ?? '–'} / ${tall(mv.body_battery_drained) ?? '–'}` : null} />
+                ? `${tall(mv.body_battery_charged) ?? '-'} / ${tall(mv.body_battery_drained) ?? '-'}` : null} />
             <Rad k="Stress (snitt / maks)"
               v={tall(mv.avg_stress) != null || tall(mv.max_stress) != null
-                ? `${tall(mv.avg_stress) ?? '–'} / ${tall(mv.max_stress) ?? '–'}` : null} />
+                ? `${tall(mv.avg_stress) ?? '-'} / ${tall(mv.max_stress) ?? '-'}` : null} />
             <Rad k="Kondisjonsalder" v={tall(mv.fitness_age) != null ? String(tall(mv.fitness_age)) : null} />
             <Rad k="VO₂maks" v={tall(mv.vo2max) != null ? String(tall(mv.vo2max)) : null} />
           </Gruppe>
         )}
       </div>
 
-      {/* ── Vekt — reddet fra det gamle helse-fanen (Sverres beslutning
+      {/* ── Vekt - reddet fra det gamle helse-fanen (Sverres beslutning
              27. aug): klokker og manuell føring leverer den, og stien
              føring → health_metrics → visning er hel igjen her. ── */}
       {data.dager.some(d => d.body_weight_kg != null) && (
@@ -151,9 +151,9 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
         </div>
       )}
 
-      {/* ── Lang trend — HRV, 1 år, ukesnitt ── */}
+      {/* ── Lang trend - HRV, 1 år, ukesnitt ── */}
       <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-        <SeksjonsTittel chartKey="helse_hrv_lang" tittel="LANG TREND — HRV" merknad="1 år · ukesnitt" />
+        <SeksjonsTittel chartKey="helse_hrv_lang" tittel="LANG TREND - HRV" merknad="1 år · ukesnitt" />
         <AarsTrend dager={aarsdata} felt="hrv_ms" farge={HELSE_TREND_FARGER.hrv} />
       </div>
 
@@ -191,7 +191,7 @@ function Rad({ k, v, manuell = false }: { k: string; v: string | null; manuell?:
       <span style={{ fontWeight: 600, color: 'var(--tekst-1-app)' }}>
         {v}
         {manuell && (
-          <span title="manuelt ført — vinner over klokka" style={{
+          <span title="manuelt ført - vinner over klokka" style={{
             display: 'inline-block', fontSize: 10, border: '1px solid var(--line2)', borderRadius: 4,
             padding: '0 5px', color: 'var(--tekst-8-app)', marginLeft: 6, verticalAlign: 2,
           }}>M</span>

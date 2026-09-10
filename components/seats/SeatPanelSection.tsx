@@ -30,7 +30,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
   const [antall, setAntall] = useState(status.purchased)
 
   const fmtDato = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString('nb-NO', { day: '2-digit', month: 'long' }) : '—'
+    iso ? new Date(iso).toLocaleDateString('nb-NO', { day: '2-digit', month: 'long' }) : '-'
 
   const kopier = async () => {
     try {
@@ -38,12 +38,12 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
       setKopiert(true)
       setTimeout(() => setKopiert(false), 2500)
     } catch {
-      setError('Kunne ikke kopiere — marker lenka manuelt')
+      setError('Kunne ikke kopiere - marker lenka manuelt')
     }
   }
 
   const regenerer = async () => {
-    if (!await xpConfirm('Lage ny lenke? Den gamle slutter å virke med en gang — utøvere som allerede er på plass beholder plassen.')) return
+    if (!await xpConfirm('Lage ny lenke? Den gamle slutter å virke med en gang - utøvere som allerede er på plass beholder plassen.')) return
     startTransition(async () => {
       const res = await regenerateSeatInviteLink()
       if (res && 'error' in res && res.error) { setError(res.error); return }
@@ -123,7 +123,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
       {/* Invitasjonslenka */}
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        Invitasjonslenke — utøveren registrerer seg og er koblet + lisensiert på under et minutt
+        Invitasjonslenke - utøveren registrerer seg og er koblet + lisensiert på under et minutt
       </p>
       <div className="flex items-center gap-2 flex-wrap mb-5">
         <code className="px-3 py-2 text-xs truncate" style={{
@@ -144,7 +144,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
       {/* Kjøp/endre antall */}
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        Ekstra plasser — 29 kr/mnd per plass, prorert av Stripe
+        Ekstra plasser - 29 kr/mnd per plass, prorert av Stripe
       </p>
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <button type="button" onClick={() => setAntall(a => Math.max(0, a - 1))} style={knappSekundar} aria-label="Færre plasser">−</button>
@@ -160,7 +160,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
       </div>
 
       {/* Bekreftelses-popup: viser den FAKTISKE proraterte summen fra Stripe
-          før noe endres — kjøp skjer aldri i blinde. */}
+          før noe endres - kjøp skjer aldri i blinde. */}
       {preview && (
         <div onClick={() => setPreview(null)}
           style={{
@@ -185,10 +185,10 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
               {preview.prorationOre === 0 && preview.til !== preview.fra && (
                 <p style={{ color: preview.harRabatt ? '#28A86E' : 'var(--tekst-5-app)' }}>
                   {preview.harRabatt
-                    ? 'Dekkes av rabatten din — ingenting belastes.'
+                    ? 'Dekkes av rabatten din - ingenting belastes.'
                     : preview.status === 'trialing'
-                      ? 'Ingen belastning nå — plassene kommer på første faktura etter prøveperioden.'
-                      : 'Ingen belastning nå — endringen kommer på neste faktura.'}
+                      ? 'Ingen belastning nå - plassene kommer på første faktura etter prøveperioden.'
+                      : 'Ingen belastning nå - endringen kommer på neste faktura.'}
                 </p>
               )}
               {preview.prorationOre > 0 && preview.harRabatt && (
@@ -201,7 +201,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
               <button type="button" onClick={() => setPreview(null)} style={knappSekundar}>Avbryt</button>
               <button type="button" onClick={bekreftKjop} disabled={pending} style={{ ...knappPrimar, opacity: pending ? 0.6 : 1 }}>
                 {pending ? 'Utfører…' : preview.til > preview.fra
-                  ? `Bekreft kjøp${preview.prorationOre > 0 ? ` — ${(preview.prorationOre / 100).toFixed(2)} kr nå` : ''}`
+                  ? `Bekreft kjøp${preview.prorationOre > 0 ? ` - ${(preview.prorationOre / 100).toFixed(2)} kr nå` : ''}`
                   : 'Bekreft endring'}
               </button>
             </div>
@@ -217,7 +217,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
           <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>{error}</p>
           {mustFree != null && (
             <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              Velg selv hvem som skal miste plassen i listen under — ingen fjernes automatisk.
+              Velg selv hvem som skal miste plassen i listen under - ingen fjernes automatisk.
             </p>
           )}
         </div>
@@ -243,7 +243,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
                   </p>
                   <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {a.status === 'utloper'
-                      ? `Fjernet — beholder tilgang til ${fmtDato(a.currentPeriodEnd)}`
+                      ? `Fjernet - beholder tilgang til ${fmtDato(a.currentPeriodEnd)}`
                       : 'Athlete Pro via din plass'}
                   </p>
                 </div>

@@ -150,7 +150,7 @@ export function helseData(): HelseOversiktData {
       daily_distance_m: null, stairs_climbed: null, sleep_score: Math.round(74 + 9 * tr + 3 * s), total_sleep_minutes: dyp + lett + rem,
       deep_minutes: dyp, light_minutes: lett, rem_minutes: rem, awake_minutes: vaken, sleep_start: '22:48', sleep_end: '06:30',
       body_weight_kg: null, kilder: i === 0 ? { resting_hr: 'manual', hrv_ms: 'garmin', sleep_score: 'garmin' } : { resting_hr: 'garmin', hrv_ms: 'garmin', sleep_score: 'garmin' },
-      day_form: i % 5 === 2 ? null : Math.max(2, Math.min(5, Math.round(3.8 + 0.9 * s))),   // dagsform er 1–5 (stjernene i skjemaet)
+      day_form: i % 5 === 2 ? null : Math.max(2, Math.min(5, Math.round(3.8 + 0.9 * s))),   // dagsform er 1-5 (stjernene i skjemaet)
     })
   }
   const siste = dager[dager.length - 1]

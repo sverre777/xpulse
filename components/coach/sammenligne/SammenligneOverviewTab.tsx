@@ -25,7 +25,7 @@ function fmtKm(meters: number): string {
 }
 
 function pctChange(v: number | null): string {
-  if (v === null || !Number.isFinite(v)) return '—'
+  if (v === null || !Number.isFinite(v)) return '-'
   const sign = v > 0 ? '+' : ''
   return `${sign}${v.toFixed(0)}%`
 }
@@ -148,8 +148,8 @@ function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] 
                 <Td>{o.current.rest_days}</Td>
                 <Td>{o.current.sickness_days}</Td>
                 <Td>{pctChange(o.percent_changes.total_seconds)}</Td>
-                <Td>{o.current.avg_energy?.toFixed(1) ?? '—'}</Td>
-                <Td>{o.current.avg_stress?.toFixed(1) ?? '—'}</Td>
+                <Td>{o.current.avg_energy?.toFixed(1) ?? '-'}</Td>
+                <Td>{o.current.avg_stress?.toFixed(1) ?? '-'}</Td>
               </tr>
             )
           })}

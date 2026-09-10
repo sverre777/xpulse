@@ -117,7 +117,7 @@ export function PopupTall({ celler }: { celler: { k: string; v: string | null; e
             {c.k}
           </div>
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: c.v ? 'var(--ink)' : 'var(--tekst-8-alt)' }}>
-            {c.v ?? '—'}
+            {c.v ?? '-'}
             {c.v && c.enhet && (
               <small style={{ fontFamily: FONT, fontWeight: 600, fontSize: 9, color: 'var(--mut)', marginLeft: 2 }}>{c.enhet}</small>
             )}

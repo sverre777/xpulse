@@ -73,7 +73,7 @@ const ALL_SPORT_VALUES: string[] = [
 void ALL_SPORT_VALUES
 
 function formatValue(v: number, unit: string | null): string {
-  if (!isFinite(v)) return '—'
+  if (!isFinite(v)) return '-'
   if (unit === 'sek' || unit === 'tid') {
     const m = Math.floor(v / 60)
     const s = Math.floor(v % 60)
@@ -86,7 +86,7 @@ function formatValue(v: number, unit: string | null): string {
 const EMPTY = (
   <EmptyState
     title="Ingen tester eller PR-er ennå"
-    body="Tester og personlige rekorder du registrerer dukker opp her med progresjon over tid — registrer via denne fanen, eller merk en økt som test i dagboken."
+    body="Tester og personlige rekorder du registrerer dukker opp her med progresjon over tid - registrer via denne fanen, eller merk en økt som test i dagboken."
   />
 )
 
@@ -98,7 +98,7 @@ export function ProgressionChart({ series }: { series: TestProgressionSeries }) 
   return (
     <ChartWrapper
       chartKey={`tester_pr_${series.sport}_${series.test_type}`}
-      title={`${series.test_type} — ${labelSport(series.sport)}`}
+      title={`${series.test_type} - ${labelSport(series.sport)}`}
       subtitle={series.unit ? `Enhet: ${series.unit}` : undefined}
       height={240}
     >
@@ -176,7 +176,7 @@ function TestRowItem({ row }: { row: TestResultRow }) {
         <div>
           <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: TEST_BLUE }}>
-            {row.test_type} — {labelSport(row.sport)}
+            {row.test_type} - {labelSport(row.sport)}
           </p>
           <p className="text-sm"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
@@ -186,7 +186,7 @@ function TestRowItem({ row }: { row: TestResultRow }) {
         <div className="text-right">
           <p className="text-xl"
             style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
-            {row.primary_result != null ? formatValue(row.primary_result, row.primary_unit) : '—'}
+            {row.primary_result != null ? formatValue(row.primary_result, row.primary_unit) : '-'}
             {row.primary_unit && (
               <span className="ml-1 text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
@@ -234,7 +234,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
     type Group = { sport: string; subcategory: string; rows: PersonalRecordRow[] }
     const map = new Map<string, Group>()
     for (const pr of filteredPRs) {
-      const subKey = pr.subcategory || pr.custom_label || pr.record_type || '—'
+      const subKey = pr.subcategory || pr.custom_label || pr.record_type || '-'
       const key = `${pr.sport}::${subKey}`
       let g = map.get(key)
       if (!g) {

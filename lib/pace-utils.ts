@@ -8,7 +8,7 @@ export const DEFAULT_PACE_UNIT: PaceUnit = 'min_per_km'
 
 // Formater MM:SS — også for verdier > 60 minutter (HH:MM:SS).
 export function formatMinPerKm(secondsPerKm: number): string {
-  if (!Number.isFinite(secondsPerKm) || secondsPerKm <= 0) return '—'
+  if (!Number.isFinite(secondsPerKm) || secondsPerKm <= 0) return '-'
   const total = Math.round(secondsPerKm)
   const h = Math.floor(total / 3600)
   const m = Math.floor((total % 3600) / 60)
@@ -18,14 +18,14 @@ export function formatMinPerKm(secondsPerKm: number): string {
 }
 
 export function formatKmPerHour(secondsPerKm: number): string {
-  if (!Number.isFinite(secondsPerKm) || secondsPerKm <= 0) return '—'
+  if (!Number.isFinite(secondsPerKm) || secondsPerKm <= 0) return '-'
   const kmh = 3600 / secondsPerKm
   return kmh.toFixed(kmh >= 10 ? 1 : 2)
 }
 
 // Formaterer pace med enhet — egnet for vises-i-DOM.
 export function formatPace(secondsPerKm: number | null | undefined, unit: PaceUnit): string {
-  if (secondsPerKm == null || !Number.isFinite(secondsPerKm) || secondsPerKm <= 0) return '—'
+  if (secondsPerKm == null || !Number.isFinite(secondsPerKm) || secondsPerKm <= 0) return '-'
   if (unit === 'km_per_h') return `${formatKmPerHour(secondsPerKm)} km/t`
   return `${formatMinPerKm(secondsPerKm)} /km`
 }

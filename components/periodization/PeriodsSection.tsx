@@ -41,7 +41,7 @@ export function PeriodsSection({
   return (
     <section className="mb-8">
       {/* «Mal sesongen»-lerretet (kø #39 fase 1). ✋ Velg åpner samme
-          PeriodModal som liste-radene — full feltparitet. */}
+          PeriodModal som liste-radene - full feltparitet. */}
       <SeasonCanvas
         season={season}
         periods={periods}
@@ -129,7 +129,7 @@ export function PeriodsSection({
                     {INTENSITY_LABEL[p.intensity]}
                   </span>
                   {/* B2: samling/høyde vises i markeringslaget («Samlinger &
-                      høyde» under) — ikke lenger som periode-flagg her. */}
+                      høyde» under) - ikke lenger som periode-flagg her. */}
                 </div>
                 {p.focus && (
                   <p className="text-sm mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
@@ -150,7 +150,7 @@ export function PeriodsSection({
         </div>
       )}
 
-      {/* Del B: markeringslaget som liste — samme info som båndene i
+      {/* Del B: markeringslaget som liste - samme info som båndene i
           lerretet (lesbar også uten redigeringstilgang). */}
       {markings.length > 0 && (
         <div className="mt-5">
@@ -260,7 +260,7 @@ export function PeriodsSection({
             />
           )}
           {/* G2: stempel → ny nøkkeldato forhåndsutfylt (dato/type/peak);
-              ✋ på stempel → rediger. Samme flyt/kilde som KeyDatesSection —
+              ✋ på stempel → rediger. Samme flyt/kilde som KeyDatesSection -
               kalendere og nedtelling plukker den opp automatisk. */}
           {stampInit && (
             <KeyDateModal

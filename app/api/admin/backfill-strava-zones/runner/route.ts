@@ -124,11 +124,11 @@ async function start() {
       for (const reason in r.reason_summary) {
         reasonsAcc[reason] = (reasonsAcc[reason] || 0) + r.reason_summary[reason];
       }
-      log('Batch offset=' + offset + ' (' + elapsed + 'ms) — oppdatert ' + r.updated_workouts_in_batch + '/' + r.processed_in_batch + ' (igjen: ' + r.total_remaining + ')');
+      log('Batch offset=' + offset + ' (' + elapsed + 'ms) - oppdatert ' + r.updated_workouts_in_batch + '/' + r.processed_in_batch + ' (igjen: ' + r.total_remaining + ')');
       for (const item of r.results) {
         const ok = item.updated_laps > 0;
         const cls = ok ? 'ok' : 'skip';
-        const txt = (ok ? 'OK ' : '— ') + item.workout_id.slice(0, 8) + ' · ' + item.updated_laps + '/' + item.total_laps + ' laps · ' + item.reason;
+        const txt = (ok ? 'OK ' : '- ') + item.workout_id.slice(0, 8) + ' · ' + item.updated_laps + '/' + item.total_laps + ' laps · ' + item.reason;
         log(txt, cls);
       }
       updateStats();
@@ -155,7 +155,7 @@ async function start() {
 }
 
 $('start').onclick = start;
-$('stop').onclick = () => { stopFlag = true; log('Stopp-signal mottatt — venter på siste batch...', 'skip'); };
+$('stop').onclick = () => { stopFlag = true; log('Stopp-signal mottatt - venter på siste batch...', 'skip'); };
 </script>
 </body>
 </html>`

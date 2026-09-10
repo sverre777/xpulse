@@ -127,7 +127,7 @@ export function SaveSeasonAsTemplate({
                   <p className="text-xs"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     Snapshotter sesongens perioder og nøkkeldatoer som relativ mal
-                    (dag-offset). Malen havner i ditt eget bibliotek — ikke utøverens.
+                    (dag-offset). Malen havner i ditt eget bibliotek - ikke utøverens.
                   </p>
 
                   <div>

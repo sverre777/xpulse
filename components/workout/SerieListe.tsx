@@ -95,11 +95,11 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
               ))}
             </div>
             <input value={s.shots} onChange={e => updSeries(s.id, { shots: e.target.value })}
-              placeholder="Skudd" title="Skudd (5–8 v/ stafett-ekstraskudd)"
+              placeholder="Skudd" title="Skudd (5-8 v/ stafett-ekstraskudd)"
               inputMode="numeric" style={{ ...nSt, width: 58 }} />
             {!planMode && (
               <input value={s.hits} onChange={e => updSeries(s.id, { hits: e.target.value })}
-                placeholder="Treff" title="Treff (valgfritt — teller i % kun når ført)"
+                placeholder="Treff" title="Treff (valgfritt - teller i % kun når ført)"
                 inputMode="numeric" style={{ ...nSt, width: 58 }} />
             )}
             {!planMode && (
@@ -131,17 +131,17 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                 <input value={s.max_heart_rate} onChange={e => updSeries(s.id, { max_heart_rate: e.target.value })}
                   placeholder="Maks" title="Makspuls under serien"
                   inputMode="numeric" style={{ ...nSt, width: 60 }} />
-                {/* AUTO/M (bolk B): AUTO er lest fra kurven og bare VIST — «Bruk»
+                {/* AUTO/M (bolk B): AUTO er lest fra kurven og bare VIST - «Bruk»
                     skriver den eksplisitt inn (regel 11). Ført puls er M og vinner. */}
                 {autoPuls && (s.avg_heart_rate.trim() !== '' ? (
-                  <span title="Manuelt ført puls — vinner alltid"
+                  <span title="Manuelt ført puls - vinner alltid"
                     style={{ ...merkeSt, color: '#E8B93C', borderColor: 'rgba(232,185,60,.5)' }}>
                     M
                   </span>
                 ) : autoPuls.get(s.id) != null ? (
                   <button type="button"
                     onClick={() => updSeries(s.id, { avg_heart_rate: String(autoPuls.get(s.id)) })}
-                    title="Lest fra pulskurven i skytevinduet — trykk for å føre den inn"
+                    title="Lest fra pulskurven i skytevinduet - trykk for å føre den inn"
                     style={{ ...merkeSt, color: '#1A6FD4', borderColor: 'rgba(26,111,212,.5)', cursor: 'pointer', background: 'none', minHeight: 40 }}>
                     AUTO {autoPuls.get(s.id)}
                   </button>
@@ -157,7 +157,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                   }}>
                   🎯
                 </button>
-                {/* Kø #49: vind & sikt — lite symbol mellom plotting og
+                {/* Kø #49: vind & sikt - lite symbol mellom plotting og
                     notat (brukerplassering 2026-08-16). */}
                 {(() => {
                   const hasWind = s.vind_styrke != null || s.sikt != null
@@ -169,7 +169,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                     <button type="button" aria-label="Vind og sikt for serien"
                       onClick={() => setWindTarget(s.id)}
                       title={hasWind
-                        ? `Vind & sikt: ${parts.join(' · ')} — trykk for å endre`
+                        ? `Vind & sikt: ${parts.join(' · ')} - trykk for å endre`
                         : 'Før vind og sikt for serien (valgfritt)'}
                       className="inline-flex items-center justify-center"
                       style={{
@@ -251,7 +251,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
       )}
       {etterSum}
       {/* Bulk-plotting: alle serier i samme popup m/ farge per serie.
-          Fylt + synlig (brukerønske 2026-08-16) — plott-oransje aksent. */}
+          Fylt + synlig (brukerønske 2026-08-16) - plott-oransje aksent. */}
       {!planMode && series.filter(s => (parseInt(s.shots) || 0) > 0).length > 1 && (
         <button type="button" onClick={() => setPlotTarget('all')}
           className="mt-1 text-xs"
@@ -261,7 +261,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
       )}
 
       {/* Kø #49: vind & sikt-popupen. Forrige series verdi foreslås
-          (forhåndsvalgt) — lagres først når brukeren trykker Lagre. */}
+          (forhåndsvalgt) - lagres først når brukeren trykker Lagre. */}
       {windTarget && (() => {
         const idx = series.findIndex(s => s.id === windTarget)
         if (idx < 0) return null

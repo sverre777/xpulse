@@ -258,7 +258,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
               <p className="text-xs mt-1 tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {startDate
-                  ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
+                  ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '-'}`
                   : 'La stå tom for relativ mal (Dag 1, 2, …)'}
               </p>
             </Field>

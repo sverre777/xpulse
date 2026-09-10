@@ -38,7 +38,7 @@ export function PeriodNote({
         ) : (
           <p className="text-sm"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-10)', fontStyle: 'italic' }}>
-            — Utøveren har ikke skrevet noe her.
+            - Utøveren har ikke skrevet noe her.
           </p>
         )}
       </div>

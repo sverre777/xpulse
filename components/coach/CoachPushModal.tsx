@@ -159,7 +159,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
               overlaps.set(aid, r.overlap)
               results.push({
                 athleteId: aid, athleteName: name, ok: false,
-                message: `Overlapp: ${r.overlap.map(o => o.name).join(', ')} — bekreft eller hopp over`,
+                message: `Overlapp: ${r.overlap.map(o => o.name).join(', ')} - bekreft eller hopp over`,
               })
             } else if (r.error) {
               results.push({ athleteId: aid, athleteName: name, ok: false, message: r.error })
@@ -281,7 +281,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
 
               {kind === 'plan' && (
                 <div>
-                  <Label>Sluttdato (valgfri — strekker/komprimerer malen)</Label>
+                  <Label>Sluttdato (valgfri - strekker/komprimerer malen)</Label>
                   <div className="flex gap-2 items-center">
                     <input type="date" value={planEndDate} onChange={e => setPlanEndDate(e.target.value)}
                       min={date}
@@ -400,7 +400,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
               </p>
               <p className="text-xs mb-3"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
-                {pendingOverlap.size} utøver{pendingOverlap.size === 1 ? '' : 'e'} har allerede sesong i samme periode. Eksisterende beholdes — ny legges til som tillegg.
+                {pendingOverlap.size} utøver{pendingOverlap.size === 1 ? '' : 'e'} har allerede sesong i samme periode. Eksisterende beholdes - ny legges til som tillegg.
               </p>
               <div className="flex flex-col gap-1 mb-3">
                 {[...pendingOverlap].map(([aid, infos]) => {

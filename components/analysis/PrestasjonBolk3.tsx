@@ -36,7 +36,7 @@ export function GapSeksjon({ data, initialConfig }: { data: PrestasjonAnalyse; i
   const punkter = useMemo(() => data.gap.filter(p => utvalg === 'alle' || EF_OKTTYPER.has(p.workout_type)).map(p => ({ ...p, x: epoch(p.date) })), [data.gap, utvalg])
   return (
     <ChartWrapper chartKey="prestasjon_gap" title="GAP-tempo over tid" height="auto" config={{ utvalg }}
-      subtitle="Stigningsjustert tempo (GAP) mot flatt tempo per økt — synkende GAP ved samme puls er fremgang uansett terreng. Kun løping med høydekurve.">
+      subtitle="Stigningsjustert tempo (GAP) mot flatt tempo per økt - synkende GAP ved samme puls er fremgang uansett terreng. Kun løping med høydekurve.">
       <div className="flex gap-4 flex-wrap items-center mb-2">
         <Gruppe navn="Utvalg">
           <Chip farge="var(--accent)" etikett="Rolige økter" paa={utvalg === 'rolige'} fokus={false} onClick={() => setUtvalg('rolige')} />
@@ -73,13 +73,13 @@ export function FartVedTerskelSeksjon({ data, initialConfig }: { data: Prestasjo
   const vis = punkter.filter(p => p.kilde === kilde)
   return (
     <ChartWrapper chartKey="prestasjon_fart_ved_terskel" title="Fart / watt ved terskelpuls" height="auto" config={{ bev: aktiv ?? null }}
-      subtitle="Snitt av fart (eller watt) i øyeblikkene pulsen lå innenfor ±3 av terskelen som gjaldt den dagen — høyere output ved samme puls er fremgang">
+      subtitle="Snitt av fart (eller watt) i øyeblikkene pulsen lå innenfor ±3 av terskelen som gjaldt den dagen - høyere output ved samme puls er fremgang">
       {bev.length > 0 && (
         <div className="flex gap-1.5 flex-wrap mb-2">
           {bev.map(b => <Chip key={b} farge="var(--accent)" etikett={b} paa={aktiv === b} fokus={false} onClick={() => setValgt(b)} />)}
         </div>
       )}
-      {vis.length === 0 ? tom('Ingen økter med pulskurve nær terskelpulsen ennå — krever ført terskel og klokkedata.') : (
+      {vis.length === 0 ? tom('Ingen økter med pulskurve nær terskelpulsen ennå - krever ført terskel og klokkedata.') : (
         <div style={{ height: 260 }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart data={vis} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
@@ -112,7 +112,7 @@ export function KurveOverTidSeksjon({ data, initialConfig }: { data: PrestasjonA
   }, [kilde])
   return (
     <ChartWrapper chartKey="prestasjon_kurve_over_tid" title="Power- / tempokurve over tid" height="auto" config={{ metrikk }}
-      subtitle="Beste snitt per varighet i hver økt — samme beregning som power-kurven under Klokkedata (den viser periodens beste, denne utviklingen)">
+      subtitle="Beste snitt per varighet i hver økt - samme beregning som power-kurven under Klokkedata (den viser periodens beste, denne utviklingen)">
       <div className="flex gap-4 flex-wrap items-center mb-2">
         <Gruppe navn="Metrikk">
           {harWatt && <Chip farge="#E8B93C" etikett="Watt" paa={metrikk === 'watt'} fokus={false} onClick={() => setMetrikk('watt')} />}
@@ -144,7 +144,7 @@ export function KadensVsFartSeksjon({ data }: { data: PrestasjonAnalyse }) {
   const bev = useMemo(() => [...new Set(data.kadens.map(p => p.bevegelse))], [data.kadens])
   return (
     <ChartWrapper chartKey="prestasjon_kadens_vs_fart" title="Kadens vs fart" height={data.kadens.length > 0 ? 300 : 'auto'}
-      subtitle="Hver økt som punkt: snittkadens mot snittfart — ser du kadensen henge med når farten øker?">
+      subtitle="Hver økt som punkt: snittkadens mot snittfart - ser du kadensen henge med når farten øker?">
       {data.kadens.length === 0 ? tom('Ingen økter med kadens og fart i perioden.') : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ScatterChart margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
@@ -170,7 +170,7 @@ export function KonkurranseVsFormSeksjon({ data }: { data: PrestasjonAnalyse }) 
   const td: React.CSSProperties = { fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)', padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }
   return (
     <ChartWrapper chartKey="prestasjon_konkurranse_vs_form" title="Konkurranse vs form" height="auto"
-      subtitle="Plassering i prosent av feltet (0 = vinner) mot formen (TSB) på renndagen — EF og treff i tabellen. Rennetid per distanse med skytetid og bom står under Konkurranser.">
+      subtitle="Plassering i prosent av feltet (0 = vinner) mot formen (TSB) på renndagen - EF og treff i tabellen. Rennetid per distanse med skytetid og bom står under Konkurranser.">
       <div className="flex justify-end mb-2">
         <Link href="/app/analyse?tab=konkurranser" style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none' }}>Konkurranser ↗</Link>
       </div>
@@ -200,10 +200,10 @@ export function KonkurranseVsFormSeksjon({ data }: { data: PrestasjonAnalyse }) 
                   <tr key={p.workout_id}>
                     <td style={td}>{p.date.slice(5)}</td>
                     <td style={{ ...td, maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</td>
-                    <td style={td}>{p.posisjon != null ? `${p.posisjon}${p.deltakere ? ` / ${p.deltakere}` : ''}` : '—'}</td>
-                    <td style={{ ...td, color: p.tsb == null ? 'var(--tekst-8-app)' : p.tsb >= 0 ? '#28A86E' : '#E23A5A' }}>{p.tsb != null ? (p.tsb > 0 ? `+${p.tsb}` : `${p.tsb}`) : '—'}</td>
-                    <td style={td}>{p.ef != null ? `${p.ef}` : '—'}</td>
-                    <td style={td}>{p.treffPct != null ? `${p.treffPct} %` : '—'}</td>
+                    <td style={td}>{p.posisjon != null ? `${p.posisjon}${p.deltakere ? ` / ${p.deltakere}` : ''}` : '-'}</td>
+                    <td style={{ ...td, color: p.tsb == null ? 'var(--tekst-8-app)' : p.tsb >= 0 ? '#28A86E' : '#E23A5A' }}>{p.tsb != null ? (p.tsb > 0 ? `+${p.tsb}` : `${p.tsb}`) : '-'}</td>
+                    <td style={td}>{p.ef != null ? `${p.ef}` : '-'}</td>
+                    <td style={td}>{p.treffPct != null ? `${p.treffPct} %` : '-'}</td>
                   </tr>
                 ))}
               </tbody>

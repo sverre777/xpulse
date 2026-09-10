@@ -206,7 +206,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       const last = rows[rows.length - 1]
       if (last && last.cells.length < 13) {
         last.cells.push(w)
-        last.label = `U${last.cells[0].idx + 1}–${w.idx + 1}`
+        last.label = `U${last.cells[0].idx + 1}-${w.idx + 1}`
       } else {
         rows.push({ label: `U${w.idx + 1}`, cells: [w] })
       }
@@ -225,7 +225,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
     const o = Math.round((parseISO(iso).getTime() - parseISO(season.start_date).getTime()) / 86400000)
     return `U${Math.floor(o / 7) + 1} ${REL_DAYS[((o % 7) + 7) % 7]}`
   }
-  const spanLabel = (a: string, b: string) => relative ? `${dayLabel(a)} – ${dayLabel(b)}` : `${a} → ${b}`
+  const spanLabel = (a: string, b: string) => relative ? `${dayLabel(a)} - ${dayLabel(b)}` : `${a} → ${b}`
 
   // Effektivt seleksjonsspenn (ISO), snapper til man–søn i uke-modus.
   const selRange = (() => {
@@ -325,7 +325,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           const wLo = weeks.find(w => rangeStart >= w.mondayISO && rangeStart <= w.sundayISO)
           const wHi = weeks.find(w => rangeEnd >= w.mondayISO && rangeEnd <= w.sundayISO)
           const navn = wLo && wHi
-              ? (weekLabel(wLo) === weekLabel(wHi) ? `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}` : `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}–${weekLabel(wHi)}`)
+              ? (weekLabel(wLo) === weekLabel(wHi) ? `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}` : `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}-${weekLabel(wHi)}`)
               : INTENSITY_LABEL[paint]
           const res = await createP({
             season_id: season.id,
@@ -548,7 +548,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
     })
     return (
       <div data-aarsplan-miniatyr style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: 12, minWidth: 0 }}>
-        {/* Periodebånd — én rad, full etikett i båndet (ikke chips oppå cellene). */}
+        {/* Periodebånd - én rad, full etikett i båndet (ikke chips oppå cellene). */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 3, height: 16 }}>
           {segmenter.map(sg => (
             <div key={`${sg.fra}-${sg.navn}`} title={sg.navn} style={{
@@ -583,7 +583,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
             )
           })}
         </div>
-        {/* Timer/uke — søyler 22 px. */}
+        {/* Timer/uke - søyler 22 px. */}
         {timer.length > 0 && (
           <div data-timer-uke style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 3, marginTop: 6, height: 22, alignItems: 'end' }}>
             {uker.map((w, i) => {
@@ -595,7 +595,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
             })}
           </div>
         )}
-        {/* Hendelsene — ÉN vannrett rullende rad. */}
+        {/* Hendelsene - ÉN vannrett rullende rad. */}
         {keyDates.length > 0 && (
           <div data-hendelser style={{ display: 'flex', gap: 5, marginTop: 8, overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none' }}>
             {[...keyDates].sort((a, b) => a.event_date.localeCompare(b.event_date)).map(k => (
@@ -628,7 +628,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14.5px', color: 'var(--tekst-8-alt)', marginTop: 2 }}>
             {canEdit
               ? granularity === 'uke'
-                ? 'Velg pensel → dra over ukene (snapper man–søn). 📍 tegner samling/høyde-bånd over lagene. ✋ Velg åpner detaljer (også på bånd). Bytt til Dag for enkeltdager.'
+                ? 'Velg pensel → dra over ukene (snapper man-søn). 📍 tegner samling/høyde-bånd over lagene. ✋ Velg åpner detaljer (også på bånd). Bytt til Dag for enkeltdager.'
                 : 'Dag-modus: mal enkeltdager. 📍 tegner samling/høyde-bånd. ✋ på en periodekant = dra start/slutt dag for dag; klikk = detaljer (også på bånd).'
               : 'Sesongens belastningsprofil uke for uke.'}
           </p>
@@ -687,7 +687,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           opacity: busy ? 0.6 : 1, userSelect: 'none',
         }}>
         {/* G1 (mobil): celler har MINSTE bredde (44px i dag-modus for
-            treffbare ticks, 30px i uke) — rader bredere enn skjermen
+            treffbare ticks, 30px i uke) - rader bredere enn skjermen
             scroller horisontalt (relativ modus: 13 celler/rad). paddingTop
             hindrer at pname-badges (top:-9) klippes av scroll-containeren;
             radetiketten er sticky venstre. Maling låser scroll via
@@ -739,7 +739,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                       U{weekLabel(w)}
                     </span>
                     {/* Sverre 5. sep: nøkkeldatoene står på RIKTIG DAG med navn
-                        (🏆 A gull · 🏅 B blå · 📊 C dempet · ⭐ = form-topp) — ✋ åpner
+                        (🏆 A gull · 🏅 B blå · 📊 C dempet · ⭐ = form-topp) - ✋ åpner
                         KeyDateModal. Flere samme dag: første + «+n». */}
                     {weekKeyDates.length > 0 && (
                       <div data-hendelser style={{ position: 'relative', height: 15, marginTop: 2, zIndex: 2 }}>
@@ -769,7 +769,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         })}
                       </div>
                     )}
-                    {/* DAG-modus: 7 dag-ticks — dag-presis farge + kant-håndtak. */}
+                    {/* DAG-modus: 7 dag-ticks - dag-presis farge + kant-håndtak. */}
                     {granularity === 'dag' && (
                       <div className="flex mt-1" style={{ gap: 2 }}>
                         {Array.from({ length: 7 }, (_, di) => {
@@ -798,7 +798,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         })}
                       </div>
                     )}
-                    {/* Del B: markeringsbånd (📍/🏔) — overlay OVER cellen,
+                    {/* Del B: markeringsbånd (📍/🏔) - overlay OVER cellen,
                         dag-presis bredde (delvis uke = delvis bånd), kapsel-
                         avrunding der markeringen starter/slutter. ✋ = rediger. */}
                     {markings
@@ -840,7 +840,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         {p.name}
                       </span>
                     )}
-                    {/* B2: 📍/🏔 vises av markeringsbåndene — periode-flaggene
+                    {/* B2: 📍/🏔 vises av markeringsbåndene - periode-flaggene
                         leses ikke lenger i lerretet. */}
                   </div>
                 )
@@ -853,7 +853,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
 
       {edgeDrag && (
         <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--accent)' }}>
-          {edgeDrag.edge === 'start' ? 'Ny start' : 'Ny slutt'}: {dayLabel(edgeDrag.dateISO)} — slipp for å lagre
+          {edgeDrag.edge === 'start' ? 'Ny start' : 'Ny slutt'}: {dayLabel(edgeDrag.dateISO)} - slipp for å lagre
         </p>
       )}
     </div>

@@ -128,7 +128,7 @@ export interface Equipment {
   weight_kg?: number | null       // båt
   subtype?: string | null         // rulleski/skisko: skøyte/klassisk(/kombi) · sykkel: sykkeltype
   wheel_type?: string | null      // rulleski
-  resistance?: string | null      // rulleski — felles motstand
+  resistance?: string | null      // rulleski - felles motstand
   resistance_front?: string | null
   resistance_rear?: string | null
   cleat_system?: string | null    // sykkelsko
@@ -245,7 +245,7 @@ export interface EquipmentGrind {
 export interface AddGrindInput {
   equipment_id: string
   grind: string
-  grind_date: string // ISO-dato — bruk slipDatoTilDate() for «årstall holder»-input
+  grind_date: string // ISO-dato - bruk slipDatoTilDate() for «årstall holder»-input
   ground_by?: string | null
   notes?: string | null
 }

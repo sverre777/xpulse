@@ -24,14 +24,14 @@ function fmtTid(sek: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`
 }
 function fmtTempo(mps: number | null, sport: Sport): string {
-  if (mps == null || mps <= 0.1) return '—'
+  if (mps == null || mps <= 0.1) return '-'
   if (sport === 'cycling' || sport === 'triathlon') return `${(mps * 3.6).toFixed(1)} km/t`
   const sekPerKm = 1000 / mps
   const m = Math.floor(sekPerKm / 60), s = Math.round(sekPerKm % 60)
   return `${m}:${String(s).padStart(2, '0')}/km`
 }
 function fmtKm(meter: number | null): string {
-  if (meter == null || meter <= 0) return '—'
+  if (meter == null || meter <= 0) return '-'
   return `${(meter / 1000).toFixed(2).replace('.', ',')} km`
 }
 
@@ -97,10 +97,10 @@ export function OriginaleRunder({ laps, sport, samples, kilde }: {
       <td style={td}>{fmtTid(r.tidSek)}</td>
       <td style={td}>{fmtKm(r.distanseM)}</td>
       <td style={td}>{fmtTempo(r.fartMs, sport)}</td>
-      <td style={td} data-gap={r.gapMs != null ? '' : undefined} title="GAP — stigningsjustert tempo (tilnærming)">{r.gapMs != null ? fmtTempo(r.gapMs, sport) : '—'}</td>
-      <td style={td}>{r.snittpuls ?? '—'}</td>
-      <td style={td}>{r.makspuls ?? '—'}</td>
-      <td style={td}>{r.stigningM != null ? `${Math.round(r.stigningM)} m` : '—'}</td>
+      <td style={td} data-gap={r.gapMs != null ? '' : undefined} title="GAP - stigningsjustert tempo (tilnærming)">{r.gapMs != null ? fmtTempo(r.gapMs, sport) : '-'}</td>
+      <td style={td}>{r.snittpuls ?? '-'}</td>
+      <td style={td}>{r.makspuls ?? '-'}</td>
+      <td style={td}>{r.stigningM != null ? `${Math.round(r.stigningM)} m` : '-'}</td>
     </>
   )
   return (
@@ -119,7 +119,7 @@ export function OriginaleRunder({ laps, sport, samples, kilde }: {
           <tr>
             <th style={{ ...th, textAlign: 'left' }}>Runde</th>
             <th style={th}>Tid</th><th style={th}>Distanse</th><th style={th}>Tempo</th>
-            <th style={th} title="GAP — stigningsjustert tempo (tilnærming)">GAP</th>
+            <th style={th} title="GAP - stigningsjustert tempo (tilnærming)">GAP</th>
             <th style={th}>Snittpuls</th><th style={th}>Makspuls</th><th style={th}>Stigning</th>
           </tr>
         </thead>

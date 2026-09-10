@@ -34,7 +34,7 @@ interface Props {
 const GLOBAL_KEY = '|'
 
 function nokkelLabel(name: string, sub: string): { tittel: string; sub: string } {
-  if (!name) return { tittel: 'Alle bevegelsesformer', sub: 'globalt nivå — arves når ikke annet er satt' }
+  if (!name) return { tittel: 'Alle bevegelsesformer', sub: 'globalt nivå - arves når ikke annet er satt' }
   if (!sub) return { tittel: name, sub: 'alle underkategorier' }
   return { tittel: `${name} · ${sub}`, sub: `underkategori av ${name.toLowerCase()}` }
 }
@@ -116,7 +116,7 @@ export function TersklerFlate({
     <div>
       <div className="mb-3 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        A · Terskler & soner — per bevegelsesform og underkategori
+        A · Terskler & soner - per bevegelsesform og underkategori
       </div>
 
       <div className="space-y-2 mb-3">
@@ -136,7 +136,7 @@ export function TersklerFlate({
         })}
       </div>
 
-      {/* + Legg til — velgeren rendres med sida (regel 20). */}
+      {/* + Legg til - velgeren rendres med sida (regel 20). */}
       {!leggTilOpen ? (
         <button type="button" onClick={() => setLeggTilOpen(true)}
           className="w-full p-3 text-left text-sm"
@@ -223,7 +223,7 @@ function TerskelRadKort({
         startTransition(async () => {
           const res = await slaaAvEgneSoner(movementName, movementSubcategory)
           if (res.error) { setMsg({ kind: 'err', text: res.error }); setSonerPaa(true); return }
-          setMsg({ kind: 'ok', text: 'Egne soner slått av — Olympiatoppens standard gjelder' })
+          setMsg({ kind: 'ok', text: 'Egne soner slått av - Olympiatoppens standard gjelder' })
           onLagret()
         })
       }
@@ -284,9 +284,9 @@ function TerskelRadKort({
         </span>
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1 ml-auto"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--mut)' }}>
-          <span>Terskelpuls <b style={{ color: 'var(--ink)' }}>{g?.threshold_hr ?? '—'}</b></span>
-          <span>Terskelfart <b style={{ color: 'var(--ink)' }}>{g?.threshold_pace_sec_km != null ? `${fmtPace(Number(g.threshold_pace_sec_km))} /km` : '—'}</b></span>
-          <span>FTP <b style={{ color: 'var(--ink)' }}>{g?.ftp_watts != null ? `${g.ftp_watts} W` : '—'}</b></span>
+          <span>Terskelpuls <b style={{ color: 'var(--ink)' }}>{g?.threshold_hr ?? '-'}</b></span>
+          <span>Terskelfart <b style={{ color: 'var(--ink)' }}>{g?.threshold_pace_sec_km != null ? `${fmtPace(Number(g.threshold_pace_sec_km))} /km` : '-'}</b></span>
+          <span>FTP <b style={{ color: 'var(--ink)' }}>{g?.ftp_watts != null ? `${g.ftp_watts} W` : '-'}</b></span>
           <span className="text-xs tracking-widest uppercase px-2 py-0.5"
             style={{
               border: `1px solid ${sonerPaa ? '#28A86E' : 'var(--line2)'}`,
@@ -304,10 +304,10 @@ function TerskelRadKort({
             <Felt label="Terskelpuls" hint="slag/min">
               <input value={puls} onChange={e => setPuls(e.target.value)} inputMode="numeric" style={iSt2} />
             </Felt>
-            <Felt label="Terskelfart" hint="min/km — valgfri">
+            <Felt label="Terskelfart" hint="min/km - valgfri">
               <input value={fart} onChange={e => setFart(e.target.value)} placeholder="3:45" style={iSt2} />
             </Felt>
-            <Felt label="FTP (valgfritt)" hint="watt — for NP/IF">
+            <Felt label="FTP (valgfritt)" hint="watt - for NP/IF">
               <input value={ftp} onChange={e => setFtp(e.target.value)} inputMode="numeric" style={iSt2} />
             </Felt>
             <Felt label="Gjelder fra" hint="historikk beholdes">
@@ -327,7 +327,7 @@ function TerskelRadKort({
             </button>
           </div>
 
-          {/* Egne soner-toggle — svarer i samme tick (regel 20). */}
+          {/* Egne soner-toggle - svarer i samme tick (regel 20). */}
           <div className="flex items-center gap-2 mt-4">
             <button type="button" onClick={toggleSoner} role="switch" aria-checked={sonerPaa}
               aria-label={`Egne soner for ${lbl.tittel}`}
@@ -367,7 +367,7 @@ function TerskelRadKort({
                       <input value={sf.min_bpm} inputMode="numeric" aria-label={`${sf.zone_name} nedre`}
                         onChange={e => setSoner(p => p!.map(x => x.zone_name === sf.zone_name ? { ...x, min_bpm: e.target.value } : x))}
                         style={{ ...iSt2, width: 76, textAlign: 'center' }} />
-                      <span style={{ color: 'var(--tekst-8-app)' }}>–</span>
+                      <span style={{ color: 'var(--tekst-8-app)' }}>-</span>
                       <input value={sf.max_bpm} inputMode="numeric" aria-label={`${sf.zone_name} øvre`}
                         onChange={e => setSoner(p => p!.map(x => x.zone_name === sf.zone_name ? { ...x, max_bpm: e.target.value } : x))}
                         style={{ ...iSt2, width: 76, textAlign: 'center' }} />
@@ -398,7 +398,7 @@ function TerskelRadKort({
 
 function historikkTekst(historikk: TerskelVersjon[]): string {
   if (historikk.length === 1) {
-    return `Satt ${fmtDatoKort(historikk[0].valid_from)} — terskelen overskrives aldri, den versjoneres.`
+    return `Satt ${fmtDatoKort(historikk[0].valid_from)} - terskelen overskrives aldri, den versjoneres.`
   }
   const steg: string[] = []
   for (let i = 1; i < historikk.length; i++) {
@@ -407,7 +407,7 @@ function historikkTekst(historikk: TerskelVersjon[]): string {
     const pil = til > fra ? '▲' : til < fra ? '▼' : '→'
     steg.push(`${fra} → ${til} ${pil} ${fmtDatoKort(historikk[i].valid_from)}`)
   }
-  return `Historikk: ${steg.join(' · ')} — terskelen overskrives aldri, den versjoneres.`
+  return `Historikk: ${steg.join(' · ')} - terskelen overskrives aldri, den versjoneres.`
 }
 
 function sonerPaaColor(paa: boolean): string {
@@ -438,8 +438,8 @@ export function UtvidetSkalaBlokk({ initialPaa }: { initialPaa: boolean }) {
       if (res.error) { setPaa(!ny); setMsg({ kind: 'err', text: res.error }); return }
       nullstillSonesprakCache()
       setMsg({ kind: 'ok', text: ny
-        ? 'Utvidet skala på — I6–I8 erstatter Hurtighet i valgene'
-        : 'Utvidet skala av — Hurtighet er tilbake i valgene' })
+        ? 'Utvidet skala på - I6-I8 erstatter Hurtighet i valgene'
+        : 'Utvidet skala av - Hurtighet er tilbake i valgene' })
       router.refresh()
     })
   }
@@ -448,12 +448,12 @@ export function UtvidetSkalaBlokk({ initialPaa }: { initialPaa: boolean }) {
     <div className="mt-8">
       <div className="mb-3 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        Utvidet skala — I6–I8
+        Utvidet skala - I6-I8
       </div>
       <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <div className="flex items-center gap-3">
           <button type="button" onClick={toggle} role="switch" aria-checked={paa}
-            aria-label="Utvidet skala I6–I8"
+            aria-label="Utvidet skala I6-I8"
             style={{
               width: 40, height: 22, borderRadius: 999, border: 'none', cursor: 'pointer',
               background: paa ? '#28A86E' : 'var(--line2)', position: 'relative', flexShrink: 0,
@@ -467,8 +467,8 @@ export function UtvidetSkalaBlokk({ initialPaa }: { initialPaa: boolean }) {
           <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
             Anaerobe intensitetsmerker for planlegging og føring.{' '}
             <span style={{ color: 'var(--mut)' }}>
-              Defineres av innsats/laktat — ALDRI puls; makspulsen er toppen
-              av I5 uansett. Med skalaen på erstatter I6–I8 Hurtighet i
+              Defineres av innsats/laktat - ALDRI puls; makspulsen er toppen
+              av I5 uansett. Med skalaen på erstatter I6-I8 Hurtighet i
               valgene (aldri begge). Treneren din ser samme skala.
             </span>
           </span>
@@ -484,7 +484,7 @@ export function UtvidetSkalaBlokk({ initialPaa }: { initialPaa: boolean }) {
             </span>
           ))}
           <span className="text-xs self-center" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)' }}>
-            {paa ? 'I6 toleranse · I7 produksjon/hurtighet · I8 maksimal' : 'av — Olympiatoppens I1–I5 + Hurtighet gjelder'}
+            {paa ? 'I6 toleranse · I7 produksjon/hurtighet · I8 maksimal' : 'av - Olympiatoppens I1-I5 + Hurtighet gjelder'}
           </span>
         </div>
         {msg && (
@@ -531,7 +531,7 @@ export function HelseGruppe({
     <div className="mt-8">
       <div className="mb-3 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        B · Helse — samme flate, egen gruppe
+        B · Helse - samme flate, egen gruppe
       </div>
       <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <div className="grid grid-cols-2 gap-3">
@@ -541,7 +541,7 @@ export function HelseGruppe({
           </Felt>
           <Felt label="Hvilepuls (manuell)" hint="vinner over klokka (M)">
             <input value={resting} onChange={e => setResting(e.target.value)} inputMode="numeric"
-              placeholder="—" style={iSt2} />
+              placeholder="-" style={iSt2} />
           </Felt>
         </div>
         <button type="button" onClick={lagre} disabled={pending} style={{ ...primBtn(pending), marginTop: 12 }}>

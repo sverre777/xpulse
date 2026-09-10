@@ -29,7 +29,7 @@ function Blink({ point, isL, color, number, onPick, onClear }: {
     <svg
       viewBox="0 0 100 100" width={62} height={62}
       role="button"
-      aria-label={`Skudd ${number}${plotted ? ' — plottet, trykk for å flytte' : ''}`}
+      aria-label={`Skudd ${number}${plotted ? ' - plottet, trykk for å flytte' : ''}`}
       style={{ cursor: 'crosshair', touchAction: 'none', flexShrink: 0 }}
       onPointerDown={e => {
         const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect()
@@ -40,11 +40,11 @@ function Blink({ point, isL, color, number, onPick, onClear }: {
       }}
       onDoubleClick={onClear}
     >
-      {/* Skiva (115 mm) — hvit før plotting, svart etter. */}
+      {/* Skiva (115 mm) - hvit før plotting, svart etter. */}
       <circle cx={50} cy={50} r={SHOT_DISC_R * 100}
         fill={plotted ? 'var(--card)' : 'var(--ink)'}
         stroke={plotted ? 'var(--tekst-10)' : 'var(--mut)'} strokeWidth={2} />
-      {/* Liggende-sonen — kun L, stiplet, ingen pynte-ringer ellers. */}
+      {/* Liggende-sonen - kun L, stiplet, ingen pynte-ringer ellers. */}
       {isL && (
         <circle cx={50} cy={50} r={SHOT_INNER_R_DRAWN * 100} fill="none"
           stroke={plotted ? 'var(--tekst-8-alt)' : 'var(--mut)'} strokeWidth={1.5}
@@ -107,7 +107,7 @@ export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
           </button>
         </div>
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>
-          Trykk på blinken der skuddet satt — utenfor skiva = bom i randen.
+          Trykk på blinken der skuddet satt - utenfor skiva = bom i randen.
           Stiplet sirkel = liggende-sonen. Dobbelttrykk fjerner et skudd.
           Delvis plotting er helt OK.
         </p>

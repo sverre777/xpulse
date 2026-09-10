@@ -18,7 +18,7 @@ function DeltaBadge({ pct }: { pct: number | null }) {
     return (
       <span className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
-        —
+        -
       </span>
     )
   }
@@ -80,10 +80,10 @@ export function UkensTotaler({
       <ZoneBar zones={totals.current.zones} />
 
       {/* Selvskjulende: uten skudd i uka rendres ingenting her. */}
-      {/* Skyting kun for skiskyttere (prompt 5. sep) — også ukas skytechip. */}
+      {/* Skyting kun for skiskyttere (prompt 5. sep) - også ukas skytechip. */}
       {harSki && <ShotChip shots={totals.current.shots} />}
 
-      {/* HJEM v2 bolk 5: PLAN VS GJENNOMFØRT — fire barer m/ planstrek + dagsrad man–søn. */}
+      {/* HJEM v2 bolk 5: PLAN VS GJENNOMFØRT - fire barer m/ planstrek + dagsrad man-søn. */}
       {plan && todayISO && <UkePlanVsGjennomfort plan={plan} todayISO={todayISO} harSki={harSki} />}
 
       {/* Fast bunnjustering saa knappene staar paa linje i rutenettet. */}

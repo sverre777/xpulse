@@ -24,8 +24,8 @@ import { iDagISO } from '@/lib/local-date'
 // ── Typer ──────────────────────────────────────────
 
 export interface WeekBucket {
-  weekKey: string                 // '2026-W12' — unik nøkkel
-  label: string                   // 'U12' — vises på x-akse
+  weekKey: string                 // '2026-W12' - unik nøkkel
+  label: string                   // 'U12' - vises på x-akse
   startDate: string               // 'YYYY-MM-DD' (mandag)
   totalSeconds: number
   zones: { I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number } // sekunder
@@ -298,8 +298,8 @@ export interface OverviewMetrics {
   // Subjektive/tilstand-data (fase 22/23):
   rest_days: number
   sickness_days: number
-  avg_energy: number | null       // snitt fra weekly_reflections.energy (1–10)
-  avg_stress: number | null       // snitt fra weekly_reflections.stress (1–10)
+  avg_energy: number | null       // snitt fra weekly_reflections.energy (1-10)
+  avg_stress: number | null       // snitt fra weekly_reflections.stress (1-10)
   avg_perceived_load: number | null // snitt fra weekly_reflections.perceived_load
 }
 
@@ -353,7 +353,7 @@ function daysBetween(fromIso: string, toIso: string): number {
 function isoWeekMondayISO(year: number, weekNumber: number): string {
   // 4. januar ligger alltid i uke 1 i ISO.
   const jan4 = new Date(Date.UTC(year, 0, 4))
-  const jan4Dow = jan4.getUTCDay() || 7  // 1–7 (mandag=1)
+  const jan4Dow = jan4.getUTCDay() || 7  // 1-7 (mandag=1)
   const week1Monday = new Date(jan4)
   week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Dow - 1))
   const target = new Date(week1Monday)
@@ -2919,7 +2919,7 @@ export async function getBelastningAnalysis(
     // (minutter × vekt 1–5), ingen parallell beregningsvei. Krav:
     // watt-dekningen må være minst 80 % av treningstiden, ellers er
     // HR-sonene det ærligste målet for økta.
-    const wattVekt = new Map<string, number>() // workout_id → vekt 1–5
+    const wattVekt = new Map<string, number>() // workout_id → vekt 1-5
     if (rows.length > 0) {
       const ids = rows.map(r => r.id)
       const [terskelRes, sampleRes] = await Promise.all([
@@ -3570,7 +3570,7 @@ export interface ShootingAccuracyPoint {
 }
 
 export interface ShootingHrZoneBucket {
-  zone: string                 // '<130' | '130–149' | '150–169' | '170–184' | '185+' | 'Uten puls'
+  zone: string                 // '<130' | '130-149' | '150-169' | '170-184' | '185+' | 'Uten puls'
   shots: number
   hits: number
   accuracy_pct: number | null
@@ -3673,13 +3673,13 @@ const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
 function hrZoneForShooting(hr: number | null): string {
   if (hr == null) return 'Uten puls'
   if (hr < 130) return '<130'
-  if (hr < 150) return '130–149'
-  if (hr < 170) return '150–169'
-  if (hr < 185) return '170–184'
+  if (hr < 150) return '130-149'
+  if (hr < 170) return '150-169'
+  if (hr < 185) return '170-184'
   return '185+'
 }
 
-const HR_ZONE_ORDER = ['<130','130–149','150–169','170–184','185+','Uten puls']
+const HR_ZONE_ORDER = ['<130','130-149','150-169','170-184','185+','Uten puls']
 /** Bolk 8: pulskurver hentes for de nyeste øktene i perioden (puls inn). */
 const SKYTE_SAMPLES_TAK = 60
 
@@ -4394,7 +4394,7 @@ export type CustomBreakdownGrouping = 'week' | 'month' | 'year'
 export interface CustomBreakdownBucket {
   bucketKey: string         // 'YYYY-WNN' | 'YYYY-MM' | 'YYYY'
   label: string             // 'U12' | 'mar 26' | '2026'
-  startDate: string         // ISO 'YYYY-MM-DD' — brukes til sortering
+  startDate: string         // ISO 'YYYY-MM-DD' - brukes til sortering
   total_seconds: number
   endurance_zone_seconds: { I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number }
   // Nøkkel = bevegelsesnavn (f.eks. 'Styrke'), verdi = sekunder.

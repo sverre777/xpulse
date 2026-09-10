@@ -56,7 +56,7 @@ export function KlokkesyncMiniKort({ badge }: { badge: KlokkesyncBadge }) {
       {badge.hasError ? (
         <>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E23A5A', fontSize: 14 }}>
-            Synk feilet — koble til på nytt.
+            Synk feilet - koble til på nytt.
           </p>
           <div className="mt-3">
             <Link href="/app/innstillinger/klokkesync"
@@ -88,7 +88,7 @@ export function KlokkesyncMiniKort({ badge }: { badge: KlokkesyncBadge }) {
       ) : (
         <>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
-            Koble klokken — øktene kommer inn av seg selv.
+            Koble klokken - øktene kommer inn av seg selv.
           </p>
           <div className="mt-3">
             <Link href="/app/innstillinger/klokkesync"

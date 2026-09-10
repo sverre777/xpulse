@@ -55,7 +55,7 @@ export function SammenligneBelastningTab({ data }: { data: MultipleAthletesAnaly
     <div className="space-y-5">
       <SnapshotTable rows={data.athletes} />
 
-      <ChartWrapper title="Form (CTL — Fitness)" subtitle="42-dagers eksponensielt snitt av belastning" height={260}>
+      <ChartWrapper title="Form (CTL - Fitness)" subtitle="42-dagers eksponensielt snitt av belastning" height={260}>
         <MultiLineChart data={ctlData} rows={valid} />
       </ChartWrapper>
 
@@ -63,7 +63,7 @@ export function SammenligneBelastningTab({ data }: { data: MultipleAthletesAnaly
         <MultiLineChart data={atlData} rows={valid} />
       </ChartWrapper>
 
-      <ChartWrapper title="Form-balanse (TSB)" subtitle="CTL minus ATL — over 0 = uthvilt" height={260}>
+      <ChartWrapper title="Form-balanse (TSB)" subtitle="CTL minus ATL - over 0 = uthvilt" height={260}>
         <MultiLineChart data={tsbData} rows={valid} withZeroLine />
       </ChartWrapper>
     </div>

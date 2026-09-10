@@ -101,7 +101,7 @@ export function bevValgForBygger(sport: Sport): string[] {
 
 /** «220» → 220 · «220–240» / «220-240» → { fra: 220, til: 240 }. */
 export function parseWattSpenn(tekst: string): { fra: number; til: number | null } | null {
-  const t = tekst.trim().replace(/\s/g, '').replace(/[–—]/g, '-')
+  const t = tekst.trim().replace(/\s/g, '').replace(/[--]/g, '-')
   if (!t) return null
   const [a, b] = t.split('-')
   const fra = parseInt(a), til = b != null ? parseInt(b) : NaN
@@ -121,7 +121,7 @@ export function wattMidt(fra: string, til: string): number | null {
 export function wattTekst(fra: string, til: string): string {
   const a = parseInt(fra.trim()), b = parseInt(til.trim())
   if (!(a > 0)) return ''
-  return b > 0 && b !== a ? `${a}–${b} W` : `${a} W`
+  return b > 0 && b !== a ? `${a}-${b} W` : `${a} W`
 }
 
 export function parseDesimal(tekst: string | null | undefined): number | null {

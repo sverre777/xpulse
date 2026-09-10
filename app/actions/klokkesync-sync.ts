@@ -54,7 +54,7 @@ export async function syncConnectedWatches(): Promise<KlokkesyncSyncResult> {
   if (polarConn) {
     result.synced.push('polar')
     if (!polarConn.registered_at) {
-      errors.push('Polar: registreringen er ikke fullført — fullfør den på klokkesync-siden')
+      errors.push('Polar: registreringen er ikke fullført - fullfør den på klokkesync-siden')
     } else {
       try {
         const admin = createAdminClient()

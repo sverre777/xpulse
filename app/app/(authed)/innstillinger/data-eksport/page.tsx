@@ -17,7 +17,7 @@ export default async function DataEksportPage() {
         <SettingsPageHeader title="Eksporter dine data" />
 
         <p className="mb-6" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px', lineHeight: 1.6 }}>
-          Last ned all din trenings-, plan- og helsedata. Du eier dine data og kan eksportere når som helst — også etter at abonnementet eventuelt utløper.
+          Last ned all din trenings-, plan- og helsedata. Du eier dine data og kan eksportere når som helst - også etter at abonnementet eventuelt utløper.
         </p>
 
         <section className="p-5 mb-4"
@@ -28,11 +28,11 @@ export default async function DataEksportPage() {
           <ul className="space-y-1 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', lineHeight: 1.6 }}>
             <li>✓ Alle treningsøkter med metadata og notater</li>
             <li>✓ Alle laps med soner, watt, puls, kadens, høydemeter</li>
-            <li>✓ Per-sekund-data (puls, watt, GPS) — unntatt Strava-samples eldre enn 7 dager</li>
+            <li>✓ Per-sekund-data (puls, watt, GPS) - unntatt Strava-samples eldre enn 7 dager</li>
             <li>✓ Planlagte økter, perioder og nøkkeldatoer</li>
             <li>✓ Maler (økt + plan)</li>
-            <li>✓ Profil-data (sport, max_heart_rate — IKKE passord)</li>
-            <li>✓ Tilkoblings-tracking (imported_activities) — kilde per økt: Strava, Polar, .fit-opplasting</li>
+            <li>✓ Profil-data (sport, max_heart_rate - IKKE passord)</li>
+            <li>✓ Tilkoblings-tracking (imported_activities) - kilde per økt: Strava, Polar, .fit-opplasting</li>
             <li>✓ Polar-importerte økter med rå sekund-data (ingen 7-dagers-grense som for Strava)</li>
           </ul>
         </section>
@@ -43,9 +43,9 @@ export default async function DataEksportPage() {
             Ekskluderes
           </h2>
           <ul className="space-y-1 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
-            <li>— Andre brukeres data (selv som trener — utøvere må eksportere selv)</li>
-            <li>— Stripe fakturering-historikk (tilgjengelig i Stripe Customer Portal via /app/abonnement)</li>
-            <li>— Strava raw-data eldre enn 7 dager (Strava API Agreement § 7)</li>
+            <li>- Andre brukeres data (selv som trener - utøvere må eksportere selv)</li>
+            <li>- Stripe fakturering-historikk (tilgjengelig i Stripe Customer Portal via /app/abonnement)</li>
+            <li>- Strava raw-data eldre enn 7 dager (Strava API Agreement § 7)</li>
           </ul>
           <p className="mt-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FC5200', lineHeight: 1.5 }}>
             For å beholde Strava-aktiviteter permanent: last ned .fit-filer manuelt fra{' '}

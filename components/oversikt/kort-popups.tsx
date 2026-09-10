@@ -35,7 +35,7 @@ function SkyteSplitt({ shots }: { shots: OversiktShots }) {
             {r.navn}
           </div>
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: r.d.accuracy_pct != null ? 'var(--ink)' : 'var(--tekst-8-alt)' }}>
-            {r.d.accuracy_pct != null ? `${r.d.accuracy_pct} %` : '—'}
+            {r.d.accuracy_pct != null ? `${r.d.accuracy_pct} %` : '-'}
           </div>
           <div style={{ fontFamily: FONT, fontSize: 10, color: 'var(--tekst-8-alt)', marginTop: 3 }}>
             {r.d.accuracy_pct != null
@@ -84,7 +84,7 @@ export function HardoktPopup({ w, onClose }: { w: OversiktWorkoutCard; onClose: 
                 style={{ fontFamily: FONT, fontSize: 12, color: 'var(--mut)', padding: '5px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
                 <span style={{ color: 'var(--ink)' }}>{a.movement_name || a.activity_type || 'Aktivitet'}</span>
                 <span>
-                  {a.duration_seconds ? fmtHM(a.duration_seconds) : '—'}
+                  {a.duration_seconds ? fmtHM(a.duration_seconds) : '-'}
                   {a.distance_meters ? ` · ${(a.distance_meters / 1000).toFixed(1)} km` : ''}
                 </span>
               </div>

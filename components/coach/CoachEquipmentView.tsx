@@ -104,7 +104,7 @@ export function CoachEquipmentView({
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
             backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
           }}>
-          Ingen ski-tester registrert enda — trykk "+ Legg til ski-test" for å logge dagens forhold.
+          Ingen ski-tester registrert enda - trykk "+ Legg til ski-test" for å logge dagens forhold.
         </p>
       ) : null}
 
@@ -177,7 +177,7 @@ function SkiTestsBlock({
                   </p>
                   <p className="text-xs"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                    {[test.snow_type, test.conditions].filter(Boolean).join(' · ') || '—'}
+                    {[test.snow_type, test.conditions].filter(Boolean).join(' · ') || '-'}
                     {test.air_temp != null ? ` · luft ${test.air_temp}°` : ''}
                     {test.snow_temp != null ? ` · snø ${test.snow_temp}°` : ''}
                   </p>
@@ -207,11 +207,11 @@ function SkiTestsBlock({
                       <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
                         style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--line)' }}>
                         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
-                          {ski?.name ?? '—'}
+                          {ski?.name ?? '-'}
                         </span>
                         <span className="text-xs tracking-widest uppercase"
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                          {stats.join(' · ') || '—'}
+                          {stats.join(' · ') || '-'}
                         </span>
                       </div>
                     )

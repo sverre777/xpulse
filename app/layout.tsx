@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   // Absolutt base for canonical/OG-URLer på alle sider (Metadata API).
   metadataBase: new URL("https://x-pulse.no"),
-  title: "X-PULSE — Treningsapp for seriøse utøvere",
+  title: "X-PULSE - Treningsapp for seriøse utøvere",
   description: "Avansert treningsapp for utholdenhetsidretter. Løping, langrenn, skiskyting, triatlon.",
   icons: {
     icon: [
@@ -45,9 +45,9 @@ export default function RootLayout({
       <head>
         {/* Setter data-tema før første maling, ellers blinker flata i feil
             tema. Fasiten for reglene er lib/tema.ts. Lysmodus er opt-in til
-            steg 2 er ferdig — se design/lysmodus-tvil.md. */}
+            steg 2 er ferdig - se design/lysmodus-tvil.md. */}
         <script dangerouslySetInnerHTML={{ __html: TEMA_INLINE_SKRIPT }} />
-        {/* Preload av de to mest brukte fontfilene — resten hentes ved behov
+        {/* Preload av de to mest brukte fontfilene - resten hentes ved behov
             via @font-face i globals.css (self-hostet, samme familienavn). */}
         <link rel="preload" href="/fonts/barlow-condensed-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/bebas-neue-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />

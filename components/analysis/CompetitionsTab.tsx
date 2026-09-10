@@ -25,7 +25,7 @@ const SPORT_COLOR: Record<Sport, string> = {
 }
 
 function formatDuration(sec: number): string {
-  if (sec <= 0) return '—'
+  if (sec <= 0) return '-'
   const h = Math.floor(sec / 3600)
   const m = Math.floor((sec % 3600) / 60)
   const s = Math.floor(sec % 60)
@@ -35,7 +35,7 @@ function formatDuration(sec: number): string {
 
 function labelSport(s: Sport): string { return SPORTS.find(x => x.value === s)?.label ?? s }
 function labelCompType(t: CompetitionType | null): string {
-  if (!t) return '—'
+  if (!t) return '-'
   return COMPETITION_TYPES.find(x => x.value === t)?.label ?? t
 }
 function dateToEpoch(iso: string): number { return new Date(iso).getTime() }
@@ -266,7 +266,7 @@ export function CompetitionsTab({
         </div>
       </div>
 
-      {/* Kommende planlagte konkurranser — vis alltid hvis det finnes. */}
+      {/* Kommende planlagte konkurranser - vis alltid hvis det finnes. */}
       {data.upcomingPlanned.length > 0 && (
         <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid #D4A017' }}>
           <p className="text-xs tracking-widest uppercase mb-3"
@@ -293,11 +293,11 @@ export function CompetitionsTab({
                       <Link href={`/app/plan?edit=${r.id}`} className="block">{r.date}</Link>
                     </td>
                     <td className="py-2 pr-3">
-                      <Link href={`/app/plan?edit=${r.id}`} className="block">{r.name || r.title || '—'}</Link>
+                      <Link href={`/app/plan?edit=${r.id}`} className="block">{r.name || r.title || '-'}</Link>
                     </td>
                     <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelSport(r.sport)}</td>
                     <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelCompType(r.competition_type)}</td>
-                    <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{r.distance_format ?? '—'}</td>
+                    <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{r.distance_format ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -308,7 +308,7 @@ export function CompetitionsTab({
 
       {rows.length === 0 ? EMPTY : (
         <>
-          {/* Liste — klikk åpner i dagbok (ruting via query-param). */}
+          {/* Liste - klikk åpner i dagbok (ruting via query-param). */}
           <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
@@ -336,16 +336,16 @@ export function CompetitionsTab({
                         <Link href={`/app/dagbok?edit=${r.id}`} className="block">{r.date}</Link>
                       </td>
                       <td className="py-2 pr-3">
-                        <Link href={`/app/dagbok?edit=${r.id}`} className="block">{r.name || r.title || '—'}</Link>
+                        <Link href={`/app/dagbok?edit=${r.id}`} className="block">{r.name || r.title || '-'}</Link>
                       </td>
                       <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelSport(r.sport)}</td>
                       <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelCompType(r.competition_type)}</td>
-                      <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{r.distance_format ?? '—'}</td>
+                      <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{r.distance_format ?? '-'}</td>
                       <td className="py-2 pr-3 text-right">{formatDuration(r.duration_seconds)}</td>
                       <td className="py-2 text-right">
                         {r.position_overall != null
                           ? `${r.position_overall}${r.participant_count ? `/${r.participant_count}` : ''}`
-                          : '—'}
+                          : '-'}
                       </td>
                     </tr>
                   ))}
@@ -472,7 +472,7 @@ export function CompetitionsTab({
                 )
               })()}
 
-              {/* Treff% per skyting over tid — basert på sort_order */}
+              {/* Treff% per skyting over tid - basert på sort_order */}
               <ChartWrapper chartKey="competitions_shooting_accuracy_over_time" title="Treff% per skyting over tid" subtitle="Første/Andre · Liggende/Stående · Samlet snitt">
                 {seriesLines.length === 0 ? (
                   <div className="flex items-center justify-center h-full">

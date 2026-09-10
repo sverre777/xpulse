@@ -92,7 +92,7 @@ export function sjekkAntallMotBruk(
   return {
     ok: false,
     mustFree,
-    melding: `Frigjør ${mustFree} plass${mustFree === 1 ? '' : 'er'} først — ${teller.inUse} er i bruk, og ${included} inkludert + ${nyttAntall} kjøpt gir bare ${total}.`,
+    melding: `Frigjør ${mustFree} plass${mustFree === 1 ? '' : 'er'} først - ${teller.inUse} er i bruk, og ${included} inkludert + ${nyttAntall} kjøpt gir bare ${total}.`,
   }
 }
 
@@ -159,7 +159,7 @@ export async function resolveInviteCore(
     .eq('token', token)
     .eq('active', true)
     .maybeSingle()
-  if (!invite) return { error: 'Lenka er ikke gyldig lenger — be treneren om en ny' }
+  if (!invite) return { error: 'Lenka er ikke gyldig lenger - be treneren om en ny' }
 
   const ctx = await seatContextForCoach(service, invite.coach_id)
   if ('error' in ctx) return { error: ctx.error }
@@ -256,7 +256,7 @@ export async function claimSeatCore(
   const subAktiv = sub?.status === 'active' || sub?.status === 'trialing'
 
   if (subAktiv && (sub!.tier === 'trener_basic' || sub!.tier === 'trener_pro')) {
-    return { error: 'Du har et trener-abonnement — utøverplassen kan ikke erstatte det.' }
+    return { error: 'Du har et trener-abonnement - utøverplassen kan ikke erstatte det.' }
   }
   if (subAktiv && sub!.granted_by_subscription_id === invite.coachSubRowId) {
     // Allerede på plass hos denne treneren — idempotent, men sørg for kobling.
@@ -269,7 +269,7 @@ export async function claimSeatCore(
 
   // Full lenke = ærlig melding («alle plassene er i bruk»).
   if (invite.available <= 0) {
-    return { error: 'Alle plassene er i bruk — si fra til treneren din.', full: true }
+    return { error: 'Alle plassene er i bruk - si fra til treneren din.', full: true }
   }
 
   // 1) KOBLING — samme form som dagens kode-flyt (rører ikke flyten selv).
@@ -398,7 +398,7 @@ export async function claimAsNewUserCore(
   const invite = await resolveInviteCore(service, input.token)
   if ('error' in invite) return invite
   if (invite.available <= 0) {
-    return { error: 'Alle plassene er i bruk — si fra til treneren din.', full: true }
+    return { error: 'Alle plassene er i bruk - si fra til treneren din.', full: true }
   }
 
   const { data: created, error: createErr } = await service.auth.admin.createUser({
@@ -410,7 +410,7 @@ export async function claimAsNewUserCore(
   if (createErr || !created?.user) {
     const msg = createErr?.message ?? 'Kunne ikke opprette bruker'
     if (/already|registered|exists/i.test(msg)) {
-      return { error: 'E-posten er allerede registrert — logg inn og åpne lenka på nytt.' }
+      return { error: 'E-posten er allerede registrert - logg inn og åpne lenka på nytt.' }
     }
     return { error: msg }
   }
@@ -448,7 +448,7 @@ export async function releaseSeatCore(
     .eq('granted_by_subscription_id', ctx.coachSubRowId)
     .maybeSingle()
   if (!rad) return { error: 'Utøveren har ingen plass fra deg' }
-  if (rad.cancel_at_period_end) return { ok: true } // allerede frigjort — idempotent
+  if (rad.cancel_at_period_end) return { ok: true } // allerede frigjort - idempotent
 
   const { error } = await service
     .from('subscriptions')

@@ -177,7 +177,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             {andeler.map(a => { const ah = h * a.andel; y -= ah; return <rect key={a.sone} x={x(p.startSek) + 0.75} y={y} width={bw} height={ah} fill={ZONE_COLORS_V2[a.sone]} fillOpacity={0.14} pointerEvents="none" /> })}
             <rect data-plan-spokelse-blokk x={x(p.startSek) + 0.75} y={gulv - h} width={bw} height={h}
               rx={kompakt ? 1 : 3} fill={f.farge} fillOpacity={andeler.length >= 2 ? 0 : 0.14} stroke={f.farge} strokeOpacity={0.55} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
-              <title>{`Plan: ${p.navn ?? p.type} · ${fmtMin(p.sluttSek - p.startSek)}${andeler.length >= 2 ? ` · ${andeler[0].sone}–${andeler[andeler.length - 1].sone}` : p.sone ? ` · ${p.sone}` : ''}`}</title>
+              <title>{`Plan: ${p.navn ?? p.type} · ${fmtMin(p.sluttSek - p.startSek)}${andeler.length >= 2 ? ` · ${andeler[0].sone}-${andeler[andeler.length - 1].sone}` : p.sone ? ` · ${p.sone}` : ''}`}</title>
             </rect>
           </g>
         )
@@ -232,7 +232,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         )
       })}
       {/* Planens OMRISS oppå blokkene (Sverre 5. sep): planen er der for å
-          sammenliknes — kanten står også der en høyere faktisk blokk dekker. */}
+          sammenliknes - kanten står også der en høyere faktisk blokk dekker. */}
       {spokelser.map(p => {
         const f = spokelseFarge(p)
         const h = plot * f.hoyde
@@ -242,7 +242,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         )
       })}
       {/* Klokkas runder: stiplet strek gjennom plotflata, samme uttrykk som
-          rundegrensene på kurven. Aldri en blokk — bare et merke. */}
+          rundegrensene på kurven. Aldri en blokk - bare et merke. */}
       {runder.filter(t => t > 0 && t < total).map((t, i) => (
         <line key={`r-${i}`} data-runde-merke x1={x(t)} y1={gulv - plot} x2={x(t)} y2={gulv + (kompakt ? 0 : 4)}
           stroke="var(--tekst-10-alt)" strokeDasharray="3 3" strokeOpacity={0.7} vectorEffect="non-scaling-stroke" />
@@ -263,7 +263,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
       {!kompakt && (
         <>
           <line x1={0} y1={gulv} x2={B} y2={gulv} stroke="var(--line2)" />
-          {/* Etiketter med pekelinje — bare på blokker som ikke ligger i en klamme
+          {/* Etiketter med pekelinje - bare på blokker som ikke ligger i en klamme
               og er brede nok til at teksten får plass. */}
           <style>{`.plan-trang .plan-tekst{opacity:0;transition:opacity .12s}.plan-trang:hover .plan-tekst,.plan-trang[data-aktiv="true"] .plan-tekst{opacity:1}`}</style>
           {blokker.map(b => {
@@ -327,7 +327,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             )
           })}
           {/* Bolk 21: på oversikten (ikon-stil) får skyteblokkene 🎯 L/S over
-              seg — kun ikon, stillingen og treffene i tooltip. */}
+              seg - kun ikon, stillingen og treffene i tooltip. */}
           {punktStil === 'ikon' && blokker.filter(b => b.slag === 'skyting_ligg' || b.slag === 'skyting_staa').map(b => (
             <g key={`ki-${b.id}`} data-skytemarkor data-punkt-stil="ikon">
               <title>{b.etikett}</title>
@@ -335,7 +335,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             </g>
           ))}
           {/* Punktene (bolk 8): markør på blokka, etikett med pekelinje. Planlagte
-              er hule/stiplete, førte fylte — samme former som på klokke-grafen. */}
+              er hule/stiplete, førte fylte - samme former som på klokke-grafen. */}
           {punkter.map(pk => {
             if (pk.sek < 0 || pk.sek > total) return null
             const cx = x(pk.sek)
@@ -433,7 +433,7 @@ function klammeSone(blokker: PlanBlokk[], g: { fra: number; til: number }): stri
   if (soner.length === 1) return soner[0]
   const rekke = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
   const sortert = soner.sort((a, b) => rekke.indexOf(a) - rekke.indexOf(b))
-  return `${sortert[0]}–${sortert[sortert.length - 1]}`
+  return `${sortert[0]}-${sortert[sortert.length - 1]}`
 }
 
 /** Spøkelsets farge/høyde — samme regel som PlanSpokelse på kurven. */

@@ -49,7 +49,7 @@ export function NutritionSection({
         </h3>
         <span className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          {entries.length === 0 ? '— ingen rader' : `${entries.length} ${entries.length === 1 ? 'rad' : 'rader'}`}
+          {entries.length === 0 ? '- ingen rader' : `${entries.length} ${entries.length === 1 ? 'rad' : 'rader'}`}
         </span>
       </div>
 

@@ -107,36 +107,36 @@ export function ByggSum({
         <div style={celle}>
           <div style={merkelapp}>HOVEDSONE</div>
           <div style={{ ...verdi, color: hovedsone ? ZONE_COLORS_V2[hovedsone] : 'var(--tekst-5-app)' }}>
-            {hovedsone ?? '—'}
+            {hovedsone ?? '-'}
           </div>
         </div>
         <div style={celle}>
           <div style={merkelapp}>{hovedsone ? `${hovedsone}-TID` : 'TID I SONE'}</div>
           <div style={verdi}>
-            {hovedsone ? <>{hovedTid}<small style={enhet}> min</small></> : '—'}
+            {hovedsone ? <>{hovedTid}<small style={enhet}> min</small></> : '-'}
           </div>
         </div>
         <div style={celle}>
           <div style={merkelapp}>BELASTNING</div>
           <div style={verdi}>
-            {sum.tss > 0 ? <>{Math.round(sum.tss)}<small style={enhet}> TSS</small></> : '—'}
+            {sum.tss > 0 ? <>{Math.round(sum.tss)}<small style={enhet}> TSS</small></> : '-'}
           </div>
         </div>
         <div style={{ ...celle, flex: '1 1 150px', borderRight: 0, background: 'var(--flate-12-alt)' }}>
           <div style={merkelapp}>
-            {/* «Forventet» hører kun til plan (samlet rettelse 1) — gjennomført
+            {/* «Forventet» hører kun til plan (samlet rettelse 1) - gjennomført
                 fører OPPLEVD i samme celle. */}
             {erPlanlagt ? 'FORVENTET' : <>OPPLEVD <span style={{ color: 'var(--accent)' }}>· FØRES</span></>}
           </div>
           <div style={verdi}>
-            {rpe != null ? <>{rpe}<small style={enhet}> /10</small></> : <span style={{ color: 'var(--tekst-5-app)' }}>—</span>}
+            {rpe != null ? <>{rpe}<small style={enhet}> /10</small></> : <span style={{ color: 'var(--tekst-5-app)' }}>-</span>}
           </div>
         </div>
       </div>
       {bandSum > 0 && (
         <div style={{ display: 'flex', gap: 2, marginTop: 8 }}>
           {bandDeler.map(d => (
-            <div key={d.navn} title={`${d.navn} — ${Math.round(d.sek / 60)} min`}
+            <div key={d.navn} title={`${d.navn} - ${Math.round(d.sek / 60)} min`}
               style={{ flex: `${d.sek} 0 0`, minWidth: 26 }}>
               <div style={{
                 height: 7, borderRadius: 3, background: d.farge,

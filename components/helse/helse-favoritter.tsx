@@ -23,7 +23,7 @@ export function renderFavoritt(key: string, data: HelseOversiktData, ctx?: { tar
       if (netter.length === 0) return null
       return (
         <div style={{ background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 10, padding: '12px 14px' }}>
-          <SeksjonsTittel chartKey={key} tittel="SØVNSTADIER — PER NATT" merknad={`timer · siste ${netter.length} netter`} />
+          <SeksjonsTittel chartKey={key} tittel="SØVNSTADIER - PER NATT" merknad={`timer · siste ${netter.length} netter`} />
           <StadieStabler netter={netter} />
         </div>
       )

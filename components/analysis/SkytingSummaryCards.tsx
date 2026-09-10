@@ -26,7 +26,7 @@ export const COLOR_TRAIN = '#28A86E'
 export const COLOR_COMP = '#E23A5A'
 
 export function fmtPct(v: number | null): string {
-  return v == null ? '—' : `${v.toFixed(1)}%`
+  return v == null ? '-' : `${v.toFixed(1)}%`
 }
 
 /** Fire treffkort (bolk 1: MetricCard m/ nøkkel — samme kort i Skyting-dybde

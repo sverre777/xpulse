@@ -62,7 +62,7 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          {/* Role selector — dual-role: velg én eller begge. */}
+          {/* Role selector - dual-role: velg én eller begge. */}
           <div className="flex flex-col gap-2">
             <span
               className="text-sm tracking-widest uppercase"
@@ -89,7 +89,7 @@ export default function RegisterPage() {
               className="text-xs mt-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
             >
-              Du kan velge begge — veksle senere i toppen av appen.
+              Du kan velge begge - veksle senere i toppen av appen.
             </p>
           </div>
 

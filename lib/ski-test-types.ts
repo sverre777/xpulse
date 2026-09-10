@@ -48,9 +48,9 @@ export const SKI_TEST_TYPE_LABELS: Record<SkiTestType, string> = {
 
 export const SKI_TEST_TYPE_DESCRIPTIONS: Record<SkiTestType, string> = {
   tidtaker: 'Tid over fast strekning, flere runs per ski',
-  lengde: 'Hvor langt skia glir — meter fra fast fart',
-  parallell: 'To og to side om side — vinneren videre',
-  egen: 'Ditt eget oppsett — lagres som mal',
+  lengde: 'Hvor langt skia glir - meter fra fast fart',
+  parallell: 'To og to side om side - vinneren videre',
+  egen: 'Ditt eget oppsett - lagres som mal',
 }
 
 // Egne test-maler (ski_test_templates, fase 100): navn + beskrivelse + målemåte.

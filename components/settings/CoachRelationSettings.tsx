@@ -201,7 +201,7 @@ function RelationRow({
         />
       </div>
 
-      {/* Helsedata-deling — separat fra grunn-permissions siden HRV/søvn/vekt/
+      {/* Helsedata-deling - separat fra grunn-permissions siden HRV/søvn/vekt/
           hvilepuls er privat-data som krever eksplisitt opt-in per trener.
           Default AV. Når av skjules helse-fane og helse-KPIer i analysen. */}
       <div className="mt-3 pt-3"

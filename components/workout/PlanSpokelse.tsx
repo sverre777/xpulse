@@ -56,7 +56,7 @@ export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag
         const v = `calc(${pct(b.sluttSek)} - ${pct(b.startSek)})`
         const stablet = slag !== 'omriss' && f.andeler.length >= 2
         const tittel = f.andeler.length >= 2
-          ? `${b.navn ?? b.type} · ${f.andeler[0].sone}–${f.andeler[f.andeler.length - 1].sone}: ${f.andeler.map(a => `${a.sone} ${Math.round(a.andel * 100)} %`).join(' · ')}`
+          ? `${b.navn ?? b.type} · ${f.andeler[0].sone}-${f.andeler[f.andeler.length - 1].sone}: ${f.andeler.map(a => `${a.sone} ${Math.round(a.andel * 100)} %`).join(' · ')}`
           : (b.navn ?? b.type)
         return (
           <div key={b.id} title={tittel} data-stablet={stablet ? f.andeler.map(a => a.sone).join(',') : undefined} style={{

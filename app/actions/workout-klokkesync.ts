@@ -650,12 +650,12 @@ export async function lagreOpplevdBelastning(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Ikke innlogget' }
   if (rpe != null && (!Number.isInteger(rpe) || rpe < 1 || rpe > 10)) {
-    return { ok: false, error: 'Belastning må være et helt tall 1–10' }
+    return { ok: false, error: 'Belastning må være et helt tall 1-10' }
   }
   const { error, count } = await supabase.from('workouts')
     .update({ rpe }, { count: 'exact' }).eq('id', workoutId)
   if (error) return { ok: false, error: error.message }
-  if (!count) return { ok: false, error: 'Økta ble ikke oppdatert — mangler du redigeringsrett?' }
+  if (!count) return { ok: false, error: 'Økta ble ikke oppdatert - mangler du redigeringsrett?' }
   revalidatePath('/app/dagbok')
   return { ok: true }
 }
@@ -669,12 +669,12 @@ export async function lagreForventetBelastning(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Ikke innlogget' }
   if (forventet != null && (!Number.isInteger(forventet) || forventet < 1 || forventet > 10)) {
-    return { ok: false, error: 'Forventet belastning må være et helt tall 1–10' }
+    return { ok: false, error: 'Forventet belastning må være et helt tall 1-10' }
   }
   const { error, count } = await supabase.from('workouts')
     .update({ forventet_belastning: forventet }, { count: 'exact' }).eq('id', workoutId)
   if (error) return { ok: false, error: error.message }
-  if (!count) return { ok: false, error: 'Økta ble ikke oppdatert — mangler du redigeringsrett?' }
+  if (!count) return { ok: false, error: 'Økta ble ikke oppdatert - mangler du redigeringsrett?' }
   revalidatePath('/app/dagbok')
   revalidatePath('/app/plan')
   return { ok: true }

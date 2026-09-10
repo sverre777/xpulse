@@ -36,7 +36,7 @@ export interface PlanVsActualResult {
   actual: Bucket
 }
 
-const ZONE_NAMES = ALL_ZONE_NAMES // bolk 7: I6–I8 med
+const ZONE_NAMES = ALL_ZONE_NAMES // bolk 7: I6-I8 med
 
 function emptyBucket(): Bucket {
   return {

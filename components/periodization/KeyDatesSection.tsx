@@ -123,7 +123,7 @@ export function KeyDatesSection({
               targetUserId={targetUserId}
             />
           )}
-          {/* Re-mount modalen per rad — useState i KeyDateModal initialiseres
+          {/* Re-mount modalen per rad - useState i KeyDateModal initialiseres
               fra editing-prop kun ved første mount, så pre-fylling krever
               fersk instans. */}
           {editing && (

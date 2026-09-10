@@ -182,8 +182,8 @@ function PlanDoneTooltip({ active, payload, label }: {
                 <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: r.color ?? 'var(--mut)', marginRight: 7 }} />
                 {base}
               </td>
-              <td style={cell}>{r.done > 0 ? formatMinutes(r.done * 60) : '—'}</td>
-              <td style={cell}>{r.plan > 0 ? formatMinutes(r.plan * 60) : '—'}</td>
+              <td style={cell}>{r.done > 0 ? formatMinutes(r.done * 60) : '-'}</td>
+              <td style={cell}>{r.plan > 0 ? formatMinutes(r.plan * 60) : '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -510,7 +510,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
     <ChartWrapper
       chartKey={CHART_KEY}
       config={favorittConfig}
-      title="Custom graf — fleksibel nedbryting"
+      title="Custom graf - fleksibel nedbryting"
       subtitle={`${grouping === 'week' ? 'Uke' : grouping === 'month' ? 'Måned' : 'År'}-gruppering · ${formatRangeLabel(effectiveRange)}`}
       height="auto"
     >
@@ -530,7 +530,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
           )}
         </div>
 
-        {/* Graf-container — egen fast høyde, uavhengig av kontrollene over
+        {/* Graf-container - egen fast høyde, uavhengig av kontrollene over
             (flex-1 mot fast kort-høyde kollapset til 0 på mobil). */}
         <div>
           {error ? (
@@ -553,7 +553,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
             </div>
           ) : (
             <div className="flex flex-col">
-              {/* Legend som toggle-chips (utkastets .lg-piller) — samme
+              {/* Legend som toggle-chips (utkastets .lg-piller) - samme
                   hiddenSeries-state som før, bare ny drakt. */}
               <div className="flex flex-wrap gap-2 mb-2">
                 {allSeriesKeys.map(k => {
@@ -625,7 +625,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         return [formatMinutes(mins * 60), String(name)]
                       }}
                     />
-                    {/* G4: stiplet ghost-markør — 0 for buckets m/ data (samme
+                    {/* G4: stiplet ghost-markør - 0 for buckets m/ data (samme
                         stack → piksel-identisk der), lav dashed kolonne der
                         perioden er tom. Utenfor tooltip/legend. */}
                     {ghostCount > 0 && (

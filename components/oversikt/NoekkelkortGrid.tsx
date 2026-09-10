@@ -99,11 +99,11 @@ export function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
         </span>
       </CardMeta>
 
-      {/* Tid + snittpuls. «—» der noe ikke er foert, aldri 0. */}
+      {/* Tid + snittpuls. «-» der noe ikke er foert, aldri 0. */}
       <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--mut)' }}>
-        {w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '—'}
+        {w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '-'}
         {' · '}
-        {w.avg_heart_rate != null ? `${w.avg_heart_rate} bpm snitt` : '— puls ikke ført'}
+        {w.avg_heart_rate != null ? `${w.avg_heart_rate} bpm snitt` : '- puls ikke ført'}
       </p>
 
       <ZoneBar zones={w.zones} legend={false} />
@@ -194,7 +194,7 @@ export function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null;
     <Card kicker="Periode" accent="#1A6FD4" href="/app/periodisering">
       <CardTitle>{phase.name}</CardTitle>
       <CardMeta>
-        Uke {phase.week_in_phase}/{phase.phase_weeks_total} · {fmtDate(phase.start_date)}–{fmtDate(phase.end_date)}
+        Uke {phase.week_in_phase}/{phase.phase_weeks_total} · {fmtDate(phase.start_date)}-{fmtDate(phase.end_date)}
       </CardMeta>
       <div className="mt-3 inline-block px-2 py-0.5 text-xs tracking-widest uppercase"
         style={{
@@ -224,9 +224,9 @@ export function NoekkelkortGrid({
   return (
     <section className="mb-6 grid gap-4"
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-      {/* Helse HELT til venstre i raden (Sverre 28. aug) — det kompakte
+      {/* Helse HELT til venstre i raden (Sverre 28. aug) - det kompakte
           kortet fra helseflaten; klikk åpner hele oversikten som pop-up. */}
-      <KompaktHelseKort forhandsdata={helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
+      <KompaktHelseKort forhandsdata={helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn - eller koble klokka - for å følge formen her." />
       <HardWorkoutCard w={lastHardWorkout} />
       <MainGoalCard goal={mainGoal} />
       <PhaseCard phase={phase} phaseStatus={phaseStatus} />

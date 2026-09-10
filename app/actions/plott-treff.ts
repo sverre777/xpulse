@@ -42,7 +42,7 @@ export async function lagrePlottTreff(
   const radKart = new Map((dbRader ?? []).map(r => [r.id, r]))
   for (const r of rader) {
     const db = radKart.get(r.activityId)
-    if (!db) return { ok: false, error: 'En av skyting-radene finnes ikke lenger — last økta på nytt' }
+    if (!db) return { ok: false, error: 'En av skyting-radene finnes ikke lenger - last økta på nytt' }
     if (!(db.activity_type ?? '').startsWith('skyting')) {
       return { ok: false, error: 'Serier kan bare føres på skyting-rader' }
     }
@@ -90,7 +90,7 @@ export async function lagrePlottTreff(
     const { error: innFeil } = await supabase.from('workout_shooting_series').insert(nyeSerier)
     if (innFeil) {
       await gjenopprett()
-      return { ok: false, error: `Kunne ikke lagre seriene — ingenting er endret (${innFeil.message})` }
+      return { ok: false, error: `Kunne ikke lagre seriene - ingenting er endret (${innFeil.message})` }
     }
   }
 
@@ -106,7 +106,7 @@ export async function lagrePlottTreff(
       .update(agg).eq('id', r.activityId)
     if (aggFeil) {
       await gjenopprett()
-      return { ok: false, error: `Kunne ikke oppdatere treff-summene — ingenting er endret (${aggFeil.message})` }
+      return { ok: false, error: `Kunne ikke oppdatere treff-summene - ingenting er endret (${aggFeil.message})` }
     }
   }
 

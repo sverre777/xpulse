@@ -34,9 +34,9 @@ export interface SammenligningConfig { ids: string[]; visning: SammenligningVisn
 
 function fmtDato(iso: string): string { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}. ${MND[d.getMonth()]}` }
 function fmtHM(sek: number): string { const m = Math.round(sek / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)}t ${String(m % 60).padStart(2, '0')}` }
-function fmtKm(m: number | null): string { return m != null && m > 0 ? `${(m / 1000).toFixed(2).replace('.', ',')} km` : '—' }
+function fmtKm(m: number | null): string { return m != null && m > 0 ? `${(m / 1000).toFixed(2).replace('.', ',')} km` : '-' }
 function sportLabel(v: string): string { return SPORTS.find(s => s.value === v)?.label ?? v }
-function tall(v: number | null | undefined, d = 0): string { return v == null ? '—' : v.toFixed(d).replace('.', ',') }
+function tall(v: number | null | undefined, d = 0): string { return v == null ? '-' : v.toFixed(d).replace('.', ',') }
 
 /** Første drags start — «start på første drag» flytter t=0 dit. */
 function forsteDragSek(k: WorkoutKlokkesyncData | null): number {
@@ -146,7 +146,7 @@ export function SammenligningVisning({ okter, harSki, initialConfig, chartKey = 
   const graf = (o: SammenligningOkt, ekstra?: KurveSerie[]) => {
     const k = klokker.get(o.id)
     if (!k?.samples || !k.sport) {
-      return <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)', padding: '18px 0' }}>Ingen klokkedata på denne økta — nøkkeltall og runder står under.</p>
+      return <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)', padding: '18px 0' }}>Ingen klokkedata på denne økta - nøkkeltall og runder står under.</p>
     }
     if (!montert) return <div style={{ height: 190 }} aria-hidden />
     return (
@@ -297,7 +297,7 @@ function Nokkeltall({ okter, fargeFor }: { okter: SammenligningOkt[]; fargeFor: 
             <tr key={r.k} data-nokkeltall={r.k}>
               <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{r.k}</td>
               {okter.map((o, i) => { const v = r.v(o.nokkeltall); return (
-                <td key={o.id} style={td}>{v == null ? '—' : r.fmt(v)}{i > 0 && forste ? delta(v, r.v(forste), r.fmt) : null}</td>
+                <td key={o.id} style={td}>{v == null ? '-' : r.fmt(v)}{i > 0 && forste ? delta(v, r.v(forste), r.fmt) : null}</td>
               ) })}
             </tr>
           ))}
@@ -335,16 +335,16 @@ function RunderSideVedSide({ okter, fargeFor }: { okter: SammenligningOkt[]; far
               <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{i + 1}</td>
               {okter.map((o, k) => {
                 const a = drag[k][i], ref = drag[0][i]
-                if (!a) return <td key={o.id} colSpan={4 + (harWatt ? 1 : 0) + (harTreff ? 1 : 0)} style={{ ...td, color: 'var(--tekst-8-app)' }}>—</td>
+                if (!a) return <td key={o.id} colSpan={4 + (harWatt ? 1 : 0) + (harTreff ? 1 : 0)} style={{ ...td, color: 'var(--tekst-8-app)' }}>-</td>
                 const t = tempo(a), tr = ref ? tempo(ref) : null
                 return (
                   <Fragment key={o.id}>
-                    <td style={td}>{a.duration_seconds != null ? fmtHM(a.duration_seconds) : '—'}{k > 0 && ref ? delta(a.duration_seconds, ref.duration_seconds, x => fmtHM(x)) : null}</td>
+                    <td style={td}>{a.duration_seconds != null ? fmtHM(a.duration_seconds) : '-'}{k > 0 && ref ? delta(a.duration_seconds, ref.duration_seconds, x => fmtHM(x)) : null}</td>
                     <td style={td}>{fmtKm(a.distance_meters)}</td>
-                    <td style={td}>{t != null ? formatPace(Math.round(t), 'min_per_km') : '—'}{k > 0 && t != null && tr != null ? delta(t, tr, x => formatPace(Math.round(x), 'min_per_km')) : null}</td>
-                    <td style={td}>{a.avg_heart_rate ?? '—'} · {a.max_heart_rate ?? '—'}{k > 0 && ref ? delta(a.avg_heart_rate, ref.avg_heart_rate, x => `${Math.round(x)}`) : null}</td>
-                    {harWatt && <td style={td}>{a.avg_watts != null ? `${a.avg_watts} W` : '—'}{k > 0 && ref ? delta(a.avg_watts, ref.avg_watts, x => `${Math.round(x)} W`) : null}</td>}
-                    {harTreff && <td style={td}>{treff(a) ?? '—'}</td>}
+                    <td style={td}>{t != null ? formatPace(Math.round(t), 'min_per_km') : '-'}{k > 0 && t != null && tr != null ? delta(t, tr, x => formatPace(Math.round(x), 'min_per_km')) : null}</td>
+                    <td style={td}>{a.avg_heart_rate ?? '-'} · {a.max_heart_rate ?? '-'}{k > 0 && ref ? delta(a.avg_heart_rate, ref.avg_heart_rate, x => `${Math.round(x)}`) : null}</td>
+                    {harWatt && <td style={td}>{a.avg_watts != null ? `${a.avg_watts} W` : '-'}{k > 0 && ref ? delta(a.avg_watts, ref.avg_watts, x => `${Math.round(x)} W`) : null}</td>}
+                    {harTreff && <td style={td}>{treff(a) ?? '-'}</td>}
                   </Fragment>
                 )
               })}
@@ -375,12 +375,12 @@ function SkytingSideVedSide({ okter, fargeFor }: { okter: SammenligningOkt[]; fa
               <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{i + 1}</td>
               {okter.map((o, k) => {
                 const s = serier[k][i]
-                if (!s) return <td key={o.id} colSpan={3} style={{ ...td, color: 'var(--tekst-8-app)' }}>—</td>
+                if (!s) return <td key={o.id} colSpan={3} style={{ ...td, color: 'var(--tekst-8-app)' }}>-</td>
                 return (
                   <Fragment key={o.id}>
-                    <td style={td}>{s.position === 'L' ? 'Ligg' : 'Stå'} {s.hits ?? '—'}/{s.shots}</td>
-                    <td style={td}>{s.time_seconds != null ? `${s.time_seconds} s` : '—'}</td>
-                    <td style={td}>{s.avg_heart_rate ?? '—'}</td>
+                    <td style={td}>{s.position === 'L' ? 'Ligg' : 'Stå'} {s.hits ?? '-'}/{s.shots}</td>
+                    <td style={td}>{s.time_seconds != null ? `${s.time_seconds} s` : '-'}</td>
+                    <td style={td}>{s.avg_heart_rate ?? '-'}</td>
                   </Fragment>
                 )
               })}

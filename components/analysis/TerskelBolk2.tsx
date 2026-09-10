@@ -61,7 +61,7 @@ export function TerskelHistorikk({ data, initialConfig }: { data: TerskelAnalysi
   const linjer = serier.map(s => ({ ...s, punkter: [...s.punkter, ...(s.punkter.length > 0 ? [{ x: Math.max(iDag, s.punkter[s.punkter.length - 1].x), y: s.punkter[s.punkter.length - 1].y, dato: 'i dag' }] : [])] }))
   return (
     <ChartWrapper chartKey="terskel_historikk" title="Terskel over tid" height="auto"
-      subtitle="Ført terskel per bevegelsesform (trappetrinn) og estimatene fra øktene som punkter — estimater skrives aldri automatisk."
+      subtitle="Ført terskel per bevegelsesform (trappetrinn) og estimatene fra øktene som punkter - estimater skrives aldri automatisk."
       config={{ metrikk, skjult: [...skjult] }}>
       <div className="flex gap-4 flex-wrap items-center mb-2">
         <Gruppe navn="Metrikk">
@@ -80,7 +80,7 @@ export function TerskelHistorikk({ data, initialConfig }: { data: TerskelAnalysi
         </Link>
       </div>
       {!harNoe ? (
-        <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)' }}>Ingen ført terskel for denne metrikken ennå — sett den under Innstillinger › Terskler.</p>
+        <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)' }}>Ingen ført terskel for denne metrikken ennå - sett den under Innstillinger › Terskler.</p>
       ) : (
         <div style={{ width: '100%', height: 280 }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -119,7 +119,7 @@ export function EstimaterTabell({ data }: { data: TerskelAnalysis }) {
   const td: React.CSSProperties = { fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)', padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }
   return (
     <ChartWrapper chartKey="terskel_estimater" title="Estimert vs testet" height="auto"
-      subtitle="Beste 20-min watt × 0,95 · beste 30-min tempo · laktat-krysning ved 4 mmol — mot terskelen som gjaldt den dagen. Bruk «Oppdater terskel» når et estimat bør bli ny terskel.">
+      subtitle="Beste 20-min watt × 0,95 · beste 30-min tempo · laktat-krysning ved 4 mmol - mot terskelen som gjaldt den dagen. Bruk «Oppdater terskel» når et estimat bør bli ny terskel.">
       <div className="overflow-x-auto xp-hscroll">
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 620 }} data-estimater>
           <thead><tr><th style={th}>Dato</th><th style={th}>Økt</th><th style={th}>Estimat</th><th style={th}>Verdi</th><th style={th}>Gjaldt da</th><th style={th}>Avvik</th></tr></thead>
@@ -131,11 +131,11 @@ export function EstimaterTabell({ data }: { data: TerskelAnalysis }) {
               return (
                 <tr key={`${e.workout_id}-${e.type}-${i}`} data-estimat={e.type}>
                   <td style={td}>{fmtDato(e.date)}</td>
-                  <td style={{ ...td, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.title || '—'}</td>
+                  <td style={{ ...td, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.title || '-'}</td>
                   <td style={{ ...td, color: ESTIMAT_FARGE[e.type] }}>{ESTIMAT_NAVN[e.type]}</td>
                   <td style={td}>{fmtVerdi(m, e.verdi)}<span style={{ color: 'var(--tekst-8-app)', marginLeft: 6, fontSize: 11.5 }}>{e.detalj}</span></td>
-                  <td style={td}>{g != null ? fmtVerdi(m, g) : '—'}</td>
-                  <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{avvik == null ? '—' : `${avvik > 0 ? '+' : ''}${m === 'tempo' ? `${avvik} s/km` : m === 'ftp' ? `${avvik} W` : `${avvik} bpm`}`}</td>
+                  <td style={td}>{g != null ? fmtVerdi(m, g) : '-'}</td>
+                  <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{avvik == null ? '-' : `${avvik > 0 ? '+' : ''}${m === 'tempo' ? `${avvik} s/km` : m === 'ftp' ? `${avvik} W` : `${avvik} bpm`}`}</td>
                 </tr>
               )
             })}
@@ -150,10 +150,10 @@ export function EstimaterTabell({ data }: { data: TerskelAnalysis }) {
 export function HfmaxKort({ data, bare }: { data: TerskelAnalysis; bare?: string }) {
   const h = data.hfmax
   const kort = [
-    <MetricCard key="f" chartKey="terskel_hfmax_fort" label="HFmax ført" value={h.fort != null ? `${h.fort}` : '—'} sublabel={h.fort != null ? 'fra profilen' : 'ikke ført — formelen brukes'} accent="#E23A5A" />,
+    <MetricCard key="f" chartKey="terskel_hfmax_fort" label="HFmax ført" value={h.fort != null ? `${h.fort}` : '-'} sublabel={h.fort != null ? 'fra profilen' : 'ikke ført - formelen brukes'} accent="#E23A5A" />,
     <MetricCard key="m" chartKey="terskel_hfmax_formel" label="HFmax formel" value={`${h.formel}`} sublabel={h.gulati ? 'Gulati: 206 − 0,88 × alder' : '220 − alder'} accent="#FF4500" />,
-    <MetricCard key="p" chartKey="terskel_hfmax_pct" label="% av HFmax ved terskel" value={h.pctVedTerskel != null ? `${h.pctVedTerskel} %` : '—'} sublabel={h.terskelHr != null ? `terskel ${h.terskelHr} bpm av ${h.fort ?? h.formel}` : 'ingen ført terskel'} accent="#E8B93C" />,
-    <MetricCard key="w" chartKey="terskel_watt_per_kg" label="Watt per kg" value={data.ftpNaa && data.vektKg ? `${(data.ftpNaa / data.vektKg).toFixed(2).replace('.', ',')}` : '—'}
+    <MetricCard key="p" chartKey="terskel_hfmax_pct" label="% av HFmax ved terskel" value={h.pctVedTerskel != null ? `${h.pctVedTerskel} %` : '-'} sublabel={h.terskelHr != null ? `terskel ${h.terskelHr} bpm av ${h.fort ?? h.formel}` : 'ingen ført terskel'} accent="#E8B93C" />,
+    <MetricCard key="w" chartKey="terskel_watt_per_kg" label="Watt per kg" value={data.ftpNaa && data.vektKg ? `${(data.ftpNaa / data.vektKg).toFixed(2).replace('.', ',')}` : '-'}
       sublabel={data.ftpNaa ? `FTP ${data.ftpNaa} W${data.vektKg ? ` · ${data.vektKg.toFixed(1).replace('.', ',')} kg` : ' · ingen vekt ført'}` : 'ingen FTP i terskeltabellen'} accent="#1A6FD4" />,
   ]
   if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
@@ -188,7 +188,7 @@ export function NpIfPerOkt({ data }: { data: TerskelAnalysis }) {
   if (data.wattOkter.length === 0) return null
   const rader = data.wattOkter.map(o => ({ ...o, x: fmtDato(o.date) }))
   return (
-    <ChartWrapper chartKey="terskel_np_if_per_okt" title="NP og IF per økt" subtitle="Normalisert effekt (søyler) og intensitetsfaktor NP/FTP (linje) — FTP fra terskeltabellen på øktas dato" height={280}>
+    <ChartWrapper chartKey="terskel_np_if_per_okt" title="NP og IF per økt" subtitle="Normalisert effekt (søyler) og intensitetsfaktor NP/FTP (linje) - FTP fra terskeltabellen på øktas dato" height={280}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ComposedChart data={rader} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -214,7 +214,7 @@ export function LaktatVedIntensitet({ data, initialConfig }: { data: TerskelAnal
   const bev = [...new Set(punkter.map(p => p.movement_name ?? 'Ukjent'))]
   return (
     <ChartWrapper chartKey="terskel_laktat_vs_intensitet" title="Laktat ved samme fart / watt" height="auto" config={{ akse }}
-      subtitle="Hver måling mot aktivitetens snittwatt eller tempo — synker laktatet ved samme intensitet, har terskelen flyttet seg.">
+      subtitle="Hver måling mot aktivitetens snittwatt eller tempo - synker laktatet ved samme intensitet, har terskelen flyttet seg.">
       <div className="flex gap-4 flex-wrap items-center mb-2">
         <Gruppe navn="X-akse">
           {harWatt && <Chip farge="#E8B93C" etikett="Watt" paa={akse === 'watt'} fokus={false} onClick={() => setAkse('watt')} />}

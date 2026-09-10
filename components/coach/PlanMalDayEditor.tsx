@@ -283,7 +283,7 @@ function FromTemplateView({
             )}
             <div className="text-xs mt-1 tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-              {t.sport ?? '—'}{t.category ? ` · ${t.category}` : ''}
+              {t.sport ?? '-'}{t.category ? ` · ${t.category}` : ''}
             </div>
           </button>
         ))}

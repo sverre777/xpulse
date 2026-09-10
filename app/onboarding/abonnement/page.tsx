@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
 
 export const metadata: Metadata = {
-  title: 'Velg ditt abonnement — X-PULSE',
+  title: 'Velg ditt abonnement - X-PULSE',
   description: '30 dagers gratis prøve på Athlete Pro og Trener Basic. Promo-kode kan brukes ved kassen.',
 }
 
@@ -64,7 +64,7 @@ const TRAINER_TIERS: Tier[] = [
     features: [
       'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Inntil 10 utøvere',
-      'Kjøp utøverplasser ved behov — 29 kr/mnd per plass',
+      'Kjøp utøverplasser ved behov - 29 kr/mnd per plass',
       'Treningsplan-bygging + maler',
       'Push planer/økter til utøvere',
       'Trener-kalender + innboks',
@@ -78,7 +78,7 @@ const TRAINER_TIERS: Tier[] = [
       'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Alt i Trener Basic',
       'Ubegrenset antall utøvere',
-      '5 Athlete Pro-lisenser til utøvere inkludert — kjøp flere à 29 kr/mnd',
+      '5 Athlete Pro-lisenser til utøvere inkludert - kjøp flere à 29 kr/mnd',
     ],
   },
   {
@@ -126,7 +126,7 @@ export default async function OnboardingAbonnementPage() {
             Velg ditt abonnement
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px', letterSpacing: '0.04em' }}>
-            30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Avslutt når som helst. Promo-kode kan brukes ved kassen.
+            30 dagers gratis prøve på Athlete Pro og Trener Basic - Trener Pro faktureres fra start. Avslutt når som helst. Promo-kode kan brukes ved kassen.
           </p>
         </div>
 
@@ -222,7 +222,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: accent, color: 'var(--tekst-1-ren)', textDecoration: 'none',
           }}>
-          {tier.priceTier === 'trener_pro' ? 'Kom i gang — faktureres fra start' : 'Start gratis prøve'}
+          {tier.priceTier === 'trener_pro' ? 'Kom i gang - faktureres fra start' : 'Start gratis prøve'}
         </Link>
       )}
     </div>

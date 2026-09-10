@@ -185,7 +185,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           overflowX: 'clip',
         }}
       >
-        {/* Header — sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}
+        {/* Header - sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
           style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-3)' }}>
           <div className="flex items-center gap-2 min-w-0">
@@ -269,7 +269,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                   scope="workout"
                   periodKey={state.workoutId}
                   viewerRole={readOnly ? 'coach' : 'athlete'}
-                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — denne økta`}
+                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - denne økta`}
                 />
               </div>
             )}
@@ -301,9 +301,9 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               initialEquipmentIds={equipmentIds}
               initialActivityEquipment={activityEquipment}
             />
-            {/* Trener-deltakelse — kun for redigering av eksisterende økter
+            {/* Trener-deltakelse - kun for redigering av eksisterende økter
                 (krever workout_id). targetUserId-presence er det riktige
-                signalet for "trener ser utøvers økt" — readOnly er ikke det,
+                signalet for "trener ser utøvers økt" - readOnly er ikke det,
                 fordi trener er readOnly i dagbok-fanen men IKKE i plan-fanen
                 (treneren får redigere planen). Tidligere ville Delta-knappen
                 bare vises i dagbok-drilldown; nå vises den korrekt i begge. */}
@@ -321,7 +321,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                   scope="workout"
                   periodKey={state.workoutId}
                   viewerRole={readOnly ? 'coach' : 'athlete'}
-                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — denne økta`}
+                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - denne økta`}
                 />
               </div>
             )}

@@ -20,7 +20,7 @@ function durationSeconds(a: ActivityRow | null): number | null {
 }
 
 function deviationColor(planSec: number | null, actualSec: number | null): string {
-  if (planSec == null || actualSec == null) return 'var(--tekst-3-app)' // grå — ikke sammenlignbart
+  if (planSec == null || actualSec == null) return 'var(--tekst-3-app)' // grå - ikke sammenlignbart
   if (planSec === 0) return 'var(--tekst-3-app)'
   const diff = Math.abs(actualSec - planSec) / planSec
   return diff <= DEVIATION_THRESHOLD ? '#28A86E' : '#FF9500'
@@ -40,7 +40,7 @@ function describeActivity(a: ActivityRow): string {
 function extras(a: ActivityRow): string[] {
   const out: string[] = []
   // a.zones er MM:SS-strenger (sekunder) fra phase 64+.
-  const zones = ALL_ZONE_NAMES // bolk 7: I6–I8 med
+  const zones = ALL_ZONE_NAMES // bolk 7: I6-I8 med
     .map(k => ({ k, sec: parseActivityDuration(a.zones?.[k] ?? '') ?? 0 }))
     .filter(z => z.sec > 0)
   if (zones.length > 0) {
@@ -94,11 +94,11 @@ export function PlanVsActualComparison({ plan, actual }: Props) {
           return (
             <div key={i} className="grid gap-3"
               style={{ gridTemplateColumns: '1fr 1fr', alignItems: 'start' }}>
-              <Cell activity={r.plan} durationColor="var(--tekst-3-app)" placeholder="—" />
+              <Cell activity={r.plan} durationColor="var(--tekst-3-app)" placeholder="-" />
               <Cell
                 activity={r.actual}
                 durationColor={color}
-                placeholder={r.plan ? 'Ikke gjennomført' : '—'}
+                placeholder={r.plan ? 'Ikke gjennomført' : '-'}
               />
             </div>
           )
@@ -134,7 +134,7 @@ function Cell({
     )
   }
   const durSec = parseActivityDuration(activity.duration)
-  const dur = durSec != null && durSec > 0 ? formatActivityDuration(durSec) : '—'
+  const dur = durSec != null && durSec > 0 ? formatActivityDuration(durSec) : '-'
   return (
     <div>
       <div className="flex items-baseline gap-2">

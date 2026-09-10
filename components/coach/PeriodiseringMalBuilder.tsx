@@ -471,7 +471,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                 <p className="text-xs mt-1 tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   {startDate
-                    ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
+                    ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '-'}`
                     : 'La stå tom for relativ mal'}
                 </p>
               </Field>
@@ -507,7 +507,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   value={data.season.sport ?? ''}
                   onChange={e => updateSeason({ sport: (e.target.value || null) as string | null })}
                   style={iSt}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </Field>
@@ -525,9 +525,9 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           </section>
 
           <section>
-            <SectionTitle>Mal sesongen — relative uker (U1–U{totalWeeks})</SectionTitle>
+            <SectionTitle>Mal sesongen - relative uker (U1-U{totalWeeks})</SectionTitle>
             {/* Del F: SAMME lerret som utøverens årsplan (dag-presis maling,
-                trim/splitt/merge, kant-dra, samlingslag) — i relativ modus.
+                trim/splitt/merge, kant-dra, samlingslag) - i relativ modus.
                 ✋ på periode/bånd hopper til raden under for detaljer. */}
             <SeasonCanvas
               season={malSeason}
@@ -558,7 +558,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
               <BtnSm onClick={addPeriod}>+ Ny periode</BtnSm>
             </div>
             {periodsBox.list.length === 0 ? (
-              <EmptyHint>Ingen perioder ennå — mal med penslene i lerretet over, eller legg til manuelt.</EmptyHint>
+              <EmptyHint>Ingen perioder ennå - mal med penslene i lerretet over, eller legg til manuelt.</EmptyHint>
             ) : (
               <div className="flex flex-col gap-2">
                 {periodsBox.list.map(p => (
@@ -583,7 +583,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
               <BtnSm onClick={() => { const uid = addMarking(); setSelectedMarkingUid(uid) }}>+ Samling/høyde</BtnSm>
             </div>
             {markingsBox.list.length === 0 ? (
-              <EmptyHint>Ingen markeringer ennå — bruk 📍-verktøyet i lerretet, eller legg til manuelt. Laget ligger fritt over periodene.</EmptyHint>
+              <EmptyHint>Ingen markeringer ennå - bruk 📍-verktøyet i lerretet, eller legg til manuelt. Laget ligger fritt over periodene.</EmptyHint>
             ) : (
               <div className="flex flex-col gap-2">
                 {markingsBox.list.map(m => (
@@ -850,7 +850,7 @@ function KeyDateRow({
           <select value={keyDate.sport ?? ''}
             onChange={e => onChange({ sport: e.target.value || null })}
             style={iSt}>
-            <option value="">—</option>
+            <option value="">-</option>
             {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
         </Field>

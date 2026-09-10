@@ -213,7 +213,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke', 
                   )}
                 </Bar>
               ))}
-              {/* PLANLAGT: stiplet omriss i typens farge, uten fyll — samme
+              {/* PLANLAGT: stiplet omriss i typens farge, uten fyll - samme
                   visuelle språk som planlagt har ellers i appen. Egen stack
                   ⇒ side om side med den gjennomførte søyla. */}
               {viewMode !== 'completed' && harPlan && plannedTypes.map(t => (
@@ -230,8 +230,8 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke', 
           </ResponsiveContainer>
         </div>
 
-        {/* Treff %-rad UNDER grafen — samme x-akse-inndeling (én celle per
-            bucket, innrykk = y-aksebredden). «—» for perioder uten førte. */}
+        {/* Treff %-rad UNDER grafen - samme x-akse-inndeling (én celle per
+            bucket, innrykk = y-aksebredden). «-» for perioder uten førte. */}
         <div className="flex" style={{ paddingLeft: Y_AXIS_WIDTH, gap: 0 }}>
           {buckets.map(b => {
             const pct = b.recordedShots > 0 ? Math.round((b.recordedHits / b.recordedShots) * 100) : null
@@ -245,7 +245,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke', 
                     {pct} %
                     <span style={{ display: 'block', color: 'var(--tekst-8-alt)', fontSize: 10 }}>{b.recordedHits}/{b.recordedShots}</span>
                   </>
-                ) : '—'}
+                ) : '-'}
               </div>
             )
           })}

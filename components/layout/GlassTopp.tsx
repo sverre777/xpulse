@@ -98,7 +98,7 @@ export function GlassTopp(props: GlassToppProps) {
         ) : (
           <Link href={rolle === 'coach' ? '/app/trener' : '/app/oversikt'} aria-label="X-PULSE" data-topp-logo style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', minWidth: 0 }}>
             <XPulseIcon size={28} variant={rolle === 'coach' ? 'trener' : 'utover'} ariaLabel="X-PULSE" />
-            {/* Med Plan|Årsplan-segmentet i midten er det ikke plass til ordmerket på 390 — ikonet står alene. */}
+            {/* Med Plan|Årsplan-segmentet i midten er det ikke plass til ordmerket på 390 - ikonet står alene. */}
             {!planSegment && <span style={{ fontFamily: FONT, fontWeight: 600, color: aksent, fontSize: 15, letterSpacing: '0.3em' }}>PULSE</span>}
           </Link>
         )}
@@ -121,7 +121,7 @@ export function GlassTopp(props: GlassToppProps) {
           )}
         </div>
         {rolle === 'athlete' && (
-          <button type="button" data-topp-synk data-topp-synk-status={synkStatus} onClick={() => onSynk ? onSynk() : setSynkAapen(true)} aria-label={synkStatus === 'ok' ? 'Klokkesynk — klokke tilkoblet' : synkStatus === 'feil' ? 'Klokkesynk — feil, koble til på nytt' : 'Klokkesynk — ingen klokke tilkoblet'}
+          <button type="button" data-topp-synk data-topp-synk-status={synkStatus} onClick={() => onSynk ? onSynk() : setSynkAapen(true)} aria-label={synkStatus === 'ok' ? 'Klokkesynk - klokke tilkoblet' : synkStatus === 'feil' ? 'Klokkesynk - feil, koble til på nytt' : 'Klokkesynk - ingen klokke tilkoblet'}
             style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 5, height: 34, padding: '0 11px', borderRadius: 999, border: 'none', cursor: 'pointer', background: `color-mix(in srgb, ${synkFarge} 22%, transparent)`, color: synkFarge, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.12em' }}>
             <SynkIkon /> SYNK
             {nySynk && <span data-topp-synk-prikk aria-label="Nye økter hentet" style={{ position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: 999, background: ORANSJE, border: '2px solid var(--flate-3)' }} />}

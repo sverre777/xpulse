@@ -232,8 +232,8 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
               placeholder="65" style={iSt} onFocus={e => (e.currentTarget.style.borderColor = '#28A86E')}
               onBlur={e => (e.currentTarget.style.borderColor = 'var(--line)')} />
           </Field>
-          <Field label="Dagsform (1–5)">
-            {/* SAMME skala og komponent som øktenes følelse (regel 11) —
+          <Field label="Dagsform (1-5)">
+            {/* SAMME skala og komponent som øktenes følelse (regel 11) -
                 daglig felt, adskilt fra øktenes, aldri rørt av importer. */}
             <StarRating value={form.day_form} onChange={v => set('day_form', v)} />
           </Field>
@@ -245,7 +245,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
         </div>
       </div>
 
-      {/* Søvn — fellesfeltene fra fase 91. Alt er valgfritt: fyll det du vet,
+      {/* Søvn - fellesfeltene fra fase 91. Alt er valgfritt: fyll det du vet,
           la resten stå tomt. Tomme felter regnes ikke med noe sted. */}
       <div>
         <SectionLabel>Søvn</SectionLabel>
@@ -264,7 +264,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
         </div>
         {tidISeng && (
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, margin: '6px 0 0' }}>
-            {tidISeng} — søvntiden fyller du ut selv, siden den sjelden er hele tiden i senga.
+            {tidISeng} - søvntiden fyller du ut selv, siden den sjelden er hele tiden i senga.
           </p>
         )}
 
@@ -321,10 +321,10 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
               ))}
             </div>
           </Field>
-          {/* Tallet klokka viser (0–100). Egen skala fra stjernene ved siden
-              av, og egen verdi fra merkets importerte score — den vises med
+          {/* Tallet klokka viser (0-100). Egen skala fra stjernene ved siden
+              av, og egen verdi fra merkets importerte score - den vises med
               merkenavn under «Fra klokka». */}
-          <Field label={<>Søvnscore (0–100)<KildeMerke source={kilde.sleep_score} /></>}>
+          <Field label={<>Søvnscore (0-100)<KildeMerke source={kilde.sleep_score} /></>}>
             <input type="number" step="1" min="0" max="100" value={sovn.score}
               onChange={e => setSovnFelt('score', e.target.value)} placeholder="82"
               style={{ ...iSt, minHeight: 44 }} onFocus={e => (e.currentTarget.style.borderColor = '#28A86E')}
@@ -333,7 +333,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
         </div>
       </div>
 
-      {/* Daglig aktivitet — dagliglivet utenom trening. Alt valgfritt.
+      {/* Daglig aktivitet - dagliglivet utenom trening. Alt valgfritt.
           Kalorier finnes bevisst ikke her: estimatene spriker for mye mellom
           merker til å være sammenlignbare. */}
       <div>

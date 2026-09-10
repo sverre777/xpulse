@@ -92,7 +92,7 @@ export function MalerClient({
     <div>
       <TabBar tab={tab} setTab={setTab} />
 
-      {/* Opprett-knapper — utøver kan lage egne private maler. Knappene
+      {/* Opprett-knapper - utøver kan lage egne private maler. Knappene
           tilpasses aktiv tab så CTA er kontekstuelt riktig. */}
       {tab !== 'standard' && (
       <div className="flex flex-wrap gap-2 mb-4">
@@ -127,7 +127,7 @@ export function MalerClient({
       )}
 
       {/* Standardøkt-seriene: administrasjon (se/endre/opprett). Analysen
-          (sammenligning + trend) bor fortsatt under Analyse → Standardøkter —
+          (sammenligning + trend) bor fortsatt under Analyse → Standardøkter -
           to biblioteker-prinsippet: maler = planlegging, serier = analyse. */}
       {tab === 'standard' && <StandardSerierPanel />}
 
@@ -212,7 +212,7 @@ export function MalerClient({
           <span className="hidden md:block" />
         )}
 
-        {/* Bev.form-filter — unionen av bevegelsesformer i øktmalene. */}
+        {/* Bev.form-filter - unionen av bevegelsesformer i øktmalene. */}
         {tab === 'okt' ? (
           <select value={movement} onChange={e => setMovement(e.target.value)}
             style={iSt} className="w-full px-3 py-2">
@@ -229,7 +229,7 @@ export function MalerClient({
           style={iSt} className="w-full px-3 py-2">
           <option value="sist">Sist brukt</option>
           <option value="nyest">Nyest</option>
-          <option value="navn">Navn A–Å</option>
+          <option value="navn">Navn A-Å</option>
           {tab === 'okt' && <option value="mest">Mest brukt</option>}
         </select>
       </div>
@@ -405,7 +405,7 @@ function WorkoutList({
   return (
     <div className="space-y-2">
       {filtered.map(t => {
-        const sportLabel = SPORTS.find(s => s.value === t.sport)?.label ?? t.sport ?? '—'
+        const sportLabel = SPORTS.find(s => s.value === t.sport)?.label ?? t.sport ?? '-'
         const lastUsed = t.last_used_at
           ? new Date(t.last_used_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })
           : 'Aldri brukt'
@@ -828,7 +828,7 @@ function StandardSerierPanel() {
     last()
   }
   const slett = async (s: StandardSessionSeries) => {
-    if (!await xpConfirm(`Slette serien «${s.name}»? Øktene beholdes — kun koblingen fjernes.`)) return
+    if (!await xpConfirm(`Slette serien «${s.name}»? Øktene beholdes - kun koblingen fjernes.`)) return
     const res = await deleteSessionSeries(s.id)
     if (res.error) { void xpAlert(res.error); return }
     last()
@@ -853,7 +853,7 @@ function StandardSerierPanel() {
           + Ny standardøkt-serie
         </button>
         <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Samme økt over tid — koble økter til serien fra øktskjemaet (⟳), og
+          Samme økt over tid - koble økter til serien fra øktskjemaet (⟳), og
           sammenlign gjennomføringene i analysen.
         </p>
       </div>

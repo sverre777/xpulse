@@ -21,7 +21,7 @@ export function ResumeSessionBanner() {
       <div className="flex items-center justify-between gap-3">
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 15 }}>
           <span style={{ color: '#FF4500', fontWeight: 700 }}>▶ Pågående styrkeøkt</span>
-          {' — '}{session.title || 'Styrke'}
+          {' - '}{session.title || 'Styrke'}
         </span>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', fontSize: 14, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           Gjenoppta →

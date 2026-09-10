@@ -225,7 +225,7 @@ async function importOneExercise(
   if (rawDistanceM != null && activityDistanceM == null) {
     console.warn(
       `[polar-import] ${externalId}: distanse ${rawDistanceM} m overskrider ` +
-      'workout_activities.distance_meters (numeric(7,2)) — lagres kun på økta',
+      'workout_activities.distance_meters (numeric(7,2)) - lagres kun på økta',
     )
   }
 
@@ -280,7 +280,7 @@ async function importOneExercise(
   if (impErr) {
     const raceLost = impErr.code === '23505'
     console[raceLost ? 'log' : 'error'](
-      `[polar-import] ${externalId} imported_activities-insert ${raceLost ? 'tapte kappløp' : 'feilet'}: ${impErr.message} — ruller tilbake økta`,
+      `[polar-import] ${externalId} imported_activities-insert ${raceLost ? 'tapte kappløp' : 'feilet'}: ${impErr.message} - ruller tilbake økta`,
     )
     await supabase.from('workouts').delete().eq('id', workout.id).eq('user_id', conn.user_id)
     return {

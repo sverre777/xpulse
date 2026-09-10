@@ -27,7 +27,7 @@ export function HelseKortHjem({ helse, hardDager, todayISO }: {
     <>
       <KompaktHelseKort
         forhandsdata={helse ?? undefined}
-        tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her."
+        tomTekst="Logg hvilepuls, HRV og søvn - eller koble klokka - for å følge formen her."
         tillegg={data => <HrvHvilepulsGraf dager={data.dager} hardDager={hardDager} todayISO={todayISO} />}
         fot={(_data, aapne) => (
           <div className="flex items-center gap-2 flex-wrap" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }} data-helse-fot>

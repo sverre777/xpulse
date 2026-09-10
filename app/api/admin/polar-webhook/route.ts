@@ -109,7 +109,7 @@ export async function PATCH(req: NextRequest) {
       events: POLAR_WEBHOOK_EVENTS,
       body: res.body,
       note: ok
-        ? 'Webhooken abonnerer nå på EXERCISE og SLEEP. Hemmeligheten er uendret — ingen redeploy nødvendig.'
+        ? 'Webhooken abonnerer nå på EXERCISE og SLEEP. Hemmeligheten er uendret - ingen redeploy nødvendig.'
         : 'Oppdateringen gikk ikke igjennom. Sjekk id-en med GET på samme rute.',
     })
   } catch (e) {

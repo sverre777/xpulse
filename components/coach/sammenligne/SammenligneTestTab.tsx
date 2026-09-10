@@ -85,7 +85,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
                       const pr = bestPR(r.tests!.personalRecords, meta)
                       return (
                         <Td key={r.athlete.id}>
-                          {pr ? fmtValue(pr.value, pr.unit) : '—'}
+                          {pr ? fmtValue(pr.value, pr.unit) : '-'}
                         </Td>
                       )
                     })}
@@ -104,7 +104,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
         return (
           <ChartWrapper
             key={key}
-            title={`${testType} — ${sport}`}
+            title={`${testType} - ${sport}`}
             subtitle={unit ? `Enhet: ${unit}` : undefined}
             height={260}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -194,7 +194,7 @@ function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
                 <Td>{t.tests.length}</Td>
                 <Td>{t.personalRecords.length}</Td>
-                <Td>{types || '—'}</Td>
+                <Td>{types || '-'}</Td>
               </tr>
             )
           })}

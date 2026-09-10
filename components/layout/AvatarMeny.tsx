@@ -96,7 +96,7 @@ export function AvatarMeny({ rolle, userName, hasAthleteRole = true, hasCoachRol
       <Link href="/app/innboks" role="menuitem" data-meny-valg="innboks" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.innboks} /></span>Innboks{unreadInboxCount > 0 && <span style={{ marginLeft: 'auto', minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: COACH_BLUE, color: '#fff', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unreadInboxCount}</span>}</Link>
       <Link href="/app/innstillinger" role="menuitem" data-meny-valg="innstillinger" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.innstillinger} /></span>Innstillinger</Link>
       <button type="button" role="menuitem" data-meny-valg="tema" style={rad} onClick={byttTema}><span style={{ color: aksent }}><Ikon d={IKON.tema} /></span>Lys / mørk<span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--tekst-5-app)', fontWeight: 400 }}>{tema === 'lys' ? 'lys' : tema === 'mork' ? 'mørk' : '…'}</span></button>
-      <p data-meny-abonnement style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-app)', margin: '6px 12px 4px', lineHeight: 1.35 }}>Abonnement — håndteres på x-pulse.no</p>
+      <p data-meny-abonnement style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-app)', margin: '6px 12px 4px', lineHeight: 1.35 }}>Abonnement - håndteres på x-pulse.no</p>
       <form action={logout}>
         <button type="submit" role="menuitem" data-meny-valg="loggut" style={{ ...rad, color: 'var(--tekst-5-app)' }}><span><Ikon d={IKON.ut} /></span>Logg ut</button>
       </form>

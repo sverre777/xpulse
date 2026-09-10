@@ -360,12 +360,12 @@ function AnalysisPageInner({
             style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid #1A6FD4' }}>
             <p className="text-xs"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', letterSpacing: '0.08em' }}>
-              Helsedata (HRV, søvn, vekt, hvilepuls) er skjult for deg — utøveren har valgt å ikke dele helsemålinger med deg.
+              Helsedata (HRV, søvn, vekt, hvilepuls) er skjult for deg - utøveren har valgt å ikke dele helsemålinger med deg.
             </p>
           </div>
         )}
 
-        {/* Tabs — horisontal scroll på mobil, flex-wrap på desktop. */}
+        {/* Tabs - horisontal scroll på mobil, flex-wrap på desktop. */}
         <div className="flex gap-1 mb-5 overflow-x-auto" style={{ scrollbarWidth: 'thin' }}>
           {TABS.filter(([key]) => (key !== 'helse' || canSeeHealthData) && (key !== 'skyting' || harSkiskyting) && (key !== 'styrke' || harStyrke)).map(([key, label]) => (
             <button
@@ -471,7 +471,7 @@ function AnalysisPageInner({
         {tab === 'oversikt' && (
           <div className="space-y-5">
             <OverviewTab stats={stats} overview={overview} status={status} harSkiskyting={harSkiskyting} analysisRange={range} targetUserId={targetUserId} canSeeHealthData={canSeeHealthData} />
-            {/* Sesong mot sesong (bolk 4) — samme komponent står også
+            {/* Sesong mot sesong (bolk 4) - samme komponent står også
                 nederst under Årsplan (avtalt unntak fra én-plassering). */}
             <SesongSammenligning targetUserId={targetUserId} />
           </div>
@@ -492,7 +492,7 @@ function AnalysisPageInner({
               />
             : <LoadingStub label="Laster bevegelsesdata…" />
         )}
-        {/* Helse-fanen = den nye helseflaten (HelseOversikt) — erstattet
+        {/* Helse-fanen = den nye helseflaten (HelseOversikt) - erstattet
             HealthTab-trendene/korrelasjonene 27. aug (helse-designet). */}
         {tab === 'helse' && <HelseOversikt targetUserId={targetUserId} chartKey="helse_oversikt" />}
         {tab === 'ernering' && (

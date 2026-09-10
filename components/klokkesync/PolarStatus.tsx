@@ -55,7 +55,7 @@ const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 
     tone: 'ok',
   },
   'feil-state': {
-    label: 'Sikkerhetsfeil — prøv igjen',
+    label: 'Sikkerhetsfeil - prøv igjen',
     hint: 'Tilkoblingen ble avbrutt fordi CSRF-kontrollen ikke gikk opp. Start tilkoblingen på nytt fra denne siden.',
     tone: 'feil',
   },
@@ -80,12 +80,12 @@ const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 
   },
   'registrering-feilet': {
     label: 'Tilkoblingen ble lagret, men registreringen hos Polar feilet',
-    hint: 'Tilkoblingen er beholdt — trykk «Fullfør registrering» under for å prøve igjen.',
+    hint: 'Tilkoblingen er beholdt - trykk «Fullfør registrering» under for å prøve igjen.',
     tone: 'feil',
   },
   'registrering-konflikt': {
     label: 'Polar har en eldre registrering som blokkerer denne kontoen',
-    hint: 'Polar sier kontoen allerede er registrert, men registreringen gjelder en annen Polar-bruker. Koble fra Polar — det avregistrerer oss hos Polar — og koble til på nytt.',
+    hint: 'Polar sier kontoen allerede er registrert, men registreringen gjelder en annen Polar-bruker. Koble fra Polar - det avregistrerer oss hos Polar - og koble til på nytt.',
     tone: 'feil',
   },
   'lagring-feilet': {
@@ -305,7 +305,7 @@ function WebhookStatus({ lastWebhookAt }: { lastWebhookAt: string | null }) {
       </span>
       <br />
       Nye økter hentes fortsatt inn automatisk hver 6. time, så du mister ingenting.
-      {days != null && ' Vedvarer det, kan Polar ha slått av varslingen — si fra, så kobler vi den opp igjen.'}
+      {days != null && ' Vedvarer det, kan Polar ha slått av varslingen - si fra, så kobler vi den opp igjen.'}
     </div>
   )
 }

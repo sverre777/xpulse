@@ -35,7 +35,7 @@ export function MerSide({ rolle, userName, hasAthleteRole = true, hasCoachRole =
       <Profilrad rolle={rolle} userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} sportEtikett={sportEtikett} planEtikett={planEtikett} />
       <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-app)', margin: '12px 4px 0', lineHeight: 1.4 }} data-mer-hint>
         {rolle === 'coach'
-          ? 'Trener-abonnementet inkluderer full Athlete Pro — bytt til Utøver for egen trening.'
+          ? 'Trener-abonnementet inkluderer full Athlete Pro - bytt til Utøver for egen trening.'
           : 'Terskler, soner, helseoppsett og lys/mørk ligger under Profil. Abonnement og betaling håndteres på x-pulse.no.'}
       </p>
     </div>

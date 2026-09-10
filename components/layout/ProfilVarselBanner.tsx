@@ -40,7 +40,7 @@ export function ProfilVarselBanner() {
         boxShadow: '0 -6px 24px rgba(0,0,0,0.25)',
       }}>
       <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
-        Legg inn tersklene og profilen din — da blir soner og analyse riktige.
+        Legg inn tersklene og profilen din - da blir soner og analyse riktige.
       </span>
       <Link href="/app/innstillinger/profil/terskler"
         onClick={lukk}

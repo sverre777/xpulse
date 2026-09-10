@@ -180,10 +180,10 @@ export async function POST() {
     if (!r.ok) {
       console.warn(`[strava-disconnect] deauthorize feilet etter ${r.attempts.length} forsøk:`, JSON.stringify(r.attempts))
     } else {
-      console.log(`[strava-disconnect] deauthorize OK via ${r.format_used} — andre forsøk:`, JSON.stringify(r.attempts.slice(0, -1)))
+      console.log(`[strava-disconnect] deauthorize OK via ${r.format_used} - andre forsøk:`, JSON.stringify(r.attempts.slice(0, -1)))
     }
   } else {
-    console.warn(`[strava-disconnect] ingen access_token funnet — kan ikke deauthorize. Strava-teller går trolig ikke ned automatisk for user ${user.id}.`)
+    console.warn(`[strava-disconnect] ingen access_token funnet - kan ikke deauthorize. Strava-teller går trolig ikke ned automatisk for user ${user.id}.`)
   }
 
   // 8. SLETT hele strava_connections-raden UANSETT om deauthorize fungerte.

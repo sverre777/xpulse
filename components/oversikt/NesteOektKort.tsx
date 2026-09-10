@@ -12,7 +12,7 @@ function workoutTypeLabel(v: string): string {
 }
 
 function fmtDuration(mins: number | null): string {
-  if (!mins || mins <= 0) return '—'
+  if (!mins || mins <= 0) return '-'
   const h = Math.floor(mins / 60)
   const m = mins % 60
   if (h > 0 && m > 0) return `${h}t ${m}min`
@@ -87,7 +87,7 @@ function WorkoutBody({ w }: { w: OversiktWorkoutCard }) {
         <span><span style={{ color: 'var(--tekst-5-app)' }}>Type: </span>{workoutTypeLabel(w.workout_type)}</span>
         {/* effective_duration_minutes faller tilbake paa summen av
             aktivitetsradene: planlagte oekter har sjelden duration_minutes
-            paa selve okta, og det var aarsaken til «Varighet: —». */}
+            paa selve okta, og det var aarsaken til «Varighet: -». */}
         <span><span style={{ color: 'var(--tekst-5-app)' }}>Varighet: </span>{fmtDuration(w.effective_duration_minutes)}</span>
         {w.shots && w.shots.shots > 0 && (
           <span><span style={{ color: 'var(--tekst-5-app)' }}>Skudd: </span>{w.shots.shots}</span>

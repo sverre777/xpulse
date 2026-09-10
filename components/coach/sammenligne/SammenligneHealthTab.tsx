@@ -62,7 +62,7 @@ export function SammenligneHealthTab({ data }: { data: MultipleAthletesAnalysis 
         <MultiLine data={buildSeries('sleep_hours')} rows={valid} />
       </ChartWrapper>
 
-      <ChartWrapper title="Dagsform (1–10)" height={240}>
+      <ChartWrapper title="Dagsform (1-10)" height={240}>
         <MultiLine data={buildSeries('day_form')} rows={valid} />
       </ChartWrapper>
     </div>
@@ -128,10 +128,10 @@ function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             return (
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
-                <Td>{hrv ? hrv.toFixed(0) : '—'}</Td>
-                <Td>{rhr ? rhr.toFixed(0) : '—'}</Td>
-                <Td>{slp ? slp.toFixed(1) : '—'}</Td>
-                <Td>{form ? form.toFixed(1) : '—'}</Td>
+                <Td>{hrv ? hrv.toFixed(0) : '-'}</Td>
+                <Td>{rhr ? rhr.toFixed(0) : '-'}</Td>
+                <Td>{slp ? slp.toFixed(1) : '-'}</Td>
+                <Td>{form ? form.toFixed(1) : '-'}</Td>
                 <Td>{h.injuries.length}</Td>
               </tr>
             )

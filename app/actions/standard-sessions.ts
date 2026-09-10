@@ -201,7 +201,7 @@ export async function getSessionSeriesLibrary(
     }
 
     const byTest = new Map<string, SeriesExecution[]>()
-    const settTest = new Set<string>() // én rad per økt per test — flere skyteblokker med samme ref teller én gang
+    const settTest = new Set<string>() // én rad per økt per test - flere skyteblokker med samme ref teller én gang
     type TestRad = { workout_id: string; shooting_test_ref: string; workouts: { id: string; date: string; title: string | null; duration_minutes: number | null; distance_km: number | null; avg_heart_rate: number | null } | null }
     for (const a of ((testRes.data ?? []) as unknown as TestRad[])) {
       const l = a.workouts; const ref = a.shooting_test_ref
@@ -221,7 +221,7 @@ export async function getSessionSeriesLibrary(
       const std = findStandardTest(ref)
       return {
         id: `nssf:${ref}`, name: std?.name ?? `Skytetest ${ref}`, sport: 'biathlon', movement_name: 'Skyting', location: null,
-        template_id: null, description: std?.guidance ?? 'Skytetest (NSSF) — hver gjennomføring er en økt med denne testen.',
+        template_id: null, description: std?.guidance ?? 'Skytetest (NSSF) - hver gjennomføring er en økt med denne testen.',
         workout_count: executions.length, last_date: executions[executions.length - 1]?.date ?? null, executions,
       }
     })

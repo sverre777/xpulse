@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
     if (warn && conn.registered_at) {
       console.warn(
         `[polar-cron] webhook stille for polar-bruker ${conn.polar_user_id} ` +
-        `(sist: ${conn.last_webhook_at ?? 'aldri'}) — Polar deaktiverer webhooken etter 7 døgn med feil`,
+        `(sist: ${conn.last_webhook_at ?? 'aldri'}) - Polar deaktiverer webhooken etter 7 døgn med feil`,
       )
     }
 
@@ -163,10 +163,10 @@ export async function GET(req: NextRequest) {
       })
     } catch (e) {
       if (e instanceof PolarRateLimitError) {
-        console.warn(`[polar-cron] rate limit for polar-bruker ${conn.polar_user_id} — resten tas ved neste kjøring`)
+        console.warn(`[polar-cron] rate limit for polar-bruker ${conn.polar_user_id} - resten tas ved neste kjøring`)
         results.push({
           user_id: conn.user_id, polar_user_id: conn.polar_user_id, reason,
-          error: `rate limit — prøver igjen senere (reset ${e.resetSeconds ?? '?'}s)`,
+          error: `rate limit - prøver igjen senere (reset ${e.resetSeconds ?? '?'}s)`,
         })
         break  // Ingen vits i å presse videre denne kjøringen.
       }

@@ -221,7 +221,7 @@ export interface ShootingBlock {
   standing_shots: string
   standing_hits: string
   // Nye felt (alle valgfrie):
-  start_time: string       // HH:MM – når serien ble skutt (for pulssync)
+  start_time: string       // HH:MM - når serien ble skutt (for pulssync)
   duration_seconds: string // MM:SS parses til total sekunder
   avg_heart_rate: string   // bpm
 }
@@ -230,7 +230,7 @@ export interface ShootingBlock {
 
 export interface MovementRow {
   id: string
-  movement_name: string      // e.g. "Løping" or "Løping — Terreng"
+  movement_name: string      // e.g. "Løping" or "Løping - Terreng"
   minutes: string
   distance_km: string
   elevation_meters: string
@@ -532,8 +532,8 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'skyting_liggende',  label: 'Skyting L',          icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_staaende',  label: 'Skyting S',          icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_kombinert', label: 'Skyting',            icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
-  { value: 'skyting_innskyting',label: 'Skyting — Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
-  { value: 'skyting_basis',     label: 'Skyting — Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_innskyting',label: 'Skyting - Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_basis',     label: 'Skyting - Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]
@@ -611,7 +611,7 @@ export interface ActivityLactateMeasurement {
   id: string
   db_id?: string
   value_mmol: string
-  measured_at: string  // HH:MM — valgfritt
+  measured_at: string  // HH:MM - valgfritt
 }
 
 // Fase 48: ernæring-rad per økt. En økt kan ha mange rader; hver rad er
@@ -662,7 +662,7 @@ export interface WeatherData {
   temperature: string        // °C, kan være negativ
   weather_type: string       // '' eller en av WEATHER_TYPES
   wind_strength: string      // '' eller en av WIND_STRENGTHS
-  season_context: string     // '' | 'sommer' | 'vinter' — styrer føre-valg
+  season_context: string     // '' | 'sommer' | 'vinter' - styrer føre-valg
   surface_conditions: string[]  // multi-select føre
   notes: string
 }
@@ -1446,7 +1446,7 @@ function generateBiathlonActivities(format: string): ActivityRow[] {
         position: mark,
         shots: '5',
         hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
-        note: isRelay ? 'Inntil 3 ekstraskudd (5–8)' : '',
+        note: isRelay ? 'Inntil 3 ekstraskudd (5-8)' : '',
         shot_plot: null,
         points: '',
         vind_retning: null, vind_styrke: null, sikt: null,

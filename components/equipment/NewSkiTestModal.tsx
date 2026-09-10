@@ -139,7 +139,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
     return n
   }
   const entryNavn = (idx: number) => {
-    const base = skiById.get(entries[idx].ski_id)?.name ?? '—'
+    const base = skiById.get(entries[idx].ski_id)?.name ?? '-'
     const n = oppsettNr(idx)
     const flere = entries.filter(e => e.ski_id === entries[idx].ski_id).length > 1
     return flere ? `${base} (oppsett ${n})` : base
@@ -213,7 +213,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
     // Ved redigering finnes rangeringen allerede; braketten må bare kjøres
     // på nytt hvis brukeren faktisk starter den.
     if (erParallell && !parallellRangering && !redigerer) {
-      setError('Fullfør parallelltesten — alle duellene må avgjøres'); return
+      setError('Fullfør parallelltesten - alle duellene må avgjøres'); return
     }
     setError(null)
     startTransition(async () => {
@@ -256,7 +256,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
         humidity_pct: test.humidity_pct ? parseDecimal(test.humidity_pct) : null,
         snow_type: test.snow_type || null,
         conditions: test.conditions || null,
-        notes: egenMal ? [`Mal: ${egenMal.name}`, test.notes].filter(Boolean).join(' — ') : (test.notes || null),
+        notes: egenMal ? [`Mal: ${egenMal.name}`, test.notes].filter(Boolean).join(' - ') : (test.notes || null),
         test_type: testType,
         entries: entries.map((en, idx) => ({
           ski_id: en.ski_id,
@@ -367,11 +367,11 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
             )}
           </div>
 
-          {/* Forhold — registreres på alle tester (fasit) */}
+          {/* Forhold - registreres på alle tester (fasit) */}
           <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <p className="text-xs tracking-widest uppercase mt-3 mb-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-              Forhold — registreres på alle tester
+              Forhold - registreres på alle tester
             </p>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Dato">
@@ -427,16 +427,16 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
             </div>
           </div>
 
-          {/* Ski i testen — under skiene per ski */}
+          {/* Ski i testen - under skiene per ski */}
           <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <p className="text-xs tracking-widest uppercase mt-4 mb-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-              Ski i testen — under skiene per ski ({entries.length}/10)
+              Ski i testen - under skiene per ski ({entries.length}/10)
             </p>
 
             {/* Redigering: rangeringen som allerede ligger der blir stående.
                 Den regnes bare ut på nytt hvis feltene tømmes (eller, for
-                parallell, hvis paringene settes opp igjen) — ellers ville en
+                parallell, hvis paringene settes opp igjen) - ellers ville en
                 rettet skrivefeil i tida stille skrevet om plasseringene. */}
             {redigerer && (
               <p className="text-xs mb-2"
@@ -459,7 +459,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     ✕ Fjern
                   </button>
                 </div>
-                {/* Slip og lengde LESES fra utstyret — ingen input her, og
+                {/* Slip og lengde LESES fra utstyret - ingen input her, og
                     ingen andre sannhet lagret på testen. */}
                 <SkiFraUtstyret ski={skiById.get(en.ski_id) ?? null}
                   lagretSlip={en.slip_used || null}
@@ -515,7 +515,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                   const alleredeMed = entries.filter(e2 => e2.ski_id === s.id).length
                   return (
                     <option key={s.id} value={s.id}>
-                      {s.name}{s.brand || s.model ? ` — ${[s.brand, s.model].filter(Boolean).join(' ')}` : ''}
+                      {s.name}{s.brand || s.model ? ` - ${[s.brand, s.model].filter(Boolean).join(' ')}` : ''}
                       {alleredeMed > 0 ? ` (oppsett ${alleredeMed + 1})` : ''}
                     </option>
                   )
@@ -532,13 +532,13 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
             )}
           </div>
 
-          {/* Parallelltest — utslagsformat (fasit seksjon 4) */}
+          {/* Parallelltest - utslagsformat (fasit seksjon 4) */}
           {erParallell && (
             <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
               <div className="flex items-center justify-between mt-4 mb-2 gap-2 flex-wrap">
                 <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-                  Parallelltesten — to og to · vinneren videre
+                  Parallelltesten - to og to · vinneren videre
                 </p>
                 <button type="button" onClick={startBracket}
                   className={`xp-pill xp-pill-sm ${runder ? 'xp-pill-ghost' : 'xp-pill-primary'}`}>
@@ -548,7 +548,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
               {!runder && (
                 <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
                   Paringene settes opp automatisk fra skia over (oddetall → frirunde).
-                  Ett trykk per par markerer vinneren — runde for runde til finalen.
+                  Ett trykk per par markerer vinneren - runde for runde til finalen.
                 </p>
               )}
               {runder && (
@@ -682,7 +682,7 @@ function VaerVelger({ value, onChange }: { value: string; onChange: (v: string) 
       <select value={isCustom ? '__custom' : value}
         onChange={e => { if (e.target.value !== '__custom') onChange(e.target.value) }}
         className="w-full px-4 py-3" style={inputStyle}>
-        <option value="">— velg —</option>
+        <option value="">- velg -</option>
         {STANDARD_WEATHER.map(o => <option key={o} value={o}>{o}</option>)}
         <option value="__custom">Egen…</option>
       </select>
@@ -712,7 +712,7 @@ function ComboInput({
           onChange(e.target.value)
         }}
         className="w-full px-4 py-3" style={inputStyle}>
-        <option value="">— velg —</option>
+        <option value="">- velg -</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
         <option value="__custom">Egen…</option>
       </select>
@@ -764,14 +764,14 @@ function SkiFraUtstyret({ ski, href, lagretSlip = null }: {
   const slipDato = visSlipDato(d?.slip_date ?? null)
   const naa = d?.current_slip ? `${d.current_slip}${slipDato ? ` (${slipDato})` : ''}` : null
   const slip = lagretSlip
-    ? `${lagretSlip}${d?.current_slip && d.current_slip !== lagretSlip ? ' — slik den var ved testen' : ''}`
+    ? `${lagretSlip}${d?.current_slip && d.current_slip !== lagretSlip ? ' - slik den var ved testen' : ''}`
     : naa
   const lengde = d?.length_cm != null ? `${d.length_cm} cm` : null
 
   const mangler = (
     <Link href={href}
       style={{ color: 'var(--tekst-5-app)', textDecoration: 'underline' }}>
-      — (legg inn på utstyret)
+      - (legg inn på utstyret)
     </Link>
   )
 

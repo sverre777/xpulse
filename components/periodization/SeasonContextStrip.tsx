@@ -44,7 +44,7 @@ export function SeasonContextStrip({
           </>
         ) : (
           <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            —
+            -
           </span>
         )}
       </div>

@@ -56,7 +56,7 @@ export function TreffMotPulsInn({ series }: { series: ShootingSeriesRow[] }) {
   if (punkter.length === 0) return null
   const dempet = punkter.length < SKYTE_MIN_N
   return (
-    <ChartWrapper chartKey="skyting_treff_vs_pulsinn" title="Treff mot puls inn" subtitle={`Treff % per serie mot pulsen man kom inn i skytevinduet med (krever pulskurve og plassert vindu) · ${punkter.length} serier${dempet ? ' — for lite data' : ''}`}>
+    <ChartWrapper chartKey="skyting_treff_vs_pulsinn" title="Treff mot puls inn" subtitle={`Treff % per serie mot pulsen man kom inn i skytevinduet med (krever pulskurve og plassert vindu) · ${punkter.length} serier${dempet ? ' - for lite data' : ''}`}>
       <div style={{ opacity: dempet ? 0.45 : 1, height: '100%' }}><TreffScatter punkter={punkter} xNavn="Puls inn" xEnhet=" bpm" /></div>
     </ChartWrapper>
   )
@@ -68,7 +68,7 @@ export function TreffMotSkytetid({ series }: { series: ShootingSeriesRow[] }) {
   if (punkter.length === 0) return null
   const dempet = punkter.length < SKYTE_MIN_N
   return (
-    <ChartWrapper chartKey="skyting_treff_vs_skytetid" title="Treff mot skytetid" subtitle={`Treff % per serie mot tid brukt på serien · ${punkter.length} serier${dempet ? ' — for lite data' : ''}`}>
+    <ChartWrapper chartKey="skyting_treff_vs_skytetid" title="Treff mot skytetid" subtitle={`Treff % per serie mot tid brukt på serien · ${punkter.length} serier${dempet ? ' - for lite data' : ''}`}>
       <div style={{ opacity: dempet ? 0.45 : 1, height: '100%' }}><TreffScatter punkter={punkter} xNavn="Skytetid" xEnhet=" s" /></div>
     </ChartWrapper>
   )
@@ -87,7 +87,7 @@ export function SkytetidLiggStaa({ series }: { series: ShootingSeriesRow[] }) {
   }, [series])
   if (rader.length === 0 || !rader.some(r => r.ligg != null || r.staa != null)) return null
   return (
-    <ChartWrapper chartKey="skyting_skytetid_ligg_staa" title="Skytetid liggende vs stående" subtitle="Snitt sekunder per serie per dag — én linje per stilling">
+    <ChartWrapper chartKey="skyting_skytetid_ligg_staa" title="Skytetid liggende vs stående" subtitle="Snitt sekunder per serie per dag - én linje per stilling">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={rader} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -147,7 +147,7 @@ export function PlottHeatmap({ series, initialConfig }: { series: ShootingSeries
   if (!series.some(r => r.shot_plot && r.shot_plot.some(Boolean))) return null
   const n = punkter.L.length + punkter.S.length
   return (
-    <ChartWrapper chartKey="skyting_plott_heatmap" title="Skuddplott — hvor treffer du" subtitle="Tetthet av plottede skudd på skiva per stilling · stiplet ring = liggende-sonen" height="auto" config={{ periode }}>
+    <ChartWrapper chartKey="skyting_plott_heatmap" title="Skuddplott - hvor treffer du" subtitle="Tetthet av plottede skudd på skiva per stilling · stiplet ring = liggende-sonen" height="auto" config={{ periode }}>
       <div className="mb-2"><Gruppe navn="Periode">{PERIODER.map(p => <Chip key={p.id} farge="var(--accent)" etikett={p.navn} paa={periode === p.id} fokus={false} onClick={() => setPeriode(p.id)} />)}</Gruppe></div>
       {n === 0 ? tom('Ingen plottede skudd i valgt periode.') : (
         <div className="grid grid-cols-2 gap-4" style={{ opacity: n < SKYTE_MIN_N ? 0.45 : 1 }}>
@@ -188,7 +188,7 @@ export function BomRetningOverTid({ series }: { series: ShootingSeriesRow[] }) {
   if (rader.length === 0) return null
   const dempet = rader.every(r => Number(r.n) < SKYTE_MIN_N)
   return (
-    <ChartWrapper chartKey="skyting_bomretning" title="Bom-retning over tid" subtitle={`Andel av bommene per retning per måned (fra skuddplottet)${dempet ? ' — for lite data' : ''}`}>
+    <ChartWrapper chartKey="skyting_bomretning" title="Bom-retning over tid" subtitle={`Andel av bommene per retning per måned (fra skuddplottet)${dempet ? ' - for lite data' : ''}`}>
       <div style={{ opacity: dempet ? 0.45 : 1, height: '100%' }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rader} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>

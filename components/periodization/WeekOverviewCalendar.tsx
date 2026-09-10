@@ -160,7 +160,7 @@ export function WeekOverviewCalendar({
               {events.length === 0 && workouts.length === 0 && within && (
                 <span className="text-xs"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-hover)' }}>
-                  —
+                  -
                 </span>
               )}
             </button>

@@ -33,7 +33,7 @@ export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
           backgroundColor: 'var(--flate-12-alt)',
         }}>
           {data.stravaEkskludert} Strava-{data.stravaEkskludert === 1 ? 'økt er' : 'økter er'} holdt
-          utenfor trendene (Stravas vilkår) — grafene viser en delmengde av treningen.
+          utenfor trendene (Stravas vilkår) - grafene viser en delmengde av treningen.
         </p>
       )}
       <EfSection data={data} />
@@ -62,7 +62,7 @@ export function EfSection({ data }: { data: PrestasjonAnalyse }) {
   return (
       <ChartWrapper
         title="Effektivitetsfaktor"
-        subtitle="Output per pulsslag — stigende = aerob fremgang uten test · kun rolige økter, intervaller og konkurranser holdes utenfor"
+        subtitle="Output per pulsslag - stigende = aerob fremgang uten test · kun rolige økter, intervaller og konkurranser holdes utenfor"
         height="auto"
         chartKey="prestasjon_ef">
         {serie ? (
@@ -103,7 +103,7 @@ export function FrakoblingSection({ data }: { data: PrestasjonAnalyse }) {
     <div>
       <ChartWrapper
         title="Aerob frakobling"
-        subtitle="Utvalg: jevne økter over 40 min med pulskurve og fart/watt — under 5 % betyr at pulsen holder følge hele veien"
+        subtitle="Utvalg: jevne økter over 40 min med pulskurve og fart/watt - under 5 % betyr at pulsen holder følge hele veien"
         height={data.frakobling.length > 0 ? 300 : 'auto'}
         chartKey="prestasjon_frakobling">
         {data.frakobling.length > 0 ? (
@@ -111,7 +111,7 @@ export function FrakoblingSection({ data }: { data: PrestasjonAnalyse }) {
         ) : (
           <p className="py-8 text-center text-sm"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-            Ingen kvalifiserte økter i perioden — frakobling krever en jevn
+            Ingen kvalifiserte økter i perioden - frakobling krever en jevn
             økt over 40 minutter med pulskurve og fart eller watt fra klokka.
           </p>
         )}
@@ -160,7 +160,7 @@ function FrakoblingChart({ punkter }: { punkter: FrakoblingsPunkt[] }) {
         <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
         <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={44}
           tickFormatter={v => `${v}%`} />
-        {/* Utkastets terskler — 5 % (god/middels) og 10 % (middels/svak). */}
+        {/* Utkastets terskler - 5 % (god/middels) og 10 % (middels/svak). */}
         <ReferenceLine y={5} stroke={GRAD_FARGER.middels} strokeDasharray="4 4" />
         <ReferenceLine y={10} stroke={GRAD_FARGER.svak} strokeDasharray="4 4" />
         <Tooltip

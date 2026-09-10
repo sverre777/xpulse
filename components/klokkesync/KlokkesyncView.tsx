@@ -48,10 +48,10 @@ interface Props {
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   koblet:           { label: '✓ Strava er koblet til',                      color: '#28A86E' },
   avbrutt:          { label: 'Du avbrøt Strava-tilkoblingen',              color: 'var(--tekst-5-app)' },
-  'feil-state':     { label: 'Sikkerhetsfeil — prøv igjen',                color: '#E11D48' },
+  'feil-state':     { label: 'Sikkerhetsfeil - prøv igjen',                color: '#E11D48' },
   'ikke-innlogget': { label: 'Logg inn først, så prøv igjen',              color: '#E11D48' },
   'lagring-feilet': { label: 'Kunne ikke lagre tilkoblingen',              color: '#E11D48' },
-  'token-feilet':   { label: 'Token-utveksling feilet — prøv igjen',       color: '#E11D48' },
+  'token-feilet':   { label: 'Token-utveksling feilet - prøv igjen',       color: '#E11D48' },
 }
 
 export function KlokkesyncView({
@@ -93,11 +93,11 @@ export function KlokkesyncView({
         </div>
       )}
 
-      <StravaRolloutNote />{/* alltid synlig — info om gradvis utrulling + at .fit alltid fungerer */}
+      <StravaRolloutNote />{/* alltid synlig - info om gradvis utrulling + at .fit alltid fungerer */}
 
       {/* Inngangen forgrenes: har du minst én tilkobling, er dette synk-
           visningen med ett kort per merke, og merkevelgeren ligger under som
-          «Koble til flere». Har du ingen, er merkevelgeren hovedinngangen —
+          «Koble til flere». Har du ingen, er merkevelgeren hovedinngangen -
           vi sender deg ikke rett inn i ett enkelt merkes flyt. */}
       {hasConnection ? (
         <>
@@ -146,7 +146,7 @@ function StravaRolloutNote() {
       <p style={{ color: 'rgb(var(--tekst-land-rgb) / 0.82)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 0' }}>
         <span style={{ color: '#28A86E' }}>✓</span>{' '}
         Du kan alltid laste opp <strong style={{ color: '#FF4500' }}>.fit-filer</strong> manuelt
-        — fungerer for alle, fra alle klokkemerker, med full data.
+        - fungerer for alle, fra alle klokkemerker, med full data.
       </p>
     </div>
   )
@@ -275,7 +275,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           }}>
           ⚠️ Eksisterende kobling mangler aktivitets-tilgang
-          (scope: <code>{conn.scope ?? '—'}</code>). Frakoble og koble til på nytt
+          (scope: <code>{conn.scope ?? '-'}</code>). Frakoble og koble til på nytt
           for å gi tilgang til økter.
         </div>
       )}
@@ -333,7 +333,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         </p>
       )}
 
-      {/* Kompakt regel-påminnelse — vises etter tilkobling som lite-dominant
+      {/* Kompakt regel-påminnelse - vises etter tilkobling som lite-dominant
           motvekt til StravaInfoBox-en (som vises før tilkobling). */}
       <StravaCompactInfo />
 
@@ -467,7 +467,7 @@ function ActivityRow({
             color: '#F5C542', padding: '6px 12px', cursor: 'pointer',
             fontWeight: 700, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
           }}>
-          Konflikt — løs
+          Konflikt - løs
         </button>
       ) : (
         <button type="button" onClick={onImport}
@@ -504,7 +504,7 @@ const STATUS_VISUAL: Record<FileStatus, { label: string; color: string }> = {
   importing: { label: 'Importerer …',        color: '#F5C542' },
   imported:  { label: '✓ Importert',         color: '#28A86E' },
   duplicate: { label: '⊘ Allerede importert', color: 'var(--tekst-5-app)' },
-  skipped:   { label: '⊘ Duplikat — hoppet over', color: 'var(--tekst-5-app)' },
+  skipped:   { label: '⊘ Duplikat - hoppet over', color: 'var(--tekst-5-app)' },
   failed:    { label: '✗ Feilet',            color: '#E11D48' },
 }
 
@@ -533,7 +533,7 @@ function FitUploadSection() {
           f.size > FIT_MAX_BYTES
             ? {
                 file: f, name: f.name, status: 'failed',
-                detail: `Fila er ${formatMB(f.size)} — grensen er ${formatMB(FIT_MAX_BYTES)}`,
+                detail: `Fila er ${formatMB(f.size)} - grensen er ${formatMB(FIT_MAX_BYTES)}`,
               }
             : { file: f, name: f.name, status: 'pending' }
         ))
@@ -589,7 +589,7 @@ function FitUploadSection() {
       // dette er reelt server/nett — og skal etterlate seg et spor.
       console.error('uploadFitFile kastet:', e)
       final = 'failed'
-      detail = 'Serverfeil under opplasting — prøv igjen, og si fra hvis det vedvarer'
+      detail = 'Serverfeil under opplasting - prøv igjen, og si fra hvis det vedvarer'
     } finally {
       bump()
     }
@@ -644,7 +644,7 @@ function FitUploadSection() {
       </h2>
       <p style={{ fontSize: 13, color: 'rgb(var(--tekst-land-rgb) / 0.6)', lineHeight: 1.7, marginBottom: 16 }}>
         Last opp .fit-filer fra Garmin, Coros, Polar, Wahoo, Suunto eller andre.
-        Velg eller dra inn flere filer samtidig — et helt år går fint på én gang.
+        Velg eller dra inn flere filer samtidig - et helt år går fint på én gang.
       </p>
 
       <FitHelpAccordion />
@@ -701,7 +701,7 @@ function FitUploadSection() {
                     </span>
                     {/* Den FAKTISKE årsaken. Lå tidligere kun i en title-
                         tooltip: usynlig på mobil, og hver importfeil ble et
-                        blindspor. Teksten kommer fra serveren — vis den som
+                        blindspor. Teksten kommer fra serveren - vis den som
                         den er, ikke «noe gikk galt». */}
                     {e.detail && (
                       <span className="block" style={{ color: v.color, fontSize: 12, lineHeight: 1.45, marginTop: 2 }}>
@@ -745,7 +745,7 @@ function FitUploadSection() {
                 <li key={`feil:${e.name}:${i}`} style={{ fontSize: 12, color: 'var(--tekst-1-app)' }}>
                   <span style={{ color: '#E11D48' }}>✗</span>{' '}
                   <strong>{e.name}</strong>
-                  {e.detail ? <> — {e.detail}</> : null}
+                  {e.detail ? <> - {e.detail}</> : null}
                 </li>
               ))}
             </ul>
@@ -865,7 +865,7 @@ function FitDropZone({ onFiles, disabled }: {
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
         color: 'var(--tekst-8-app)', letterSpacing: '0.12em', textTransform: 'uppercase',
       }}>
-        {/* Leses fra FIT_MAX_BYTES — teksten sa 20 MB mens den ekte grensen
+        {/* Leses fra FIT_MAX_BYTES - teksten sa 20 MB mens den ekte grensen
             var 4 MB, så avvisningen kom som en overraskelse. Én kilde. */}
         Maks {formatMB(FIT_MAX_BYTES)} per fil
       </div>

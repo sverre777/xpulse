@@ -92,7 +92,7 @@ export function SplitsTable({ splits, onChange, unit }: Props) {
                       color: sec ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                       fontSize: '13px',
                     }}>
-                      {sec ? formatPace(sec, unit) : '—'}
+                      {sec ? formatPace(sec, unit) : '-'}
                     </span>
                     <button type="button"
                       onClick={() => removeRow(s.id)}

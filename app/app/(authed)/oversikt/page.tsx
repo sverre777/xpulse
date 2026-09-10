@@ -106,7 +106,7 @@ export default async function OversiktPage() {
             reservert også uten A); rad 2 = Helse · Siste hardøkt (1.5fr) ·
             Hovedmål · Periode. Like høye kort i raden (.xp-hjem-r1/-r2 i
             globals.css: ≤1500 rad 2 → 2 kolonner, ≤1100 rad 1 → 2, ≤620 → 1).
-            Innholdet i kortene kommer i bolk 2–8. */}
+            Innholdet i kortene kommer i bolk 2-8. */}
         <div className="xp-hjem-r1" data-hjem-rad="1">
           <IDagKort today={res.today} nextPlanned={res.nextPlanned} klokke={res.klokke.today} siste={res.feed[0] ?? null} todayISO={res.hero.todayISO} />
           <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} plan={res.weekPlan} todayISO={res.hero.todayISO} detaljer={res.ukeDetaljer} />
@@ -121,7 +121,7 @@ export default async function OversiktPage() {
         </div>
 
         {/* Trener-kort + klokkesync side om side. Om utøver ikke har trener
-            vises trener-kortet som koble-knapp (ingen full bredde-fallback —
+            vises trener-kortet som koble-knapp (ingen full bredde-fallback -
             grid-klassen gir naturlig 50/50 i begge tilfellene).
             «Helse over tid» laa her tidligere; helse dekkes av helse-kortet
             i noekkelkort-raden over. */}

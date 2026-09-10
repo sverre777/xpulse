@@ -189,7 +189,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
             <PeriodsSection season={activeSeason} periods={periods} markings={markings} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
             <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
 
-            {/* Sesong mot sesong (bolk 4) — samme komponent som i
+            {/* Sesong mot sesong (bolk 4) - samme komponent som i
                 Analyse › Oversikt (avtalt dobbel-montering). */}
             <div className="mt-6">
               <SesongSammenligning initialSeasons={seasons} targetUserId={targetId} />

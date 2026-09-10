@@ -20,7 +20,7 @@ export default async function SikkerhetInnstillingerPage() {
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader title="Sikkerhet" />
         <SecuritySection
-          currentEmail={user.email ?? '—'}
+          currentEmail={user.email ?? '-'}
           pendingEmail={profile?.email_change_pending ?? null}
         />
       </div>

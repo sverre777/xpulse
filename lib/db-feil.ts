@@ -33,11 +33,11 @@ export function dbFeilTekst(feil: DbFeil | null | undefined, hva: string): strin
       + 'Planlegger du for en utøver, må utøveren ha gitt deg redigeringsrett '
       + 'til planen sin. Har du nettopp fått den, prøv å laste siden på nytt.'
   }
-  if (kode === '23505') return `${stor(hva)} finnes allerede på økta — last siden på nytt og prøv igjen.`
-  if (kode === '23503') return `${stor(hva)} peker på noe som ikke finnes lenger — last siden på nytt og prøv igjen.`
+  if (kode === '23505') return `${stor(hva)} finnes allerede på økta - last siden på nytt og prøv igjen.`
+  if (kode === '23503') return `${stor(hva)} peker på noe som ikke finnes lenger - last siden på nytt og prøv igjen.`
   if (kode === '23502') return `${stor(hva)} mangler et felt som må fylles ut.`
-  if (kode === '23514') return `${stor(hva)} har en verdi databasen ikke godtar — sjekk tallene og prøv igjen.`
-  return `${stor(hva)} ble ikke lagret. Prøv igjen — står det seg, ta kontakt så ser vi på det.`
+  if (kode === '23514') return `${stor(hva)} har en verdi databasen ikke godtar - sjekk tallene og prøv igjen.`
+  return `${stor(hva)} ble ikke lagret. Prøv igjen - står det seg, ta kontakt så ser vi på det.`
 }
 
 function stor(s: string): string {

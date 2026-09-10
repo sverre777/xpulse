@@ -37,7 +37,7 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
     return (
       <div className="py-8 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
-          For lite data for dybdeanalyse — krever sek-for-sek puls fra klokken.
+          For lite data for dybdeanalyse - krever sek-for-sek puls fra klokken.
         </p>
       </div>
     )
@@ -47,7 +47,7 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
     <div className="space-y-4">
       {/* Cardiac drift */}
       {stats.drift && (
-        <Card title="Cardiac drift" subtitle="Pulsdrift gjennom økta — høy verdi indikerer akkumulert tretthet">
+        <Card title="Cardiac drift" subtitle="Pulsdrift gjennom økta - høy verdi indikerer akkumulert tretthet">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Metric label="Snitt 1. halvdel" value={`${stats.drift.firstHalfBpm} bpm`} />
             <Metric label="Snitt 2. halvdel" value={`${stats.drift.secondHalfBpm} bpm`} />
@@ -83,12 +83,12 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
                     <Td>{k === '60' ? '1 min' : k === '300' ? '5 min' : '20 min'}</Td>
                     {stats.bestEfforts!.hr && (
                       <Td align="right">
-                        {stats.bestEfforts!.hr[k] != null ? `${stats.bestEfforts!.hr[k]} bpm` : '—'}
+                        {stats.bestEfforts!.hr[k] != null ? `${stats.bestEfforts!.hr[k]} bpm` : '-'}
                       </Td>
                     )}
                     {stats.bestEfforts!.watts && (
                       <Td align="right">
-                        {stats.bestEfforts!.watts[k] != null ? `${stats.bestEfforts!.watts[k]} W` : '—'}
+                        {stats.bestEfforts!.watts[k] != null ? `${stats.bestEfforts!.watts[k]} W` : '-'}
                       </Td>
                     )}
                   </tr>
@@ -116,10 +116,10 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
         </Card>
       )}
 
-      {/* Decoupling — kun løping/skiing */}
+      {/* Decoupling - kun løping/skiing */}
       {stats.decoupling != null && (
         <Card title="Pa:HR decoupling"
-          subtitle="HR-stigning relativ til pace-fall — &lt; 5% indikerer god aerob form">
+          subtitle="HR-stigning relativ til pace-fall - &lt; 5% indikerer god aerob form">
           <div className="grid grid-cols-2 gap-3">
             <Metric
               label="Decoupling"
@@ -131,8 +131,8 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
                 {stats.decoupling < 5
                   ? '✓ Stabil aerob form gjennom økten'
                   : stats.decoupling < 10
-                  ? 'Moderat decoupling — kan tyde på begynnende tretthet'
-                  : 'Høy decoupling — øktintensiteten var for høy aerobt eller du var sliten'}
+                  ? 'Moderat decoupling - kan tyde på begynnende tretthet'
+                  : 'Høy decoupling - øktintensiteten var for høy aerobt eller du var sliten'}
               </p>
             </div>
           </div>
@@ -264,10 +264,10 @@ function driftColor(pct: number): string {
 }
 
 function driftInterpretation(pct: number): string {
-  if (pct < 3) return 'Stabil puls — god aerob kontroll.'
-  if (pct < 6) return 'Mild drift — typisk for moderat-lange økter.'
-  if (pct < 10) return 'Markant drift — begynnende tretthet eller dehydrering.'
-  return 'Stor drift — vurder lavere intensitet, mer drikke eller bedre restitusjon.'
+  if (pct < 3) return 'Stabil puls - god aerob kontroll.'
+  if (pct < 6) return 'Mild drift - typisk for moderat-lange økter.'
+  if (pct < 10) return 'Markant drift - begynnende tretthet eller dehydrering.'
+  return 'Stor drift - vurder lavere intensitet, mer drikke eller bedre restitusjon.'
 }
 
 function decouplingColor(pct: number): string {

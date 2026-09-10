@@ -132,7 +132,7 @@ export function MainNav({
       <RollebytteSkjelett />
       <div className="flex items-center gap-3">
         <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
-        {/* Navigasjon v2 bolk 7: SYNK (kun utøver) + avatar m/ samme meny som på mobil —
+        {/* Navigasjon v2 bolk 7: SYNK (kun utøver) + avatar m/ samme meny som på mobil -
             innboks, tema, innstillinger, rollebytte og logg ut bor der. */}
         {activeRole !== 'coach' && <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />}
         {/* Rettelser 6. sep: innboks, rollebytte og lys/mørk står i topplinja på PC (til høyre). */}

@@ -84,7 +84,7 @@ export function sightLabel(key: SightKey | null | undefined): string | null {
 // Bekreftelsestekst i popupen: «Vimpel moderat mot høyre (3/5)».
 export function windText(retning: WindDirection | null, styrke: number | null): string | null {
   if (styrke == null) return null
-  if (styrke <= 0) return 'Vimpel henger rett ned — vindstille'
+  if (styrke <= 0) return 'Vimpel henger rett ned - vindstille'
   const grad = ['', 'litt', 'litt mer', 'moderat', 'nesten rett ut', 'rett ut + blafring'][Math.min(styrke, 5)]
   return `Vimpel ${grad} mot ${retning === 'V' ? 'venstre' : 'høyre'} (${Math.min(styrke, 5)}/5)`
 }
@@ -118,7 +118,7 @@ export interface ShootingSummary {
   recordedHits: number     // treff i serier m/ ført treff
   recordedSeries: number   // antall serier m/ ført treff
   totalSeries: number
-  pct: number | null       // recordedHits/recordedShots — null uten førte
+  pct: number | null       // recordedHits/recordedShots - null uten førte
   timeSum: number | null   // sum serie-tid (kun førte tider)
   avgHr: number | null     // snitt av førte serie-snittpulser
   maxHr: number | null     // høyeste førte makspuls

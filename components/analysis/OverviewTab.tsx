@@ -55,7 +55,7 @@ function formatKm(meters: number): string {
 }
 
 function formatPace(secPerKm: number | null | undefined): string {
-  if (!secPerKm || !Number.isFinite(secPerKm)) return '—'
+  if (!secPerKm || !Number.isFinite(secPerKm)) return '-'
   const m = Math.floor(secPerKm / 60)
   const s = Math.round(secPerKm % 60)
   return `${m}:${String(s).padStart(2, '0')}/km`
@@ -74,7 +74,7 @@ const SPORT_LABELS: Record<string, string> = {
 const EMPTY = (
   <EmptyState
     title="Ingen økter i valgt periode"
-    body="Analysen våkner når det finnes økter — logg en økt, koble klokken, eller juster periode/sport-filteret over."
+    body="Analysen våkner når det finnes økter - logg en økt, koble klokken, eller juster periode/sport-filteret over."
     ctaLabel="+ Logg økt"
     ctaHref="/app/dagbok"
     secondaryLabel="Koble klokke"
@@ -171,7 +171,7 @@ export function OverviewTab({ stats, overview, analysisRange, status = null, har
 
   return (
     <div className="space-y-5">
-      {/* BOLK A: «STATUS NÅ» øverst — alt som lå her fra før ligger uendret under. */}
+      {/* BOLK A: «STATUS NÅ» øverst - alt som lå her fra før ligger uendret under. */}
       {overview && (
         <StatusKort overview={overview} status={status} range={analysisRange} harSkiskyting={harSkiskyting} canSeeHealthData={canSeeHealthData} targetUserId={targetUserId} />
       )}
@@ -179,12 +179,12 @@ export function OverviewTab({ stats, overview, analysisRange, status = null, har
         <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />
       )}
       <PlanVsActualCard range={analysisRange} targetUserId={targetUserId} />
-      {/* Metric cards — hovedtall for valgt periode, med sammenligning forrige tilsvarende periode. */}
+      {/* Metric cards - hovedtall for valgt periode, med sammenligning forrige tilsvarende periode. */}
       {overview && (
         <>
           <OversiktKort overview={overview} canSeeHealthData={canSeeHealthData} />
 
-          {/* Konkurranseliste — kompakt. Full analyse finnes i Konkurranser-fanen. */}
+          {/* Konkurranseliste - kompakt. Full analyse finnes i Konkurranser-fanen. */}
           {overview.current.competitions.length > 0 && (
             <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <p className="text-xs tracking-widest uppercase mb-3"
@@ -232,7 +232,7 @@ export function OverviewTab({ stats, overview, analysisRange, status = null, har
         <OverviewTrainingVsRestVsSickness weekly={overview.weekly_distribution} />
       )}
 
-      {/* Custom fleksibel nedbryting — bruker egen server-action med lokal
+      {/* Custom fleksibel nedbryting - bruker egen server-action med lokal
           kontroll over periode, gruppering og bevegelsesformer. */}
       <CustomBreakdownChart analysisRange={analysisRange} />
     </div>
@@ -244,7 +244,7 @@ export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewW
   return (
     <ChartWrapper chartKey="overview_training_vs_rest_vs_sickness"
       title="Trening vs hvile vs sykdom per uke"
-      subtitle="Dager per uke — oransje=trening, grønn=hvile, rød=sykdom"
+      subtitle="Dager per uke - oransje=trening, grønn=hvile, rød=sykdom"
       height={280}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
@@ -301,7 +301,7 @@ export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
   })
   const harFlyttet = flytt && stats.weeks.some(w => w.zones.Hurtighet > 0)
   return (
-    <ChartWrapper chartKey="overview_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter — OLT I-skala">
+    <ChartWrapper chartKey="overview_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter - OLT I-skala">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={zoneData}>
           <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -403,8 +403,8 @@ export function oversiktKortListe(overview: AnalysisOverview, canSeeHealthData: 
     label={`Tempo · ${SPORT_LABELS[overview.primarySport] ?? overview.primarySport}`} value={formatPace(sp.avg_pace_sec_per_km)}
     sublabel={prev?.sport_specific.avg_pace_sec_per_km != null ? `Forrige: ${formatPace(prev.sport_specific.avg_pace_sec_per_km)}` : null} positiveIsGood={false} accent="#FF4500" /> })
   if (overview.primarySport === 'biathlon' && sp.shooting_accuracy_pct !== undefined) ut.push({ key: 'oversikt_skytetreff', gruppe: 'sport', node: <MetricCard chartKey="oversikt_skytetreff"
-    label="Skyte-treff" value={sp.shooting_accuracy_pct != null ? `${sp.shooting_accuracy_pct}%` : '—'}
-    sublabel={`L ${sp.prone_accuracy_pct ?? '—'}% · S ${sp.standing_accuracy_pct ?? '—'}%`} accent="#E11D48" /> })
+    label="Skyte-treff" value={sp.shooting_accuracy_pct != null ? `${sp.shooting_accuracy_pct}%` : '-'}
+    sublabel={`L ${sp.prone_accuracy_pct ?? '-'}% · S ${sp.standing_accuracy_pct ?? '-'}%`} accent="#E11D48" /> })
   if (sp.km_per_sport) ut.push({ key: 'oversikt_hovedsport_km', gruppe: 'sport', node: <MetricCard chartKey="oversikt_hovedsport_km"
     label="Hovedsport-km" value={`${sp.km_per_sport.sport_km}`} sublabel={`Andre: ${sp.km_per_sport.other_km} km`} accent="#1A6FD4" /> })
   if ((sp.strength_sessions ?? 0) > 0) ut.push({ key: 'oversikt_styrkeokter', gruppe: 'sport', node: <MetricCard chartKey="oversikt_styrkeokter"
@@ -417,11 +417,11 @@ export function oversiktKortListe(overview: AnalysisOverview, canSeeHealthData: 
     { key: 'overview_sickness_days', gruppe: 'tilstand', node: <MetricCard chartKey="overview_sickness_days" label="Sykdomsdager 🤒" value={String(overview.current.sickness_days)}
       sublabel={prev ? `Forrige periode: ${prev.sickness_days}` : null} deltaPercent={overview.percent_changes.sickness_days} positiveIsGood={false} accent="#E11D48" /> },
     { key: 'overview_average_energy', gruppe: 'tilstand', node: <MetricCard chartKey="overview_average_energy" label="Snitt overskudd 🙂"
-      value={overview.current.avg_energy != null ? `${overview.current.avg_energy}` : '—'}
-      sublabel={overview.current.avg_energy != null ? (prev?.avg_energy != null ? `Forrige: ${prev.avg_energy} · skala 1–10` : 'Skala 1–10 · fra ukesrefleksjon') : 'Logg ukesrefleksjon for å se trend'} accent="#28A86E" /> },
+      value={overview.current.avg_energy != null ? `${overview.current.avg_energy}` : '-'}
+      sublabel={overview.current.avg_energy != null ? (prev?.avg_energy != null ? `Forrige: ${prev.avg_energy} · skala 1-10` : 'Skala 1-10 · fra ukesrefleksjon') : 'Logg ukesrefleksjon for å se trend'} accent="#28A86E" /> },
     { key: 'overview_average_stress', gruppe: 'tilstand', node: <MetricCard chartKey="overview_average_stress" label="Snitt stress 😰"
-      value={overview.current.avg_stress != null ? `${overview.current.avg_stress}` : '—'}
-      sublabel={overview.current.avg_stress != null ? (prev?.avg_stress != null ? `Forrige: ${prev.avg_stress} · skala 1–10` : 'Skala 1–10 · fra ukesrefleksjon') : 'Logg ukesrefleksjon for å se trend'} positiveIsGood={false} accent="#E11D48" /> },
+      value={overview.current.avg_stress != null ? `${overview.current.avg_stress}` : '-'}
+      sublabel={overview.current.avg_stress != null ? (prev?.avg_stress != null ? `Forrige: ${prev.avg_stress} · skala 1-10` : 'Skala 1-10 · fra ukesrefleksjon') : 'Logg ukesrefleksjon for å se trend'} positiveIsGood={false} accent="#E11D48" /> },
   )
   if (canSeeHealthData && ha.days_with_data > 0) {
     if (ha.hrv_ms != null) ut.push({ key: 'oversikt_snitt_hrv', gruppe: 'helse', node: <MetricCard chartKey="oversikt_snitt_hrv" label="Snitt HRV" value={`${ha.hrv_ms} ms`}

@@ -55,7 +55,7 @@ export function ErneringTab({ data }: { data: NutritionAnalysis }) {
           Ingen ernærings-data registrert i perioden
         </p>
         <p style={{ fontSize: 13 }}>
-          Logg gel/drikke/bar/mat på øktene dine — analyse-data dukker opp her.
+          Logg gel/drikke/bar/mat på øktene dine - analyse-data dukker opp her.
         </p>
       </div>
     )
@@ -93,7 +93,7 @@ export function ErneringTab({ data }: { data: NutritionAnalysis }) {
 export function SummaryCards({ summary, bare }: { summary: NutritionAnalysis['summary']; bare?: string }) {
   const cards: { key: string; label: string; value: string; sub?: string }[] = [
     { key: 'ernering_okter', label: 'Økter med ernæring', value: String(summary.total_workouts_with_nutrition), sub: 'i perioden' },
-    { key: 'ernering_karbo_per_time', label: 'Snitt karbo/time', value: summary.avg_carbs_per_hour !== null ? `${summary.avg_carbs_per_hour}` : '—', sub: 'g/t (varighet-vektet)' },
+    { key: 'ernering_karbo_per_time', label: 'Snitt karbo/time', value: summary.avg_carbs_per_hour !== null ? `${summary.avg_carbs_per_hour}` : '-', sub: 'g/t (varighet-vektet)' },
     { key: 'ernering_total_karbo', label: 'Total karbo', value: `${summary.total_carbs_g}`, sub: 'g' },
     { key: 'ernering_total_protein', label: 'Total protein', value: `${summary.total_protein_g}`, sub: 'g' },
     { key: 'ernering_total_fett', label: 'Total fett', value: `${summary.total_fat_g}`, sub: 'g' },
@@ -301,14 +301,14 @@ function WorkoutTable({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
             <tr key={w.id} style={{ borderBottom: '1px solid var(--kant-2)' }}>
               <td style={td}>{w.date}</td>
               <td style={{ ...td, color: 'var(--tekst-1-app)' }}>{w.title}</td>
-              <td style={tdNum}>{w.duration_minutes ? `${Math.round(w.duration_minutes)} min` : '—'}</td>
+              <td style={tdNum}>{w.duration_minutes ? `${Math.round(w.duration_minutes)} min` : '-'}</td>
               <td style={tdNum}>{w.total_carbs_g} g</td>
               <td style={{ ...tdNum, color: w.carbs_per_hour !== null && w.carbs_per_hour < REF_MID ? '#F5C542' : 'var(--tekst-1-app)' }}>
-                {w.carbs_per_hour !== null ? `${w.carbs_per_hour} g/t` : '—'}
+                {w.carbs_per_hour !== null ? `${w.carbs_per_hour} g/t` : '-'}
               </td>
-              <td style={tdNum}>{w.total_protein_g > 0 ? `${w.total_protein_g} g` : '—'}</td>
-              <td style={tdNum}>{w.total_fat_g > 0 ? `${w.total_fat_g} g` : '—'}</td>
-              <td style={tdNum}>{w.avg_heart_rate ? `${w.avg_heart_rate} bpm` : '—'}</td>
+              <td style={tdNum}>{w.total_protein_g > 0 ? `${w.total_protein_g} g` : '-'}</td>
+              <td style={tdNum}>{w.total_fat_g > 0 ? `${w.total_fat_g} g` : '-'}</td>
+              <td style={tdNum}>{w.avg_heart_rate ? `${w.avg_heart_rate} bpm` : '-'}</td>
               <td style={tdNum}>{w.entry_count}</td>
             </tr>
           ))}

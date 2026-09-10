@@ -65,7 +65,7 @@ export function UkePlanVsGjennomfort({ plan, todayISO, harSki, visTittel = true 
         )}
       </div>
 
-      {/* Dagsrad man–søn */}
+      {/* Dagsrad man-søn */}
       <div data-uke-dager style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginTop: 12, alignItems: 'end' }}>
         {plan.dager.map((d, i) => {
           const erIdag = d.date === todayISO

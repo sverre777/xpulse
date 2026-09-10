@@ -49,7 +49,7 @@ export default async function CoachDashboardPage() {
 
       <div data-trener-seksjon="ny-fellestrening"><NewGroupSessionButton /></div>
 
-      {/* BOLK B1 (Sverre 6. sep): utøverlista er hovedsaken — den står FØR aktivitetsfeeden,
+      {/* BOLK B1 (Sverre 6. sep): utøverlista er hovedsaken - den står FØR aktivitetsfeeden,
           og feeden deler rad med gruppene på brede skjermer. */}
       <div data-trener-seksjon="utovere"><CoachAthleteList athletes={res.athletes} /></div>
 

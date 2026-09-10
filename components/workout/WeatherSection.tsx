@@ -48,25 +48,25 @@ export function WeatherSection({ value, onChange, readOnly = false }: {
         <Field label="Temperatur (°C)">
           <input type="number" inputMode="decimal" step="0.1" value={value.temperature}
             onChange={e => set({ temperature: e.target.value })} disabled={readOnly}
-            placeholder="—" style={iSt} />
+            placeholder="-" style={iSt} />
         </Field>
         <Field label="Værtype">
           <select value={value.weather_type} onChange={e => set({ weather_type: e.target.value })}
             disabled={readOnly} style={iSt}>
-            <option value="">—</option>
+            <option value="">-</option>
             {WEATHER_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </Field>
         <Field label="Vind">
           <select value={value.wind_strength} onChange={e => set({ wind_strength: e.target.value })}
             disabled={readOnly} style={iSt}>
-            <option value="">—</option>
+            <option value="">-</option>
             {WIND_STRENGTHS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </Field>
       </div>
 
-      {/* Føre — sesong-toggle + multi-select chips (flere kan være aktive) */}
+      {/* Føre - sesong-toggle + multi-select chips (flere kan være aktive) */}
       <div>
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <Label>Føre (flere mulig)</Label>

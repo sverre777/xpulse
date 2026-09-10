@@ -6,7 +6,7 @@ const PALETTE = ['#1A6FD4', '#FF4500', '#D4A017', '#22C55E', '#A855F7', '#0EA5E9
 function colorFor(i: number): string { return PALETTE[i % PALETTE.length]! }
 
 function fmtDuration(seconds: number): string {
-  if (!seconds) return '—'
+  if (!seconds) return '-'
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
   const s = Math.floor(seconds % 60)
@@ -16,7 +16,7 @@ function fmtDuration(seconds: number): string {
 }
 
 function fmtKm(meters: number): string {
-  if (!meters) return '—'
+  if (!meters) return '-'
   return `${(meters / 1000).toFixed(1)} km`
 }
 
@@ -49,7 +49,7 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colorFor(i), display: 'inline-block' }} />
               <p className="text-sm tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                {name} — {c.rows.length} konkurranser
+                {name} - {c.rows.length} konkurranser
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -68,14 +68,14 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
                   {c.rows.slice(0, 10).map(row => (
                     <tr key={row.id} style={{ borderBottom: '1px solid var(--line)' }}>
                       <Td>{row.date}</Td>
-                      <Td>{row.title || row.name || '—'}</Td>
+                      <Td>{row.title || row.name || '-'}</Td>
                       <Td>{row.sport}</Td>
                       <Td>{fmtKm(row.total_meters)}</Td>
                       <Td>{fmtDuration(row.duration_seconds)}</Td>
                       <Td>
                         {row.position_overall && row.participant_count
                           ? `${row.position_overall}/${row.participant_count}`
-                          : row.position_overall ?? '—'}
+                          : row.position_overall ?? '-'}
                       </Td>
                     </tr>
                   ))}
@@ -120,7 +120,7 @@ function SummaryTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) 
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
                 <Td>{c.rows.length}</Td>
                 <Td>{c.upcomingPlanned.length}</Td>
-                <Td>{c.sportsPresent.join(', ') || '—'}</Td>
+                <Td>{c.sportsPresent.join(', ') || '-'}</Td>
               </tr>
             )
           })}

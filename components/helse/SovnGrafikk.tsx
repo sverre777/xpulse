@@ -90,7 +90,7 @@ export function StadieStabler({ netter }: { netter: HelseDag[] }) {
 }
 
 export function formatTimer(min: number | null | undefined): string {
-  if (min == null) return '–'
+  if (min == null) return '-'
   const t = Math.floor(min / 60)
   const m = Math.round(min % 60)
   return `${t}:${String(m).padStart(2, '0')}`
@@ -126,7 +126,7 @@ export function Hypnogram({ stadier }: { stadier: SovnStadieIntervall[] }) {
         <rect key={idx} x={x(i.fra)} y={STADIE_RAD[i.s] - 6}
           width={Math.max(2, x(i.til) - x(i.fra))} height={12} rx={3}
           fill={SOVN_STAGE_FARGER[i.s as SovnStadium]}>
-          <title>{`${SOVN_STAGE_NAVN[i.s as SovnStadium]} ${klokkeslett(i.fra)}–${klokkeslett(i.til)}`}</title>
+          <title>{`${SOVN_STAGE_NAVN[i.s as SovnStadium]} ${klokkeslett(i.fra)}-${klokkeslett(i.til)}`}</title>
         </rect>
       ))}
       <line x1={46} y1={138} x2={636} y2={138} stroke="var(--kant-3)" strokeWidth={1} />

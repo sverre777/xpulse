@@ -119,7 +119,7 @@ export async function prosesserKontoHendelser(
     } catch (e) {
       res.feilet++
       const grunn = e instanceof Error ? e.message : String(e)
-      res.detaljer.push(`${rad.id}: ${type} feilet — ${grunn}`)
+      res.detaljer.push(`${rad.id}: ${type} feilet - ${grunn}`)
       await merkBehandlet(db, rad.id, grunn)   // attempts++ , men ikke processed
     }
   }

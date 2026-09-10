@@ -28,7 +28,7 @@ export default function GlemtPassordPage() {
                 backgroundColor: 'rgba(40,168,110,0.1)',
                 border: '1px solid rgba(40,168,110,0.3)',
               }}>
-              Sjekk e-posten din — vi har sendt deg en link for å sette nytt passord.
+              Sjekk e-posten din - vi har sendt deg en link for å sette nytt passord.
               Linken er gyldig i 1 time.
             </p>
             <Link href="/app"

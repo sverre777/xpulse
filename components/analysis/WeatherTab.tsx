@@ -12,7 +12,7 @@ import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from './chart
 // per føre. Data hentes av AnalysisPage og sendes inn (null = laster).
 
 function fmtPace(sec: number | null): string {
-  if (sec == null) return '—'
+  if (sec == null) return '-'
   const m = Math.floor(sec / 60), s = sec % 60
   return `${m}:${String(s).padStart(2, '0')}/km`
 }
@@ -34,7 +34,7 @@ export function WeatherTab({ data }: { data: WeatherAnalysis | null }) {
 
   return (
     <div className="space-y-6">
-      {/* Snittpuls vs temperatur — scatter */}
+      {/* Snittpuls vs temperatur - scatter */}
       <PulsVsTemperatur data={data} />
 
       {/* Per værtype */}
@@ -65,8 +65,8 @@ function GroupTable({ groups, showPace = false }: { groups: WeatherGroupStat[]; 
             <tr key={g.key} style={{ borderBottom: '1px solid var(--kant-1-app)' }}>
               <Td left>{g.label}</Td>
               <Td>{g.count}</Td>
-              <Td>{g.avg_hr != null ? `${g.avg_hr} bpm` : '—'}</Td>
-              <Td>{g.avg_rpe != null ? g.avg_rpe : '—'}</Td>
+              <Td>{g.avg_hr != null ? `${g.avg_hr} bpm` : '-'}</Td>
+              <Td>{g.avg_rpe != null ? g.avg_rpe : '-'}</Td>
               {showPace && <Td>{fmtPace(g.avg_pace)}</Td>}
             </tr>
           ))}

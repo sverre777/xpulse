@@ -175,7 +175,7 @@ function TrendSection({ points }: { points: { date: string; resting_hr: number |
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
         color: 'var(--tekst-8-app)', lineHeight: 1.5, margin: '10px 0 0',
       }}>
-        Snitt regnes kun av dager som faktisk har en verdi — dager uten føring teller ikke som null.
+        Snitt regnes kun av dager som faktisk har en verdi - dager uten føring teller ikke som null.
       </p>
     </div>
   )

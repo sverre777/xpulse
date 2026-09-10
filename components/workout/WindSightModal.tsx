@@ -172,7 +172,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
         </div>
 
         <div style={{ padding: '18px 20px 20px' }}>
-          <p style={{ ...capStyle, margin: '2px 0 8px' }}>Vimpel — trykk den som ligner</p>
+          <p style={{ ...capStyle, margin: '2px 0 8px' }}>Vimpel - trykk den som ligner</p>
           {/* 11-tilstands skala: én rad, horisontalt scrollbar m/ snap. */}
           <div ref={scaleRef} className="flex"
             style={{
@@ -213,7 +213,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
           </p>
 
           <p style={{ ...capStyle, margin: '18px 0 8px' }}>Sikt</p>
-          {/* Sikt-chips — wrapper til flere rader på smal skjerm. */}
+          {/* Sikt-chips - wrapper til flere rader på smal skjerm. */}
           <div className="flex flex-wrap" style={{ gap: 8 }}>
             {SIGHT_LEVELS.map(s => {
               const active = sikt === s.key
@@ -245,7 +245,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
                 width: 18, height: 18, border: '1.5px solid var(--line2)', borderRadius: 5,
                 display: 'grid', placeItems: 'center', color: '#28A86E', fontWeight: 800, fontSize: 12,
               }}>✓</span>
-              Forslag fra forrige serie — lagres først når du trykker Lagre.
+              Forslag fra forrige serie - lagres først når du trykker Lagre.
             </p>
           )}
         </div>

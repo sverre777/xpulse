@@ -415,7 +415,7 @@ export function WorkoutDetailChart({
         )}
         <div className="flex gap-4 flex-wrap" data-chip-rader>
           {/* PÅ GRAFEN (rettelse 12): kurvene Puls · Watt · Tempo er valg som
-              tegnes OPPÅ gjennomført-kartet — standard av i dagboka, huskes.
+              tegnes OPPÅ gjennomført-kartet - standard av i dagboka, huskes.
               Serie uten data får ingen chip (aldri en død knapp). Så
               annoteringene på tidslinja, uavhengig av seriene. */}
           {blokkerMulig && !kurveStandard && (
@@ -480,7 +480,7 @@ export function WorkoutDetailChart({
         </div>
       </div>
 
-      {/* GJENNOMFØRT-KARTET (rettelse 12) — standardvisningen: samme
+      {/* GJENNOMFØRT-KARTET (rettelse 12) - standardvisningen: samme
           komponent som øktkartet, matet med de gjennomførte radene; planen
           bak som spøkelse, eller «plan over / faktisk under» på samme akse.
           Punktene og skytemarkørene tegnes av kartet selv. */}
@@ -500,7 +500,7 @@ export function WorkoutDetailChart({
         </div>
       )}
 
-      {/* Etikettbåndet over grafen — reservert så snart økta HAR punkter,
+      {/* Etikettbåndet over grafen - reservert så snart økta HAR punkter,
           slik at grafen aldri hopper når etikettene tegnes (regel 20). */}
       {visKurve && harPunkter && (
         <PunktEtiketter
@@ -524,9 +524,9 @@ export function WorkoutDetailChart({
         onKrysshaar={setKrysshaarSek}
         overlay={h => (
           <>
-            {/* Planens omriss oppå blokkene i BEGGE (Sverre 5. sep) — til å sammenlikne. */}
+            {/* Planens omriss oppå blokkene i BEGGE (Sverre 5. sep) - til å sammenlikne. */}
             {visPlan && visBlokker && <PlanSpokelse blokker={planBlokker} pct={h.pct} slag="omriss" />}
-            {/* Testkrok (E2E): synlig vindu og antall punkter — ingen visning. */}
+            {/* Testkrok (E2E): synlig vindu og antall punkter - ingen visning. */}
             <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} data-paa-serier={paaIds.join(',')} data-vis-blokker={String(visBlokker)} data-vis-plan={String(visPlan && planBlokker.length > 0)} data-antall-segmenter={segmenter.length} data-antall-blokker={faktiskInn.length} />
 
             {/* Rundegrenser */}
@@ -537,10 +537,10 @@ export function WorkoutDetailChart({
                 borderLeft: '1px dashed var(--tekst-10-alt)',
               }} />
             ))}
-            {/* Skytevinduer — egne merker på tidslinja, uavhengig av puls. */}
+            {/* Skytevinduer - egne merker på tidslinja, uavhengig av puls. */}
             {visSkyting && skytevinduer.map(sg => (
               <span key={`v-${sg.aktivitetId}`}
-                title={`${sg.etikett}${sg.treff ? ` ${sg.treff}` : ''} · ${fmtKlokkeSek(sg.startSek)}–${fmtKlokkeSek(sg.sluttSek)}`}
+                title={`${sg.etikett}${sg.treff ? ` ${sg.treff}` : ''} · ${fmtKlokkeSek(sg.startSek)}-${fmtKlokkeSek(sg.sluttSek)}`}
                 style={{
                   position: 'absolute', left: h.pct(sg.startSek),
                   width: `calc(${h.pct(sg.sluttSek - sg.startSek + h.fraSek)} - 0px)`,
@@ -609,7 +609,7 @@ export function WorkoutDetailChart({
               }}>
               Hele økta
             </button>
-            {/* «Zoom til segment» — når et segment er valgt i båndet. */}
+            {/* «Zoom til segment» - når et segment er valgt i båndet. */}
             {valgtSegment && (() => {
               const sg = segmenter.find(x => x.aktivitetId === valgtSegment)
               if (!sg) return null
@@ -640,7 +640,7 @@ export function WorkoutDetailChart({
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5,
                 color: 'var(--tekst-8-alt)', alignSelf: 'center',
               }}>
-                Viser {fmtKlokkeSek(vindu[0])}–{fmtKlokkeSek(vindu[1])} av {fmtKlokkeSek(totalSek)}
+                Viser {fmtKlokkeSek(vindu[0])}-{fmtKlokkeSek(vindu[1])} av {fmtKlokkeSek(totalSek)}
               </span>
             )}
           </div>
@@ -661,7 +661,7 @@ export function WorkoutDetailChart({
         />
       )}
 
-      {/* DETALJRADEN + KNAPPERADEN (fasit v6): opplevd 1–10 som kvadrater,
+      {/* DETALJRADEN + KNAPPERADEN (fasit v6): opplevd 1-10 som kvadrater,
           laktat/ernæring/skyting som små kort, så ⚡ Øktbygger · 🎯 Plott
           treff · 🩸 Sett laktat · 📝 Notat. */}
       {!skjema && (
@@ -673,7 +673,7 @@ export function WorkoutDetailChart({
           }} />
       )}
 
-      {/* NØKKELTALLSRADEN — «hva ble ØKTA» (lesepanelet svarer «hva skjedde
+      {/* NØKKELTALLSRADEN - «hva ble ØKTA» (lesepanelet svarer «hva skjedde
           HER»). To rader, ulik jobb; de slås aldri sammen. I skjemaet eier
           oppsummeringskortet denne raden (samme komponent). */}
       {!skjema && (
@@ -742,7 +742,7 @@ export function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
       punkter: fart.map(p => ({ t: p.t, v: p.mps })),
       format: v => {
         if (kmt) return `${(v * 3.6).toFixed(1)}`
-        if (v <= 0.1) return '—'
+        if (v <= 0.1) return '-'
         const sek = 1000 / v
         return `${Math.floor(sek / 60)}:${String(Math.round(sek % 60)).padStart(2, '0')}`
       },
@@ -768,7 +768,7 @@ export function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
     if (gap.length > 10) {
       ut.push({
         id: 'gap', navn: 'GAP', farge: '#1F8F5C', punkter: gap,
-        format: v => { if (v <= 0.1) return '—'; const sek = 1000 / v; return `${Math.floor(sek / 60)}:${String(Math.round(sek % 60)).padStart(2, '0')}` },
+        format: v => { if (v <= 0.1) return '-'; const sek = 1000 / v; return `${Math.floor(sek / 60)}:${String(Math.round(sek % 60)).padStart(2, '0')}` },
       })
     }
   }
@@ -958,7 +958,7 @@ export function Nokkeltall({ celler, rpe = null, onRpe, forventetRpe = null, rpe
               {rpeEtikett}{onRpe && <span style={{ color: 'var(--accent)' }}> · føres</span>}
             </div>
             <div style={{ ...v, color: rpe != null ? rpeFarge(rpe) : 'var(--tekst-5-app)' }}>
-              {rpe != null ? rpe : '—'}
+              {rpe != null ? rpe : '-'}
               <small style={hale}> /10{forventetRpe != null ? ` · forventet ${forventetRpe}` : ''}</small>
             </div>
           </button>
@@ -966,7 +966,7 @@ export function Nokkeltall({ celler, rpe = null, onRpe, forventetRpe = null, rpe
       </div>
       {onRpe && skalaAapen && (
         <div className="mt-1.5">
-          <RpeSkala value={rpe ?? null} onChange={val => { onRpe(val); setSkalaAapen(false) }} kompakt etikett={`${rpeEtikett} belastning 1–10`} />
+          <RpeSkala value={rpe ?? null} onChange={val => { onRpe(val); setSkalaAapen(false) }} kompakt etikett={`${rpeEtikett} belastning 1-10`} />
         </div>
       )}
     </div>
@@ -1033,7 +1033,7 @@ export function PunktEtiketter({ punkter, synlig, segmentVed, stil = 'etikett' }
         const seg = en ? segmentVed(en.t) : null
         const kontekst = en
           ? `${seg ? `${seg.etikett.toLowerCase()} · ` : ''}${fmtKlokkeSek(en.t)}`
-          : `${fmtKlokkeSek(kl.punkter[0].t)}–${fmtKlokkeSek(kl.punkter[kl.punkter.length - 1].t)}`
+          : `${fmtKlokkeSek(kl.punkter[0].t)}-${fmtKlokkeSek(kl.punkter[kl.punkter.length - 1].t)}`
         if (ikon) {
           // Bolk 21: samme markør, mindre, uten etikett-tekst — tooltip bærer
           // navn · verdi · kontekst (hover/trykk).
@@ -1135,7 +1135,7 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
           {(rpe != null || onRpe) && (
             <div style={{ ...kort, gridColumn: 'span 2' }}>
               <span style={k}>Opplevd{onRpe ? ' · føres' : ''}</span>
-              {onRpe ? <RpeSkala value={rpe ?? null} onChange={onRpe} kompakt etikett="Opplevd belastning 1–10" />
+              {onRpe ? <RpeSkala value={rpe ?? null} onChange={onRpe} kompakt etikett="Opplevd belastning 1-10" />
                 : <span style={{ ...v, color: rpeFarge(rpe) }}>{rpe}<small style={{ fontSize: 11, color: 'var(--tekst-5-app)' }}> /10</small></span>}
             </div>
           )}
@@ -1191,13 +1191,13 @@ function Lesepanel({ serier, paaIds, segmenter, totalSek, krysshaarSek }: {
         borderTop: '1px solid var(--kant-3)', paddingTop: 8,
       }}>
       <Celle etikett="Tid" farge="var(--tekst-1-app)"
-        verdi={krysshaarSek != null ? fmtKlokkeSek(krysshaarSek) : `0:00–${fmtKlokkeSek(totalSek)}`} />
+        verdi={krysshaarSek != null ? fmtKlokkeSek(krysshaarSek) : `0:00-${fmtKlokkeSek(totalSek)}`} />
       {serier.filter(serie => paaIds.includes(serie.id)).map(serie => {
         const snitt = snittAv(serie.punkter)
         const vis = krysshaarSek != null ? verdiVed(serie, krysshaarSek) : snitt
         return (
           <Celle key={serie.id} etikett={serie.navn} farge={serie.farge}
-            verdi={vis != null ? serie.format(vis) : '—'}
+            verdi={vis != null ? serie.format(vis) : '-'}
             hale={krysshaarSek == null ? 'snitt' : undefined} />
         )
       })}
@@ -1205,7 +1205,7 @@ function Lesepanel({ serier, paaIds, segmenter, totalSek, krysshaarSek }: {
         <Celle etikett="Segment"
           farge={segmentHer ? SEGMENT_FARGER[segmentHer.type] : 'var(--tekst-8-alt)'}
           verdi={segmentHer ? segmentHer.etikett : `${segmenter.length} segmenter`}
-          hale={segmentHer ? `${fmtKlokkeSek(segmentHer.startSek)}–${fmtKlokkeSek(segmentHer.sluttSek)}` : undefined} />
+          hale={segmentHer ? `${fmtKlokkeSek(segmentHer.startSek)}-${fmtKlokkeSek(segmentHer.sluttSek)}` : undefined} />
       )}
     </div>
   )
@@ -1248,7 +1248,7 @@ export function Chip({ farge, etikett, paa, fokus, onClick }: {
   return (
     <button type="button" onClick={onClick}
       aria-pressed={paa}
-      title={fokus ? `${etikett} — eier y-aksen` : paa ? `${etikett} — klikk for fokus` : `${etikett} — av`}
+      title={fokus ? `${etikett} - eier y-aksen` : paa ? `${etikett} - klikk for fokus` : `${etikett} - av`}
       className="text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
@@ -1382,7 +1382,7 @@ function SegmentBaand({
           <button key={sg.aktivitetId} type="button"
             onMouseEnter={() => onVelg(sg.aktivitetId)}
             onClick={() => onVelg(valgt === sg.aktivitetId ? null : sg.aktivitetId)}
-            aria-label={`${sg.etikett} ${fmtKlokkeSek(sg.startSek)}–${fmtKlokkeSek(sg.sluttSek)}`}
+            aria-label={`${sg.etikett} ${fmtKlokkeSek(sg.startSek)}-${fmtKlokkeSek(sg.sluttSek)}`}
             style={{
               position: 'absolute',
               left: pct(start),
@@ -1420,10 +1420,10 @@ function SegmentBaand({
         })}
       </div>
 
-      {/* Gruppeklammer under båndet — én etikett for en repetert blokk.
+      {/* Gruppeklammer under båndet - én etikett for en repetert blokk.
           Kolliderende etiketter legges i NIVÅER (rettelse 7): står to
           nærmere hverandre enn bredden sin, får den ene lengre pekelinje
-          og står ett nivå lavere — to nivåer, tre om nødvendig. */}
+          og står ett nivå lavere - to nivåer, tre om nødvendig. */}
       {klammer.length > 0 && (
         <div ref={klammeRef} style={{ position: 'relative', height: 26 + klammeNivaaer.maks * KLAMME_NIVAA_PX }}>
           {klammer.map((g, gi) => {
@@ -1436,7 +1436,7 @@ function SegmentBaand({
                 onMouseLeave={() => setHovedGruppe(null)}
                 onFocus={() => setHovedGruppe(gi)}
                 onBlur={() => setHovedGruppe(null)}
-                aria-label={`${g.etikett} · ${fmtKlokkeSek(g.startSek)}–${fmtKlokkeSek(g.sluttSek)}`}
+                aria-label={`${g.etikett} · ${fmtKlokkeSek(g.startSek)}-${fmtKlokkeSek(g.sluttSek)}`}
                 style={{
                   position: 'absolute', left: pct(start), width: `calc(${pct(slutt - start + fra)} - 2px)`,
                   top: 2, height: 24, padding: 0, background: 'none', border: 'none', cursor: 'default',
@@ -1480,7 +1480,7 @@ function SegmentBaand({
           return (
             <span>
               <b style={{ color: SEGMENT_FARGER[hovedet.type] }}>{hovedet.etikett}</b>
-              {' · '}{fmtKlokkeSek(hovedet.startSek)}–{fmtKlokkeSek(hovedet.sluttSek)}
+              {' · '}{fmtKlokkeSek(hovedet.startSek)}-{fmtKlokkeSek(hovedet.sluttSek)}
               {' · totalt '}{fmtKlokkeSek(total)}
               {snittPuls != null ? <>{' · snittpuls i dragene '}{snittPuls}</> : null}
               {wattSnitt != null ? <>{' · snittwatt '}{Math.round(wattSnitt)}</> : null}
@@ -1492,7 +1492,7 @@ function SegmentBaand({
           return (
             <span>
               <b style={{ color: SEGMENT_FARGER[valgtSegment.type] }}>{valgtSegment.etikett}</b>
-              {' · '}{fmtKlokkeSek(valgtSegment.startSek)}–{fmtKlokkeSek(valgtSegment.sluttSek)}
+              {' · '}{fmtKlokkeSek(valgtSegment.startSek)}-{fmtKlokkeSek(valgtSegment.sluttSek)}
               {' · '}{fmtKlokkeSek(valgtSegment.sluttSek - valgtSegment.startSek)}
               {puls.snitt != null ? <>{' · snitt '}{puls.snitt}</> : <>{' · puls: for lite data'}</>}
               {(() => {
@@ -1506,12 +1506,12 @@ function SegmentBaand({
         {!valgtSegment && !hovedet && (
           <span style={{ color: 'var(--tekst-8-alt)' }}>
             Hold over et segment: tid · varighet · snittpuls{segmenter.some(sg => sg.treff) ? ' · treff' : ''}
-            {klammer.length > 0 ? ' — eller en klamme for hele gruppa' : ''}
+            {klammer.length > 0 ? ' - eller en klamme for hele gruppa' : ''}
           </span>
         )}
       </div>
 
-      {/* Faste leser-rader for skytevinduene (fasit 1b) — Sverre 5. sep: som
+      {/* Faste leser-rader for skytevinduene (fasit 1b) - Sverre 5. sep: som
           grafisk rad (fargeprikk · stilling · tid · varighet · puls inn · snitt · treff),
           ikke løpende tekst. */}
       {segmenter.filter(sg => sg.paaKurven).length > 0 && (
@@ -1526,10 +1526,10 @@ function SegmentBaand({
               <div key={`leser-${sg.aktivitetId}`} style={{ display: 'contents' }} data-skytevindu={sg.aktivitetId}>
                 <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: SEGMENT_FARGER[sg.type], display: 'inline-block' }} />
                 <span style={{ color: SEGMENT_FARGER[sg.type], fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 12 }}>{sg.etikett}</span>
-                <span style={tall}>{fmtKlokkeSek(sg.startSek)}–{fmtKlokkeSek(sg.sluttSek)}</span>
+                <span style={tall}>{fmtKlokkeSek(sg.startSek)}-{fmtKlokkeSek(sg.sluttSek)}</span>
                 <span style={{ ...tall, color: 'var(--tekst-5-app)', fontWeight: 500 }}>{fmtKlokkeSek(sg.sluttSek - sg.startSek)}</span>
-                <span style={tall}>{puls.inn != null ? `${puls.inn} · ${puls.snitt ?? '—'}` : puls.snitt != null ? `— · ${puls.snitt}` : <span style={{ color: 'var(--tekst-8-alt)', fontWeight: 400 }}>for lite data</span>}</span>
-                <span style={{ ...tall, color: sg.treff ? 'var(--tekst-1-app)' : 'var(--tekst-8-alt)' }}>{sg.treff ?? '—'}</span>
+                <span style={tall}>{puls.inn != null ? `${puls.inn} · ${puls.snitt ?? '-'}` : puls.snitt != null ? `- · ${puls.snitt}` : <span style={{ color: 'var(--tekst-8-alt)', fontWeight: 400 }}>for lite data</span>}</span>
+                <span style={{ ...tall, color: sg.treff ? 'var(--tekst-1-app)' : 'var(--tekst-8-alt)' }}>{sg.treff ?? '-'}</span>
               </div>
             )
           })}
@@ -1546,7 +1546,7 @@ function snittFartIVindu(arr: SpeedSample[] | null, fra: number, til: number): n
 
 function fmtFart(mps: number, sport: Sport): string {
   if (sport === 'cycling' || sport === 'triathlon') return `${(mps * 3.6).toFixed(1)} km/t`
-  if (mps <= 0.1) return '—'
+  if (mps <= 0.1) return '-'
   const secPerKm = 1000 / mps
   const m = Math.floor(secPerKm / 60)
   const sek = Math.round(secPerKm % 60)

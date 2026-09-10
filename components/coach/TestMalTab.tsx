@@ -61,7 +61,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
       {testMaler.length === 0 ? (
         <div className="p-8 text-center" style={{ border: '1px dashed var(--line)' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            Ingen test-maler ennå. «+ Ny test-mal» åpner struktur-byggeren —
+            Ingen test-maler ennå. «+ Ny test-mal» åpner struktur-byggeren -
             test-mal er en øktmal med 🧪-flagg, akkurat som hos utøverne.
           </p>
         </div>
@@ -95,7 +95,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
         <div className="mt-8">
           <p className="text-xs tracking-widest uppercase mb-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            Eldre test-maler (protokollskjema) — nye lages med byggeren over
+            Eldre test-maler (protokollskjema) - nye lages med byggeren over
           </p>
           <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             {initialTemplates.map(t => (

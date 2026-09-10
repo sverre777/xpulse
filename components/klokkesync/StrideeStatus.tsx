@@ -72,7 +72,7 @@ export function StrideeReauthVarsel({ connections }: { connections: StrideeConne
         ⚠ {hvem} synker ikke lenger
       </p>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: 14, lineHeight: 1.6 }}>
-        Tilgangen ble trukket tilbake{navn.length > 0 ? '' : ' for en av klokkene dine'} — det skjer
+        Tilgangen ble trukket tilbake{navn.length > 0 ? '' : ' for en av klokkene dine'} - det skjer
         typisk når passordet endres eller tilgangen fjernes i klokke-appen.
         Øktene dine kommer ikke inn før du kobler til på nytt.
         {' '}Ingenting er tapt: økter fra før av ligger trygt i dagboka, og
@@ -141,7 +141,7 @@ export function StrideeConnectionListe({ connections }: { connections: StrideeCo
         })}
       </div>
       {/* Leverandørens egen administrasjonsside (manage-link, mintes fersk
-          per besøk). Vanlig lenke-navigasjon — regel 20. */}
+          per besøk). Vanlig lenke-navigasjon - regel 20. */}
       <a href="/api/klokkesync/stridee/manage"
         className="inline-block mt-2 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', textDecoration: 'underline' }}>
@@ -192,13 +192,13 @@ function StrideeFrakoblingsDialog({ connection, onClose }: {
       })
       const d = await r.json()
       if (!r.ok || d.error) {
-        setFeil(d.error ?? 'Frakoblingen feilet — prøv igjen.')
+        setFeil(d.error ?? 'Frakoblingen feilet - prøv igjen.')
         setJobber(false)
         return
       }
       window.location.reload()
     } catch {
-      setFeil('Frakoblingen feilet — sjekk nettet og prøv igjen.')
+      setFeil('Frakoblingen feilet - sjekk nettet og prøv igjen.')
       setJobber(false)
     }
   }
@@ -219,7 +219,7 @@ function StrideeFrakoblingsDialog({ connection, onClose }: {
           <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
             <li>
               {preview ? `${preview.helse_verdier} helse- og søvnverdier` : 'Helse- og søvnverdier'} fra {navn}
-              {' '}(hvilepuls, HRV, søvn, skritt) — <b>manuelt førte verdier beholdes</b>
+              {' '}(hvilepuls, HRV, søvn, skritt) - <b>manuelt førte verdier beholdes</b>
             </li>
             <li>
               {preview ? `${preview.merke_rader} rader med ${navn}s egne skårer` : `${navn}s egne skårer`}
@@ -228,10 +228,10 @@ function StrideeFrakoblingsDialog({ connection, onClose }: {
           </ul>
           <p style={{ margin: '10px 0 0' }}><b style={{ color: GRONN }}>Dette beholdes:</b></p>
           <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
-            <li>{preview ? `${preview.beholdte_okter} importerte økter` : 'Importerte økter'} — de er dine originalfiler og blir stående i dagboka</li>
+            <li>{preview ? `${preview.beholdte_okter} importerte økter` : 'Importerte økter'} - de er dine originalfiler og blir stående i dagboka</li>
           </ul>
           <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--tekst-8-app)' }}>
-            Synken stopper umiddelbart. Du kan koble til igjen når som helst — da hentes rundt 90 dager historikk på nytt.
+            Synken stopper umiddelbart. Du kan koble til igjen når som helst - da hentes rundt 90 dager historikk på nytt.
           </p>
         </div>
         {feil && (
@@ -275,17 +275,17 @@ export function StrideeCallbackBanner({ status }: { status: string | null }) {
   const [farge, tekst] = ((): [string, string] => {
     switch (status) {
       case 'success':
-        return [GRONN, '✓ Klokka er koblet til. Nye økter kommer inn automatisk — den første synken kan ta noen minutter.']
+        return [GRONN, '✓ Klokka er koblet til. Nye økter kommer inn automatisk - den første synken kan ta noen minutter.']
       case 'denied':
-        return [VARSEL, 'Tilkoblingen ble avbrutt hos klokkeleverandøren. Ingenting er endret — prøv igjen når du vil.']
+        return [VARSEL, 'Tilkoblingen ble avbrutt hos klokkeleverandøren. Ingenting er endret - prøv igjen når du vil.']
       case 'error':
-        return [VARSEL, 'Noe gikk galt hos klokkeleverandøren under tilkoblingen. Prøv igjen — ingenting er endret hos oss.']
+        return [VARSEL, 'Noe gikk galt hos klokkeleverandøren under tilkoblingen. Prøv igjen - ingenting er endret hos oss.']
       case 'avslatt':
         return [VARSEL, 'Klokkesynk via leverandør er slått av for øyeblikket.']
       case 'ukjent-merke':
-        return [VARSEL, 'Ukjent klokkemerke — velg et merke fra lista under.']
+        return [VARSEL, 'Ukjent klokkemerke - velg et merke fra lista under.']
       case 'feil':
-        return [VARSEL, 'Tilkoblingen kunne ikke startes. Prøv igjen om litt — vedvarer det, si fra til support.']
+        return [VARSEL, 'Tilkoblingen kunne ikke startes. Prøv igjen om litt - vedvarer det, si fra til support.']
       default:
         return [VARSEL, 'Uventet status fra tilkoblingen. Sjekk lista under om klokka likevel kom inn.']
     }

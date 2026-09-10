@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { LegalLayout, LegalH2, LegalP, LegalUL, LegalLI } from '@/components/legal/LegalLayout'
 
 export const metadata = {
-  title: 'Cookies — X-PULSE',
+  title: 'Cookies - X-PULSE',
   description: 'Hvordan X-PULSE bruker cookies og lokal lagring.',
 }
 
@@ -43,7 +43,7 @@ export default function CookiesPage() {
         Funksjonelle (lokal lagring)
       </h3>
       <LegalP>
-        Vi bruker localStorage til å lagre dine UI-preferanser direkte i nettleseren —
+        Vi bruker localStorage til å lagre dine UI-preferanser direkte i nettleseren -
         f.eks. valgt visning, sortering og filterstatus. Disse forlater ikke enheten din.
       </LegalP>
 

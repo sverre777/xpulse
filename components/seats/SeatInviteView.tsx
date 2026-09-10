@@ -67,7 +67,7 @@ export function SeatInviteView({ token, info }: Props) {
             <>
               <p style={tittel}>Alle plassene er i bruk</p>
               <p style={tekst}>
-                {info.coachName} har ingen ledige utøverplasser akkurat nå — si fra til treneren din,
+                {info.coachName} har ingen ledige utøverplasser akkurat nå - si fra til treneren din,
                 så kan flere plasser åpnes.
               </p>
             </>
@@ -75,7 +75,7 @@ export function SeatInviteView({ token, info }: Props) {
             <>
               <p style={tittel}>{info.coachName} gir deg en utøverplass</p>
               <p style={tekst}>
-                Full X-PULSE (Athlete Pro) betalt av treneren din — du trenger aldri legge inn kort,
+                Full X-PULSE (Athlete Pro) betalt av treneren din - du trenger aldri legge inn kort,
                 og ingenting trekkes deg. Du kobles til {info.coachName} samtidig.
               </p>
               <form onSubmit={handleNyBruker} className="space-y-3 mt-4">
@@ -104,13 +104,13 @@ export function SeatInviteView({ token, info }: Props) {
                   style={{ color: ORANGE, textDecoration: 'underline' }}>
                   Logg inn
                 </Link>{' '}
-                — du kommer rett tilbake hit.
+                - du kommer rett tilbake hit.
               </p>
             </>
           ) : info.preview?.alleredePaaPlass ? (
             <>
               <p style={tittel}>Du er allerede på plass</p>
-              <p style={tekst}>Plassen hos {info.coachName} er aktiv — alt er i orden.</p>
+              <p style={tekst}>Plassen hos {info.coachName} er aktiv - alt er i orden.</p>
               <Link href="/app" className="inline-block mt-4 px-4 py-3 text-sm font-semibold tracking-widest uppercase"
                 style={{ ...knapp, textDecoration: 'none' }}>
                 Til appen
@@ -129,13 +129,13 @@ export function SeatInviteView({ token, info }: Props) {
               <p style={tittel}>{info.coachName} gir deg en utøverplass</p>
               <p style={tekst}>Når du bekrefter skjer dette:</p>
               <ul className="mt-2 space-y-2" style={{ listStyle: 'none', padding: 0 }}>
-                <Punkt>Du får full X-PULSE (Athlete Pro), betalt av treneren — ingenting trekkes deg.</Punkt>
+                <Punkt>Du får full X-PULSE (Athlete Pro), betalt av treneren - ingenting trekkes deg.</Punkt>
                 {!info.preview?.alleredeKoblet && (
                   <Punkt>Du kobles til {info.coachName} som utøver.</Punkt>
                 )}
                 {info.preview?.selvbetalende && (
                   <Punkt varsel>
-                    Ditt eget abonnement (59 kr/mnd) settes til å løpe ut ved periodeslutt —
+                    Ditt eget abonnement (59 kr/mnd) settes til å løpe ut ved periodeslutt -
                     du betaler ikke mer, og plassen tar over. Ingen dobbelttrekk.
                   </Punkt>
                 )}

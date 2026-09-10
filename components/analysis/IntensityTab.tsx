@@ -124,7 +124,7 @@ export function WeeklyStack({
   const harFlyttetHurtighet = utvidet === true && data.weeks.some(w => w.zones.Hurtighet > 0)
 
   const fotnote = utvidet === true && harFlyttetHurtighet
-    ? 'I7 inkluderer eldre Hurtighet-føringer (lagret urørt — vises på utvidet skala).'
+    ? 'I7 inkluderer eldre Hurtighet-føringer (lagret urørt - vises på utvidet skala).'
     : null
   const unitSuffix = unit === 'pct' ? '%' : 'min'
 

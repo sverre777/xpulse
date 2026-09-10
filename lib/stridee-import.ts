@@ -93,7 +93,7 @@ export async function prosesserDataHendelser(
       // brukeren, så dette er foreldreløs data, ikke et kappløp.
       await merkBehandlet(db, rad.id, null)
       res.hoppet_over++
-      res.detaljer.push(`${rad.id}: ${type} uten lenket bruker — hoppet over`)
+      res.detaljer.push(`${rad.id}: ${type} uten lenket bruker - hoppet over`)
       continue
     }
 
@@ -110,7 +110,7 @@ export async function prosesserDataHendelser(
       .select('id')
     if (!krav || krav.length === 0) {
       res.hoppet_over++
-      res.detaljer.push(`${rad.id}: ${type} behandles av en annen kjøring — hoppet over`)
+      res.detaljer.push(`${rad.id}: ${type} behandles av en annen kjøring - hoppet over`)
       continue
     }
 
@@ -124,7 +124,7 @@ export async function prosesserDataHendelser(
     } catch (e) {
       res.feilet++
       const grunn = e instanceof Error ? e.message : String(e)
-      res.detaljer.push(`${rad.id}: ${type} feilet — ${grunn}`)
+      res.detaljer.push(`${rad.id}: ${type} feilet - ${grunn}`)
       await merkBehandlet(db, rad.id, grunn)   // attempts++, forblir ubehandlet
     }
   }
@@ -177,7 +177,7 @@ async function importerAktivitet(
   const { session, sessions, laps: raaLaps, records } = hentFitStruktur(parsed)
   if (!session || !session.start_time) {
     const filtype = fitFilType(parsed)
-    return `${aktivitetsId}: ${FILTYPE_FORKLARING[filtype ?? ''] ?? `«${filtype ?? 'ukjent'}»-fil uten session — ikke en økt`}`
+    return `${aktivitetsId}: ${FILTYPE_FORKLARING[filtype ?? ''] ?? `«${filtype ?? 'ukjent'}»-fil uten session - ikke en økt`}`
   }
 
   const fitLaps = raaLaps.length > 0 ? raaLaps : [sessionSomLap(session)]
@@ -195,7 +195,7 @@ async function importerAktivitet(
   // Polar-policyen: konflikt → hopp over, uten klokkeslett teller ikke.
   const konflikt = await detectFitConflict(db, userId, dateStr, timeStr, { utenTidTeller: false })
   if (konflikt) {
-    return `${aktivitetsId}: konflikt med eksisterende økt ${konflikt} — ikke importert`
+    return `${aktivitetsId}: konflikt med eksisterende økt ${konflikt} - ikke importert`
   }
 
   const mapping = mapFitSportToXpulse(session.sport, session.sub_sport)
@@ -203,7 +203,7 @@ async function importerAktivitet(
   // Navnet fra klokka når det finnes («Vågan Terrengløp»), ellers
   // bevegelsesformen — samme fallback som Polar.
   const navn = typeof data.name === 'string' && data.name.trim() ? data.name.trim() : mapping.movement
-  const tittel = `${navn} — ${formatFitDuration(durationMin)}`
+  const tittel = `${navn} - ${formatFitDuration(durationMin)}`
 
   const resultat = await createWorkoutFromFit(
     db, userId, `klokkesynk (${provider})`, session, records, fitLaps,
@@ -255,9 +255,9 @@ async function importerWellness(
   const dato = typeof data.calendar_date === 'string' ? data.calendar_date : null
   const provider = typeof payload.provider === 'string' && erStrideeProvider(payload.provider)
     ? payload.provider : null
-  if (!kind) return 'wellness uten kind — ingenting å hente'
-  if (!dato) return `${kind} uten calendar_date — ingenting å hente`
-  if (!provider) return `${kind} med ukjent provider — hoppet over`
+  if (!kind) return 'wellness uten kind - ingenting å hente'
+  if (!dato) return `${kind} uten calendar_date - ingenting å hente`
+  if (!provider) return `${kind} med ukjent provider - hoppet over`
 
   const s = (data.summary ?? {}) as Sammendrag
 
@@ -371,7 +371,7 @@ async function importerWellness(
   // tidsfelter) — stressnivåene kommer i daily. Markeres behandlet.
   if (kind === 'stress') return `stress ${dato}: ingen verdier i payloaden (kommer via daily)`
 
-  return `ukjent wellness-kind «${kind}» — hoppet over`
+  return `ukjent wellness-kind «${kind}» - hoppet over`
 }
 
 /**

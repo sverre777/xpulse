@@ -131,7 +131,7 @@ export function KeyDateModal({
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Sesong: {seasonStart} → {seasonEnd}
         </p>
-        {/* Type-chips — samme språk som konkurransepanelet i økt-føringen. */}
+        {/* Type-chips - samme språk som konkurransepanelet i økt-føringen. */}
         <div className="mb-3">
           <FieldLabel>Type</FieldLabel>
           <span className="inline-flex flex-wrap" style={{ border: '1px solid var(--line2, var(--line2))', borderRadius: 10, overflow: 'hidden' }}>
@@ -184,7 +184,7 @@ export function KeyDateModal({
           <div>
             <FieldLabel>Sport</FieldLabel>
             <select value={sport} onChange={e => setSport(e.target.value as Sport | '')} style={INPUT_STYLE}>
-              <option value="">—</option>
+              <option value="">-</option>
               {SPORTS.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
@@ -220,7 +220,7 @@ export function KeyDateModal({
         </label>
         {willAutoCreateWorkout && (
           <p className="text-xs mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
-            En planlagt workout opprettes automatisk på {eventDate || '—'} og kobles til denne hendelsen.
+            En planlagt workout opprettes automatisk på {eventDate || '-'} og kobles til denne hendelsen.
           </p>
         )}
         {error && <ErrorText message={error} />}

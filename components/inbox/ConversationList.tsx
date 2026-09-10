@@ -26,7 +26,7 @@ interface Props {
 export function ConversationList({ conversations }: Props) {
   if (conversations.length === 0) {
     return (
-      <EmptyState compact title="Ingen samtaler ennå" body="Meldinger mellom deg og treneren/utøverne dine samles her — start en med «Ny melding»." />
+      <EmptyState compact title="Ingen samtaler ennå" body="Meldinger mellom deg og treneren/utøverne dine samles her - start en med «Ny melding»." />
     )
   }
 

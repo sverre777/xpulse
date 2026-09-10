@@ -36,7 +36,7 @@ export default async function AthletePeriodiseringTab({ params, searchParams }: 
         scope="month"
         periodKey={monthKey}
         viewerRole="coach"
-        title={`Kommentarer — ${monthKey}`}
+        title={`Kommentarer - ${monthKey}`}
       />
 
       {showPush && (

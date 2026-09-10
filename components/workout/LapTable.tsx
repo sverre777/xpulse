@@ -93,28 +93,28 @@ export function LapTable({ laps, sport, kilde = null }: Props & { kilde?: 'backu
               <Td>{lap.index + 1}</Td>
               <Td>
                 {lap.lap_type ? <LapTypeChip type={lap.lap_type} /> : (
-                  <span style={{ color: 'var(--tekst-10-alt)' }}>—</span>
+                  <span style={{ color: 'var(--tekst-10-alt)' }}>-</span>
                 )}
               </Td>
               <Td align="right">{fmtDuration(lap.duration_seconds)}</Td>
               <Td align="right">{fmtDistance(lap.distance_meters)}</Td>
-              <Td align="right">{lap.avg_heart_rate != null ? `${lap.avg_heart_rate}` : '—'}</Td>
+              <Td align="right">{lap.avg_heart_rate != null ? `${lap.avg_heart_rate}` : '-'}</Td>
               {showMaxHr && (
-                <Td align="right">{lap.max_hr != null ? `${lap.max_hr}` : '—'}</Td>
+                <Td align="right">{lap.max_hr != null ? `${lap.max_hr}` : '-'}</Td>
               )}
               {showPace && (
                 <Td align="right">
                   {fmtPace(lap.avg_speed_ms, sport)}
                   {lap.gap_speed_ms != null && (
                     <span style={{ color: 'var(--tekst-8-app)' }}>
-                      {' '}→ <span title="GAP — stigningsjustert fart (tilnærming)" style={{ color: 'var(--tekst-3-app)' }}>{fmtPace(lap.gap_speed_ms, sport)}</span>
+                      {' '}→ <span title="GAP - stigningsjustert fart (tilnærming)" style={{ color: 'var(--tekst-3-app)' }}>{fmtPace(lap.gap_speed_ms, sport)}</span>
                     </span>
                   )}
                 </Td>
               )}
               {showWatt && (
                 <Td align="right">
-                  {lap.avg_watts != null ? `${Math.round(Number(lap.avg_watts))}` : '—'}
+                  {lap.avg_watts != null ? `${Math.round(Number(lap.avg_watts))}` : '-'}
                   {lap.max_watts != null && (
                     <span style={{ color: 'var(--tekst-8-app)' }}> / {Math.round(Number(lap.max_watts))}</span>
                   )}
@@ -122,20 +122,20 @@ export function LapTable({ laps, sport, kilde = null }: Props & { kilde?: 'backu
               )}
               {showCadence && (
                 <Td align="right">
-                  {lap.avg_cadence != null ? `${Math.round(Number(lap.avg_cadence))}` : '—'}
+                  {lap.avg_cadence != null ? `${Math.round(Number(lap.avg_cadence))}` : '-'}
                 </Td>
               )}
               {showElev && (
                 <Td align="right">
                   {lap.elevation_gain_m != null && lap.elevation_gain_m > 0
-                    ? `+${lap.elevation_gain_m}m` : '—'}
+                    ? `+${lap.elevation_gain_m}m` : '-'}
                 </Td>
               )}
               {showShooting && (
                 <Td align="center">{fmtShooting(lap)}</Td>
               )}
               {showRpe && (
-                <Td align="right">{lap.rpe != null ? `${lap.rpe}/10` : '—'}</Td>
+                <Td align="right">{lap.rpe != null ? `${lap.rpe}/10` : '-'}</Td>
               )}
               {showNotes && (
                 <Td>
@@ -207,7 +207,7 @@ function fmtDuration(sec: number): string {
 }
 
 function fmtDistance(meters: number | null): string {
-  if (meters == null || meters <= 0) return '—'
+  if (meters == null || meters <= 0) return '-'
   if (meters >= 1000) return `${(meters / 1000).toFixed(2)} km`
   return `${meters} m`
 }
@@ -218,7 +218,7 @@ function paceHeader(sport: Sport): string {
 }
 
 function fmtPace(mps: number | null, sport: Sport): string {
-  if (mps == null || mps <= 0.1) return '—'
+  if (mps == null || mps <= 0.1) return '-'
   if (sport === 'cycling' || sport === 'triathlon') {
     return `${(Number(mps) * 3.6).toFixed(1)} km/t`
   }
@@ -236,5 +236,5 @@ function fmtShooting(lap: LapRow): string {
   if ((lap.standing_shots ?? 0) > 0) {
     segs.push(`S: ${lap.standing_hits ?? 0}/${lap.standing_shots}`)
   }
-  return segs.length > 0 ? segs.join(' · ') : '—'
+  return segs.length > 0 ? segs.join(' · ') : '-'
 }

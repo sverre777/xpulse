@@ -25,7 +25,7 @@ export function StravaInfoBox() {
       </ul>
 
       <ul className="space-y-2 mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FFB300', fontSize: '13px', lineHeight: 1.6 }}>
-        <li>⚠ Rå data (sekund-for-sekund puls, GPS-rute, watts-strøm) slettes etter <strong>7 dager</strong> — Stravas krav.</li>
+        <li>⚠ Rå data (sekund-for-sekund puls, GPS-rute, watts-strøm) slettes etter <strong>7 dager</strong> - Stravas krav.</li>
         <li>⚠ Ved frakobling slettes <strong>ALL</strong> Strava-data innen 48 timer (Stravas regler).</li>
       </ul>
 
@@ -38,7 +38,7 @@ export function StravaInfoBox() {
           💡 <strong>Tips</strong>: Vil du beholde alt permanent? Eksporter .fit-filer manuelt fra
           {' '}<a href="https://www.strava.com/athlete/training" target="_blank" rel="noopener noreferrer"
             style={{ color: '#28A86E', textDecoration: 'underline' }}>Strava → Aktiviteter</a>{' '}
-          og last opp til X-PULSE — da regnes det som dine egne data.
+          og last opp til X-PULSE - da regnes det som dine egne data.
         </p>
       </div>
     </div>

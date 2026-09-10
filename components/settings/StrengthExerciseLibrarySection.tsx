@@ -71,7 +71,7 @@ export function StrengthExerciseLibrarySection({ initial }: Props) {
       <p className="mb-4 text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Bygg ditt eget styrkeøvelse-bibliotek. Øvelser dukker også opp automatisk i biblioteket
-        når du lagrer en styrke-økt — her kan du legge til, redigere eller slette før første bruk.
+        når du lagrer en styrke-økt - her kan du legge til, redigere eller slette før første bruk.
         Default reps/vekt forhåndsutfyller første sett når du velger øvelsen i økt-skjemaet.
       </p>
 
@@ -285,7 +285,7 @@ function ExerciseForm({
           <Label>Default reps (valgfritt)</Label>
           <input value={defaultReps} onChange={e => setDefaultReps(e.target.value)}
             inputMode="numeric"
-            placeholder="—"
+            placeholder="-"
             style={iSt} />
         </div>
 
@@ -293,7 +293,7 @@ function ExerciseForm({
           <Label>Default vekt (kg) (valgfritt)</Label>
           <input value={defaultWeight} onChange={e => setDefaultWeight(e.target.value)}
             inputMode="decimal"
-            placeholder="—"
+            placeholder="-"
             style={iSt} />
         </div>
 
@@ -318,7 +318,7 @@ function ExerciseForm({
           <p className="text-sm mb-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {initial.times_used > 0
-              ? `Denne øvelsen er brukt i ${initial.times_used} økt${initial.times_used === 1 ? '' : 'er'}. Historikk beholdes som tekst — men du må legge til navnet på nytt for å se det i autocomplete etter sletting.`
+              ? `Denne øvelsen er brukt i ${initial.times_used} økt${initial.times_used === 1 ? '' : 'er'}. Historikk beholdes som tekst - men du må legge til navnet på nytt for å se det i autocomplete etter sletting.`
               : 'Er du sikker på at du vil slette denne øvelsen?'}
           </p>
           <div className="flex gap-2">

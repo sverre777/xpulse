@@ -133,7 +133,7 @@ export async function beholdPlanensRunder(
   workoutId: string,
 ): Promise<{ ok: true; lagtInn: number; iBackup: number } | { ok: false; error: string }> {
   if (!RUNDE_BACKUP_FINNES) {
-    return { ok: false, error: 'Fase 116 er ikke kjørt ennå — klokkas runder ville ikke hatt et sted å ligge' }
+    return { ok: false, error: 'Fase 116 er ikke kjørt ennå - klokkas runder ville ikke hatt et sted å ligge' }
   }
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -222,7 +222,7 @@ export async function beholdPlanensRunder(
     // Kompensasjon: legg klokkas runder tilbake med én gang.
     await supabase.from('workout_activities').insert(
       klokkeRunder.map(r => ({ ...r, workout_id: workoutId })))
-    return { ok: false, error: `Kunne ikke legge inn planens runder — ingenting er endret (${innFeil.message})` }
+    return { ok: false, error: `Kunne ikke legge inn planens runder - ingenting er endret (${innFeil.message})` }
   }
 
   revalider(okt.user_id as string)

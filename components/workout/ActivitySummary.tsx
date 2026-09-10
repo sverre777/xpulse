@@ -88,7 +88,7 @@ function ernaeringFraSkjema(rader: NutritionEntryRow[]): NutritionMarker[] {
 
 export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
-    let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
+    let totalSeconds = 0     // ren treningstid - ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
     let totalMeters = 0
     const movementSeconds: Record<string, number> = {}
@@ -287,7 +287,7 @@ export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activi
         </span>
       </div>
 
-      {/* Klokke-grafen — samme komponent som på hovedsida, LIVE her:
+      {/* Klokke-grafen - samme komponent som på hovedsida, LIVE her:
           segmentbåndet leser skjemaets rader (bolk 2, monteringspunkt 1). */}
       {klokke?.data.samples && klokke.data.sport && (
         <div className="mb-3">
@@ -313,14 +313,14 @@ export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activi
         </div>
       )}
 
-      {/* Plan-grafen LIVE — hver rad man fører er en blokk (bolk 5). */}
+      {/* Plan-grafen LIVE - hver rad man fører er en blokk (bolk 5). */}
       {planBlokker && (
         <div className="mb-3" data-plan-graf-kort>
           <PlanGraf blokker={planBlokker} heartZones={heartZones} tetthet="full" punkter={fraTidspunktNotater(tidspunktNotater)} />
         </div>
       )}
 
-      {/* Nøkkeltallsraden — varighet · hovedsone · snittpuls · snittwatt ·
+      {/* Nøkkeltallsraden - varighet · hovedsone · snittpuls · snittwatt ·
           belastning · opplevd (føres), pluss distanse og det som finnes.
           I plan vises ingen belastningscelle før «forventet» har et felt. */}
       <div className="mb-3">
@@ -368,7 +368,7 @@ export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activi
             fontFamily: "'Barlow Condensed', sans-serif",
             color: 'var(--tekst-8-app)', fontSize: '13px',
           }}>
-            OLT I-skala — basert på % av maksimal puls
+            OLT I-skala - basert på % av maksimal puls
           </p>
         </div>
       )}
@@ -377,11 +377,11 @@ export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activi
       {summary.missingHrCount > 0 && (
         <p className="mb-2 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          {summary.missingHrCount} aktivitet{summary.missingHrCount > 1 ? 'er' : ''} mangler puls — ikke inkludert i sonefordelingen.
+          {summary.missingHrCount} aktivitet{summary.missingHrCount > 1 ? 'er' : ''} mangler puls - ikke inkludert i sonefordelingen.
         </p>
       )}
 
-      {/* Skytestatistikk — treff% bruker kun aktiviteter der treff er fylt inn. */}
+      {/* Skytestatistikk - treff% bruker kun aktiviteter der treff er fylt inn. */}
       {hasShooting && (
         <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--kant-3)' }}>
           <Label>Skyting</Label>

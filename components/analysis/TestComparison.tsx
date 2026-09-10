@@ -112,7 +112,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
   }
 
   const fmt = (v: number | null | undefined, suffix = ''): string =>
-    v == null ? '—' : `${v}${suffix}`
+    v == null ? '-' : `${v}${suffix}`
 
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
@@ -120,7 +120,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
         <span style={{ width: 16, height: 2, backgroundColor: GOLD, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
-          🧪 Tester — sammenligning
+          🧪 Tester - sammenligning
         </span>
       </div>
 
@@ -200,7 +200,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                 {chosen.map(e => {
                   const s = execSummary(e)
                   return <td key={keyOf(e)} style={{ ...cellStyle, fontWeight: 700 }}>
-                    {s.pct != null ? `${Math.round(s.pct * 10) / 10} %` : '—'}
+                    {s.pct != null ? `${Math.round(s.pct * 10) / 10} %` : '-'}
                   </td>
                 })}
               </tr>
@@ -209,7 +209,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                   <td style={{ ...rowLabelStyle, color: POSITION_COLORS.L }}>Treff % liggende</td>
                   {chosen.map(e => {
                     const s = shootingSummary(e.series.filter(x => x.position === 'L'))
-                    return <td key={keyOf(e)} style={cellStyle}>{s.pct != null ? `${Math.round(s.pct * 10) / 10} %` : '—'}</td>
+                    return <td key={keyOf(e)} style={cellStyle}>{s.pct != null ? `${Math.round(s.pct * 10) / 10} %` : '-'}</td>
                   })}
                 </tr>
               )}
@@ -218,7 +218,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                   <td style={{ ...rowLabelStyle, color: POSITION_COLORS.S }}>Treff % stående</td>
                   {chosen.map(e => {
                     const s = shootingSummary(e.series.filter(x => x.position === 'S'))
-                    return <td key={keyOf(e)} style={cellStyle}>{s.pct != null ? `${Math.round(s.pct * 10) / 10} %` : '—'}</td>
+                    return <td key={keyOf(e)} style={cellStyle}>{s.pct != null ? `${Math.round(s.pct * 10) / 10} %` : '-'}</td>
                   })}
                 </tr>
               )}
@@ -241,7 +241,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                 <td style={rowLabelStyle}>Skytetid</td>
                 {chosen.map(e => {
                   const s = execSummary(e)
-                  return <td key={keyOf(e)} style={cellStyle}>{s.timeSum != null ? `${Math.round(s.timeSum)}s` : '—'}</td>
+                  return <td key={keyOf(e)} style={cellStyle}>{s.timeSum != null ? `${Math.round(s.timeSum)}s` : '-'}</td>
                 })}
               </tr>
               <tr>
@@ -254,9 +254,9 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
               </tr>
               <tr>
                 <td style={rowLabelStyle}>Underlag</td>
-                {chosen.map(e => <td key={keyOf(e)} style={{ ...cellStyle, color: 'var(--tekst-5-app)' }}>{e.surface || '—'}</td>)}
+                {chosen.map(e => <td key={keyOf(e)} style={{ ...cellStyle, color: 'var(--tekst-5-app)' }}>{e.surface || '-'}</td>)}
               </tr>
-              {/* Per serie: treff · tid · puls · vind/sikt — kun førte deler vises. */}
+              {/* Per serie: treff · tid · puls · vind/sikt - kun førte deler vises. */}
               {Array.from({ length: maxSeries }, (_, i) => {
                 const anyPos = chosen.map(e => e.series[i]?.position).find(Boolean) ?? 'L'
                 return (
@@ -266,7 +266,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                     </td>
                     {chosen.map(e => {
                       const s = e.series[i]
-                      if (!s) return <td key={keyOf(e)} style={{ ...cellStyle, color: 'var(--tekst-8-app)' }}>—</td>
+                      if (!s) return <td key={keyOf(e)} style={{ ...cellStyle, color: 'var(--tekst-8-app)' }}>-</td>
                       const parts: string[] = []
                       parts.push(s.hits != null ? `${Math.min(s.hits, s.shots)}/${s.shots}` : `${s.shots} skudd`)
                       if (s.time_seconds != null) parts.push(`${Math.round(s.time_seconds)}s`)
@@ -286,11 +286,11 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
         </div>
       )}
 
-      {/* Trend over ALLE gjennomføringer — valgbar hovedmetrikk. */}
+      {/* Trend over ALLE gjennomføringer - valgbar hovedmetrikk. */}
       {trendData.length >= 2 && (
         <div className="mt-4">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span style={capStyle}>Utvikling — alle gjennomføringer</span>
+            <span style={capStyle}>Utvikling - alle gjennomføringer</span>
             <select value={metric} onChange={e => setMetric(e.target.value as MetricKey)}
               className="text-sm px-2 py-1"
               style={{

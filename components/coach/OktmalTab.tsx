@@ -174,7 +174,7 @@ function Row({
   onDuplicate: () => void
   onDelete: () => void
 }) {
-  const sportLabel = SPORTS.find(s => s.value === template.sport)?.label ?? template.sport ?? '—'
+  const sportLabel = SPORTS.find(s => s.value === template.sport)?.label ?? template.sport ?? '-'
   const lastUsed = template.last_used_at
     ? new Date(template.last_used_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })
     : 'Aldri brukt'

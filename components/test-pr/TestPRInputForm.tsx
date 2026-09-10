@@ -22,7 +22,7 @@ export interface TestPRFormValue {
   value: string          // numerisk resultat som streng (parses ved lagring)
   unit: string
   notes: string
-  achieved_at: string    // YYYY-MM-DD — kun brukt i manuell-modus
+  achieved_at: string    // YYYY-MM-DD - kun brukt i manuell-modus
   equipment: string
   conditions: string
 }
@@ -155,7 +155,7 @@ export function TestPRInputForm({
       {!erPanel && (
       <p className="mt-3 text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        Test/PR-resultatet vises i «Tester & PR» i analyse — samme felter
+        Test/PR-resultatet vises i «Tester & PR» i analyse - samme felter
         som test-protokoll i Dagbok.
       </p>
       )}

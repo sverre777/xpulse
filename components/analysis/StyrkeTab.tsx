@@ -71,13 +71,13 @@ export function StyrkeTab({ data, range, targetUserId }: { data: StyrkeAnalyse; 
     return (
       <div className="py-12 px-6 text-center" style={{ border: '1px dashed var(--kant-3)', backgroundColor: 'var(--card)' }}>
         <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 22, letterSpacing: '0.04em' }}>Ingen styrkeøkter ennå</p>
-        <p style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 14 }}>Logg en økt med bev.form Styrke og sett per øvelse — så kommer utvikling, tonnasje og automatiske PR-er hit.</p>
+        <p style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 14 }}>Logg en økt med bev.form Styrke og sett per øvelse - så kommer utvikling, tonnasje og automatiske PR-er hit.</p>
       </div>
     )
   }
   return (
     <div className="space-y-5" data-styrke-tab>
-      {data.takNaadd && <p style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>PR-grunnlaget bruker de 10 000 nyeste settene — eldre historikk er utenfor.</p>}
+      {data.takNaadd && <p style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)' }}>PR-grunnlaget bruker de 10 000 nyeste settene - eldre historikk er utenfor.</p>}
       <StyrkeKort d={d} />
       <PrListe pr={d.prInn} manuelle={data.manuellePR} tittel="Personlige rekorder i perioden" />
       <OvelseGraf data={data} range={range} />
@@ -272,7 +272,7 @@ function PeriodeSammenligning({ naa, forr, range, forrige }: { naa: ReturnType<t
     { navn: 'PR-er', a: naa.pr, b: forr.pr, enhet: '' }, { navn: 'Supersett-økter', a: naa.supersettOkter, b: forr.supersettOkter, enhet: '' },
   ]
   return (
-    <ChartWrapper chartKey="styrke_periode_sammenligning" title="Sammenlign to perioder" subtitle={`Valgt periode (${fmtDato(range.from)}–${fmtDato(range.to)}) mot perioden rett før (${fmtDato(forrige.from)}–${fmtDato(forrige.to)})`} height="auto">
+    <ChartWrapper chartKey="styrke_periode_sammenligning" title="Sammenlign to perioder" subtitle={`Valgt periode (${fmtDato(range.from)}-${fmtDato(range.to)}) mot perioden rett før (${fmtDato(forrige.from)}-${fmtDato(forrige.to)})`} height="auto">
       <table style={{ borderCollapse: 'collapse', width: '100%', fontFamily: FONT, fontSize: 13 }} data-styrke-perioder>
         <thead><tr style={{ color: 'var(--tekst-5-app)', textAlign: 'left' }}>{['', 'Denne', 'Forrige', 'Endring'].map((h, i) => <th key={i} style={{ padding: '4px 8px', borderBottom: '1px solid var(--kant-3)', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11 }}>{h}</th>)}</tr></thead>
         <tbody>{rader.map(r => { const d = r.b > 0 ? Math.round(((r.a - r.b) / r.b) * 100) : null; return (
@@ -280,7 +280,7 @@ function PeriodeSammenligning({ naa, forr, range, forrige }: { naa: ReturnType<t
             <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}>{r.navn}</td>
             <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', fontWeight: 700 }}>{r.a.toLocaleString('nb-NO')}{r.enhet}</td>
             <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }}>{r.b.toLocaleString('nb-NO')}{r.enhet}</td>
-            <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', color: d == null ? 'var(--tekst-8-app)' : d >= 0 ? '#28A86E' : '#E23A5A' }}>{d == null ? '—' : `${d > 0 ? '+' : ''}${d} %`}</td>
+            <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', color: d == null ? 'var(--tekst-8-app)' : d >= 0 ? '#28A86E' : '#E23A5A' }}>{d == null ? '-' : `${d > 0 ? '+' : ''}${d} %`}</td>
           </tr>) })}</tbody>
       </table>
     </ChartWrapper>

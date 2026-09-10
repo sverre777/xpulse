@@ -241,7 +241,7 @@ async function upsertSubscription(
 ) {
   const { tier, seatQuantity } = tierAndSeatsFromItems(sub.items.data)
   if (!tier) {
-    console.warn(`[stripe-webhook] ingen kjent tier-price blant items for sub ${sub.id} — hopper over`)
+    console.warn(`[stripe-webhook] ingen kjent tier-price blant items for sub ${sub.id} - hopper over`)
     return
   }
 

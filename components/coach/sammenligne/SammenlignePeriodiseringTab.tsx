@@ -60,7 +60,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
                 {name}
                 {season && (
                   <span style={{ color: 'var(--tekst-8-app)', marginLeft: '8px', textTransform: 'none' }}>
-                    — {season.name} ({season.start_date} → {season.end_date})
+                    - {season.name} ({season.start_date} → {season.end_date})
                   </span>
                 )}
               </p>
@@ -177,7 +177,7 @@ function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
             return (
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
-                <Td>{p.season?.name ?? '—'}</Td>
+                <Td>{p.season?.name ?? '-'}</Td>
                 <Td>{p.periods.length}</Td>
                 <Td>{p.totals.sessions}</Td>
                 <Td>{fmtHours(p.totals.total_seconds)}</Td>

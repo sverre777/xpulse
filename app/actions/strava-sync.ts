@@ -75,7 +75,7 @@ export async function listSyncableActivities(
     if (!hasRequiredStravaScope(conn.scope)) {
       return {
         error: 'Strava-koblingen mangler tilgang til aktiviteter. ' +
-          'Frakoble og koble til på nytt — pass på at du ikke fjerner aktivitets-tilgangen i Strava-dialogen.',
+          'Frakoble og koble til på nytt - pass på at du ikke fjerner aktivitets-tilgangen i Strava-dialogen.',
       }
     }
 
@@ -194,7 +194,7 @@ export async function importStravaActivity(
   const conn = await getStravaConnection(supabase, user.id)
   if (!conn) return { ok: false, error: 'Strava ikke tilkoblet' }
   if (!hasRequiredStravaScope(conn.scope)) {
-    return { ok: false, error: 'Mangler aktivitets-tilgang — frakoble og koble til på nytt' }
+    return { ok: false, error: 'Mangler aktivitets-tilgang - frakoble og koble til på nytt' }
   }
 
   // Sjekk om allerede importert.
@@ -286,7 +286,7 @@ export async function quickSyncNonConflicting(
   let imported = 0, skipped = 0
   for (const a of list.activities) {
     if (a.already_imported) { skipped++; continue }
-    if (a.conflict_workout_id) { skipped++; continue }  // Hopp over konflikter — bruker må håndtere selv.
+    if (a.conflict_workout_id) { skipped++; continue }  // Hopp over konflikter - bruker må håndtere selv.
     const res = await importStravaActivity(a.strava_id)
     if (res.ok && !res.skipped) imported++
     else skipped++
@@ -485,7 +485,7 @@ async function fetchAllStravaActivitiesPaged(
     if (batch.length < STRAVA_PAGE_SIZE) break
   }
   if (all.length >= STRAVA_PAGE_SIZE * STRAVA_MAX_PAGES) {
-    console.warn(`[strava-sync] hit STRAVA_MAX_PAGES cap (${STRAVA_MAX_PAGES}) — eldre aktiviteter ble ikke hentet`)
+    console.warn(`[strava-sync] hit STRAVA_MAX_PAGES cap (${STRAVA_MAX_PAGES}) - eldre aktiviteter ble ikke hentet`)
   }
   return all
 }
@@ -561,7 +561,7 @@ async function createWorkoutFromStrava(
   // Insert kan feile silently hvis fase 51-kolonner mangler — logger derfor
   // eksplisitt slik at årsaken er synlig i Netlify Function logs.
   let activityIds: Array<{ id: string; sort_order: number }> = []
-  console.log(`[strava-sync] activity ${detail.id} — laps fra Strava: ${detail.laps?.length ?? 0}`)
+  console.log(`[strava-sync] activity ${detail.id} - laps fra Strava: ${detail.laps?.length ?? 0}`)
   // Uten laps (manuelt førte økter o.l.) lages én rad av øktas totaler —
   // ellers sto økta igjen uten aktivitetsrad og dermed uten soner.
   const harEkteLaps = !!detail.laps && detail.laps.length > 0
@@ -606,7 +606,7 @@ async function createWorkoutFromStrava(
       }
     } else {
       activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>
-      console.log(`[strava-sync] activity ${detail.id} — ${activityIds.length} laps lagret`)
+      console.log(`[strava-sync] activity ${detail.id} - ${activityIds.length} laps lagret`)
     }
   }
 
@@ -631,11 +631,11 @@ async function createWorkoutFromStrava(
   // intensitets-analyser. Hvis stream/laps/activities mangler logges det
   // eksplisitt så vi ser hvilken kondisjon som avbryter.
   if (streams.heartrate?.data && activityIds.length > 0) {
-    console.log(`[strava-sync] activity ${detail.id} — beregner zones for ${activityIds.length} laps`)
+    console.log(`[strava-sync] activity ${detail.id} - beregner zones for ${activityIds.length} laps`)
     await populateZonesForLaps(supabase, userId, laps, activityIds, streams)
   } else {
     console.log(
-      `[strava-sync] activity ${detail.id} — hopper over zones`,
+      `[strava-sync] activity ${detail.id} - hopper over zones`,
       `(hr=${!!streams.heartrate?.data}, laps=${detail.laps?.length ?? 0}, activityIds=${activityIds.length})`,
     )
   }
@@ -804,14 +804,14 @@ async function populateZonesForLaps(
 ) {
   const heartZones = await getHeartZonesForUserCached(userId)
   if (heartZones.length === 0) {
-    console.warn(`[strava-sync] populateZonesForLaps: ingen heart zones for user ${userId} — hopper`)
+    console.warn(`[strava-sync] populateZonesForLaps: ingen heart zones for user ${userId} - hopper`)
     return
   }
 
   const time = streams.time?.data ?? []
   const hr = streams.heartrate?.data ?? []
   if (hr.length < 2) {
-    console.warn(`[strava-sync] populateZonesForLaps: for få hr-samples (${hr.length}) — hopper`)
+    console.warn(`[strava-sync] populateZonesForLaps: for få hr-samples (${hr.length}) - hopper`)
     return
   }
 

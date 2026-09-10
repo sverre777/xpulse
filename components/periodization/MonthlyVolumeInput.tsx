@@ -142,7 +142,7 @@ export function MonthlyVolumeInput({
           value={hours}
           onChange={e => { setHours(e.target.value); scheduleSave() }}
           onBlur={doSave}
-          placeholder="—"
+          placeholder="-"
           inputMode="decimal"
           style={iSt} />
       </div>
@@ -152,7 +152,7 @@ export function MonthlyVolumeInput({
           value={km}
           onChange={e => { setKm(e.target.value); scheduleSave() }}
           onBlur={doSave}
-          placeholder="—"
+          placeholder="-"
           inputMode="decimal"
           style={iSt} />
       </div>
@@ -182,7 +182,7 @@ export function MonthlyVolumeInput({
       )}
 
       {/* ── Del E: VALGFRI fordeling (soner og/eller bevegelsesform).
-          Default skjult — kun totaltimer, ingen mas. Myk validering
+          Default skjult - kun totaltimer, ingen mas. Myk validering
           («fordelt X av Y t» diskret, aldri blokkerende). ── */}
       <div className="col-span-12">
         {(() => {
@@ -230,7 +230,7 @@ export function MonthlyVolumeInput({
                           border: `1px solid ${zoneMode === m ? 'var(--kant-6-alt)' : 'var(--kant-3)'}`,
                           cursor: 'pointer',
                         }}>
-                        {m === 'gruppert' ? 'I1–2 / I3 / I4–5' : 'I1…I5'}
+                        {m === 'gruppert' ? 'I1-2 / I3 / I4-5' : 'I1…I5'}
                       </button>
                     ))}
                   </div>

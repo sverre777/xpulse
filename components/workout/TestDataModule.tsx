@@ -54,7 +54,7 @@ export function TestDataModule({ data, onChange, mode, variant }: Props) {
         mode="workout"
         showEquipmentConditions
         variant={variant}
-        title={`Test-protokoll ${mode === 'plan' ? '— Plan' : '— Resultat'}`}
+        title={`Test-protokoll ${mode === 'plan' ? '- Plan' : '- Resultat'}`}
       />
     </div>
   )

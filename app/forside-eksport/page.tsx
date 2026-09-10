@@ -171,7 +171,7 @@ function ForsideEksportInnhold() {
           handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
       </Kort>
 
-      {/* Forside v7 bolk 6 (Sverre 6. sep): KUN skytestripen under «Før skytingen som på standplass» —
+      {/* Forside v7 bolk 6 (Sverre 6. sep): KUN skytestripen under «Før skytingen som på standplass» -
           den ekte serie-raden fra økt-skjemaet: S · 5 skudd · 4 treff · 28,4 s · puls inn 168 (manuelt ført = M-chip) · vimpel 3 H · 🎯 📝 ×. */}
       <Kort navn="skytestripe" bredde={smal ? 340 : 720}>
         <SerieListe planMode={false} showPoints={false} onChange={ingen}
@@ -179,7 +179,7 @@ function ForsideEksportInnhold() {
       </Kort>
 
       <Kort navn="rpe-skala" bredde={420}>
-        <RpeSkala value={7} onChange={ingen} kompakt etikett="Opplevd belastning 1–10" />
+        <RpeSkala value={7} onChange={ingen} kompakt etikett="Opplevd belastning 1-10" />
       </Kort>
 
       <p style={{ fontSize: 12, color: 'var(--tekst-8-alt)' }}>Total øktlengde {Math.round(OKTA_TOTAL / 60)} min · {rader.length} rader</p>

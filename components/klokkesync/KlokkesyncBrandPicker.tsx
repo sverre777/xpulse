@@ -69,7 +69,7 @@ export function KlokkesyncBrandPicker({
             color: 'rgb(var(--tekst-land-rgb) / 0.8)', lineHeight: 1.6,
           }}>
           <strong style={{ color: '#28A86E' }}>Uansett merke:</strong> du kan alltid laste opp
-          {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>.fit-filer</strong> manuelt — fra alle klokkemerker,
+          {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>.fit-filer</strong> manuelt - fra alle klokkemerker,
           med full data, og uten noen tilkobling. Opplastingen ligger lenger ned på denne siden.
         </div>
       )}

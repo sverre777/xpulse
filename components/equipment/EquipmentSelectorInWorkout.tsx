@@ -34,9 +34,9 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
 
   return (
     <div className="sf17-utstyr" data-utstyr-linje>
-      {/* SF-17: alt på ÉN linje — etikett + knapp + hjelpetekst; valgt utstyr
+      {/* SF-17: alt på ÉN linje - etikett + knapp + hjelpetekst; valgt utstyr
           som chips på samme linje, bryter ved behov. */}
-      <span className="sf17-utstyr-etikett">{planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}</span>
+      <span className="sf17-utstyr-etikett">{planlagt ? 'Utstyr - planlagt' : 'Utstyr brukt'}</span>
       <button type="button" onClick={() => setOpen(true)}
         className="sf17-utstyr-knapp"
         style={{
@@ -73,10 +73,10 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
         <UtstyrVelgerPopup
           available={available}
           selectedIds={selectedIds}
-          title={planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}
+          title={planlagt ? 'Utstyr - planlagt' : 'Utstyr brukt'}
           hint={planlagt
             ? 'Planlagt utstyr. Km og tid telles først når økta er markert gjennomført.'
-            : 'Gjelder hele økta — telles på hver aktivitet automatisk.'}
+            : 'Gjelder hele økta - telles på hver aktivitet automatisk.'}
           onDone={onChange}
           onClose={() => setOpen(false)}
         />

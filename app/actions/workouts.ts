@@ -658,7 +658,7 @@ export async function getActivitiesForWorkout(workoutId: string): Promise<Workou
 }
 
 export async function saveWorkout(data: WorkoutFormData, workoutId?: string, targetUserId?: string): Promise<{ error?: string; id?: string }> {
-  const t0 = Date.now()  // måling av lagringstid — vises i server-loggene
+  const t0 = Date.now()  // måling av lagringstid - vises i server-loggene
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
   if ('error' in resolved) return { error: resolved.error }

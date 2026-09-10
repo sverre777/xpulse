@@ -429,7 +429,7 @@ export function mapStravaSportToXpulse(stravaType: string): StravaMovementMappin
   const hit = STRAVA_SPORT_MAP[stravaType]
   if (hit) return hit
   if (stravaType) {
-    console.warn(`[strava-sync] ukjent sport_type "${stravaType}" — bruker fallback Annet`)
+    console.warn(`[strava-sync] ukjent sport_type "${stravaType}" - bruker fallback Annet`)
   }
   return { movement: 'Annet', subcategory: null }
 }

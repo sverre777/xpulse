@@ -54,7 +54,7 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
 
           <div className="flex flex-col gap-2">
             <ResolveButton color="#FF4500" label="Slå sammen"
-              desc="Strava/.fit-data legges til den eksisterende økten — samples, splits og puls-aggregater. Tittel og notater beholdes."
+              desc="Strava/.fit-data legges til den eksisterende økten - samples, splits og puls-aggregater. Tittel og notater beholdes."
               onClick={() => onResolve('merge')} />
             <ResolveButton color="#E11D48" label="Erstatt"
               desc="Slett den eksisterende, opprett ny fra import-data."

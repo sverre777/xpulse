@@ -15,7 +15,7 @@ export function StravaConnectPanel() {
     <>
       <StravaInfoBox />
       <p style={{ fontSize: 14, color: 'rgba(242,240,236,0.7)', lineHeight: 1.7, marginBottom: 16 }}>
-        Koble til Strava én gang — alle nye økter synkes automatisk innen 5 minutter.
+        Koble til Strava én gang - alle nye økter synkes automatisk innen 5 minutter.
         Vi henter aktiviteten, splittene/lapsene og puls/watt/pace-streamene.
       </p>
       <ConnectWithStravaButton />

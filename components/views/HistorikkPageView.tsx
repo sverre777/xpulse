@@ -68,7 +68,7 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
             <input type="date" name="from" defaultValue={params.from}
               className="px-3 py-2 text-sm"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }} />
-            <span className="self-center text-sm" style={{ color: 'var(--tekst-8-app)' }}>—</span>
+            <span className="self-center text-sm" style={{ color: 'var(--tekst-8-app)' }}>-</span>
             <input type="date" name="to" defaultValue={params.to}
               className="px-3 py-2 text-sm"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }} />

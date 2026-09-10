@@ -92,9 +92,9 @@ function fartTekstFor(fra: string, til: string, enhet: FartEnhet): string {
   const a = fartTilSekPerKm(fra, enhet), b = fartTilSekPerKm(til, enhet)
   if (!(a > 0) && !(b > 0)) return ''
   if (a > 0 && b > 0 && a !== b) {
-    if (enhet === 'km_per_h') return `${fra.trim().replace('.', ',')}–${til.trim().replace('.', ',')} km/t`
+    if (enhet === 'km_per_h') return `${fra.trim().replace('.', ',')}-${til.trim().replace('.', ',')} km/t`
     const m = (x: number) => `${Math.floor(x / 60)}:${String(Math.round(x % 60)).padStart(2, '0')}`
-    return `${m(a)}–${m(b)}/km`
+    return `${m(a)}-${m(b)}/km`
   }
   return fmtFart(a > 0 ? a : b, enhet)
 }
@@ -107,7 +107,7 @@ function fartSnittSekPerKm(fra: string, til: string, enhet: FartEnhet): number {
 
 const SKYTEVALG: { verdi: '' | SkyteMonster; etikett: string }[] = [
   { verdi: '', etikett: 'Ingen skyting' },
-  { verdi: 'LS', etikett: 'L–S–L–S' },
+  { verdi: 'LS', etikett: 'L-S-L-S' },
   { verdi: 'LLSS', etikett: 'L,L → S,S' },
   { verdi: 'PAR', etikett: 'L,L,S,S…' },
   { verdi: 'L', etikett: 'Kun liggende' },
@@ -369,7 +369,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     }
     harOpprettet.current = true
     if (lagerNokkel) skrivHurtigLager(lagerNokkel, { rader, fartEnhet, bev, sub, skyting, skytetid, opp, ned })
-    if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk — ingen kollaps-linje
+    if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk - ingen kollaps-linje
     else setSteg('ferdig')                        // i byggeren: bli, med økta opprettet
   }
 
@@ -454,7 +454,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             </button>
           )}
           <span style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
-            Bolkene leses fra radene. Endre en bolk og trykk Opprett — den bygges på nytt.
+            Bolkene leses fra radene. Endre en bolk og trykk Opprett - den bygges på nytt.
           </span>
           {onFerdig && (
             <button type="button" onClick={onFerdig} data-ferdig className="text-xs tracking-widest uppercase ml-auto" style={KNAPP_ACCENT}>
@@ -487,11 +487,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         <div>
           <div style={{ ...CAP, marginBottom: 5 }}>Underkategori</div>
           <select value={sub} onChange={e => setSub(e.target.value)} style={FELT} disabled={subValg.length === 0}>
-            <option value="">{subValg.length === 0 ? '—' : 'Velg…'}</option>
+            <option value="">{subValg.length === 0 ? '-' : 'Velg…'}</option>
             {subValg.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
-        {/* Skyting i pausene — bare for skiskyttere (rutenettet tetter seg uten). */}
+        {/* Skyting i pausene - bare for skiskyttere (rutenettet tetter seg uten). */}
         {harSki && <div className={skyting ? '' : 'col-span-2'}>
           <div style={{ ...CAP, marginBottom: 5 }}>Skyting i pausene</div>
           <select value={skyting} onChange={e => setSkyting(e.target.value as '' | SkyteMonster)} style={FELT}>
@@ -516,7 +516,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           <input value={r.antall} onChange={e => oppdater(i, 'antall', e.target.value)} inputMode="numeric" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>×</span>
           <div className="flex items-center gap-1" style={{ minWidth: 0 }}>
-            {/* Synlig TID | KM-bryter (Sverre 5. sep) — den aktive er fylt. */}
+            {/* Synlig TID | KM-bryter (Sverre 5. sep) - den aktive er fylt. */}
             <span role="group" aria-label="Dragtid eller kilometer" data-drag-bryter={r.modus}
               style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden', flex: '0 0 auto' }}>
               {(['tid', 'km'] as const).map(m => (
@@ -551,13 +551,13 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             ×
           </button>}
           {/* BOLK 27: bev.form-spesifikke mål på draget (lib/bevform-felter):
-              watt fra–til · split /500 m · stigning % · motstand 1–10. */}
+              watt fra-til · split /500 m · stigning % · motstand 1-10. */}
           {!kompakt && (felter.wattMaal || felter.stigning || felter.motstand || felter.split500 || felter.kadens) && (
             <div className="col-span-full flex items-center gap-1.5 flex-wrap" data-bevform-linje={bev} style={{ marginTop: -2 }}>
               {felter.wattMaal && <>
                 <span style={LITEN}>Watt</span>
                 <input value={r.wattFra} onChange={e => oppdater(i, 'wattFra', e.target.value)} inputMode="numeric" placeholder="fra 220" aria-label="Målwatt fra" data-watt-fra style={SMAL} />
-                <span style={{ color: 'var(--tekst-8-alt)' }}>–</span>
+                <span style={{ color: 'var(--tekst-8-alt)' }}>-</span>
                 <input value={r.wattTil} onChange={e => oppdater(i, 'wattTil', e.target.value)} inputMode="numeric" placeholder="til 240" aria-label="Målwatt til" data-watt-til style={SMAL} />
                 <span style={{ color: 'var(--tekst-8-alt)' }}>W</span>
               </>}
@@ -578,20 +578,20 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
               </>}
               {felter.motstand && <>
                 <span style={LITEN}>Motstand</span>
-                <select value={r.motstand} onChange={e => oppdater(i, 'motstand', e.target.value)} aria-label="Motstand 1–10" data-motstand style={{ ...FELT, width: 64, padding: '6px 4px', fontSize: 13 }}>
-                  <option value="">—</option>
+                <select value={r.motstand} onChange={e => oppdater(i, 'motstand', e.target.value)} aria-label="Motstand 1-10" data-motstand style={{ ...FELT, width: 64, padding: '6px 4px', fontSize: 13 }}>
+                  <option value="">-</option>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={String(n)}>{n}</option>)}
                 </select>
               </>}
             </div>
           )}
-          {/* PLANLAGT FART fra–til (Sverre 5. sep) — i km-visning gir den tida,
+          {/* PLANLAGT FART fra-til (Sverre 5. sep) - i km-visning gir den tida,
               i tid-visning gir den distansen. Enhet: min/km eller km/t. */}
           {!kompakt && felter.fart !== false && <div className="col-span-full flex items-center gap-1.5 flex-wrap" data-fart-linje style={{ marginTop: -2 }}>
             <span style={{ fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>Fart</span>
             <input value={r.fartFra} onChange={e => oppdater(i, 'fartFra', e.target.value)} inputMode="text" placeholder={fartEnhetEff === 'km_per_h' ? 'fra km/t' : 'fra 4:30'} aria-label="Planlagt fart fra" data-drag-fart-fra
               style={{ ...FELT, width: 76, textAlign: 'center', padding: '6px 2px', fontSize: 13 }} />
-            <span style={{ color: 'var(--tekst-8-alt)' }}>–</span>
+            <span style={{ color: 'var(--tekst-8-alt)' }}>-</span>
             <input value={r.fartTil} onChange={e => oppdater(i, 'fartTil', e.target.value)} inputMode="text" placeholder={fartEnhetEff === 'km_per_h' ? 'til km/t' : 'til 4:00'} aria-label="Planlagt fart til" data-drag-fart-til
               style={{ ...FELT, width: 76, textAlign: 'center', padding: '6px 2px', fontSize: 13 }} />
             <span role="group" aria-label="Fartenhet" data-fart-enhet={fartEnhetEff} hidden={felter.fart === 'kmt'}
@@ -616,7 +616,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             })()}
           </div>}
           {/* Forsidens kompakte variant (Forside v7 bolk 2, Sverre 6. sep): kortintervallet
-              vises som én linje når det er forhåndsutfylt — hurtigvalgene + «8 × 45/15». */}
+              vises som én linje når det er forhåndsutfylt - hurtigvalgene + «8 × 45/15». */}
           {kompakt && Number(r.kortPaa) > 0 && (() => {
             const m = { paaSek: Number(r.kortPaa) || 0, avSek: Number(r.kortAv) || 0 }
             const d = r.drag.split(':').map(Number); const dragSek = d.length >= 2 ? d[0] * 60 + d[1] : 0
@@ -643,7 +643,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
               </div>
             )
           })()}
-          {/* KORTINTERVALLER inni draget — frie sekundfelter, alltid
+          {/* KORTINTERVALLER inni draget - frie sekundfelter, alltid
               synlige (ikke i forsidens kompakte variant). Hurtigvalgene
               deles med segment-editoren (lib/intervall-monstre, regel 18). */}
           {!kompakt && <div className="col-span-full flex items-center gap-1.5 flex-wrap"
@@ -694,7 +694,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
       {!erForsteBolk ? (
         <p data-legg-til-modus style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-alt)', marginTop: 10 }}>
-          Bolken legges under radene som finnes — bare aktivitetene, uten ny oppvarming/nedjogg. Velg bevegelsesform for bolken over.
+          Bolken legges under radene som finnes - bare aktivitetene, uten ny oppvarming/nedjogg. Velg bevegelsesform for bolken over.
         </p>
       ) : (
       <div className="grid grid-cols-2 gap-3 mt-3">
@@ -707,7 +707,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
       {!kompakt && <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
         {serier > 0
-          ? `${serier} serier · ${antallL} liggende, ${antallS} stående · ${serier * 5} skudd — skytinga tar ${konfig.skytetidSek} s av pausen, resten er pause; totaltiden er uendret.`
+          ? `${serier} serier · ${antallL} liggende, ${antallS} stående · ${serier * 5} skudd - skytinga tar ${konfig.skytetidSek} s av pausen, resten er pause; totaltiden er uendret.`
           : 'Pausene blir vanlige aktive pauser.'}
       </p>}
 

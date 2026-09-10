@@ -46,12 +46,12 @@ function daysAgoLabel(dateStr: string): string {
 }
 function summarizeLast(ls: LastSessionForExercise): string {
   const sets = ls.sets
-  if (sets.length === 0) return '—'
+  if (sets.length === 0) return '-'
   const w = sets[0].weight_kg, r = sets[0].reps
   const sameW = sets.every(s => s.weight_kg === w), sameR = sets.every(s => s.reps === r)
   const wPart = w != null ? ` @ ${w} kg` : ''
   if (sameR && r != null) return `${sets.length}×${r}${sameW ? wPart : ''}`
-  return `${sets.length} sett · ${sets.map(s => s.reps ?? '–').join('/')}${sameW ? wPart : ''}`
+  return `${sets.length} sett · ${sets.map(s => s.reps ?? '-').join('/')}${sameW ? wPart : ''}`
 }
 
 export function LiveSessionView({
@@ -291,7 +291,7 @@ export function LiveSessionView({
         {exercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--card)', border: '1px dashed var(--line2)', borderRadius: 14, marginBottom: 16 }}>
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 15, margin: 0 }}>
-              Ingen øvelser lagt til — legg til øvelser for å begynne.
+              Ingen øvelser lagt til - legg til øvelser for å begynne.
             </p>
             <button type="button"
               onClick={() => {
@@ -410,7 +410,7 @@ export function LiveSessionView({
       </div>
 
       {/* Bunn: volum + Fullfør */}
-      {/* zIndex 50: bunnlinja lå uten stablingsnivå og ble dekket av profil-påminnelsen (fixed, z-40) — «Fullfør» fikk ikke klikk (funnet i ＋-knapp bolk 3). */}
+      {/* zIndex 50: bunnlinja lå uten stablingsnivå og ble dekket av profil-påminnelsen (fixed, z-40) - «Fullfør» fikk ikke klikk (funnet i ＋-knapp bolk 3). */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between mb-2">
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
@@ -467,7 +467,7 @@ function RpePicker({ value, onChange }: { value: string; onChange: (v: string) =
       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>RPE</span>
       <button type="button" onClick={() => setOpen(o => !o)}
         style={{ width: 38, height: 34, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: value ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, cursor: 'pointer' }}>
-        {value || '–'}
+        {value || '-'}
       </button>
       {open && (
         <div style={{ position: 'absolute', top: '100%', zIndex: 20, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 2 }}>

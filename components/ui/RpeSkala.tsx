@@ -27,7 +27,7 @@ export function RpeSkala({ value, onChange, kompakt = false, etikett }: {
 }) {
   const side = kompakt ? 30 : 32
   return (
-    <div className="flex gap-1.5 flex-wrap mt-1" role="group" aria-label={etikett ?? 'Belastning 1–10'}>
+    <div className="flex gap-1.5 flex-wrap mt-1" role="group" aria-label={etikett ?? 'Belastning 1-10'}>
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
         <button key={n} type="button" onClick={() => onChange(value === n ? null : n)}
           aria-pressed={value === n}

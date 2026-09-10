@@ -97,7 +97,7 @@ export function SeasonModal({
             value={shotGoal} onChange={e => setShotGoal(e.target.value)}
             style={INPUT_STYLE} placeholder="f.eks. 12000" />
           <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', lineHeight: 1.5 }}>
-            OLT/NSSF-styringstall for skiskyting — veiledning, aldri alarm.
+            OLT/NSSF-styringstall for skiskyting - veiledning, aldri alarm.
             Vises som fremdriftsbar i skyting-analysen. Tomt = skjult.
           </p>
         </div>

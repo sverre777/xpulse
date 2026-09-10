@@ -140,7 +140,7 @@ export function MonthMiniCalendar({
                   }}
                 >
                   <span>{d.getDate()}</span>
-                  {/* Markeringsbånd (samme gull-identitet som lerretet) —
+                  {/* Markeringsbånd (samme gull-identitet som lerretet) -
                       kapsel-innrykk på markeringens første/siste dag. */}
                   {inMonth && dayMarkings.length > 0 && (() => {
                     const m = dayMarkings[0]

@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     // enn en natt som aldri kommer inn.
     const date = sleepDateFromPayload(payload)
     if (!date) {
-      console.warn('[polar-webhook] SLEEP uten utledbar dato — henter siste 28 dager:', raw.slice(0, 200))
+      console.warn('[polar-webhook] SLEEP uten utledbar dato - henter siste 28 dager:', raw.slice(0, 200))
     }
     after(async () => {
       try {
@@ -144,7 +144,7 @@ async function processExerciseEvent(polarUserId: number, entityId: string) {
   }
   if (!conn) {
     // Kan skje like etter frakobling, før Polar har sluttet å sende.
-    console.warn(`[polar-webhook] ingen tilkobling for polar-bruker ${polarUserId} — hopper over`)
+    console.warn(`[polar-webhook] ingen tilkobling for polar-bruker ${polarUserId} - hopper over`)
     return
   }
 
@@ -158,7 +158,7 @@ async function processExerciseEvent(polarUserId: number, entityId: string) {
   // Auto-synk avslått = ingen automatisk import. Webhook-tidsstempelet over
   // settes likevel, for det er overvåkningsdata: leveransen KOM fram.
   if (!(conn as PolarConnection).auto_sync) {
-    console.log(`[polar-webhook] auto_sync er av for polar-bruker ${polarUserId} — importerer ikke`)
+    console.log(`[polar-webhook] auto_sync er av for polar-bruker ${polarUserId} - importerer ikke`)
     return
   }
 
@@ -187,7 +187,7 @@ async function processSleepEvent(polarUserId: number, date: string | null) {
     return
   }
   if (!conn) {
-    console.warn(`[polar-webhook] ingen tilkobling for polar-bruker ${polarUserId} — hopper over søvn`)
+    console.warn(`[polar-webhook] ingen tilkobling for polar-bruker ${polarUserId} - hopper over søvn`)
     return
   }
 
@@ -197,7 +197,7 @@ async function processSleepEvent(polarUserId: number, date: string | null) {
     .eq('user_id', (conn as PolarConnection).user_id)
 
   if (!(conn as PolarConnection).auto_sync) {
-    console.log(`[polar-webhook] auto_sync er av for polar-bruker ${polarUserId} — importerer ikke søvn`)
+    console.log(`[polar-webhook] auto_sync er av for polar-bruker ${polarUserId} - importerer ikke søvn`)
     return
   }
 

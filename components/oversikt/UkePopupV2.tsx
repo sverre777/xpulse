@@ -17,7 +17,7 @@ const FONT = "'Barlow Condensed', sans-serif"
 const UKEDAG = ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø']
 const MND = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des']
 function fmtDato(iso: string): string { const d = new Date(iso + 'T00:00:00'); return `${UKEDAG[d.getDay()]} ${d.getDate()}. ${MND[d.getMonth()]}` }
-function fmtKm(m: number): string { return m > 0 ? `${(m / 1000).toFixed(1).replace('.', ',')} km` : '—' }
+function fmtKm(m: number): string { return m > 0 ? `${(m / 1000).toFixed(1).replace('.', ',')} km` : '-' }
 function sportLabel(v: string): string { return SPORTS.find(s => s.value === v)?.label ?? v }
 function delta(naa: number, forrige: number): string | null {
   return forrige > 0 ? `${naa >= forrige ? '↑' : '↓'} ${Math.abs(Math.round(((naa - forrige) / forrige) * 100))} %` : null
@@ -90,8 +90,8 @@ export function UkePopupV2({ totals, plan, detaljer, weekNumber, todayISO, onClo
                         <span style={{ width: 8, height: 8, borderRadius: 999, background: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : 'var(--line2)', flexShrink: 0 }} />
                         <span style={{ ...tekst, width: 58, flexShrink: 0 }}>{fmtDato(o.date)}</span>
                         <span style={{ ...tall, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>{o.title}{o.pr && <span data-pr-badge style={{ marginLeft: 6, fontSize: 10, letterSpacing: '0.1em', color: '#E8B93C', border: '1px solid #E8B93C', padding: '0 4px' }}>PR!</span>}<span style={{ fontWeight: 500, color: 'var(--tekst-8-alt)' }}> · {sportLabel(o.sport)}</span></span>
-                        <span style={{ ...tall, flexShrink: 0 }}>{o.duration_minutes != null ? fmtHM(o.duration_minutes * 60) : '—'}</span>
-                        <span style={{ ...tekst, width: 34, textAlign: 'right', flexShrink: 0 }}>{o.avg_heart_rate ?? '—'}</span>
+                        <span style={{ ...tall, flexShrink: 0 }}>{o.duration_minutes != null ? fmtHM(o.duration_minutes * 60) : '-'}</span>
+                        <span style={{ ...tekst, width: 34, textAlign: 'right', flexShrink: 0 }}>{o.avg_heart_rate ?? '-'}</span>
                       </a>
                     )
                   })}
@@ -103,7 +103,7 @@ export function UkePopupV2({ totals, plan, detaljer, weekNumber, todayISO, onClo
                 <div className="flex gap-4 flex-wrap" data-uke-skyting>
                   <span style={tekst}><b style={{ color: COLOR_PRONE }}>Ligg</b> {c.shots.prone.hits}/{c.shots.prone.recorded_shots || c.shots.prone.shots}{c.shots.prone.accuracy_pct != null ? ` · ${c.shots.prone.accuracy_pct} %` : ''}</span>
                   <span style={tekst}><b style={{ color: COLOR_STANDING }}>Stå</b> {c.shots.standing.hits}/{c.shots.standing.recorded_shots || c.shots.standing.shots}{c.shots.standing.accuracy_pct != null ? ` · ${c.shots.standing.accuracy_pct} %` : ''}</span>
-                  <span style={tekst}>Totalt <b style={{ color: 'var(--tekst-1-app)' }}>{c.shots.accuracy_pct != null ? `${c.shots.accuracy_pct} %` : '—'}</b> · {c.shots.shots} skudd</span>
+                  <span style={tekst}>Totalt <b style={{ color: 'var(--tekst-1-app)' }}>{c.shots.accuracy_pct != null ? `${c.shots.accuracy_pct} %` : '-'}</b> · {c.shots.shots} skudd</span>
                 </div>
               </PopupSeksjon>
             )}

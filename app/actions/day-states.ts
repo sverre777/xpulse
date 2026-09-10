@@ -16,10 +16,10 @@ async function validate(input: DayStateInput): Promise<string | null> {
     return 'Ugyldig tilstand'
   }
   if (input.feeling != null && (input.feeling < 1 || input.feeling > 5)) {
-    return 'Følelse må være 1–5'
+    return 'Følelse må være 1-5'
   }
   if (input.travel_hours != null && (input.travel_hours < 0 || input.travel_hours > 24)) {
-    return 'Timer reise må være 0–24'
+    return 'Timer reise må være 0-24'
   }
   return null
 }
@@ -115,7 +115,7 @@ export async function deleteDayState(
 
     if (error) return { error: error.message }
     if (!deleted || deleted.length === 0) {
-      return { error: 'Sletting traff ingen rad. Dette skyldes vanligvis manglende DELETE-rettighet på day_states i databasen — kjør migreringen phase78_day_states_delete.sql.' }
+      return { error: 'Sletting traff ingen rad. Dette skyldes vanligvis manglende DELETE-rettighet på day_states i databasen - kjør migreringen phase78_day_states_delete.sql.' }
     }
     revalidatePath('/app/dagbok')
     revalidatePath('/app/plan')

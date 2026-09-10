@@ -205,10 +205,10 @@ export async function registerPolarUser(
   if (res.status === 409) {
     const registered = await verifyPolarRegistration(accessToken, polarUserId)
     if (registered) {
-      console.log(`[polar-register] 409 — polar-bruker ${polarUserId} allerede registrert, behandles som suksess`)
+      console.log(`[polar-register] 409 - polar-bruker ${polarUserId} allerede registrert, behandles som suksess`)
       return { ok: true, alreadyRegistered: true, polarUserId, status: 409 }
     }
-    console.warn(`[polar-register] 409 for member-id ${memberId}, men polar-bruker ${polarUserId} er IKKE registrert — gammel registrering henger igjen`)
+    console.warn(`[polar-register] 409 for member-id ${memberId}, men polar-bruker ${polarUserId} er IKKE registrert - gammel registrering henger igjen`)
     return {
       ok: false, reason: 'member_id_conflict', status: 409,
       message: 'En tidligere Polar-registrering på denne kontoen henger igjen hos Polar',
@@ -303,7 +303,7 @@ export async function deregisterPolarUser(
     if (status === 204 || status === 200) {
       return {
         ok: true, status, attempts,
-        message: 'Avregistrert hos Polar — tokenet er revokert.',
+        message: 'Avregistrert hos Polar - tokenet er revokert.',
       }
     }
     // 404 = ingen registrering å fjerne (f.eks. registreringen feilet i sin tid,
@@ -311,7 +311,7 @@ export async function deregisterPolarUser(
     if (status === 404) {
       return {
         ok: true, status, attempts,
-        message: 'Fant ingen registrering hos Polar å fjerne — ingenting å rydde der.',
+        message: 'Fant ingen registrering hos Polar å fjerne - ingenting å rydde der.',
       }
     }
     if (status === 401) {
@@ -380,7 +380,7 @@ async function refreshTokenIfExpired(
   if (!conn.refresh_token) {
     console.warn(
       `[polar] access_token for user ${conn.user_id} er utløpt (${conn.token_expires_at}) ` +
-      'og Polar har ikke gitt oss refresh_token — fornying er ikke tilgjengelig. ' +
+      'og Polar har ikke gitt oss refresh_token - fornying er ikke tilgjengelig. ' +
       'Brukeren må koble til Polar på nytt.',
     )
     return conn.access_token
@@ -439,7 +439,7 @@ export class PolarRateLimitError extends Error {
 
   constructor(resetSeconds: number | null) {
     super(
-      `Polar rate limit nådd${resetSeconds != null ? ` — prøv igjen om ${resetSeconds}s` : ''}`,
+      `Polar rate limit nådd${resetSeconds != null ? ` - prøv igjen om ${resetSeconds}s` : ''}`,
     )
     this.name = 'PolarRateLimitError'
     this.resetSeconds = resetSeconds
@@ -486,7 +486,7 @@ async function polarGet(token: string, path: string, label: string): Promise<Res
     if (waitMs <= 0 || waitMs > MAX_RATE_LIMIT_WAIT_MS) {
       throw new PolarRateLimitError(rl.resetSeconds)
     }
-    console.warn(`[polar] ${label}: 429 — venter ${rl.resetSeconds}s og prøver én gang til`)
+    console.warn(`[polar] ${label}: 429 - venter ${rl.resetSeconds}s og prøver én gang til`)
     await new Promise(r => setTimeout(r, waitMs + 500))
     res = await doFetch()
     if (res.status === 429) throw new PolarRateLimitError(readRateLimit(res).resetSeconds)
@@ -605,11 +605,11 @@ export interface PolarSleep {
   deep_sleep?: number                  // sekunder
   rem_sleep?: number                   // sekunder
   unrecognized_sleep_stage?: number    // sekunder
-  sleep_score?: number                 // 1–100
+  sleep_score?: number                 // 1-100
   total_interruption_duration?: number // sekunder våken
-  sleep_charge?: number                // 1–5 mot eget snitt
+  sleep_charge?: number                // 1-5 mot eget snitt
   sleep_goal?: number                  // sekunder
-  sleep_rating?: number                // 1–5 gitt av brukeren, 0 = ikke gitt
+  sleep_rating?: number                // 1-5 gitt av brukeren, 0 = ikke gitt
   short_interruption_duration?: number
   long_interruption_duration?: number
   sleep_cycles?: number
@@ -624,9 +624,9 @@ export interface PolarNightlyRecharge {
   beat_to_beat_avg?: number              // ms
   heart_rate_variability_avg?: number    // ms (RMSSD)
   breathing_rate_avg?: number
-  nightly_recharge_status?: number       // 1–6
+  nightly_recharge_status?: number       // 1-6
   ans_charge?: number                    // -10.0 … +10.0
-  ans_charge_status?: number             // 1–5
+  ans_charge_status?: number             // 1-5
 }
 
 export async function fetchPolarSleep(
@@ -706,7 +706,7 @@ const secToMin = (s: number | undefined | null): number | null =>
 function inRange(v: number | null, min: number, max: number, label: string, notes: string[]): number | null {
   if (v == null) return null
   if (v < min || v > max) {
-    notes.push(`${label}=${v} er utenfor forventet område ${min}–${max} — hoppet over`)
+    notes.push(`${label}=${v} er utenfor forventet område ${min}-${max} - hoppet over`)
     return null
   }
   return v
@@ -737,7 +737,7 @@ export function parsePolarSleep(s: PolarSleep): ParsedPolarSleep {
 
   if (stageSum != null && fromBed != null && Math.abs(stageSum - fromBed) > 20) {
     notes.push(
-      `søvnfaser (${stageSum} min) og tid i seng minus avbrudd (${fromBed} min) spriker — bruker fase-summen`,
+      `søvnfaser (${stageSum} min) og tid i seng minus avbrudd (${fromBed} min) spriker - bruker fase-summen`,
     )
   }
   const totalSleep = stageSum ?? fromBed
@@ -835,7 +835,7 @@ export async function fetchPolarNotifications(): Promise<PolarAvailableUserData[
   if (res.status === 204) return []
   if (!res.ok) {
     const body = (await res.text().catch(() => '')).slice(0, 200)
-    throw new Error(`Polar notifications feilet: ${res.status}${body ? ` — ${body}` : ''}`)
+    throw new Error(`Polar notifications feilet: ${res.status}${body ? ` - ${body}` : ''}`)
   }
   const data = await res.json().catch(() => null) as
     { 'available-user-data'?: PolarAvailableUserData[] } | null
@@ -1042,7 +1042,7 @@ export function parsePolarSamples(detail: PolarExerciseDetail): PolarSampleParse
       hrTrusted = false
       notes.push(
         `puls-samples stemmer ikke med øktens snitt (samples ${Math.round(actual)} vs ${reported} bpm) ` +
-        '— soner beregnes ikke for denne økta',
+        '- soner beregnes ikke for denne økta',
       )
     }
   }
@@ -1063,7 +1063,7 @@ export function parsePolarSamples(detail: PolarExerciseDetail): PolarSampleParse
       } else if (ratio >= 0.5 && ratio <= 2) {
         notes.push('fart tolket som m/s')
       } else {
-        notes.push(`fart har uventet forhold til distanse/varighet (${ratio.toFixed(2)}) — lagret urørt`)
+        notes.push(`fart har uventet forhold til distanse/varighet (${ratio.toFixed(2)}) - lagret urørt`)
       }
     }
   }
@@ -1107,7 +1107,7 @@ export function parseIsoDuration(iso: string | undefined | null): number {
   if (!iso) return 0
   const m = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:([\d.]+)S)?)?$/.exec(iso.trim())
   if (!m) {
-    console.warn(`[polar] kunne ikke tolke varighet "${iso}" — bruker 0`)
+    console.warn(`[polar] kunne ikke tolke varighet "${iso}" - bruker 0`)
     return 0
   }
   const [, d, h, min, s] = m
@@ -1282,7 +1282,7 @@ export function mapPolarSportToXpulse(
     if (rule) return rule.mapping
   }
   if (candidates.length > 0) {
-    console.warn(`[polar-sync] ukjent sport "${candidates.join('/')}" — bruker fallback Annet`)
+    console.warn(`[polar-sync] ukjent sport "${candidates.join('/')}" - bruker fallback Annet`)
   }
   return { movement: 'Annet', subcategory: null }
 }

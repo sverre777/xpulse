@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     .eq('user_id', user.id)
     .maybeSingle()
   if (!sub?.stripe_customer_id) {
-    const msg = encodeURIComponent('Ingen Stripe-konto knyttet til denne brukeren — start abonnement først.')
+    const msg = encodeURIComponent('Ingen Stripe-konto knyttet til denne brukeren - start abonnement først.')
     return NextResponse.redirect(new URL(`/app/abonnement?error=${msg}`, request.url))
   }
 

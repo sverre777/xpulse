@@ -83,16 +83,16 @@ export function SkytingTab({ data, range, targetUserId }: {
       {/* Kø #47 bolk 7: skuddmengde mot årsmål (sesong-basert). */}
       <ShotGoalCard targetUserId={targetUserId} />
       {/* Kø #47 bolk 6: skudd per uke/måned m/ typefordeling + treff %-rad
-          — samme komponent som i månedsanalysen under kalenderen. */}
+          - samme komponent som i månedsanalysen under kalenderen. */}
       {range && (
         <ShotVolumeChart range={range} targetUserId={targetUserId} title="Skudd per uke" />
       )}
-      {/* Kø #49 bolk 5: test-sammenligning — gjennomføringer av samme
+      {/* Kø #49 bolk 5: test-sammenligning - gjennomføringer av samme
           skytetest-mal side om side + trend (selvskjulende uten tester). */}
       <TestComparison targetUserId={targetUserId} />
       <CustomSkytingChartBuilder data={data} range={range} targetUserId={targetUserId} />
       <AccuracyTrend data={data} />
-      {/* Bolk 8: faste grafer som manglet — pivoten (alle variabler) bor i Custom skyting-graf. */}
+      {/* Bolk 8: faste grafer som manglet - pivoten (alle variabler) bor i Custom skyting-graf. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <TreffMotPulsInn series={data.series} />
         <TreffMotSkytetid series={data.series} />
@@ -158,7 +158,7 @@ export function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
           </div>
         ) : (
           <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-            Ingen årsskuddmål satt — sett det på sesongen i årsplanen for å få fremdriftsbaren.
+            Ingen årsskuddmål satt - sett det på sesongen i årsplanen for å få fremdriftsbaren.
           </p>
         )}
         <div className="flex flex-wrap gap-x-5 gap-y-1"
@@ -194,7 +194,7 @@ export function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
           Treff% per stilling over tid
         </p>
       </div>
-      <ChartWrapper chartKey="skyting_accuracy_over_time" title="Utvikling per dag" subtitle="Én verdi per dag — aggregert på tvers av alle serier i økten." height={280}>
+      <ChartWrapper chartKey="skyting_accuracy_over_time" title="Utvikling per dag" subtitle="Én verdi per dag - aggregert på tvers av alle serier i økten." height={280}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
@@ -203,7 +203,7 @@ export function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
             <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <Tooltip content={<XpTooltip />}
-              formatter={(v, k) => [typeof v === 'number' ? `${v.toFixed(1)}%` : '—', String(k)]} />
+              formatter={(v, k) => [typeof v === 'number' ? `${v.toFixed(1)}%` : '-', String(k)]} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line type="monotone" dataKey="Liggende" stroke={COLOR_PRONE} strokeWidth={2} dot={{ r: 3 }} connectNulls />
             <Line type="monotone" dataKey="Stående" stroke={COLOR_STANDING} strokeWidth={2} dot={{ r: 3 }} connectNulls />
@@ -230,7 +230,7 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
         </p>
       </div>
       <ChartWrapper chartKey="skyting_accuracy_hr_zones" title="Treff vs. pulsbelastning"
-        subtitle="Gruppert etter seriens snittpuls — viser hvor mye pulsen koster i treff."
+        subtitle="Gruppert etter seriens snittpuls - viser hvor mye pulsen koster i treff."
         height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -267,16 +267,16 @@ export function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
   return (
     <ChartWrapper chartKey="skyting_forste_vs_siste" title="Første vs. siste serie" height="auto">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <InlineStat label="Første serie — treff%" value={fmtPct(firstVsLast.first_accuracy_pct)}
+        <InlineStat label="Første serie - treff%" value={fmtPct(firstVsLast.first_accuracy_pct)}
           sub={firstVsLast.first_avg_hr != null ? `snittpuls ${firstVsLast.first_avg_hr}` : undefined} />
-        <InlineStat label="Siste serie — treff%" value={fmtPct(firstVsLast.last_accuracy_pct)}
+        <InlineStat label="Siste serie - treff%" value={fmtPct(firstVsLast.last_accuracy_pct)}
           sub={firstVsLast.last_avg_hr != null ? `snittpuls ${firstVsLast.last_avg_hr}` : undefined} />
         <InlineStat label="Endring treff%"
-          value={delta == null ? '—' : (delta > 0 ? '+' : '') + delta.toFixed(1) + '%'}
+          value={delta == null ? '-' : (delta > 0 ? '+' : '') + delta.toFixed(1) + '%'}
           color={delta != null ? (delta >= 0 ? '#28A86E' : '#E23A5A') : 'var(--tekst-1-app)'}
           sub="siste minus første" />
         <InlineStat label="Endring puls"
-          value={deltaHr == null ? '—' : (deltaHr > 0 ? '+' : '') + deltaHr.toString()}
+          value={deltaHr == null ? '-' : (deltaHr > 0 ? '+' : '') + deltaHr.toString()}
           sub={`${firstVsLast.workouts_with_multiple_series} økter med ≥2 serier`} />
       </div>
     </ChartWrapper>
@@ -349,7 +349,7 @@ export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
         </p>
       </div>
       <ChartWrapper chartKey="skyting_training_vs_comp" title="Treff% i kontekst"
-        subtitle="Mental fasthet — sammenlign skyting på trening og i konkurransesituasjon."
+        subtitle="Mental fasthet - sammenlign skyting på trening og i konkurransesituasjon."
         height={220}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -478,8 +478,8 @@ function MethodNote() {
       <p className="text-xs leading-relaxed"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Én <strong style={{ color: 'var(--tekst-1-app)' }}>serie</strong> = én skyte-aktivitet (liggende, stående, kombinert, innskyting eller basis). Treff% = treff / skudd × 100.
-        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Puls-soner</strong> bruker aktivitetens snittpuls — lavere puls gir normalt bedre treff.
-        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Første vs. siste</strong> sammenligner første og siste serie <em>innen samme økt</em> — speiler tretthet og konsentrasjon.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Puls-soner</strong> bruker aktivitetens snittpuls - lavere puls gir normalt bedre treff.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Første vs. siste</strong> sammenligner første og siste serie <em>innen samme økt</em> - speiler tretthet og konsentrasjon.
         {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Trening vs. konkurranse</strong> splittes på økt-type <em>competition</em> og <em>testlop</em> mot alle andre.
       </p>
     </div>

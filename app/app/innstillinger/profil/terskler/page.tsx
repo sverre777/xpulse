@@ -47,7 +47,7 @@ export default async function TersklerPage() {
           <Link href="/app/innstillinger/profil" style={{ color: 'var(--tekst-5-app)' }}>Profil</Link>
           {' › '}
           <b style={{ color: 'var(--tekst-3-app)' }}>Terskler, soner & helse</b>
-          {' '}— terskelen versjoneres per bevegelsesform og underkategori;
+          {' '}- terskelen versjoneres per bevegelsesform og underkategori;
           soner, IF og TSS leser herfra. En økt bruker terskelen som gjaldt
           på øktas dato.
         </p>

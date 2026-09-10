@@ -246,7 +246,7 @@ function MovementTypeForm({
         </div>
 
         <div className="md:col-span-2">
-          <Label>Underkategorier (valgfritt — kommaseparert)</Label>
+          <Label>Underkategorier (valgfritt - kommaseparert)</Label>
           <input value={subcatsText} onChange={e => setSubcatsText(e.target.value)}
             placeholder="F.eks. Teknisk, Taktisk, Styrke"
             style={iSt} />
@@ -273,7 +273,7 @@ function MovementTypeForm({
           <p className="text-sm mb-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {confirmDelete.usage > 0
-              ? `Denne bevegelsesformen er brukt i ${confirmDelete.usage} aktivitet${confirmDelete.usage === 1 ? '' : 'er'}. Historikk beholdes som tekst — men du kan ikke velge formen på nye økter etter sletting.`
+              ? `Denne bevegelsesformen er brukt i ${confirmDelete.usage} aktivitet${confirmDelete.usage === 1 ? '' : 'er'}. Historikk beholdes som tekst - men du kan ikke velge formen på nye økter etter sletting.`
               : 'Er du sikker på at du vil slette denne bevegelsesformen?'}
           </p>
           <div className="flex gap-2">

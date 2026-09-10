@@ -26,11 +26,11 @@ function formatDuration(sec: number): string {
   return `${m}min`
 }
 function formatKm(m: number): string {
-  if (m <= 0) return '—'
+  if (m <= 0) return '-'
   return `${(Math.round((m / 1000) * 10) / 10).toLocaleString('nb-NO')} km`
 }
 function labelSport(s: string | null): string {
-  if (!s) return '—'
+  if (!s) return '-'
   return SPORTS.find(x => x.value === s)?.label ?? s
 }
 function dateToEpoch(iso: string): number { return new Date(iso).getTime() }
@@ -43,7 +43,7 @@ function formatEpochAxis(ms: number): string {
 function ZoneBar({ zones, height = 10 }: { zones: OverviewZoneSeconds; height?: number }) {
   const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + (zones.I6 ?? 0) + (zones.I7 ?? 0) + (zones.I8 ?? 0) + zones.Hurtighet
   if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
-  const keys = ALL_ZONE_NAMES // bolk 7: I6–I8 med
+  const keys = ALL_ZONE_NAMES // bolk 7: I6-I8 med
   return (
     <div style={{ display: 'flex', width: '100%', height, backgroundColor: 'var(--flate-3)' }}>
       {keys.map(k => {
@@ -125,7 +125,7 @@ function TemplateRow({
               Sist brukt
             </p>
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
-              {template.last_used ?? '—'}
+              {template.last_used ?? '-'}
             </p>
           </div>
           <div>
@@ -176,11 +176,11 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard chartKey="mal_analyse_gjennomforinger" label="Gjennomføringer" value={String(template.usage_count)} />
         <MetricCard chartKey="mal_analyse_snittpuls" label="Snittpuls"
-          value={template.avg_heart_rate != null ? `${template.avg_heart_rate}` : '—'}
+          value={template.avg_heart_rate != null ? `${template.avg_heart_rate}` : '-'}
           sublabel={template.avg_heart_rate != null ? 'bpm' : undefined} />
         <MetricCard chartKey="mal_analyse_snitt_tid" label="Snitt total tid" value={formatDuration(template.avg_duration_seconds)} />
         <MetricCard chartKey="mal_analyse_snitt_km" label="Snitt total km"
-          value={template.avg_total_meters > 0 ? formatKm(template.avg_total_meters) : '—'} />
+          value={template.avg_total_meters > 0 ? formatKm(template.avg_total_meters) : '-'} />
       </div>
 
       {/* Avg zones bar */}
@@ -319,15 +319,15 @@ function ExecutionsTable({ executions }: { executions: TemplateExecution[] }) {
                 </Link>
               </td>
               <td className="px-3 py-2">{formatDuration(e.duration_seconds)}</td>
-              <td className="px-3 py-2">{e.avg_heart_rate ?? '—'}</td>
-              <td className="px-3 py-2">{e.max_heart_rate ?? '—'}</td>
+              <td className="px-3 py-2">{e.avg_heart_rate ?? '-'}</td>
+              <td className="px-3 py-2">{e.max_heart_rate ?? '-'}</td>
               <td className="px-3 py-2" style={{ minWidth: 120 }}>
                 <ZoneBar zones={e.zones} />
               </td>
-              <td className="px-3 py-2">{e.lactate_mmol != null ? `${e.lactate_mmol.toFixed(1)}` : '—'}</td>
+              <td className="px-3 py-2">{e.lactate_mmol != null ? `${e.lactate_mmol.toFixed(1)}` : '-'}</td>
               <td className="px-3 py-2" style={{ maxWidth: 240 }}>
                 <span style={{ color: 'var(--tekst-5-app)' }}>
-                  {e.notes ? (e.notes.length > 60 ? `${e.notes.slice(0, 60)}…` : e.notes) : '—'}
+                  {e.notes ? (e.notes.length > 60 ? `${e.notes.slice(0, 60)}…` : e.notes) : '-'}
                 </span>
               </td>
             </tr>

@@ -58,7 +58,7 @@ const STATUS_LABEL: Record<UtoverStatus, string> = {
 const STATUS_RANK: Record<UtoverStatus, number> = { inactive: 0, delayed: 1, active: 2 }
 
 function sportLabel(s: Sport | null): string {
-  if (!s) return '—'
+  if (!s) return '-'
   return SPORTS.find(x => x.value === s)?.label ?? s
 }
 

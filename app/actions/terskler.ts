@@ -208,7 +208,7 @@ export async function lagreEgneSoner(
 
   if (soner.length !== ZONE_NAMES.length
       || !ZONE_NAMES.every(n => soner.some(s => s.zone_name === n))) {
-    return { error: 'Alle fem soner (I1–I5) må ha verdier' }
+    return { error: 'Alle fem soner (I1-I5) må ha verdier' }
   }
   for (const s of soner) {
     if (!Number.isFinite(s.min_bpm) || !Number.isFinite(s.max_bpm) || s.max_bpm <= s.min_bpm) {

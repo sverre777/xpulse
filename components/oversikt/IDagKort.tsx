@@ -153,15 +153,15 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
   const lite = !hoved || !harGraf   // hviledag / økt uten graf → flere neste i smått
 
   const celler: NokkeltallCelle[] = hoved ? (erGjennomfort ? [
-    { id: 'puls', etikett: 'Snittpuls', verdi: hoved.avg_heart_rate != null ? String(hoved.avg_heart_rate) : '—', hale: hoved.avg_heart_rate != null ? 'slag' : undefined },
-    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
-    { id: 'tss', etikett: 'Belastning', verdi: (() => { const t = Math.round(beregnSoneTss(hoved.zones)); return t > 0 ? String(t) : '—' })(), hale: 'TSS' },
-    { id: 'rpe', etikett: 'Opplevd', verdi: hoved.rpe != null ? String(hoved.rpe) : '—', hale: '/10' },
+    { id: 'puls', etikett: 'Snittpuls', verdi: hoved.avg_heart_rate != null ? String(hoved.avg_heart_rate) : '-', hale: hoved.avg_heart_rate != null ? 'slag' : undefined },
+    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '-', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
+    { id: 'tss', etikett: 'Belastning', verdi: (() => { const t = Math.round(beregnSoneTss(hoved.zones)); return t > 0 ? String(t) : '-' })(), hale: 'TSS' },
+    { id: 'rpe', etikett: 'Opplevd', verdi: hoved.rpe != null ? String(hoved.rpe) : '-', hale: '/10' },
   ] : [
-    { id: 'forventet', etikett: 'Forventet', verdi: hoved.forventet_belastning != null ? String(hoved.forventet_belastning) : '—', hale: hoved.forventet_belastning != null ? '/10' : undefined },
-    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
-    ...(harSki ? [{ id: 'skyting', etikett: 'Skyting', verdi: hoved.shots && hoved.shots.shots > 0 ? String(hoved.shots.shots) : '—', hale: hoved.shots && hoved.shots.shots > 0 ? 'skudd' : undefined }] : []),
-    { id: 'varighet', etikett: 'Varighet', verdi: hoved.effective_duration_minutes != null ? fmtHM(hoved.effective_duration_minutes * 60) : '—' },
+    { id: 'forventet', etikett: 'Forventet', verdi: hoved.forventet_belastning != null ? String(hoved.forventet_belastning) : '-', hale: hoved.forventet_belastning != null ? '/10' : undefined },
+    { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '-', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
+    ...(harSki ? [{ id: 'skyting', etikett: 'Skyting', verdi: hoved.shots && hoved.shots.shots > 0 ? String(hoved.shots.shots) : '-', hale: hoved.shots && hoved.shots.shots > 0 ? 'skudd' : undefined }] : []),
+    { id: 'varighet', etikett: 'Varighet', verdi: hoved.effective_duration_minutes != null ? fmtHM(hoved.effective_duration_minutes * 60) : '-' },
   ]) : []
 
   return (
@@ -241,7 +241,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
       ) : (
         <div data-hviledag>
           <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', margin: '4px 0 0' }}>
-            Ingen økt i dag — hviledag.
+            Ingen økt i dag - hviledag.
           </p>
           {siste && (
             <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', margin: '6px 0 0' }}>
@@ -252,8 +252,8 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
         </div>
       )}
 
-      {/* NESTE ØKT — alltid nederst, stiplet skille. Lite innhold over →
-          de 2–3 neste i smått, så kortet fyller høyden. */}
+      {/* NESTE ØKT - alltid nederst, stiplet skille. Lite innhold over →
+          de 2-3 neste i smått, så kortet fyller høyden. */}
       <div className="mt-auto" style={{ paddingTop: 12 }}>
         <div style={{ borderTop: '1px dashed var(--line2)', paddingTop: 10 }} data-neste-okter={lite ? 'flere' : 'en'}>
           <p style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: 0 }}>

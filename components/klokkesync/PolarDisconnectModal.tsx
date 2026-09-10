@@ -194,7 +194,7 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <li>• <strong>{n(preview?.imports)}</strong> import-sporinger som hindrer dobbeltimport</li>
         <li>• <strong>{n(preview?.health_values)}</strong> helse- og søvnverdier hentet fra Polar</li>
         <li>• <strong>{n(preview?.brand_metrics)}</strong> Polar-skårer (Nightly Recharge, søvnskår)</li>
-        <li>• All analyse basert på disse øktene — PR-er og trender vil endres</li>
+        <li>• All analyse basert på disse øktene - PR-er og trender vil endres</li>
       </ul>
 
       <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
@@ -216,7 +216,7 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
           <br />
           → Økter du har ført manuelt
           <br />
-          → <strong>Helse- og søvnverdier du har ført selv</strong> — de slettes aldri
+          → <strong>Helse- og søvnverdier du har ført selv</strong> - de slettes aldri
           <br />
           → Strava-tilkoblingen og Strava-importerte økter
         </p>
@@ -316,7 +316,7 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
             ))}
           </ul>
           <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
-            Slettingen er ufullstendig, ikke ødelagt — kjør frakoblingen en gang
+            Slettingen er ufullstendig, ikke ødelagt - kjør frakoblingen en gang
             til, så ryddes resten. Alle stegene tåler gjentakelse.
           </p>
           <button type="button" onClick={onRetry} disabled={retrying}
@@ -334,7 +334,7 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
       {manualUrl && (
         <>
           <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
-            Vi fikk ikke bekreftet avregistreringen hos Polar — gjør dette selv
+            Vi fikk ikke bekreftet avregistreringen hos Polar - gjør dette selv
             for å trekke tilgangen helt tilbake:
           </p>
           <ol className="mb-4 pl-5 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.5 }}>

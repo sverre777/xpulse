@@ -118,7 +118,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
             <div>
               <Label>Varighet (min)</Label>
               <input type="number" min="0" value={duration} onChange={e => setDuration(e.target.value)}
-                placeholder="—" style={iSt} />
+                placeholder="-" style={iSt} />
             </div>
           </div>
 

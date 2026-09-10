@@ -134,7 +134,7 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
           </Felt>
 
           <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
-            Vises i kalenderen (📍/🏔 per dag) og i årsplanen — dette er samme markering,
+            Vises i kalenderen (📍/🏔 per dag) og i årsplanen - dette er samme markering,
             endringer slår gjennom begge steder.
           </p>
 

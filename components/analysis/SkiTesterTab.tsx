@@ -98,7 +98,7 @@ export function SkiTesterTab({ data }: Props) {
           const info = skiById.get(ski_id)
           return {
             ski_id,
-            name: info?.name ?? '—',
+            name: info?.name ?? '-',
             avg_rating: sum / count,
             test_count: count,
           }
@@ -330,7 +330,7 @@ function RatingTimeline({ items }: { items: Array<{
           </div>
           <span className="text-xs tracking-widest uppercase shrink-0"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-            {it.rating != null ? `${it.rating}/10` : '—'}
+            {it.rating != null ? `${it.rating}/10` : '-'}
             {typeof it.rank === 'number' ? ` · #${it.rank}` : ''}
           </span>
         </div>

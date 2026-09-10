@@ -28,8 +28,8 @@ export function SamletBryter({ visning, onVisning }: {
         </button>
       ))}
       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
-        {visning === 'samlet' ? 'Like rader vises som én — dataene er fortsatt splittet.'
-          : visning === 'alt' ? 'Hele økta som én rad — soner som fordeling, all skyting samlet. Endringer skrives til alle radene.'
+        {visning === 'samlet' ? 'Like rader vises som én - dataene er fortsatt splittet.'
+          : visning === 'alt' ? 'Hele økta som én rad - soner som fordeling, all skyting samlet. Endringer skrives til alle radene.'
           : 'Hver rad for seg.'}
       </span>
     </div>

@@ -179,7 +179,7 @@ export function mapFitSportToXpulse(
   if (s === 'crossfit') return { movement: 'Crossfit', subcategory: null }
 
   if (s !== null && s !== undefined) {
-    console.warn(`[fit-mapping] ukjent sport "${sport}"/sub "${subSport}" — bruker fallback Annet`)
+    console.warn(`[fit-mapping] ukjent sport "${sport}"/sub "${subSport}" - bruker fallback Annet`)
   }
   return { movement: 'Annet', subcategory: null }
 }

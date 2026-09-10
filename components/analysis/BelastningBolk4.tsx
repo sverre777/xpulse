@@ -55,7 +55,7 @@ export function HelseMotBelastning({ data, initialConfig }: { data: HelseBelastn
   const harHelse = rader.some(d => d.hrv != null || d.hvilepuls != null)
   return (
     <ChartWrapper chartKey="belastning_helse_kurver" title="HRV og hvilepuls mot belastning" height="auto" config={{ dager: dagerN, bak }}
-      subtitle="Nattens HRV og hvilepuls (linjer) med formen bak (areal) — hardøkter som prikker, sykdom og skade som felt">
+      subtitle="Nattens HRV og hvilepuls (linjer) med formen bak (areal) - hardøkter som prikker, sykdom og skade som felt">
       <div className="flex gap-4 flex-wrap items-center mb-2">
         <Gruppe navn="Vindu">
           <Chip farge="var(--accent)" etikett="30 dager" paa={dagerN === 30} fokus={false} onClick={() => setDagerN(30)} />
@@ -65,7 +65,7 @@ export function HelseMotBelastning({ data, initialConfig }: { data: HelseBelastn
           {(['tsb', 'ctl', 'atl'] as const).map(k => <Chip key={k} farge={F[k]} etikett={k.toUpperCase()} paa={bak === k} fokus={false} onClick={() => setBak(k)} />)}
         </Gruppe>
       </div>
-      {!harHelse ? tom('Ingen HRV eller hvilepuls i perioden — koble klokka eller før manuelt under Helse.') : (
+      {!harHelse ? tom('Ingen HRV eller hvilepuls i perioden - koble klokka eller før manuelt under Helse.') : (
         <div style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <ComposedChart data={rader} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -93,7 +93,7 @@ function KorrKort({ chartKey, tittel, xNavn, yNavn, k, xEnhet = '', yEnhet = '' 
   const forLite = k.forLite
   return (
     <ChartWrapper chartKey={chartKey} title={tittel} height="auto"
-      subtitle={forLite ? `for lite data — ${k.n} av ${KORR_MIN_N} dager` : `r = ${k.r ?? '—'} · n = ${k.n} · ${korrTekst(k.r)}`}>
+      subtitle={forLite ? `for lite data - ${k.n} av ${KORR_MIN_N} dager` : `r = ${k.r ?? '-'} · n = ${k.n} · ${korrTekst(k.r)}`}>
       <div data-korrelasjon={chartKey} data-n={k.n} data-r={k.r ?? ''} style={{ height: 180, opacity: forLite ? 0.45 : 1 }}>
         {k.n === 0 ? tom('Ingen dager med begge verdiene.') : (
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -173,7 +173,7 @@ export function RpeVsTss({ data, initialConfig }: { data: HelseBelastning; initi
   const punkter = data.okter.filter(o => o.opplevd != null && o.tss > 0 && (!type || o.workout_type === type) && (!bevValg || o.bevegelse === bevValg)).map(o => ({ x: o.tss, y: o.opplevd, date: o.date, title: o.title }))
   return (
     <ChartWrapper chartKey="belastning_rpe_vs_tss" title="Opplevd vs TSS per økt" height="auto" config={{ type, bev: bevValg }}
-      subtitle="Hver økt som punkt — ligger opplevd belastning over eller under det beregnede? Filtrer på økttype og bevegelsesform.">
+      subtitle="Hver økt som punkt - ligger opplevd belastning over eller under det beregnede? Filtrer på økttype og bevegelsesform.">
       <div className="flex gap-4 flex-wrap items-center mb-2">
         {typer.length > 1 && <Gruppe navn="Økttype">{[null, ...typer].map(t => <Chip key={t ?? 'alle'} farge="var(--accent)" etikett={t ?? 'Alle'} paa={type === t} fokus={false} onClick={() => setType(t)} />)}</Gruppe>}
         {bev.length > 1 && <Gruppe navn="Bev.form">{[null, ...bev].map(b => <Chip key={b ?? 'alle'} farge="#1A6FD4" etikett={b ?? 'Alle'} paa={bevValg === b} fokus={false} onClick={() => setBev(b)} />)}</Gruppe>}
@@ -220,7 +220,7 @@ export function BelastningCustom({ data, initialConfig }: { data: HelseBelastnin
   const toggle = (k: Last) => setLast(l => l.includes(k) ? l.filter(x => x !== k) : [...l, k])
   return (
     <ChartWrapper chartKey="belastning_custom" title="Custom belastningsgraf" height="auto" config={{ last, variabel }}
-      subtitle="Belastningstrendene (venstre akse) mot én valgt variabel (høyre akse) — følelse, timer, sonetid, laktat, HRV, hvilepuls, søvn, vekt eller resultater">
+      subtitle="Belastningstrendene (venstre akse) mot én valgt variabel (høyre akse) - følelse, timer, sonetid, laktat, HRV, hvilepuls, søvn, vekt eller resultater">
       <div className="flex gap-4 flex-wrap items-center mb-2">
         <Gruppe navn="Belastning">
           {(['tss', 'ctl', 'atl', 'tsb'] as const).map(k => <Chip key={k} farge={F[k]} etikett={k.toUpperCase()} paa={last.includes(k)} fokus={false} onClick={() => toggle(k)} />)}

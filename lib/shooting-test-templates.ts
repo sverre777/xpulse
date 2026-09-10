@@ -27,7 +27,7 @@ export interface ShootingTestTemplateDef {
 export const STANDARD_SHOOTING_TESTS: ShootingTestTemplateDef[] = [
   {
     ref: 'nssf1',
-    name: 'NSSF Test 1 — 80 skudd papp u/ belastning',
+    name: 'NSSF Test 1 - 80 skudd papp u/ belastning',
     locked: true,
     surface: 'papp',
     usePulse: false,
@@ -39,12 +39,12 @@ export const STANDARD_SHOOTING_TESTS: ShootingTestTemplateDef[] = [
     ],
     guidance:
       'Ringsum per serie: 5 p innenfor stiplet linje / 3 p mellom (maks 25). '
-      + 'Serietid valgfri — krav-ref 40 s L / 35 s S. '
+      + 'Serietid valgfri - krav-ref 40 s L / 35 s S. '
       + 'Poengkrav-veiledning: YJ 330 · EJ 350 · Senior 380.',
   },
   {
     ref: 'nssf3',
-    name: 'NSSF Test 3 — Kombinasjonstest 60 skudd',
+    name: 'NSSF Test 3 - Kombinasjonstest 60 skudd',
     locked: true,
     surface: 'metall',
     usePulse: true,
@@ -55,13 +55,13 @@ export const STANDARD_SHOOTING_TESTS: ShootingTestTemplateDef[] = [
       { position: 'S', shots: 5, count: 6 },
     ],
     guidance:
-      'Med belastning mellom seriene — før puls snitt/maks per serie. '
+      'Med belastning mellom seriene - før puls snitt/maks per serie. '
       + 'Måles på treff % + snitt skytetid. '
       + 'Krav-veiledning: 90/93/97 % · tid 35/35 · 30/25 · 25/20 s (YJ/EJ/Sr, L/S).',
   },
   {
     ref: 'nssf4',
-    name: 'NSSF Test 4 — 30-30 presisjonstest',
+    name: 'NSSF Test 4 - 30-30 presisjonstest',
     locked: true,
     surface: 'issf',
     usePulse: false,
@@ -75,7 +75,7 @@ export const STANDARD_SHOOTING_TESTS: ShootingTestTemplateDef[] = [
     ],
     guidance:
       '30 skudd liggende + 30 stående i 5-skuddserier på 10-delt ISSF '
-      + '50 m-skive, uten tidspress/puls. 1–10 p per skudd — plott skuddene '
+      + '50 m-skive, uten tidspress/puls. 1-10 p per skudd - plott skuddene '
       + 'og les poeng fra plottet, eller før poeng manuelt.',
   },
   {

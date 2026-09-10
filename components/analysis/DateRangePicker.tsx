@@ -64,7 +64,7 @@ export function DateRangePicker({
             colorScheme: 'dark',
           }}
         />
-        <span style={{ color: 'var(--tekst-8-app)' }}>–</span>
+        <span style={{ color: 'var(--tekst-8-app)' }}>-</span>
         <input
           type="date"
           value={customTo}

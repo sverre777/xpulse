@@ -364,7 +364,7 @@ export function OktbyggerPopup({
     const r = snappTilKlokkerunder(rader, plassering, klokkerunder, harKurve ? totalSek : 0)
     if (!r.ok) { setMelding(r.melding); return }
     endre(r.rader)
-    setMelding(`${r.antall} drag snappet til klokkas runder — pausene fyller mellom.`)
+    setMelding(`${r.antall} drag snappet til klokkas runder - pausene fyller mellom.`)
   }
   const utenfor = overKurven(plassering, harKurve ? totalSek : 0)
 
@@ -409,7 +409,7 @@ export function OktbyggerPopup({
                 🎯 Plott treff
               </button>
             )}
-            {/* Sverre 5. sep: «Ferdig» høyt oppe — også når hurtigoppsettet er skjult. */}
+            {/* Sverre 5. sep: «Ferdig» høyt oppe - også når hurtigoppsettet er skjult. */}
             <button type="button" onClick={onClose} data-ferdig-topp className="xp-pill xp-pill-primary" style={{ minHeight: 34, padding: '4px 14px' }}>Ferdig</button>
             <button type="button" onClick={onClose} aria-label="Lukk"
               style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontSize: 20, cursor: 'pointer', minWidth: 36, minHeight: 36 }}>
@@ -432,7 +432,7 @@ export function OktbyggerPopup({
                   color: 'var(--tekst-5-app)', background: 'none', border: 'none',
                   padding: '4px 0', cursor: 'pointer', minHeight: 36,
                 }}>
-                <span style={{ color: 'var(--accent)' }}>⚡</span> Hurtigoppsett — antall × dragtid × sone / pause
+                <span style={{ color: 'var(--accent)' }}>⚡</span> Hurtigoppsett - antall × dragtid × sone / pause
                 <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)' }}>{hurtigAapent ? '▴' : '▾'}</span>
               </button>
               {hurtigAapent && (
@@ -476,19 +476,19 @@ export function OktbyggerPopup({
             </div>
           )}
 
-          {/* BOLK 20 (Sverre 5. sep): byggeren fra start — også på en NY økt
+          {/* BOLK 20 (Sverre 5. sep): byggeren fra start - også på en NY økt
               uten id jobber byggeren på skjemaets utkast-rader i minnet, og
               alt lagres i ÉN lagring sammen med økta. Ingen «lagre først». */}
           {rader.length === 0 && (
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
-              Økta har ingen aktiviteter ennå — bruk hurtigoppsettet over eller legg til en rad, så bygges den i tid her.
+              Økta har ingen aktiviteter ennå - bruk hurtigoppsettet over eller legg til en rad, så bygges den i tid her.
             </p>
           )}
 
           {rader.length > 0 && (
             <>
               {/* Rundene: fra klokka, planens runder, eller tilbake (bolk 6).
-                  Skriver til basen — bare på en lagret økt. */}
+                  Skriver til basen - bare på en lagret økt. */}
               {workoutId && <RundeValg workoutId={workoutId} onEndret={() => {
                 setValgtRad(null)
                 setAngreStabel([])
@@ -553,14 +553,14 @@ export function OktbyggerPopup({
                   <button type="button" disabled={!valgtRad}
                     onClick={() => { setStartHerModus(v => !v); setKuttModus(false) }}
                     aria-pressed={startHerModus} data-start-her
-                    title={valgtRad ? 'Klikk på kurven der raden skal starte — kjeden følger' : 'Velg en rad først'}
+                    title={valgtRad ? 'Klikk på kurven der raden skal starte - kjeden følger' : 'Velg en rad først'}
                     style={{ ...pille(startHerModus ? 'var(--accent)' : undefined, startHerModus), opacity: valgtRad ? 1 : 0.5 }}>
                     ⇥ Start her {startHerModus ? '· klikk på kurven' : ''}
                   </button>
                 )}
                 <PunktKnapp aktiv={punktModus} onClick={() => { setPunktModus(v => !v); setKuttModus(false); setStartHerModus(false) }}
                   tekst="Punkt" />
-                {/* Typeraden står åpen hele tiden (Sverre 4. sep) — å velge en
+                {/* Typeraden står åpen hele tiden (Sverre 4. sep) - å velge en
                     type slår punkt-modus på, så man slipper å trykke «Punkt». */}
                 <span className="flex items-center gap-1 flex-wrap" data-punkt-type>
                   {([
@@ -611,7 +611,7 @@ export function OktbyggerPopup({
                     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>På grafen</span>
                     {valg.map(([id, navn]) => (
                     <button key={id} type="button" onClick={() => velg(id)} data-serie-valg={id} aria-pressed={paa(id)}
-                      title={id === kurveAktiv ? 'Fokus-serien (skala)' : paa(id) ? 'Ligger oppå — klikk for å ta bort' : 'Legg oppå grafen'}
+                      title={id === kurveAktiv ? 'Fokus-serien (skala)' : paa(id) ? 'Ligger oppå - klikk for å ta bort' : 'Legg oppå grafen'}
                       className="text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
@@ -627,12 +627,12 @@ export function OktbyggerPopup({
                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
                   {punktModus
                     ? (erPlanlagt
-                      ? 'Klikk i båndet under kurven der punktet skal ligge — planlagt laktat har ingen verdi, det er ingen måling. Skyting blir en planlagt skyterad.'
+                      ? 'Klikk i båndet under kurven der punktet skal ligge - planlagt laktat har ingen verdi, det er ingen måling. Skyting blir en planlagt skyterad.'
                       : 'Klikk i båndet under kurven der punktet skal ligge. Laktat og ernæring blir rader du fyller ut; skyting blir en skyterad.')
                     : kuttModus
-                    ? 'Klikk i båndet under kurven der økta skal deles — linja viser hvor kuttet treffer.'
+                    ? 'Klikk i båndet under kurven der økta skal deles - linja viser hvor kuttet treffer.'
                     : startHerModus
-                      ? 'Klikk i båndet der raden skal starte — radene etter følger med, raden foran strekkes eller kortes.'
+                      ? 'Klikk i båndet der raden skal starte - radene etter følger med, raden foran strekkes eller kortes.'
                       : 'Velg en rad i båndet eller i lista for tall og knapper. Kurven er bare lesing og zoom.'}
                 </span>
               </div>
@@ -644,7 +644,7 @@ export function OktbyggerPopup({
               {utenfor.length > 0 && (
                 <p data-over-kurven style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#E23A5A', margin: 0 }}>
                   ⚠ Bygget er lengre enn kurven: {utenfor.length} {utenfor.length === 1 ? 'rad stikker' : 'rader stikker'} ut forbi {fmtKlokkeSek(totalSek)}.
-                  Ingenting klippes — kort inn, eller snapp til klokkerundene.
+                  Ingenting klippes - kort inn, eller snapp til klokkerundene.
                 </p>
               )}
 
@@ -679,7 +679,7 @@ export function OktbyggerPopup({
                 ftp={klokke?.ftp ?? null}
               />
 
-              {/* BOLK 23: utfyllingsfeltene for det valgte punktet — rett under grafen. */}
+              {/* BOLK 23: utfyllingsfeltene for det valgte punktet - rett under grafen. */}
               {valgtPunkt && (
                 <PunktPanel hr={hr} valgt={valgtPunkt} punkter={punkter} laktat={laktat} ernaering={ernaering} rader={rader} totalSek={totalSek} erPlanlagt={erPlanlagt}
                   onLukk={() => setValgtPunkt(null)}
@@ -692,7 +692,7 @@ export function OktbyggerPopup({
 
               {/* ── RADENE ── tid som tall, del/slå sammen/slett/type/navn. */}
               <div className="space-y-1">
-                <Overskrift>Radene — tid, type og navn</Overskrift>
+                <Overskrift>Radene - tid, type og navn</Overskrift>
                 {plassering.map(u => {
                   const rad = rader.find(r => r.id === u.id)
                   if (!rad) return null
@@ -720,11 +720,11 @@ export function OktbyggerPopup({
                   )
                 })}
                 <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
-                  Km, puls, bevegelsesform og resten redigeres i aktivitetsradene i skjemaet — det er samme rader.
+                  Km, puls, bevegelsesform og resten redigeres i aktivitetsradene i skjemaet - det er samme rader.
                 </p>
               </div>
 
-              {/* ── Punkter — målingene som er ført, får et tidspunkt ── */}
+              {/* ── Punkter - målingene som er ført, får et tidspunkt ── */}
               {(laktat.length > 0 || ernaering.length > 0 || punkter.length > 0) && (
                 <div className="space-y-2">
                   <Overskrift>Punkter på kurven</Overskrift>
@@ -761,7 +761,7 @@ export function OktbyggerPopup({
                       {!String(n.carbs_g ?? '').trim() && <span data-fyll-inn style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)' }}>fyll inn</span>}
                     <PunktRad
                       farge={PUNKT_FARGER.ernaering}
-                      navn={`Ernæring — ${n.nutrition_type || n.custom_label || 'inntak'}${n.carbs_g ? ` (${n.carbs_g} g)` : ''}`}
+                      navn={`Ernæring - ${n.nutrition_type || n.custom_label || 'inntak'}${n.carbs_g ? ` (${n.carbs_g} g)` : ''}`}
                       sek={n.time_offset_minutes.trim() ? (parseInt(n.time_offset_minutes) || 0) * 60 : null}
                       onSek={s => settErnaeringMin(n.id, Math.max(0, Math.round(s / 60)))}
                       onPlasser={() => settErnaeringMin(n.id, Math.round(totalSek / 120))}
@@ -773,8 +773,8 @@ export function OktbyggerPopup({
                   ))}
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
                     {erPlanlagt
-                      ? 'Planlagte punkter er hule på grafen. En planlagt laktat er ingen måling — verdien føres i dagboka.'
-                      : 'Ført laktat og ernæring er radene du alt har ført — her får de bare et tidspunkt. Notater er egne punkter.'}
+                      ? 'Planlagte punkter er hule på grafen. En planlagt laktat er ingen måling - verdien føres i dagboka.'
+                      : 'Ført laktat og ernæring er radene du alt har ført - her får de bare et tidspunkt. Notater er egne punkter.'}
                   </p>
                 </div>
               )}
@@ -785,7 +785,7 @@ export function OktbyggerPopup({
         <div className="flex items-center justify-between gap-3 px-5 py-4 flex-wrap"
           style={{ borderTop: '1px solid var(--kant-3)' }}>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
-            Endringene ligger i skjemaet — lagre økta som vanlig.
+            Endringene ligger i skjemaet - lagre økta som vanlig.
           </span>
           <button type="button" onClick={onClose} className="xp-pill xp-pill-primary" data-ferdig-bunn>Ferdig</button>
         </div>
@@ -967,7 +967,7 @@ function KurveMedRader({
   const overlay = (h: KurveHjelpere, paaKurve: boolean) => (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
       {visning === 'begge' && planBlokker.length > 0 && <PlanSpokelse blokker={planBlokker} pct={h.pct} slag="omriss" />}
-      {/* Samlet rettelse 4/5: ingen mørke radfliser oppå kurven lenger —
+      {/* Samlet rettelse 4/5: ingen mørke radfliser oppå kurven lenger -
           blokkene ligger i mellomlaget (BEGGE), valgt rad får bare en ramme. */}
       {(() => {
         const u = utkast.find(x => x.id === valgtRad)
@@ -1000,7 +1000,7 @@ function KurveMedRader({
         const y = paaKurve ? h.yPctForSerie(kurve, p.sek) : '18%'
         return (
           <span key={p.id} aria-hidden>
-            {/* Sverre 5. sep: stiplet pekelinje fra pilla ned til punktet — som på øktgrafen. */}
+            {/* Sverre 5. sep: stiplet pekelinje fra pilla ned til punktet - som på øktgrafen. */}
             <span style={{ position: 'absolute', left: h.pct(p.sek), top: 0, height: y, width: 0, borderLeft: `1px dashed ${PUNKT_SLAG[p.slag].farge}`, opacity: 0.7, pointerEvents: 'none', zIndex: 4 }} />
             <span data-bygger-punkt={p.slag} data-planlagt={p.planlagt || undefined} style={{
               position: 'absolute', left: h.pct(p.sek), top: y, transform: 'translate(-50%, -50%)',
@@ -1037,7 +1037,7 @@ function KurveMedRader({
           style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: vindu ? 'var(--accent)' : 'var(--tekst-8-app)', background: 'none', border: `1px solid ${vindu ? 'var(--accent)' : 'var(--kant-3)'}`, borderRadius: 999, padding: '5px 12px', minHeight: 32, cursor: vindu ? 'pointer' : 'default', opacity: vindu ? 1 : 0.5 }}>
           Hele økta
         </button>
-        {vindu && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)', alignSelf: 'center' }}>{fmtKlokkeSek(vindu[0])}–{fmtKlokkeSek(vindu[1])}</span>}
+        {vindu && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)', alignSelf: 'center' }}>{fmtKlokkeSek(vindu[0])}-{fmtKlokkeSek(vindu[1])}</span>}
       </div>
     </div>
   ) : null
@@ -1136,7 +1136,7 @@ function KurveMedRader({
         return (
           <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-5-app)' }}>
             <b>{etikettFor(valgt, utkast)}</b>
-            {' '}{fmtKlokkeSek(valgt.startSek)}–{fmtKlokkeSek(valgt.startSek + valgt.varighetSek)}
+            {' '}{fmtKlokkeSek(valgt.startSek)}-{fmtKlokkeSek(valgt.startSek + valgt.varighetSek)}
             {' · varighet '}<b>{fmtKlokkeSek(valgt.varighetSek)}</b>
             {puls.snitt != null
               ? <>{' · puls snitt '}<b>{puls.snitt}</b>{puls.inn != null ? <>{' · inn '}<b>{puls.inn}</b></> : null}</>
@@ -1144,8 +1144,8 @@ function KurveMedRader({
             {valgt.type.startsWith('skyting') && (
               <span style={{ color: 'var(--tekst-8-alt)' }}>
                 {' · '}{valgt.skytetidSek != null
-                  ? `ført skytetid ${fmtKlokkeSek(valgt.skytetidSek)} — teller i statistikken`
-                  : 'kun puls-markering — utenfor skytetid-statistikk'}
+                  ? `ført skytetid ${fmtKlokkeSek(valgt.skytetidSek)} - teller i statistikken`
+                  : 'kun puls-markering - utenfor skytetid-statistikk'}
               </span>
             )}
           </p>
@@ -1204,7 +1204,7 @@ function PunktPanel({ hr = [], valgt, punkter, laktat, ernaering, rader, totalSe
     const l = laktat.find(x => x.id === valgt.id); if (!l) return null
     const tom = !String(l.mmol ?? '').trim()
     const sek = laktatSek(l)
-    return <div data-punkt-panel="laktat" style={ramme}>{topp(`Laktat ved ${sek != null ? fmtKlokkeSek(sek) : '—'}`, tom)}
+    return <div data-punkt-panel="laktat" style={ramme}>{topp(`Laktat ved ${sek != null ? fmtKlokkeSek(sek) : '-'}`, tom)}
       <PunktRad farge={PUNKT_FARGER.laktat} navn="Laktat" sek={sek}
         onSek={s2 => settLaktatSek(l.id, Math.max(0, Math.round(s2)))} onPlasser={() => settLaktatSek(l.id, Math.round(totalSek / 2))}
         onFjern={() => { settLaktatSek(l.id, null); onLukk() }} verdi={l.mmol} verdiNavn="mmol"
@@ -1222,7 +1222,7 @@ function PunktPanel({ hr = [], valgt, punkter, laktat, ernaering, rader, totalSe
         {navn}
       </label>
     )
-    return <div data-punkt-panel="ernaering" style={ramme}>{topp(`Ernæring ved ${n.time_offset_minutes.trim() ? fmtKlokkeSek((parseInt(n.time_offset_minutes) || 0) * 60) : '—'}`, tom)}
+    return <div data-punkt-panel="ernaering" style={ramme}>{topp(`Ernæring ved ${n.time_offset_minutes.trim() ? fmtKlokkeSek((parseInt(n.time_offset_minutes) || 0) * 60) : '-'}`, tom)}
       <div className="flex items-center gap-2 flex-wrap">
         <select value={n.nutrition_type || ''} aria-label="Type"
           onChange={e => onErnaering(ernaering.map(x => (x.id === n.id ? { ...x, nutrition_type: e.target.value as NutritionEntryRow['nutrition_type'] } : x)))} style={felt}>
@@ -1334,7 +1334,7 @@ function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false, vinduPuls =
   return (
     <div data-punkt-panel="skyting" style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: '8px 10px', background: 'var(--flate-12-alt)' }}>
       <div className="flex items-center gap-2 mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-5-app)' }}>
-        <span style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>🎯 {ligg && staa ? 'Skyting L+S' : ligg ? 'Skyting L' : 'Skyting S'} ved {rad.window_start_seconds != null ? fmtKlokkeSek(rad.window_start_seconds) : '—'}</span>
+        <span style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>🎯 {ligg && staa ? 'Skyting L+S' : ligg ? 'Skyting L' : 'Skyting S'} ved {rad.window_start_seconds != null ? fmtKlokkeSek(rad.window_start_seconds) : '-'}</span>
         {tom && <span data-fyll-inn style={{ fontWeight: 700, fontSize: 11, color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 999, padding: '2px 8px' }}>fyll inn</span>}
         <button type="button" onClick={onLukk} aria-label="Lukk punktet" style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--tekst-8-alt)', cursor: 'pointer', fontSize: 16 }}>×</button>
       </div>
@@ -1347,9 +1347,9 @@ function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false, vinduPuls =
         </select>
         {ligg && (rad.shooting_series ?? []).length === 0 && <>{felt('prone_hits', 'L treff')}<span style={{ color: 'var(--tekst-8-alt)' }}>/</span>{felt('prone_shots', 'skudd')}</>}
         {staa && (rad.shooting_series ?? []).length === 0 && <>{felt('standing_hits', 'S treff')}<span style={{ color: 'var(--tekst-8-alt)' }}>/</span>{felt('standing_shots', 'skudd')}</>}
-        {(rad.avg_heart_rate || rad.max_heart_rate) && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-5-app)' }}>puls {rad.avg_heart_rate || '—'} · maks {rad.max_heart_rate || '—'}</span>}
+        {(rad.avg_heart_rate || rad.max_heart_rate) && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-5-app)' }}>puls {rad.avg_heart_rate || '-'} · maks {rad.max_heart_rate || '-'}</span>}
       </div>
-      {/* Sverre 5. sep: hele seriefeltet (L/S · skudd · treff · tid · puls · maks · + legg til serie) — samme som i aktivitetsraden. */}
+      {/* Sverre 5. sep: hele seriefeltet (L/S · skudd · treff · tid · puls · maks · + legg til serie) - samme som i aktivitetsraden. */}
       <div className="mt-2" data-skyting-serier>
         <SerieListe series={rad.shooting_series ?? []} onChange={next => onEndre({ shooting_series: next })} planMode={planMode} showPoints={false} />
       </div>
@@ -1391,7 +1391,7 @@ function ByggerBaand({ utkast, valgtId, onVelg, fraSek, tilSek, modus, onKlikkSe
   }
   return (
     <div data-bygger-baand data-modus={modus ?? undefined} style={{ position: 'relative', marginTop: valgt && !modus ? 34 : 6 }}>
-      {/* Små knapper på det valgte segmentet — bare uten modus. */}
+      {/* Små knapper på det valgte segmentet - bare uten modus. */}
       {valgt && !modus && (
         <div style={{ position: 'absolute', left: pct(valgt.startSek), top: -32, display: 'flex', gap: 4, zIndex: 3 }}>
           <button type="button" style={knapp} onClick={() => onDelHer(valgt.id)} disabled={valgt.varighetSek < 10} data-baand-del>Del her</button>
@@ -1415,7 +1415,7 @@ function ByggerBaand({ utkast, valgtId, onVelg, fraSek, tilSek, modus, onKlikkSe
           const andel = u.varighetSek / spenn
           return (
             <button key={u.id} type="button" data-baand-segment={u.id} data-valgt={er || undefined}
-              aria-label={`${etikettFor(u, utkast)} ${fmtKlokkeSek(u.startSek)}–${fmtKlokkeSek(u.startSek + u.varighetSek)}`}
+              aria-label={`${etikettFor(u, utkast)} ${fmtKlokkeSek(u.startSek)}-${fmtKlokkeSek(u.startSek + u.varighetSek)}`}
               onClick={e => { if (modus) return; e.stopPropagation(); onVelg(er ? null : u.id) }}
               style={{
                 position: 'absolute', left: pct(u.startSek), width: `calc(${pct(fraSek + u.varighetSek)} - 1px)`, minWidth: 10,
@@ -1467,7 +1467,7 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar, k
             data-utenfor-kurven={utenfor ? '1' : undefined}
             title={utenfor ? 'Raden stikker ut forbi kurven' : undefined}
             onClick={e => { e.stopPropagation(); onVelg(valgt ? null : u.id) }}
-            aria-label={`${etikettFor(u, utkast)} ${fmtKlokkeSek(u.startSek)}–${fmtKlokkeSek(u.startSek + u.varighetSek)}`}
+            aria-label={`${etikettFor(u, utkast)} ${fmtKlokkeSek(u.startSek)}-${fmtKlokkeSek(u.startSek + u.varighetSek)}`}
             style={{
               position: 'absolute', left: h.pct(u.startSek),
               width: `calc(${h.pct(h.fraSek + u.varighetSek)} - 1px)`, minWidth: 10,
@@ -1516,7 +1516,7 @@ function FeltTekst({ navn, verdi, onVerdi, enhet, data }: { navn: string; verdi:
   return (
     <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--tekst-8-alt)', fontFamily: "'Barlow Condensed', sans-serif" }}>
       {navn}
-      <input value={tekst} onChange={e => setTekst(e.target.value)} onBlur={() => { if (tekst !== verdi) onVerdi(tekst) }} inputMode="decimal" placeholder="—"
+      <input value={tekst} onChange={e => setTekst(e.target.value)} onBlur={() => { if (tekst !== verdi) onVerdi(tekst) }} inputMode="decimal" placeholder="-"
         data-bevfelt={data} aria-label={`${navn} (${enhet})`}
         style={{ width: 64, textAlign: 'center', padding: '6px 4px', borderRadius: 8, border: '1px solid var(--line2)', background: 'var(--card)', color: 'var(--tekst-1-app)', fontSize: 13, fontFamily: 'inherit' }} />
       {enhet}
@@ -1585,7 +1585,7 @@ function Rad({
         style={{ minHeight: 36, cursor: 'pointer' }}>
         <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600, minWidth: 96 }}>{etikettFor(u, alle)}</b>
         {spes && <span data-rad-spesifikk style={{ color: 'var(--accent)', fontWeight: 600 }}>{spes}</span>}
-        <span>{fmtKlokkeSek(u.startSek)}–{fmtKlokkeSek(u.startSek + u.varighetSek)}</span>
+        <span>{fmtKlokkeSek(u.startSek)}-{fmtKlokkeSek(u.startSek + u.varighetSek)}</span>
         <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>start</span>
         <TidInput sek={u.startSek} onSek={onStart} />
         <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>varighet</span>
@@ -1595,7 +1595,7 @@ function Rad({
             snitt {u.snittpuls || puls.snitt}{u.snittpuls ? ' · M' : ' · målt'}
           </span>
         ) : u.arvetPuls ? (
-          <span className="ml-auto" title="Dragets snitt — vises som hint, lagres ikke"
+          <span className="ml-auto" title="Dragets snitt - vises som hint, lagres ikke"
             style={{ color: 'var(--tekst-8-alt)', fontStyle: 'italic' }}>
             snitt {u.arvetPuls} · hint
           </span>
@@ -1611,7 +1611,7 @@ function Rad({
           </select>
           <NavnFelt navn={u.navn} plassholder={etikettFor(u, alle)} onNavn={onNavn} />
           <button type="button" style={knapp} onClick={onDel} disabled={u.varighetSek < 10}
-            title="Deler raden på midten — begge får start og varighet">
+            title="Deler raden på midten - begge får start og varighet">
             Del her
           </button>
           {harNabo && (
@@ -1653,7 +1653,7 @@ function Rad({
               Motstand
               <select value={rad.resistance_level} onChange={e => onFelt({ resistance_level: e.target.value })} data-motstand
                 style={{ ...knapp, paddingRight: 8 }}>
-                <option value="">—</option>
+                <option value="">-</option>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={String(n)}>{n}</option>)}
               </select>
             </label>
@@ -1691,7 +1691,7 @@ function NavnFelt({ navn, plassholder, onNavn }: {
 
 function fmtFartVerdi(mps: number, sport: string | null): string {
   if (sport === 'cycling' || sport === 'triathlon') return `${(mps * 3.6).toFixed(1)} km/t`
-  if (mps <= 0.1) return '—'
+  if (mps <= 0.1) return '-'
   const sekPerKm = 1000 / mps
   const m = Math.floor(sekPerKm / 60)
   const sek = Math.round(sekPerKm % 60)
@@ -1768,7 +1768,7 @@ function NotatPunktRad({ p, totalSek, onEndre, onFjern }: {
       <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>tidspunkt</span>
       <TidInput sek={p.sek} onSek={s => onEndre({ sek: Math.max(0, Math.min(totalSek > 0 ? totalSek : s, Math.round(s))) })} />
       <input type="text" value={p.tekst} aria-label="Tekst"
-        placeholder={p.type === 'laktat' ? (p.planlagt ? 'notat — ingen verdi, det er en planlagt måling' : 'notat') : p.type === 'ernaering' ? 'hva (gel, drikke, bar …)' : 'notat'}
+        placeholder={p.type === 'laktat' ? (p.planlagt ? 'notat - ingen verdi, det er en planlagt måling' : 'notat') : p.type === 'ernaering' ? 'hva (gel, drikke, bar …)' : 'notat'}
         onChange={e => onEndre({ tekst: e.target.value })} style={{ ...felt, flex: '1 1 160px' }} />
       {p.type === 'ernaering' && (
         <span className="flex items-center gap-2 flex-wrap">

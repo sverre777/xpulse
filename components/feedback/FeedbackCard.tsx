@@ -49,7 +49,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
         }}
       >
         Opplever du en bug, eller har innspill til noe du ønsker eller savner?
-        Send oss en e-post – gjerne med skjermbilde.
+        Send oss en e-post - gjerne med skjermbilde.
       </p>
 
       <ul

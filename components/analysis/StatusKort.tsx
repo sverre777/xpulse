@@ -71,7 +71,7 @@ export function fmtTid(sek: number): string {
   return t > 0 ? `${t}:${String(m).padStart(2, '0')}` : `${m} min`
 }
 function fmtKm(meter: number): string {
-  if (meter <= 0) return '—'
+  if (meter <= 0) return '-'
   const km = meter / 1000
   return km >= 100 ? String(Math.round(km)) : (Math.round(km * 10) / 10).toFixed(1).replace('.', ',')
 }
@@ -193,10 +193,10 @@ function SisteHardBoks({ status }: { status: OversiktStatus | null }) {
           <OktMeta o={o} />
           <div style={{ margin: '8px 0 2px' }}><ZoneBar zones={o.soner as unknown as OversiktZoneSeconds} legend={false} /></div>
           <Smaatall celler={[
-            { etikett: 'Snittpuls', verdi: o.snittpuls != null ? String(o.snittpuls) : '—' },
-            { etikett: 'Maks', verdi: o.makspuls != null ? String(o.makspuls) : '—' },
-            { etikett: 'Laktat maks', verdi: o.laktatMaks != null ? String(o.laktatMaks).replace('.', ',') : '—' },
-            { etikett: 'Opplevd', verdi: o.opplevd != null ? `${o.opplevd}` : '—', under: o.opplevd != null ? '/10' : null },
+            { etikett: 'Snittpuls', verdi: o.snittpuls != null ? String(o.snittpuls) : '-' },
+            { etikett: 'Maks', verdi: o.makspuls != null ? String(o.makspuls) : '-' },
+            { etikett: 'Laktat maks', verdi: o.laktatMaks != null ? String(o.laktatMaks).replace('.', ',') : '-' },
+            { etikett: 'Opplevd', verdi: o.opplevd != null ? `${o.opplevd}` : '-', under: o.opplevd != null ? '/10' : null },
           ]} />
           <a href={`/app/okt/${o.id}`} style={{ display: 'inline-block', marginTop: 8, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
             Åpne økta →
@@ -257,12 +257,12 @@ function PlanRad({ etikett, faktisk, plan, format }: { etikett: string; faktisk:
       <small style={{ fontFamily: FONT, fontWeight: 600, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>{etikett}</small>
       <div style={{ height: 8, background: 'var(--line2)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
         {pct != null && <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${bredde}%`, borderRadius: 4, background: planPctFarge(pct, ORANSJE) }} />}
-        {/* hvit strek på 100 % — 100/130 av bredden */}
+        {/* hvit strek på 100 % - 100/130 av bredden */}
         <i style={{ position: 'absolute', left: `${100 / PLAN_SKALA_MAKS * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--tekst-1-app)', opacity: 0.75 }} />
       </div>
       <span style={{ fontFamily: BEBAS, fontSize: 18, letterSpacing: '0.03em', textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--tekst-1-app)' }}>
         {format(faktisk)}
-        <em style={{ fontStyle: 'normal', fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)' }}> / {plan > 0 ? format(plan) : '—'}</em>
+        <em style={{ fontStyle: 'normal', fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)' }}> / {plan > 0 ? format(plan) : '-'}</em>
       </span>
     </div>
   )
@@ -330,16 +330,16 @@ function SonerBoks({ status }: { status: OversiktStatus | null }) {
                     <tr key={r.navn} data-status-sonerad={r.navn} style={{ borderTop: '1px solid var(--line)', color: 'var(--tekst-1-app)' }}>
                       <td style={{ padding: '5px 6px 5px 0', whiteSpace: 'nowrap' }}>{r.navn}</td>
                       <td style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmtTid(r.tidSek)}</td>
-                      <td style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.meter > 0 ? fmtKm(r.meter) : '—'}</td>
-                      {soner.map(k => <td key={k} style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-5-app)' }}>{sum > 0 && (r.soner[k] ?? 0) > 0 ? `${Math.round(((r.soner[k] ?? 0) / sum) * 100)} %` : '—'}</td>)}
-                      <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.hardSek > 0 ? fmtTid(r.hardSek) : '—'}</td>
+                      <td style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.meter > 0 ? fmtKm(r.meter) : '-'}</td>
+                      {soner.map(k => <td key={k} style={{ padding: '5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-5-app)' }}>{sum > 0 && (r.soner[k] ?? 0) > 0 ? `${Math.round(((r.soner[k] ?? 0) / sum) * 100)} %` : '-'}</td>)}
+                      <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.hardSek > 0 ? fmtTid(r.hardSek) : '-'}</td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
           </div>
-          <div style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', marginTop: 6 }}>Samme tall som Hovedtall over — bare fordelt på uke, måned og år.</div>
+          <div style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', marginTop: 6 }}>Samme tall som Hovedtall over - bare fordelt på uke, måned og år.</div>
         </>
       )}
     </Boks>
@@ -356,15 +356,15 @@ function SkytingBoks({ status }: { status: OversiktStatus | null }) {
       {!sk && !aar ? <Tom tekst="Ingen skyting ført." /> : (
         <>
           <Smaatall celler={[
-            { etikett: 'Skudd i perioden', verdi: sk ? String(sk.skudd) : '—' },
-            { etikett: 'Treff liggende', verdi: sk?.treffLiggPct != null ? `${sk.treffLiggPct} %` : '—', farge: '#38BDF8' },
-            { etikett: 'Treff stående', verdi: sk?.treffStaaPct != null ? `${sk.treffStaaPct} %` : '—', farge: ORANSJE },
+            { etikett: 'Skudd i perioden', verdi: sk ? String(sk.skudd) : '-' },
+            { etikett: 'Treff liggende', verdi: sk?.treffLiggPct != null ? `${sk.treffLiggPct} %` : '-', farge: '#38BDF8' },
+            { etikett: 'Treff stående', verdi: sk?.treffStaaPct != null ? `${sk.treffStaaPct} %` : '-', farge: ORANSJE },
           ]} />
           <div style={{ height: 8 }} />
           <Smaatall celler={[
-            { etikett: 'Skudd i år', verdi: aar ? String(aar.skudd) : '—' },
-            { etikett: 'Treff totalt', verdi: aar?.treffPct != null ? `${aar.treffPct} %` : '—' },
-            { etikett: 'Skytetid snitt', verdi: sk?.skytetidSnitt != null ? String(sk.skytetidSnitt).replace('.', ',') : '—', under: sk?.skytetidSnitt != null ? 's' : null },
+            { etikett: 'Skudd i år', verdi: aar ? String(aar.skudd) : '-' },
+            { etikett: 'Treff totalt', verdi: aar?.treffPct != null ? `${aar.treffPct} %` : '-' },
+            { etikett: 'Skytetid snitt', verdi: sk?.skytetidSnitt != null ? String(sk.skytetidSnitt).replace('.', ',') : '-', under: sk?.skytetidSnitt != null ? 's' : null },
           ]} />
           {sk && sk.siste10.length > 0 && (
             <>
@@ -386,8 +386,8 @@ function SkytingBoks({ status }: { status: OversiktStatus | null }) {
 function BelastningBoks({ status, konkurranser }: { status: OversiktStatus | null; konkurranser: string[] }) {
   const b = status?.belastning ?? null
   return (
-    <Boks tittel="Belastning" nokkel="oversikt_status_belastning" undertittel={b ? 'CTL · ATL · TSB — 12 uker' : undefined}>
-      {!b ? <Tom tekst="For lite data — belastning krever minst 14 dager med førte økter." /> : (
+    <Boks tittel="Belastning" nokkel="oversikt_status_belastning" undertittel={b ? 'CTL · ATL · TSB - 12 uker' : undefined}>
+      {!b ? <Tom tekst="For lite data - belastning krever minst 14 dager med førte økter." /> : (
         <>
           <Smaatall celler={[
             { etikett: 'CTL · form', verdi: String(b.ctl), under: b.ctlEndring != null ? `${b.ctlEndring > 0 ? '+' : ''}${b.ctlEndring} siste uke` : null },
@@ -426,15 +426,15 @@ function HelseBoks({ status, canSeeHealthData }: { status: OversiktStatus | null
   const diff = (naa: number | null, forrige: number | null, enhet = '') => (
     naa != null && forrige != null ? `${naa - forrige > 0 ? '+' : ''}${Math.round((naa - forrige) * 10) / 10}${enhet} mot forrige` : null
   )
-  const sovn = (min: number | null) => (min == null ? '—' : `${Math.floor(min / 60)}:${String(Math.round(min % 60)).padStart(2, '0')}`)
+  const sovn = (min: number | null) => (min == null ? '-' : `${Math.floor(min / 60)}:${String(Math.round(min % 60)).padStart(2, '0')}`)
   return (
     <Boks tittel="Helse · 30 dager" nokkel="oversikt_status_helse" undertittel={h && h.dagerMedData > 0 ? `${h.dagerMedData} dager med data` : undefined}>
       {!canSeeHealthData ? <Tom tekst="Helsedata er ikke delt med deg." />
         : !h || h.dagerMedData === 0 ? <Tom tekst="Ingen helsedata ført." lenke="/app/health/hrv" lenkeTekst="Logg helse →" /> : (
         <>
           <Smaatall celler={[
-            { etikett: 'HRV snitt', verdi: h.hrvSnitt != null ? String(h.hrvSnitt) : '—', under: diff(h.hrvSnitt, h.hrvForrige, ' ms') },
-            { etikett: 'Hvilepuls', verdi: h.hvilepulsSnitt != null ? String(h.hvilepulsSnitt) : '—', under: diff(h.hvilepulsSnitt, h.hvilepulsForrige) },
+            { etikett: 'HRV snitt', verdi: h.hrvSnitt != null ? String(h.hrvSnitt) : '-', under: diff(h.hrvSnitt, h.hrvForrige, ' ms') },
+            { etikett: 'Hvilepuls', verdi: h.hvilepulsSnitt != null ? String(h.hvilepulsSnitt) : '-', under: diff(h.hvilepulsSnitt, h.hvilepulsForrige) },
             { etikett: 'Søvn', verdi: sovn(h.sovnMinSnitt), under: h.sovnMinForrige != null ? `forrige ${sovn(h.sovnMinForrige)}` : null },
           ]} />
           <div data-status-helsekurve style={{ height: 96, marginTop: 8 }}>
@@ -500,7 +500,7 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
             STATUS NÅ
           </h2>
           <div style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-5-app)', display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>
-            <span>{range.from} – {range.to}</span>
+            <span>{range.from} - {range.to}</span>
             <span>·</span>
             <span>{dager} dager</span>
           </div>
@@ -519,11 +519,11 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
         <Tall etikett="Tid" verdi={fmtTid(n.total_seconds)} under={fmtEndring(overview.percent_changes.total_seconds)} />
         <Tall etikett="Distanse" verdi={fmtKm(n.total_meters)} enhet={n.total_meters > 0 ? 'km' : undefined} under={fmtEndring(overview.percent_changes.total_meters)} />
         <Tall etikett="Økter" verdi={String(n.workout_count)} under={n.planned_count > 0 ? `${n.planned_count} planlagt` : null} />
-        <Tall etikett="Hard I3+" verdi={hardSek > 0 ? fmtTid(hardSek) : '—'} under={hardAndel != null && hardSek > 0 ? `${hardAndel} % av tida` : null} />
-        <Tall etikett="% av plan" verdi={planPct != null ? String(planPct) : '—'} enhet={planPct != null ? '%' : undefined}
+        <Tall etikett="Hard I3+" verdi={hardSek > 0 ? fmtTid(hardSek) : '-'} under={hardAndel != null && hardSek > 0 ? `${hardAndel} % av tida` : null} />
+        <Tall etikett="% av plan" verdi={planPct != null ? String(planPct) : '-'} enhet={planPct != null ? '%' : undefined}
           under={plan && plan.harPlan ? `${fmtMin(plan.faktiskTimerMin)} av ${fmtMin(plan.planTimerMin)}` : 'Ingen plan i perioden'} />
         {harSkiskyting && (
-          <Tall etikett="Skudd · treff" verdi={skyting ? String(skyting.skudd) : '—'}
+          <Tall etikett="Skudd · treff" verdi={skyting ? String(skyting.skudd) : '-'}
             under={skyting?.treffPct != null ? `${skyting.treffPct} % treff` : skyting ? 'Treff ikke ført' : 'Ingen skyting i perioden'} />
         )}
       </div>

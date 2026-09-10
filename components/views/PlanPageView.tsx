@@ -122,7 +122,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
           <div className="mb-6">
             <EmptyState
               title="Ingenting planlagt denne måneden"
-              body="Planlegg uken din i kalenderen under — eller sett inn en ferdig mal."
+              body="Planlegg uken din i kalenderen under - eller sett inn en ferdig mal."
               ctaLabel="+ Planlegg økt"
               ctaHref={`/app/plan?new=${today}`}
               secondaryLabel="Bruk mal"

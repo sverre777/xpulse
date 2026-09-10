@@ -154,7 +154,7 @@ export function LinkWorkoutActions({
 
       {/* Fasit (flett-designet seksjon 1): fyldig pill, samme tyngde som
           «Marker som gjennomført». Oransje på synket økt, ghost på mål-økta
-          (ved siden av den grønne). Rendres MED kortet — kandidat-oppslaget
+          (ved siden av den grønne). Rendres MED kortet - kandidat-oppslaget
           skjer først når pickeren åpnes. */}
       {showLinkButton && (
         <button type="button"
@@ -181,7 +181,7 @@ export function LinkWorkoutActions({
       {effectivelyLinked && (
         <span className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', marginLeft: '4px' }}>
-          ⌚ Flettet med synket økt — angre i økt-visningen
+          ⌚ Flettet med synket økt - angre i økt-visningen
         </span>
       )}
 
@@ -306,7 +306,7 @@ function PickerModal({
                     </div>
                     <div className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {new Date(`${c.date}T00:00:00`).toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' })}
-                      {c.duration_minutes != null ? ` · ${c.duration_minutes} min` : ' · —'}
+                      {c.duration_minutes != null ? ` · ${c.duration_minutes} min` : ' · -'}
                       {c.distance_km != null ? ` · ${c.distance_km.toFixed(1)} km` : ''}
                       {c.sport ? ` · ${c.sport}` : ''}
                     </div>
@@ -416,7 +416,7 @@ function FlettDialog({
         <div className="p-4 space-y-3">
           <button type="button" onClick={() => setModus('bytt_ut')} style={radioStyle(modus === 'bytt_ut')}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
-              {modus === 'bytt_ut' ? '●' : '○'} BYTT UT AKTIVITETENE — klokkas runder inn
+              {modus === 'bytt_ut' ? '●' : '○'} BYTT UT AKTIVITETENE - klokkas runder inn
             </div>
             <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Klokkas runder, rundetider, distanse og soner erstatter
@@ -434,7 +434,7 @@ function FlettDialog({
 
           <button type="button" onClick={() => setModus('legg_bak')} style={radioStyle(modus === 'legg_bak')}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
-              {modus === 'legg_bak' ? '●' : '○'} LEGG BAK — økta di er sjefen
+              {modus === 'legg_bak' ? '●' : '○'} LEGG BAK - økta di er sjefen
             </div>
             <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Alt du har ført (aktiviteter, sett/reps, notater) står urørt. Fra

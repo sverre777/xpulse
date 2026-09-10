@@ -120,7 +120,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
         </div>
 
         {/* Grafen skal tåle 1 like godt som 20: med ett eller to utstyr blir en
-            240px søylegraf bare tom plass — da vises totalbruken som én
+            240px søylegraf bare tom plass - da vises totalbruken som én
             kompakt linje i stedet. */}
         {topUsage.length > 0 && topUsage.length <= 2 && (
           <div className="mb-6 px-4 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1"
@@ -143,7 +143,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
           <div className="mb-8 p-4" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-              Totalbruk — topp {topUsage.length}
+              Totalbruk - topp {topUsage.length}
             </p>
             <div className="h-[200px] md:h-[240px]" style={{ width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -181,7 +181,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
           initialEquipment.length === 0 ? (
             <EmptyState
               title="Ingen utstyr registrert"
-              body="Legg inn ski, sko, staver eller sykkel — X-PULSE teller kilometer per utstyr automatisk fra øktene dine."
+              body="Legg inn ski, sko, staver eller sykkel - X-PULSE teller kilometer per utstyr automatisk fra øktene dine."
               ctaLabel="+ Nytt utstyr"
               ctaOnClick={() => setShowNew(true)}
             />
@@ -279,7 +279,7 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
     <Link href={`/app/utstyr/${equipment.id}`}
       className="flex items-center gap-3 p-3 md:p-4 transition-opacity hover:opacity-80"
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12, textDecoration: 'none' }}>
-      {/* Uten bilde sto det en tom rute her — kortet så tomt ut. Kategoriikonet
+      {/* Uten bilde sto det en tom rute her - kortet så tomt ut. Kategoriikonet
           fyller plassen (samme fasit som velgeren i økta). */}
       <div className="w-11 h-11 md:w-[52px] md:h-[52px] shrink-0 flex items-center justify-center"
         style={{
@@ -348,7 +348,7 @@ function FilterGroup({ label, children, fade = false }: { label: string; childre
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
-      {/* Etiketten staar i ro — bare knappene scroller (kun paa mobil). */}
+      {/* Etiketten staar i ro - bare knappene scroller (kun paa mobil). */}
       <div className={`flex items-center gap-1 min-w-0 xp-scrollrow${fade ? ' xp-scrollfade' : ''}`}>
         {children}
       </div>
@@ -497,11 +497,11 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
               onChange={e => set({ start_km: e.target.value })}
               placeholder="0" className="w-full px-4 py-3" style={inputStyle} />
             <p className="text-xs mt-1" style={{ color: 'var(--tekst-8-app)' }}>
-              Start-km — historisk utstyr starter ikke på null. Legges til km-telleren.
+              Start-km - historisk utstyr starter ikke på null. Legges til km-telleren.
             </p>
           </Field>
 
-          {/* Kategorispesifikke felter — delt komponent, samme fasit som detaljsiden */}
+          {/* Kategorispesifikke felter - delt komponent, samme fasit som detaljsiden */}
           <KategoriFelter category={form.category} verdier={form} onChange={set} visSki />
           <Field label="Notater">
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}

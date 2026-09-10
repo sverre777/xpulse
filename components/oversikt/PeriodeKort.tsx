@@ -20,7 +20,7 @@ const INTENSITET: Record<'rolig' | 'medium' | 'hard', { navn: string; farge: str
 function fmtDato(iso: string): string { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}. ${MND[d.getMonth()]}` }
 function spenn(a: string, b: string): string {
   const da = new Date(a + 'T00:00:00'), db = new Date(b + 'T00:00:00')
-  return da.getMonth() === db.getMonth() ? `${da.getDate()}.–${db.getDate()}. ${MND[da.getMonth()]}` : `${fmtDato(a)} – ${fmtDato(b)}`
+  return da.getMonth() === db.getMonth() ? `${da.getDate()}.-${db.getDate()}. ${MND[da.getMonth()]}` : `${fmtDato(a)} - ${fmtDato(b)}`
 }
 function dager(a: string, b: string): number { return Math.round((new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000) }
 

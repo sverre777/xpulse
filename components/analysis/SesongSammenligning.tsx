@@ -104,7 +104,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId, initialConfi
       chartKey="oversikt_sesong_mot_sesong"
       config={{ a: valgA, b: valgB, metrikk }}
       title="Sesong mot sesong"
-      subtitle="Per måned fra sesongstart — sesonggrensene følger årsplanen"
+      subtitle="Per måned fra sesongstart - sesonggrensene følger årsplanen"
       height="auto">
       {seasons === null ? (
         <p className="py-6 text-center text-sm"
@@ -114,7 +114,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId, initialConfi
       ) : seasons.length === 0 ? (
         <p className="py-6 text-center text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Ingen sesonger ennå —{' '}
+          Ingen sesonger ennå -{' '}
           <Link href="/app/periodisering" style={{ color: ORANSJE }}>opprett en i Årsplan</Link>{' '}
           for å sammenligne.
         </p>
@@ -190,7 +190,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId, initialConfi
               </div>
               {seasons.length === 1 && (
                 <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-                  Bare én sesong ennå —{' '}
+                  Bare én sesong ennå -{' '}
                   <Link href="/app/periodisering" style={{ color: ORANSJE }}>opprett flere i Årsplan</Link>{' '}
                   for å sammenligne.
                 </p>

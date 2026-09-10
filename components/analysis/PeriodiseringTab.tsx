@@ -50,7 +50,7 @@ function formatHours(seconds: number): string {
   const mins = Math.round(seconds / 60)
   const h = Math.floor(mins / 60)
   const m = mins % 60
-  if (h === 0 && m === 0) return '—'
+  if (h === 0 && m === 0) return '-'
   if (h > 0 && m > 0) return `${h}t ${m}min`
   if (h > 0) return `${h}t`
   return `${m}min`
@@ -122,7 +122,7 @@ function SeasonHeader({ data }: { data: PeriodizationOverview }) {
       </p>
       <p className="text-xs mt-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        {formatDateLong(s.start_date)} – {formatDateLong(s.end_date)} · {totalDays} dager
+        {formatDateLong(s.start_date)} - {formatDateLong(s.end_date)} · {totalDays} dager
       </p>
       {/* Progress-bar for sesongen */}
       <div className="mt-3" style={{ width: '100%', height: 6, backgroundColor: 'var(--flate-3)', border: '1px solid var(--kant-3)' }}>
@@ -170,7 +170,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-          Tidsbånd — periode-fordeling
+          Tidsbånd - periode-fordeling
         </p>
       </div>
       <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
@@ -181,7 +181,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
             const widthPct = Math.max(0.5, Math.min(100 - leftPct, ((daysBetween(p.start_date, p.end_date) + 1) / totalDays) * 100))
             const color = INTENSITY_COLORS[p.intensity]
             return (
-              <div key={p.id} title={`${p.name} (${formatDateShort(p.start_date)}–${formatDateShort(p.end_date)})`}
+              <div key={p.id} title={`${p.name} (${formatDateShort(p.start_date)}-${formatDateShort(p.end_date)})`}
                 style={{
                   position: 'absolute', top: 0, height: '100%',
                   left: `${leftPct}%`, width: `${widthPct}%`,
@@ -212,7 +212,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
               if (offset < 0 || offset >= totalDays) return null
               const leftPct = (offset / totalDays) * 100
               return (
-                <div key={k.id} title={`${k.name} (${formatDateShort(k.event_date)}) — ${EVENT_TYPE_LABEL[k.event_type]}`}
+                <div key={k.id} title={`${k.name} (${formatDateShort(k.event_date)}) - ${EVENT_TYPE_LABEL[k.event_type]}`}
                   style={{
                     position: 'absolute', top: 0, left: `${leftPct}%`,
                     width: 8, height: 8, transform: 'translateX(-50%)',
@@ -363,13 +363,13 @@ function PeriodTable({ data }: { data: PeriodizationOverview }) {
                   <span style={{ display: 'inline-block', width: 6, height: 6, backgroundColor: INTENSITY_COLORS[p.intensity], marginRight: 8 }} />
                   {p.name}
                 </td>
-                <td className="px-3 py-2" style={{ color: 'var(--tekst-5-app)' }}>{p.focus ?? '—'}</td>
+                <td className="px-3 py-2" style={{ color: 'var(--tekst-5-app)' }}>{p.focus ?? '-'}</td>
                 <td className="px-3 py-2" style={{ color: 'var(--tekst-5-app)' }}>
-                  {formatDateShort(p.start_date)}–{formatDateShort(p.end_date)}
+                  {formatDateShort(p.start_date)}-{formatDateShort(p.end_date)}
                 </td>
                 <td className="px-3 py-2 text-right">{p.sessions}</td>
                 <td className="px-3 py-2 text-right">{formatHours(p.total_seconds)}</td>
-                <td className="px-3 py-2 text-right">{p.total_meters > 0 ? (p.total_meters / 1000).toFixed(0) : '—'}</td>
+                <td className="px-3 py-2 text-right">{p.total_meters > 0 ? (p.total_meters / 1000).toFixed(0) : '-'}</td>
                 <td className="px-3 py-2 text-right" style={{ color: '#38BDF8' }}>{p.total_tss}</td>
                 <td className="px-3 py-2 text-right">{p.competitions}</td>
                 <td className="px-3 py-2 text-xs tracking-widest uppercase"
@@ -492,9 +492,9 @@ function MethodNote() {
       </p>
       <p className="text-xs leading-relaxed"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-        <strong style={{ color: 'var(--tekst-1-app)' }}>Sesongen</strong> er den du har opprettet i Årsplan — oversikten dekker hele sesongens datorange, uavhengig av periode-filteret over.
+        <strong style={{ color: 'var(--tekst-1-app)' }}>Sesongen</strong> er den du har opprettet i Årsplan - oversikten dekker hele sesongens datorange, uavhengig av periode-filteret over.
         {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>TSS</strong> per periode bruker samme formel som Belastning-fanen (minutter i sone × sone-vekt).
-        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Konkurranser</strong> teller økter markert som <em>competition</em>/<em>testlop</em> pluss nøkkeldatoer av typen A/B/C-løp i periodens datointervall — dobbelttelling kan forekomme hvis du har både nøkkeldato og registrert løpet som økt.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Konkurranser</strong> teller økter markert som <em>competition</em>/<em>testlop</em> pluss nøkkeldatoer av typen A/B/C-løp i periodens datointervall - dobbelttelling kan forekomme hvis du har både nøkkeldato og registrert løpet som økt.
         {' '}Oppdater mål og detaljer i Årsplan-seksjonen.
       </p>
     </div>

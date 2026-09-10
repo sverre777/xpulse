@@ -109,10 +109,10 @@ async function start() {
       for (const sport in r.failed_by_sport_type) {
         failedBySport[sport] = (failedBySport[sport] || 0) + r.failed_by_sport_type[sport];
       }
-      log('Batch offset=' + offset + ' ferdig på ' + elapsedMs + 'ms — imp=' + r.imported_this_batch + ' skip=' + r.skipped_this_batch + ' fail=' + r.failed_this_batch + ' (igjen: ' + r.total_remaining + ')');
+      log('Batch offset=' + offset + ' ferdig på ' + elapsedMs + 'ms - imp=' + r.imported_this_batch + ' skip=' + r.skipped_this_batch + ' fail=' + r.failed_this_batch + ' (igjen: ' + r.total_remaining + ')');
       for (const item of r.results) {
         const cls = item.status === 'imported' ? 'ok' : item.status === 'failed' ? 'fail' : 'skip';
-        const txt = item.status + ' — ' + item.date + ' ' + item.sport_type + ' "' + item.name + '"' + (item.error ? ' — ' + item.error : '');
+        const txt = item.status + ' - ' + item.date + ' ' + item.sport_type + ' "' + item.name + '"' + (item.error ? ' - ' + item.error : '');
         log(txt, cls);
       }
       updateStats();
@@ -120,15 +120,15 @@ async function start() {
       // Rate-limited? Pause auto til Strava-vinduet er nytt (15 min) og prøv samme offset.
       if (r.rate_limited) {
         const waitSec = r.retry_after_seconds || 900;
-        log('429 RATE-LIMIT — venter ' + waitSec + ' sek før retry på samme offset (' + offset + ')...', 'fail');
-        $('status').textContent = 'Rate-limit — venter ' + waitSec + ' sek...';
+        log('429 RATE-LIMIT - venter ' + waitSec + ' sek før retry på samme offset (' + offset + ')...', 'fail');
+        $('status').textContent = 'Rate-limit - venter ' + waitSec + ' sek...';
         for (let s = waitSec; s > 0 && !stopFlag; s -= 5) {
-          $('status').textContent = 'Rate-limit — venter ' + s + ' sek (offset=' + offset + ')...';
+          $('status').textContent = 'Rate-limit - venter ' + s + ' sek (offset=' + offset + ')...';
           await new Promise(r => setTimeout(r, 5000));
         }
         if (stopFlag) break;
         $('status').textContent = 'Retry offset=' + offset + ' etter pause...';
-        log('Pause ferdig — fortsetter på offset=' + offset, 'skip');
+        log('Pause ferdig - fortsetter på offset=' + offset, 'skip');
         continue; // retry samme offset (next_offset er = offset pga 429-failed-rader er ikke skrevet)
       }
 
@@ -158,7 +158,7 @@ async function start() {
 }
 
 $('start').onclick = start;
-$('stop').onclick = () => { stopFlag = true; log('Stopp-signal mottatt — venter på siste batch...', 'skip'); };
+$('stop').onclick = () => { stopFlag = true; log('Stopp-signal mottatt - venter på siste batch...', 'skip'); };
 </script>
 </body>
 </html>`

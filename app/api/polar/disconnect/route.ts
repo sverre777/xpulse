@@ -158,7 +158,7 @@ export async function POST() {
       error: message,
       deleted,
       ...extra,
-      note: 'Frakoblingen ble avbrutt, og tilkoblingen står fortsatt. Kjør frakoblingen på nytt — hvert steg tåler gjentakelse.',
+      note: 'Frakoblingen ble avbrutt, og tilkoblingen står fortsatt. Kjør frakoblingen på nytt - hvert steg tåler gjentakelse.',
     }, { status: 500 })
 
   // Hent tilkoblingen FØR sletting — vi trenger token + polar_user_id til
@@ -276,7 +276,7 @@ export async function POST() {
     message: string
   } = {
     attempted: false, ok: false, status: 0, attempts: [],
-    message: 'Ikke forsøkt — fant ingen tilkobling med token.',
+    message: 'Ikke forsøkt - fant ingen tilkobling med token.',
   }
   if (conn?.access_token && conn.polar_user_id != null) {
     const r = await deregisterPolarUser(conn.access_token, conn.polar_user_id)
@@ -285,12 +285,12 @@ export async function POST() {
       console.log(`[polar-disconnect] avregistrering OK for polar-bruker ${conn.polar_user_id} (status ${r.status})`)
     } else {
       console.error(
-        `[polar-disconnect] AVREGISTRERING FEILET — polar_user_id=${conn.polar_user_id}, ` +
-        `user=${user.id}, siste status=${r.status}: ${r.message} — forsøk: ${JSON.stringify(r.attempts)}`,
+        `[polar-disconnect] AVREGISTRERING FEILET - polar_user_id=${conn.polar_user_id}, ` +
+        `user=${user.id}, siste status=${r.status}: ${r.message} - forsøk: ${JSON.stringify(r.attempts)}`,
       )
     }
   } else {
-    console.warn(`[polar-disconnect] ingen token/polar_user_id for user ${user.id} — kan ikke avregistrere hos Polar`)
+    console.warn(`[polar-disconnect] ingen token/polar_user_id for user ${user.id} - kan ikke avregistrere hos Polar`)
   }
 
   // 8. Slett hele raden UANSETT om steg 7 lyktes. Brukerens rett til å koble

@@ -116,13 +116,19 @@ export function faktiskeBlokker(
     const [fra, til] = drag ? snittVindu(sg.startSek, sg.sluttSek) : [sg.startSek, sg.sluttSek]
     const puls = pulsIVindu(hr, fra, til).snitt
     const snittwatt = puls == null ? wattIVindu(watt, fra, til) : null
-    // Reserve 4: radens førte soner — bare når verken puls eller watt finnes.
+    // Radens FØRTE soner. Sverre 10. sep: «en runde som føres med soner skal
+    // bli fargen på grafen, dersom flere soner i en runde flere farger i samme
+    // graf». Den sto tidligere bak `rad?.avg_heart_rate == null`, og da falt
+    // den bort for enhver rad med snittpuls - selv når pulsen IKKE kunne bli
+    // til en sone fordi brukeren ikke har satt opp sonene sine. Resultatet var
+    // et helt ensfarget kart der hver eneste rad hadde soner ført.
+    // Rekkefølgen er uendret der pulsen faktisk gir noe: fordelingen fra
+    // pulskurven vinner (regnes under), førte soner er nest best, snittpulsen
+    // sist.
     const soneSek: Partial<Record<ExtendedZoneName, number>> = {}
-    if (puls == null && snittwatt == null && rad?.avg_heart_rate == null) {
-      for (const k of SONE_NAVN) {
-        const v = Number(rad?.zones?.[k] ?? 0)
-        if (v > 0) soneSek[k] = v
-      }
+    for (const k of SONE_NAVN) {
+      const v = Number(rad?.zones?.[k] ?? 0)
+      if (v > 0) soneSek[k] = v
     }
     const bevegelsesform = rad?.movement_name ?? (sg.type === 'drag' || sg.type === 'bevform' ? sg.etikett : '')
     const underkategori = rad?.movement_subcategory ?? ''

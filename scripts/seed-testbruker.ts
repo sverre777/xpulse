@@ -597,6 +597,66 @@ const alleOkter: Okt[] = []
   }
 }
 
+// ── Perioder som følger belastningen ─────────────────────────
+// Sverre 10. sep: fargen på perioden skal si hva uka FAKTISK var. Mye timer
+// eller mange hardøkter = rød, midt på = gul, nedtrapping og sykdom = grønn.
+// Syklusen blir da typisk to gule, én rød og én grønn - men ikke alltid, den
+// følger treninga og ikke en mal.
+function byggPerioder(): { navn: string; fokus: string; fra: string; til: string; intensity: string }[] {
+  const uke = (dato: string) => Math.floor(mellomDager(HIST_FRA, dato) / 7)
+  const stat = new Map<number, { timer: number; harde: number; fra: string; til: string }>()
+  for (const o of alleOkter) {
+    const u = uke(o.dato)
+    const sek = o.akt.reduce((a, b) => a + b.duration_seconds, 0)
+    // «Mange harde hardøkter» måles i intensitetstid, ikke i antall økter:
+    // I3 teller én gang, I4 dobbelt, I5 tre ganger.
+    const hardSek = o.akt.reduce((a, b) => a + (b.zones?.I3 ?? 0) + (b.zones?.I4 ?? 0) * 2 + (b.zones?.I5 ?? 0) * 3, 0)
+    const s2 = stat.get(u) ?? { timer: 0, harde: 0, fra: o.dato, til: o.dato }
+    s2.timer += sek / 3600
+    s2.harde += hardSek / 3600
+    if (o.dato < s2.fra) s2.fra = o.dato
+    if (o.dato > s2.til) s2.til = o.dato
+    stat.set(u, s2)
+  }
+  const uker = [...stat.entries()].sort((a, b) => a[0] - b[0])
+  // Klassen måles mot NABOUKENE, ikke mot sesongsnittet. Ellers blir hele
+  // juli gul bare fordi juli er en stor måned - og rytmen forsvinner.
+  const lokaltSnitt = (i: number, felt: 'timer' | 'harde') => {
+    const vindu = uker.slice(Math.max(0, i - 2), i + 3)
+    return vindu.reduce((a, [, v]) => a + v[felt], 0) / Math.max(1, vindu.length)
+  }
+  const makro = (dato: string) => PERIODER.find(p => dato >= p.fra && dato <= p.til) ?? PERIODER[0]
+
+  const ut: { navn: string; fokus: string; fra: string; til: string; intensity: string }[] = []
+  for (const [i, [u, v]] of uker.entries()) {
+    const naerT = lokaltSnitt(i, 'timer'), naerH = lokaltSnitt(i, 'harde')
+    // Rød uke: mye timer, mye intensitet, eller begge deler.
+    const klasse = v.timer < naerT * 0.85 ? 'rolig'
+      : v.timer > naerT * 1.1 || v.harde > naerH * 1.35 ? 'hard'
+      : 'medium'
+    // Uka starter mandag og slutter søndag, uansett hvilke dager som har økter.
+    const fra = plussDager(HIST_FRA, u * 7)
+    const til = plussDager(fra, 6)
+    const m = makro(fra)
+    const navn = klasse === 'hard' ? `${m.navn} · belastning`
+      : klasse === 'rolig' ? `${m.navn} · nedtrapping`
+      : m.navn
+    const forrige = ut[ut.length - 1]
+    const lengde = forrige ? mellomDager(forrige.fra, til) / 7 : 0
+    if (forrige && forrige.intensity === klasse && forrige.navn === navn && plussDager(forrige.til, 1) === fra && lengde <= 3) {
+      forrige.til = til          // slå sammen nabouker med samme farge, maks tre
+    } else {
+      ut.push({ navn, fokus: m.fokus, fra, til: til > PLAN_TIL ? PLAN_TIL : til, intensity: klasse })
+    }
+  }
+  // Resten av sesongen er ikke seedet med trening - der står makroperiodene.
+  for (const m of PERIODER) {
+    if (m.til <= PLAN_TIL) continue
+    ut.push({ navn: m.navn, fokus: m.fokus, fra: m.fra > PLAN_TIL ? m.fra : plussDager(PLAN_TIL, 1), til: m.til, intensity: m.intensity })
+  }
+  return ut
+}
+
 // ── Helse avledet av belastningen ────────────────────────────
 // HRV genereres FRA belastningen, ikke uavhengig av den: den faller 1-3 dager
 // etter harde dager, stiger i nedtrapping, og har en langsom grunnlinje oppover
@@ -805,10 +865,10 @@ async function seed() {
     annual_shot_goal: 8500,
   }).select('id').single(), 'sesong') as { id: string }
 
-  maa(await admin.from('season_periods').insert(PERIODER.map((p, i) => ({
+  maa(await admin.from('season_periods').insert(byggPerioder().map((p, i) => ({
     season_id: sesong.id, name: p.navn, focus: p.fokus, start_date: p.fra, end_date: p.til,
     intensity: p.intensity, sort_order: i,
-  })).map(x => x)).select('id'), 'perioder')
+  }))).select('id'), 'perioder')
 
   maa(await admin.from('season_markings').insert(SAMLINGER.map(s => ({
     season_id: sesong.id, name: s.navn, location: s.sted, start_date: s.fra, end_date: s.til,
@@ -1142,6 +1202,13 @@ function rapport() {
       else { perType[t].skuddS += s.shots; perType[t].treffS += s.hits }
     }
   }
+  console.log('\n── PERIODER MOT FAKTISK BELASTNING ──')
+  for (const p of byggPerioder().filter(p => p.fra <= PLAN_TIL)) {
+    const t = alleOkter.filter(o => o.dato >= p.fra && o.dato <= p.til).reduce((a, o) => a + sek(o) / 3600, 0)
+    const merke = p.intensity === 'hard' ? 'RØD  ' : p.intensity === 'medium' ? 'GUL  ' : 'GRØNN'
+    console.log(`  ${merke} ${p.fra} → ${p.til}  ${t.toFixed(1)} t   ${p.navn}`)
+  }
+
   console.log('\n── SKYTING PER TYPE ──')
   let totSkudd = 0
   for (const [t, v] of Object.entries(perType)) {

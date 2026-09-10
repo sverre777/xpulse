@@ -19,11 +19,16 @@ export const LANDING_CSS = `
 .lp *{box-sizing:border-box}
 
 /* ── topplinje ───────────────────────────────────────────── */
-.lp-topp{position:sticky;top:0;z-index:40;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  background:color-mix(in srgb, var(--flate-3) 72%, transparent);border-bottom:1px solid var(--lp-line)}
+/* Gjennomsiktig topplinje, som på forsiden: merket skal ligge OPPÅ bildet,
+   ikke bak en plate. Toningen holder lenkene lesbare uten en synlig kant. */
+.lp-topp{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  background:linear-gradient(to bottom, color-mix(in srgb, var(--flate-3) 62%, transparent), transparent);
+  border-bottom:0}
 .lp-topp-inn{max-width:1400px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:26px}
 .lp-merke{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--lp-paper);flex-shrink:0}
-.lp-merke b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:.26em}
+.lp-merke b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:.26em;
+  background-image:linear-gradient(100deg, #A5516C, #4B62AC);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
 .lp-lenker{display:flex;gap:22px;margin-left:10px;align-items:center}
 .lp-ln{position:relative;display:inline-flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--lp-dim);text-decoration:none;cursor:pointer;padding:6px 0;
@@ -60,7 +65,8 @@ export const LANDING_CSS = `
 @media(max-width:620px){
   .lp-pill{padding:8px 13px;font-size:11.5px}
   /* 390 px: ordmerket viker for pilla og hamburgeren, som i appen. */
-  .lp-merke b{display:none}
+  /* Merket står øverst til venstre på ALLE undersider, også på mobil. */
+  .lp-merke b{font-size:14px;letter-spacing:.2em}
   .lp-topp-inn{padding:10px 14px;gap:10px}
   .lp-topp-h{gap:8px}
 }

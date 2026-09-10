@@ -1,7 +1,7 @@
 'use client'
 
 // UNDERSIDENE v2 bolk B1 - topplinja (fasit design/xpulse-underside-langrenn-design.html).
-// Ny X-logo (ren hvit, XPulseIcon variant="hvit"), lenkene Funksjoner ▾ · Idretter ▾ ·
+// X-logoen i gradient (samme merke som forsidens topplinje), lenkene Funksjoner ▾ · Idretter ▾ ·
 // For trenere · Priser · Om oss, temabryteren som i dag, og to piller til høyre:
 // «Gå til forsiden» (ghost) og «Start gratis prøve» (oransje). Under 1100 px går ghost-
 // pillen og lenkene bort, hamburgeren kommer fram, og panelet beholder fokusfelle,
@@ -68,7 +68,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
       <header className="lp-topp">
         <div className="lp-topp-inn" ref={rot}>
           <Link href="/xpulse.html" className="lp-merke" aria-label="X-PULSE">
-            <XPulseIcon size={26} variant="hvit" />
+            <XPulseIcon size={26} variant="gradient" />
             <b>X-PULSE</b>
           </Link>
 
@@ -128,7 +128,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
         <div className="lp-panel" id="lp-panel" ref={panelRef} role="dialog" aria-modal="true" aria-label="Hovedmeny">
           <div className="lp-panel-topp">
             <Link href="/xpulse.html" className="lp-merke" onClick={() => setPanel(false)} aria-label="X-PULSE">
-              <XPulseIcon size={26} variant="hvit" /><b>X-PULSE</b>
+              <XPulseIcon size={26} variant="gradient" /><b>X-PULSE</b>
             </Link>
             <button type="button" className="lp-burger" style={{ display: 'flex' }} aria-label="Lukk meny" onClick={() => setPanel(false)}>
               <CloseIcon size={20} />

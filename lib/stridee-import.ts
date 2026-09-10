@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { mapFitSportToXpulse, mapFitManufacturerToSource } from '@/lib/fit-mapping'
-import { fitFilType, hentFitStruktur, oppsummerSessions, sessionSomLap } from '@/lib/fit-extract'
+import { fitFilType, fitLokalStart, hentFitStruktur, loggFitTidKilde, oppsummerSessions, sessionSomLap } from '@/lib/fit-extract'
 import {
   FILTYPE_FORKLARING,
   createWorkoutFromFit,
@@ -182,10 +182,14 @@ async function importerAktivitet(
 
   const fitLaps = raaLaps.length > 0 ? raaLaps : [sessionSomLap(session)]
   const totaler = oppsummerSessions(sessions.length > 0 ? sessions : [session])
+  // session.start_time er UTC. Dato og klokkeslett skal være det klokka viste
+  // - ellers vises en økt startet 09:40 i Oslo som 07:40, og en økt startet
+  // 00:30 havner på gårsdagen. fitLokalStart bruker fila sitt eget offset.
   const startDate = typeof session.start_time === 'string'
     ? new Date(session.start_time) : session.start_time
-  const dateStr = startDate.toISOString().slice(0, 10)
-  const timeStr = startDate.toISOString().slice(11, 16)
+  const lokal = fitLokalStart(startDate, parsed)
+  loggFitTidKilde(`stridee ${aktivitetsId}`, lokal)
+  const { dateStr, timeStr } = lokal
   const durationMin = Math.round(totaler.varighetSek / 60)
 
   // Polar-policyen: konflikt → hopp over, uten klokkeslett teller ikke.

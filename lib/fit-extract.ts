@@ -101,7 +101,15 @@ export interface FitFileId {
 // flat/'list' (sessions/laps/records på toppnivå).
 export interface FitParsedData {
   file_ids?: FitFileId[]
-  activity?: { sessions?: FitSession[] }
+  // activity-meldingen beholder sine egne felt i cascade-modus (parseren
+  // spleiser bare sessions inn i den) - derfor ligger local_timestamp her.
+  activity?: {
+    sessions?: FitSession[]
+    /** UTC-tidspunktet aktiviteten ble skrevet. */
+    timestamp?: Date | string
+    /** Samme øyeblikk som `timestamp`, men i klokkas LOKALE tid. */
+    local_timestamp?: Date | string
+  }
   sessions?: FitSession[]
   records?: FitRecord[]
   laps?: FitLap[]
@@ -344,5 +352,100 @@ export function mapRecordsToSamples(records: FitRecord[]): FitSamples {
     cadence_samples: cadence.length > 0 ? cadence : null,
     distance_samples: distance.length > 0 ? distance : null,
     temperature_samples: temperature.length > 0 ? temperature : null,
+  }
+}
+
+
+// ── Lokal tid ────────────────────────────────────────────────
+
+// FIT lagrer `session.start_time` i UTC. Leser man den med toISOString() får
+// man UTC-klokka: en økt startet 09:40 i Oslo ble lagret som 07:40, og en økt
+// startet 00:30 fikk gårsdagens dato. Riktig kilde er `activity.local_timestamp`
+// - samme øyeblikk som `activity.timestamp`, men i klokkas egen sone. Differansen
+// er øktas faktiske UTC-offset, så økter gjennomført i utlandet blir også
+// riktige; vi antar ikke Oslo.
+//
+// MERK: parseren gjør om BÅDE date_time og local_date_time med
+// `new Date(sek * 1000 + GarminTimeOffset)`. local_timestamp blir derfor en Date
+// hvis UTC-felter er den lokale veggklokka - den skal aldri leses som et øyeblikk,
+// bare trekkes fra `timestamp` for å få offsetet.
+
+/** Sonen vi faller tilbake på når fila ikke har local_timestamp. */
+export const FIT_FALLBACK_SONE = 'Europe/Oslo'
+
+/** Ingen ekte sone ligger utenfor dette - større differanse er søppel. */
+const MAKS_OFFSET_MIN = 14 * 60
+
+function tilDato(x: Date | string | undefined | null): Date | null {
+  if (!x) return null
+  const d = typeof x === 'string' ? new Date(x) : x
+  return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null
+}
+
+/**
+ * Oektas UTC-offset i minutter, hentet fra FIT-fila selv.
+ * `null` når fila ikke har local_timestamp (eller verdiene ikke gir mening).
+ */
+export function fitLokalOffsetMin(parsed: FitParsedData | null | undefined): number | null {
+  const utc = tilDato(parsed?.activity?.timestamp)
+  const lokal = tilDato(parsed?.activity?.local_timestamp)
+  if (!utc || !lokal) return null
+  const min = Math.round((lokal.getTime() - utc.getTime()) / 60000)
+  if (!Number.isFinite(min) || Math.abs(min) > MAKS_OFFSET_MIN) return null
+  return min
+}
+
+/** Dato + klokkeslett slik en veggklokke i `sone` viste dem. */
+function iSone(d: Date, sone: string): { dateStr: string; timeStr: string; offsetMin: number } {
+  const deler = new Intl.DateTimeFormat('en-US', {
+    timeZone: sone, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(d)
+  const f = (t: string) => deler.find(x => x.type === t)?.value ?? '00'
+  // hourCycle h23 kan gi '24' for midnatt i enkelte runtimes.
+  const time = f('hour') === '24' ? '00' : f('hour')
+  const dateStr = `${f('year')}-${f('month')}-${f('day')}`
+  const timeStr = `${time}:${f('minute')}`
+  const somUtc = Date.UTC(Number(f('year')), Number(f('month')) - 1, Number(f('day')), Number(time), Number(f('minute')), Number(f('second')))
+  return { dateStr, timeStr, offsetMin: Math.round((somUtc - d.getTime()) / 60000) }
+}
+
+export interface FitLokalStart {
+  /** YYYY-MM-DD slik klokka viste den. */
+  dateStr: string
+  /** HH:MM slik klokka viste den. */
+  timeStr: string
+  /** 'fit' = fra local_timestamp, 'sone' = fallback til FIT_FALLBACK_SONE. */
+  kilde: 'fit' | 'sone'
+  /** Offsetet som ble brukt, i minutter. */
+  offsetMin: number
+}
+
+/**
+ * Lokal startdato og -tid for en økt. Bruk denne overalt der en FIT-økt
+ * skrives til `workouts.date` / `workouts.time_of_day` - og til konfliktsjekken,
+ * som må se på NØYAKTIG samme tid som den som lagres.
+ */
+export function fitLokalStart(startUtc: Date, parsed: FitParsedData | null | undefined): FitLokalStart {
+  const off = fitLokalOffsetMin(parsed)
+  if (off !== null) {
+    const lokal = new Date(startUtc.getTime() + off * 60000)
+    return {
+      dateStr: lokal.toISOString().slice(0, 10),
+      timeStr: lokal.toISOString().slice(11, 16),
+      kilde: 'fit',
+      offsetMin: off,
+    }
+  }
+  // Ikke fall tilbake på UTC - da er vi like langt. Oslo er nærmeste sannhet
+  // for utøverne våre, og fallbacket logges så vi ser hvor ofte det skjer.
+  const { dateStr, timeStr, offsetMin } = iSone(startUtc, FIT_FALLBACK_SONE)
+  return { dateStr, timeStr, kilde: 'sone', offsetMin }
+}
+
+/** Én linje i loggen når fila manglet local_timestamp. */
+export function loggFitTidKilde(hvor: string, start: FitLokalStart): void {
+  if (start.kilde === 'sone') {
+    console.warn(`[fit-tid] ${hvor}: fila mangler local_timestamp - falt tilbake på ${FIT_FALLBACK_SONE} (offset ${start.offsetMin} min) → ${start.dateStr} ${start.timeStr}`)
   }
 }

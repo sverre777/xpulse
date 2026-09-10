@@ -6,7 +6,9 @@ import { mapFitSportToXpulse, mapFitManufacturerToSource } from '@/lib/fit-mappi
 import { FIT_MAX_BYTES, formatMB } from '@/lib/fit-limits'
 import {
   fitFilType,
+  fitLokalStart,
   hentFitStruktur,
+  loggFitTidKilde,
   oppsummerSessions,
   sessionSomLap,
   type FitParsedData,
@@ -120,8 +122,11 @@ export async function uploadFitFile(
 
   const startDate = typeof session.start_time === 'string'
     ? new Date(session.start_time) : session.start_time
-  const dateStr = startDate.toISOString().slice(0, 10)
-  const timeStr = startDate.toISOString().slice(11, 16)
+  // Samme regel som klokkesynken: FIT skriver UTC, men dagboka skal vise det
+  // klokka viste. Offsetet tas fra activity.local_timestamp i fila.
+  const lokalStart = fitLokalStart(startDate, parsed)
+  loggFitTidKilde(`opplasting ${file.name}`, lokalStart)
+  const { dateStr, timeStr } = lokalStart
   // total_elapsed_time mangler hos noen merker — varighetSekunder faller
   // tilbake på total_timer_time i stedet for å gi 0 minutter.
   const durationMin = Math.round(totaler.varighetSek / 60)

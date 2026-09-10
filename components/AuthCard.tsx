@@ -1,4 +1,4 @@
-import { XPulseIcon } from '@/components/branding/XPulseIcon'
+import { XPulseIcon, XP_GRADIENT } from '@/components/branding/XPulseIcon'
 
 interface AuthCardProps {
   title: string
@@ -13,17 +13,21 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
       style={{
         backgroundColor: 'var(--flate-14)',
         border: '1px solid var(--kant-4)',
+        borderRadius: 18,
         padding: '2.5rem',
+        boxShadow: '0 24px 60px color-mix(in srgb, #000 28%, transparent)',
       }}
     >
       <div className="mb-8">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <XPulseIcon size={50} ariaLabel="X-PULSE" />
+          <XPulseIcon size={50} ariaLabel="X-PULSE" variant="gradient" />
           <span
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
-              color: '#FF4500',
+              // Ordmerket følger logoens gradient i stedet for flat oransje.
+              backgroundImage: `linear-gradient(100deg, ${XP_GRADIENT[1]}, ${XP_GRADIENT[2]})`,
+              WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
               fontSize: '33px',
               letterSpacing: '0.4em',
             }}

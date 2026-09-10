@@ -8,6 +8,7 @@ import { login, AuthState } from '@/app/actions/auth'
 import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
 import { PublicFooter } from '@/components/legal/PublicFooter'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const initialState: AuthState = {}
 
@@ -101,11 +102,13 @@ function LoginInner() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
+              className="w-full text-lg transition-opacity"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
+                ...PILLE_BASIS,
+                width: '100%', minHeight: 52, fontSize: 18,
                 backgroundColor: pending ? '#7A2200' : '#FF4500',
-                color: 'var(--tekst-1-app)',
+                // Knappen er oransje i BEGGE modusene, så teksten skal være hvit i begge.
+                color: '#FFFFFF',
                 cursor: pending ? 'not-allowed' : 'pointer',
                 opacity: pending ? 0.7 : 1,
                 border: 'none',

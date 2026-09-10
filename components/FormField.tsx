@@ -35,6 +35,9 @@ export function FormField({
         style={{
           backgroundColor: 'var(--flate-15)',
           border: '1px solid var(--kant-4)',
+          // Samme runding som resten av appen - firkantede felter er igjen
+          // fra før pille-runden.
+          borderRadius: 12,
           color: 'var(--tekst-1-app)',
           fontFamily: "'Barlow Condensed', sans-serif",
           outline: 'none',

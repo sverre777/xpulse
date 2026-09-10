@@ -1,9 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-93 -132 1450 1450" role="img" aria-label="X-PULSE">
   <title>X-PULSE favicon</title>
+  <defs>
+    <!-- Merkets gradient: rødt øverst til venstre, blått nederst til høyre.
+         Aksen og fargestoppene er MÅLT ut av design/logo/xpulse-logo-gradient-x-mork.png
+         (piksler langs diagonalen), så SVG-en og designfila viser det samme.
+         userSpaceOnUse gjør at ALLE tre delene deler én gradient - med
+         objectBoundingBox ville hver del fått sin egen røde-til-blå. -->
+    <linearGradient id="xp-grad" gradientUnits="userSpaceOnUse" x1="61" y1="117" x2="1383" y2="747">
+      <stop offset="0" stop-color="#D24729"/>
+      <stop offset="0.5" stop-color="#A5516C"/>
+      <stop offset="1" stop-color="#4B62AC"/>
+    </linearGradient>
+  </defs>
   <rect x="-93" y="-132" width="1450" height="1450" rx="180" fill="#0A0A0B"/>
-  <g transform="translate(86,0) skewX(-8)">
-  <path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="48" stroke-linejoin="round"/>
-  <path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="#1A6FD4" stroke="#1A6FD4" stroke-width="44" stroke-linejoin="round"/>
-  <path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="#FF4500" stroke="#FF4500" stroke-width="38" stroke-linejoin="round"/>
+  <g transform="translate(86,0) skewX(-8)" fill="url(#xp-grad)" stroke="url(#xp-grad)" stroke-linejoin="round">
+  <path d="M62 125 L362 125 L1231 1068 L931 1068 Z" stroke-width="48"/>
+  <path d="M906 117 L1194 117 L850 510 L710 371 Z" stroke-width="44"/>
+  <path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" stroke-width="38"/>
   </g>
 </svg>

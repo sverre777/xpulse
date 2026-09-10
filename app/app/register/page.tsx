@@ -7,6 +7,7 @@ import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
 import { PublicFooter } from '@/components/legal/PublicFooter'
 import { SPORTS } from '@/lib/types'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const initialState: AuthState = {}
 
@@ -149,11 +150,13 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={pending || !!state?.bekreftEpost}
-              className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
+              className="w-full text-lg transition-opacity"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
+                ...PILLE_BASIS,
+                width: '100%', minHeight: 52, fontSize: 18,
                 backgroundColor: pending || state?.bekreftEpost ? '#7A2200' : '#FF4500',
-                color: 'var(--tekst-1-app)',
+                // Knappen er oransje i BEGGE modusene, så teksten skal være hvit i begge.
+                color: '#FFFFFF',
                 cursor: pending || state?.bekreftEpost ? 'not-allowed' : 'pointer',
                 opacity: pending || state?.bekreftEpost ? 0.7 : 1,
                 border: 'none',

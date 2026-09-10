@@ -15,6 +15,7 @@ import {
   type StandardSessionSeries,
 } from '@/app/actions/standard-sessions'
 import { useEffect } from 'react'
+import { iDagISO } from '@/lib/local-date'
 
 // Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
 // materialisert i egen periodiserings-side, ikke som mal-objekter.
@@ -610,7 +611,7 @@ function BrukPaaDatoModal({
   // dag i Plan-kalenderen.
   onMaterialized: (date: string) => void
 }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
   const [date, setDate] = useState(today)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -705,7 +706,7 @@ function BrukPlanPaaDatoModal({
   onClose: () => void
   onMaterialized: (date: string) => void
 }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
   const [date, setDate] = useState(today)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)

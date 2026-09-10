@@ -11,6 +11,7 @@ import {
   type PeriodizationOverlapInfo,
 } from '@/app/actions/coach-push'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -469,7 +470,7 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  return iDagISO()
 }
 
 function addDaysIsoClient(iso: string, days: number): string {

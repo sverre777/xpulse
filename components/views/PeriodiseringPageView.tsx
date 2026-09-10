@@ -20,6 +20,7 @@ import { KeyDatesSection } from '@/components/periodization/KeyDatesSection'
 import { MonthlyVolumeSection } from '@/components/periodization/MonthlyVolumeSection'
 import { SaveSeasonAsTemplate } from '@/components/coach/SaveSeasonAsTemplate'
 import type { ViewContext } from '@/lib/view-context'
+import { iDagISO } from '@/lib/local-date'
 
 interface Props {
   viewContext: ViewContext
@@ -60,7 +61,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
   }
 
   const seasons = seasonsResult
-  const today = new Date().toISOString().split('T')[0]
+  const today = iDagISO()
   let activeSeason: Season | null = null
   if (selectedSeasonId) {
     activeSeason = seasons.find(x => x.id === selectedSeasonId) ?? null

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { OversiktNextWorkout, OversiktWorkoutCard } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
+import { iDagISO } from '@/lib/local-date'
 
 function sportLabel(v: string): string {
   return SPORTS.find(s => s.value === v)?.label ?? v
@@ -110,7 +111,7 @@ export function NesteOektKort({
 }: {
   next: OversiktNextWorkout
 }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
 
   // Dager fram til økta. Regnes på rene datoer (ikke tidspunkt), så en økt
   // i kveld og en økt i morgen tidlig ikke havner i samme bøtte.

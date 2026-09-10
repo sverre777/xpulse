@@ -6,6 +6,7 @@ import {
   type TrainerCalendarNote,
 } from '@/app/actions/trainer-calendar'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Props) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
   const [date, setDate] = useState(initial?.date ?? defaults?.date ?? today)
   const [startTime, setStartTime] = useState(initial?.start_time ?? defaults?.startTime ?? '')
   const [endTime, setEndTime] = useState(initial?.end_time ?? '')

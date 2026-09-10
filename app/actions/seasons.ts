@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import type { Sport, WorkoutType } from '@/lib/types'
+import { iDagISO } from '@/lib/local-date'
 
 export type Intensity = 'rolig' | 'medium' | 'hard'
 export type KeyEventType =
@@ -112,7 +113,7 @@ export async function getActiveSeason(
     const resolved = await resolveTargetUser(supabase, targetUserId)
     if ('error' in resolved) return { error: resolved.error }
 
-    const today = date ?? new Date().toISOString().split('T')[0]
+    const today = date ?? iDagISO()
 
     const { data, error } = await supabase
       .from('seasons')

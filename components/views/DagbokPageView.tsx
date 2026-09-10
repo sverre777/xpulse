@@ -19,7 +19,7 @@ import { getPeriodizationForDateRange } from '@/app/actions/seasons'
 import { ResumeSessionBanner } from '@/components/workout/ResumeSessionBanner'
 import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
-import { localISODate } from '@/lib/local-date'
+import { iDagISO, localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { LazyCustomBreakdownChart as CustomBreakdownChart, LazySkytingChartSection as SkytingChartSection } from '@/components/analysis/LazyAnalyse'
 import { rangeFromPreset } from '@/components/analysis/date-range'
@@ -36,7 +36,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
   const userId = viewContext.userId
 
   const now = new Date()
-  const today = localISODate(now)
+  const today = iDagISO(now)
   const posisjon = lesKalenderPosisjon(searchParams, 'måned', now)
   const omraade = getDateRange(posisjon.view, posisjon.refDate)
   const forrige = getPrevRange(posisjon.view, posisjon.refDate)

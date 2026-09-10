@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Sport, WorkoutType } from '@/lib/types'
+import { iDagISO } from '@/lib/local-date'
 
 // ── Typer ───────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export async function getAthleteWorkouts(
   if (!check.ok) return { error: check.error }
 
   const supabase = await createClient()
-  const todayIso = new Date().toISOString().slice(0, 10)
+  const todayIso = iDagISO()
   const fromIso = opts.fromIso ?? (mode === 'plan' ? todayIso : defaultFromIso(mode))
   const toIso = opts.toIso ?? (mode === 'plan' ? defaultPlanToIso() : todayIso)
   const limit = opts.limit ?? 200
@@ -240,7 +241,7 @@ export async function getAthletePeriodization(
   if (!check.ok) return { error: check.error }
 
   const supabase = await createClient()
-  const todayIso = new Date().toISOString().slice(0, 10)
+  const todayIso = iDagISO()
 
   // Nyeste sesong som fortsatt er i gang.
   const { data: seasons } = await supabase

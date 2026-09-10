@@ -25,6 +25,7 @@ import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-du
 import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { localISODate } from '@/lib/local-date'
 
 // Serialiser sone-tid til jsonb-format. Lagres som SEKUNDER fra phase 64
 // (tidligere heltall-minutter). Input fra UI er MM:SS-string (eller "60" =
@@ -1360,8 +1361,11 @@ async function getWorkoutsForMonthIndre(userId: string, year: number, month: num
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
-  const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
-  const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
+  // new Date(år, mnd, dag) er midnatt i RUNTIME-ens sone. Leses den med
+  // toISOString(), blir 1. september til 31. august i enhver sone øst for UTC.
+  // localISODate leser tilbake nøyaktig de feltene datoen ble bygget av.
+  const startDate = localISODate(new Date(year, month - 1, 1))
+  const endDate   = localISODate(new Date(year, month, 0))
   const { data } = await supabase
     .from('workouts')
     .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,tidspunkt_notater,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')

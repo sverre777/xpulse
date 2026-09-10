@@ -11,6 +11,8 @@
 // lenge før noen insert ble forsøkt. Én ren funksjon her, testet gjennom det
 // ekte biblioteket, i stedet for antakelser om formen på tre steder.
 
+import { APP_SONE, iSone } from '@/lib/local-date'
+
 // ── Parser-opsjonene er ÉN fasit ─────────────────────────────
 // Enhetene under (særlig lengthUnit) bestemmer hvordan tallene må regnes om
 // etterpå. Ligger de to stedene, driver de fra hverandre: det var nettopp
@@ -370,8 +372,9 @@ export function mapRecordsToSamples(records: FitRecord[]): FitSamples {
 // hvis UTC-felter er den lokale veggklokka - den skal aldri leses som et øyeblikk,
 // bare trekkes fra `timestamp` for å få offsetet.
 
-/** Sonen vi faller tilbake på når fila ikke har local_timestamp. */
-export const FIT_FALLBACK_SONE = 'Europe/Oslo'
+/** Sonen vi faller tilbake på når fila ikke har local_timestamp. Samme sone
+    som resten av appen regner dager i - én kilde i lib/local-date.ts. */
+export const FIT_FALLBACK_SONE = APP_SONE
 
 /** Ingen ekte sone ligger utenfor dette - større differanse er søppel. */
 const MAKS_OFFSET_MIN = 14 * 60
@@ -393,21 +396,6 @@ export function fitLokalOffsetMin(parsed: FitParsedData | null | undefined): num
   const min = Math.round((lokal.getTime() - utc.getTime()) / 60000)
   if (!Number.isFinite(min) || Math.abs(min) > MAKS_OFFSET_MIN) return null
   return min
-}
-
-/** Dato + klokkeslett slik en veggklokke i `sone` viste dem. */
-function iSone(d: Date, sone: string): { dateStr: string; timeStr: string; offsetMin: number } {
-  const deler = new Intl.DateTimeFormat('en-US', {
-    timeZone: sone, year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-  }).formatToParts(d)
-  const f = (t: string) => deler.find(x => x.type === t)?.value ?? '00'
-  // hourCycle h23 kan gi '24' for midnatt i enkelte runtimes.
-  const time = f('hour') === '24' ? '00' : f('hour')
-  const dateStr = `${f('year')}-${f('month')}-${f('day')}`
-  const timeStr = `${time}:${f('minute')}`
-  const somUtc = Date.UTC(Number(f('year')), Number(f('month')) - 1, Number(f('day')), Number(time), Number(f('minute')), Number(f('second')))
-  return { dateStr, timeStr, offsetMin: Math.round((somUtc - d.getTime()) / 60000) }
 }
 
 export interface FitLokalStart {

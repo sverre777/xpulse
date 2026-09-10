@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { upsertDayState, deleteDayState } from '@/app/actions/day-states'
-import { localISODate } from '@/lib/local-date'
+import { iDagISO, localISODate } from '@/lib/local-date'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import {
   REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS, INJURY_SUBTYPE_LABELS,
@@ -29,7 +29,7 @@ export function DayStateModal({
   targetUserId?: string
 }) {
   const router = useRouter()
-  const today = localISODate()
+  const today = iDagISO()
   const isRest = stateType === 'hviledag'
   const isInjury = stateType === 'skade'
   const isSick = stateType === 'sykdom'

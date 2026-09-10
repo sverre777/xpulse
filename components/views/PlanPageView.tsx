@@ -19,7 +19,7 @@ import { PlanGoalsSection } from '@/components/plan/PlanGoalsSection'
 import { PlanPhasesSection } from '@/components/plan/PlanPhasesSection'
 import { SavePlanTemplateButton } from '@/components/plan/SavePlanTemplateButton'
 import type { ViewContext } from '@/lib/view-context'
-import { localISODate } from '@/lib/local-date'
+import { iDagISO, localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
@@ -32,7 +32,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
   const userId = viewContext.userId
 
   const now = new Date()
-  const today = localISODate(now)
+  const today = iDagISO(now)
   // Bolk 2: området klienten vil vise (cv/cd) hentes på serveren.
   const posisjon = lesKalenderPosisjon(searchParams, 'måned', now)
   const omraade = getDateRange(posisjon.view, posisjon.refDate)

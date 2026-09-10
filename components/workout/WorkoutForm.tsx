@@ -56,6 +56,7 @@ import { RpeSkala } from '@/components/ui/RpeSkala'
 import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER, finnOktMal, erTestMal, type OktMalDef } from '@/lib/okt-template-library'
 import { oktMalTilWorkoutTemplate, normaliserMalSok, oktMalTilIntervallOppsett, oktTypeToWorkoutType } from '@/lib/okt-mal-kopi'
 import { showCompletionCheck } from '@/lib/interactions'
+import { iDagISO } from '@/lib/local-date'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
 // felter/analyse/visning. Generiske kategorier (langtur/intervall/terskel/rolig/
@@ -286,7 +287,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [markingBusy, setMarkingBusy] = useState(false)
   const [planReference, setPlanReference] = useState<WorkoutFormData | null>(null)
 
-  const today = initialDate ?? new Date().toISOString().split('T')[0]
+  const today = initialDate ?? iDagISO()
 
   const [form, setForm] = useState<WorkoutFormData>(() => ({
     title:       defaultValues?.title ?? '',

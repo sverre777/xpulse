@@ -11,6 +11,7 @@ import {
   type CoachTargetGroup,
 } from '@/app/actions/coach-push'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -22,7 +23,7 @@ interface Props {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  return iDagISO()
 }
 
 export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport }: Props) {

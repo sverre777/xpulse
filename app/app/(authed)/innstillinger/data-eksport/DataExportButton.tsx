@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { generateDataExport } from '@/app/actions/data-export'
+import { iDagISO } from '@/lib/local-date'
 
 // Generer JSON-eksport via server-action og last ned via Blob.
 // CSV-bundle (ZIP med flere CSV-er) kan legges til senere — krever
@@ -21,7 +22,7 @@ export function DataExportButton() {
       }
       const blob = new Blob([res.json], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      const date = new Date().toISOString().slice(0, 10)
+      const date = iDagISO()
       const a = document.createElement('a')
       a.href = url
       a.download = `x-pulse-data-${date}.json`

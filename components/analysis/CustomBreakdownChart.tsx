@@ -13,7 +13,7 @@ import type { DateRange } from './date-range'
 import { rangeFromPreset, PRESETS, type PresetKey } from './date-range'
 import { ChartWrapper } from './ChartWrapper'
 import { ChipSelector, SelectControl } from './ChartControls'
-import { localISODate } from '@/lib/local-date'
+import { iDagISO } from '@/lib/local-date'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
   CHART_CURSOR, CHART_AVG_LINE, BAR_RADIUS, BAR_RADIUS_FLAT,
@@ -488,7 +488,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
   }, [displayBuckets, grouping])
 
   const nowIndex = useMemo(() => {
-    const today = localISODate()
+    const today = iDagISO()
     return displayBuckets.findIndex(b => {
       if (grouping === 'year') return b.bucketKey === today.slice(0, 4)
       if (grouping === 'month') return b.bucketKey === today.slice(0, 7)

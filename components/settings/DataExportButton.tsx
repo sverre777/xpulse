@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { exportAllUserData } from '@/app/actions/settings'
+import { iDagISO } from '@/lib/local-date'
 
 type Format = 'json' | 'csv'
 
@@ -224,5 +225,5 @@ function triggerDownload(blob: Blob, filename: string) {
 }
 
 function dateStamp(): string {
-  return new Date().toISOString().slice(0, 10)
+  return iDagISO()
 }

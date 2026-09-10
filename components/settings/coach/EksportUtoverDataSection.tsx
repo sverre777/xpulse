@@ -6,6 +6,7 @@ import {
   type ExportPeriod,
   type ExportRow,
 } from '@/app/actions/coach-settings'
+import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -65,7 +66,7 @@ export function EksportUtoverDataSection() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `xpulse-utovere-${period}d-${new Date().toISOString().slice(0, 10)}.csv`
+      a.download = `xpulse-utovere-${period}d-${iDagISO()}.csv`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

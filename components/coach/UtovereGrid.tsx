@@ -17,6 +17,7 @@ import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
 import { UtoverDetaljer } from './UtoverDetaljer'
 import { STATUS_GRONN, STATUS_GUL, STATUS_ROD, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = TRENER_BLAA
 const FONT = "'Barlow Condensed', sans-serif"
@@ -27,7 +28,7 @@ const PERIODE_NAVN: Record<Periode, string> = { uke: 'Uke', maaned: 'Måned', aa
 
 /** Periodens start og slutt - uka går mandag-søndag, som ellers i appen. */
 function periodeDatoer(p: Periode): { fra: string; til: string } {
-  const til = new Date().toISOString().slice(0, 10)
+  const til = iDagISO()
   if (p === 'aar') return { fra: `${til.slice(0, 4)}-01-01`, til }
   if (p === 'maaned') return { fra: `${til.slice(0, 7)}-01`, til }
   const d = new Date(til + 'T00:00:00Z')

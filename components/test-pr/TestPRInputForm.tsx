@@ -2,6 +2,7 @@
 
 import type { TestPRSport } from '@/lib/types'
 import { SportSubcategorySelector } from './SportSubcategorySelector'
+import { iDagISO } from '@/lib/local-date'
 
 const inputStyle: React.CSSProperties = {
   backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
@@ -34,7 +35,7 @@ export function emptyTestPRFormValue(achievedAt?: string): TestPRFormValue {
     value: '',
     unit: '',
     notes: '',
-    achieved_at: achievedAt ?? new Date().toISOString().slice(0, 10),
+    achieved_at: achievedAt ?? iDagISO(),
     equipment: '',
     conditions: '',
   }

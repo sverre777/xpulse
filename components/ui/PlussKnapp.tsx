@@ -11,13 +11,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { iDagISO } from '@/lib/local-date'
 
 const FONT = "'Barlow Condensed', sans-serif"
-
-function iDag(): string {
-  const n = new Date()
-  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
-}
 
 const Ikon = ({ d }: { d: string }) => (
   <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={d} /></svg>
@@ -40,7 +36,7 @@ export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbo
   const [aapen, setAapen] = useState(false)
   const rot = useRef<HTMLDivElement | null>(null)
   const kanLive = !targetUserId
-  const dato = (side === 'hjem' ? null : searchParams?.get('cd')) ?? iDag()
+  const dato = (side === 'hjem' ? null : searchParams?.get('cd')) ?? iDagISO()
 
   useEffect(() => {
     if (!aapen) return
@@ -72,7 +68,7 @@ export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbo
   const valg: { id: string; navn: string; ikon: string; onClick: () => void }[] = []
   if (kanForeDagbok) valg.push({ id: 'dagbok', navn: 'Før i dagbok', ikon: IKON_DAGBOK, onClick: () => gaa(`${basePath}/dagbok?new=${dato}`) })
   if (kanPlanlegge) valg.push({ id: 'plan', navn: 'Planlegg', ikon: IKON_PLAN, onClick: () => gaa(`${basePath}/plan?new=${dato}`) })
-  if (kanLive) valg.push({ id: 'live', navn: 'Live styrke', ikon: IKON_LIVE, onClick: () => gaa(`/app/dagbok?new=${iDag()}&styrke=1`) })
+  if (kanLive) valg.push({ id: 'live', navn: 'Live styrke', ikon: IKON_LIVE, onClick: () => gaa(`/app/dagbok?new=${iDagISO()}&styrke=1`) })
   if (valg.length === 0) return null
   void pathname
 

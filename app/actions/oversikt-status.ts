@@ -19,6 +19,7 @@ import { computeActivityTotals, hoyIntensitetSek } from '@/lib/activity-summary'
 import { ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import type { Sport } from '@/lib/types'
 import type { OversiktStatus, StatusPlan, StatusSkyting, StatusBelastning, StatusHelse, StatusOkt, StatusOkter, StatusSonerad } from '@/lib/oversikt-status-type'
+import { iDagISO } from '@/lib/local-date'
 
 /** Dager tilbake fra en ISO-dato, uten tidssonestøy. */
 function minusDager(iso: string, n: number): string {
@@ -45,7 +46,7 @@ async function hentOkter(toDate: string, targetUserId?: string): Promise<StatusO
     workout_activities (activity_type, duration_seconds, distance_meters, avg_heart_rate, max_heart_rate, zones, prone_shots, prone_hits, standing_shots, standing_hits),
     workout_lactate_measurements (mmol)
   `
-  const iDag = new Date().toISOString().slice(0, 10)
+  const iDag = iDagISO()
   const [gjennomfort, planlagt] = await Promise.all([
     supabase.from('workouts').select(VELG).eq('user_id', userId).is('merged_into_workout_id', null)
       .eq('is_completed', true).gte('date', minusDager(toDate, 13)).lte('date', toDate).order('date', { ascending: false }).limit(40),

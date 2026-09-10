@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { Sport } from '@/lib/types'
+import { iDagISO } from '@/lib/local-date'
 
 // ── Typer som eksponeres til komponentene ───────────────────
 
@@ -366,7 +367,7 @@ export async function getNextCompetitionForCoach(): Promise<
   const athleteIds = (rels ?? []).map(r => r.athlete_id)
   if (athleteIds.length === 0) return null
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
   const { data: workouts } = await supabase
     .from('workouts')
     .select('id, user_id, date, workout_type, title')
@@ -422,7 +423,7 @@ export async function getNextGroupSessionForCoach(): Promise<
   const athleteIds = (rels ?? []).map(r => r.athlete_id)
   if (athleteIds.length === 0) return null
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
   const { data: workouts } = await supabase
     .from('workouts')
     .select('id, user_id, date, title, sport, group_session_label')
@@ -757,7 +758,7 @@ export async function getCoachUpcomingEvents(
     .eq('status', 'active')
   const athleteIds = (rels ?? []).map(r => r.athlete_id)
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = iDagISO()
   const events: CoachUpcomingEvent[] = []
 
   // 1) Konkurranser fra utøvere — slå sammen til ett event per (dato, tittel)

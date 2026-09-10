@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { RecoveryEntry } from '@/lib/recovery-types'
+import { iDagISO } from '@/lib/local-date'
 
 export async function saveRecoveryEntry(data: {
   date: string
@@ -19,7 +20,7 @@ export async function saveRecoveryEntry(data: {
 
   if (!data.type.trim()) return { error: 'Type er påkrevd' }
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = iDagISO()
   if (data.date > today) return { error: 'Kan ikke logge recovery for fremtidig dato' }
 
   const payload = {

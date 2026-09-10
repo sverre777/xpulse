@@ -1,4 +1,5 @@
 // NAVIGASJON v2: postene på «Mer» — én kilde for /app/mer (bolk 4) og PC-nedtrekket (bolk 7).
+import { iDagISO } from '@/lib/local-date'
 export interface MerPost { id: string; navn: string; href: string; ikon: string; tall?: number }
 
 const I = {
@@ -14,8 +15,6 @@ const I = {
 }
 export const MER_IKON = I
 
-function iDag(): string { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}` }
-
 /** Utøver (3 × 3) eller trener (sju). Poster uten tilgang skjules: AI-coach uten plan. */
 export function merPoster(rolle: 'athlete' | 'coach', o: { unreadInboxCount?: number; harPlan?: boolean } = {}): MerPost[] {
   const tall = o.unreadInboxCount ?? 0
@@ -30,7 +29,7 @@ export function merPoster(rolle: 'athlete' | 'coach', o: { unreadInboxCount?: nu
   ]
   return [
     { id: 'maler', navn: 'Maler & standardøkter', href: '/app/maler', ikon: I.maler },
-    { id: 'live', navn: 'Live styrke', href: `/app/dagbok?new=${iDag()}&styrke=1`, ikon: I.live },
+    { id: 'live', navn: 'Live styrke', href: `/app/dagbok?new=${iDagISO()}&styrke=1`, ikon: I.live },
     { id: 'utstyr', navn: 'Utstyr & skipark', href: '/app/utstyr', ikon: I.utstyr },
     { id: 'helse', navn: 'Helse', href: '/app/analyse?tab=helse', ikon: I.helse },
     ...(o.harPlan === false ? [] : [{ id: 'ai', navn: 'AI-coach', href: '/app/ai-coach', ikon: I.ai }]),

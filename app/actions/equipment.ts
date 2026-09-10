@@ -26,6 +26,7 @@ import {
   normalizeCategory,
 } from '@/lib/equipment-types'
 import { beregnEquipmentUsage, tellerSomGjennomfort } from '@/lib/equipment-usage'
+import { iDagISO } from '@/lib/local-date'
 
 // Hent alle utstyrsrader for innlogget bruker. Filtrer optional på kategori +
 // status. Sortering: aktive først, deretter sist endret.
@@ -524,7 +525,7 @@ export async function saveSkiData(input: SaveSkiDataInput): Promise<{ error?: st
       await supabase.from('equipment_grinds').insert({
         equipment_id: input.equipment_id,
         grind: row.current_slip,
-        grind_date: row.slip_date ?? new Date().toISOString().slice(0, 10),
+        grind_date: row.slip_date ?? iDagISO(),
         ground_by: row.slip_by,
       })
     }

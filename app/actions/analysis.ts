@@ -19,6 +19,7 @@ import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType, IKKE_TRENINGSTID_TYPER, normaliserBevform } from '@/lib/types'
 import { findStandardTest } from '@/lib/shooting-test-templates'
 import { windShort, sightLabel, type SightKey } from '@/lib/shooting'
+import { iDagISO } from '@/lib/local-date'
 
 // ── Typer ──────────────────────────────────────────
 
@@ -1241,7 +1242,7 @@ export async function getCompetitionAnalysis(
     const rows: CompetitionAnalysisRow[] = []
     const upcomingPlanned: PlannedCompetitionRow[] = []
     const sportsPresent = new Set<Sport>()
-    const todayISO = new Date().toISOString().slice(0, 10)
+    const todayISO = iDagISO()
 
     type RawCompRowWithFlags = RawCompetitionRow & { is_planned: boolean; is_completed: boolean }
     for (const w of (compData ?? []) as RawCompRowWithFlags[]) {
@@ -3294,7 +3295,7 @@ export async function getTerskelAnalysis(
     // versjon per i dag, globalnivået ('' × '') først, ellers nyeste
     // satte nøkkel. profiles.lactate_threshold_hr er FROSSET (leses og
     // skrives ikke; pensjoneres i egen opprydding).
-    const iDag = new Date().toISOString().slice(0, 10)
+    const iDag = iDagISO()
     const [workoutsRes, templatesRes, terskelRes, alleTerskler, profilRes, vektRes] = await Promise.all([
       q,
       supabase.from('workout_templates').select('id,name').eq('user_id', userId),
@@ -4244,7 +4245,7 @@ export async function getPeriodizationOverview(
     const userId = resolved.userId
 
     const heartZones = await getHeartZonesForUserCached(userId)
-    const today = new Date().toISOString().slice(0, 10)
+    const today = iDagISO()
 
     // Velg sesongen som overlapper brukerens periode — nyeste først.
     const { data: seasonRows, error: seasonErr } = await supabase

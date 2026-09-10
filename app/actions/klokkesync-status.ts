@@ -36,14 +36,17 @@ async function getKlokkesyncBadgeIndre(): Promise<KlokkesyncBadge> {
   if (!user) {
     return { connected: false, lastSyncAt: null, hasError: false }
   }
-  const { strava, polar } = await readConnections(supabase, user.id)
-  if (!strava && !polar) {
+  const { strava, polar, stridee } = await readConnections(supabase, user.id)
+  if (!strava && !polar && stridee.length === 0) {
     return { connected: false, lastSyncAt: null, hasError: false }
   }
   return {
     connected: true,
+    // Stridee-radene har ingen last_sync_at. Vi later ikke som: står det
+    // ingenting, vises ingenting. Popupen henter den ekte tida fra
+    // imported_activities, som den likevel spør etter.
     lastSyncAt: newestIso(strava?.last_sync_at ?? null, polar?.last_sync_at ?? null),
-    hasError: hasSyncError(strava, polar),
+    hasError: hasSyncError(strava, polar, stridee),
   }
 }
 
@@ -54,20 +57,30 @@ async function getKlokkesyncBadgeIndre(): Promise<KlokkesyncBadge> {
 
 interface StravaConnRow { last_sync_at: string | null; token_expires_at: string }
 interface PolarConnRow { last_sync_at: string | null; registered_at: string | null }
+/** Garmin, COROS, Wahoo og Zepp går alle via Stridee. */
+interface StrideeConnRow { provider: string; status: string; koblet_at: string | null }
 
 async function readConnections(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-): Promise<{ strava: StravaConnRow | null; polar: PolarConnRow | null }> {
-  const [stravaRes, polarRes] = await Promise.all([
+): Promise<{ strava: StravaConnRow | null; polar: PolarConnRow | null; stridee: StrideeConnRow[] }> {
+  // Tre spørringer, men ÉN rundtur: de er uavhengige og går parallelt.
+  // Badgen hentes på hver sidelast, så dette skal ikke bli seriell venting.
+  const [stravaRes, polarRes, strideeRes] = await Promise.all([
     supabase.from('strava_connections')
       .select('last_sync_at, token_expires_at').eq('user_id', userId).maybeSingle(),
     supabase.from('polar_connections')
       .select('last_sync_at, registered_at').eq('user_id', userId).maybeSingle(),
+    // !inner + eq på den innleide kolonnen = join i én spørring, ikke to.
+    supabase.from('stridee_connections')
+      .select('provider, status, koblet_at, stridee_link!inner(user_id)')
+      .eq('stridee_link.user_id', userId)
+      .neq('status', 'frakoblet'),
   ])
   return {
     strava: (stravaRes.data as StravaConnRow | null) ?? null,
     polar: (polarRes.data as PolarConnRow | null) ?? null,
+    stridee: (strideeRes.data as StrideeConnRow[] | null) ?? [],
   }
 }
 
@@ -81,13 +94,17 @@ function newestIso(a: string | null, b: string | null): string | null {
 //  · Strava: token utløpt OG ingen vellykket synk siste døgn
 //  · Polar: tilkoblet, men registreringen hos Polar ble aldri fullført —
 //    da får vi ingen data før brukeren fullfører den
-function hasSyncError(strava: StravaConnRow | null, polar: PolarConnRow | null): boolean {
+//  · Stridee: status 'reauth_required' — brukeren MÅ re-autorisere klokka,
+//    og det er nettopp den tilstanden man leter etter i topplinja.
+//    phase106 bygde indeksen stridee_connections_reauth_idx for dette.
+function hasSyncError(strava: StravaConnRow | null, polar: PolarConnRow | null, stridee: StrideeConnRow[] = []): boolean {
   const stravaError = !!strava &&
     new Date(strava.token_expires_at).getTime() < Date.now() &&
     !!strava.last_sync_at &&
     (Date.now() - new Date(strava.last_sync_at).getTime()) > 24 * 3600 * 1000
   const polarError = !!polar && !polar.registered_at
-  return stravaError || polarError
+  const strideeError = stridee.some(c => c.status === 'reauth_required')
+  return stravaError || polarError || strideeError
 }
 
 export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {
@@ -105,7 +122,7 @@ export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {
   // Prisen: en frakoblet bruker får nå ett spørsmål for mye. Det er greit,
   // fordi en frakoblet bruker aldri kommer hit — da tar handleClick
   // router.push-grenen i stedet.
-  const [{ strava, polar }, importedRes] = await Promise.all([
+  const [{ strava, polar, stridee }, importedRes] = await Promise.all([
     readConnections(supabase, user.id),
     supabase
       .from('imported_activities')
@@ -116,20 +133,24 @@ export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {
       .limit(1)
       .maybeSingle(),
   ])
-  if (!strava && !polar) {
+  if (!strava && !polar && stridee.length === 0) {
     return { connected: false, lastSyncAt: null, lastWorkout: null, hasError: false }
   }
 
-  const hasError = hasSyncError(strava, polar)
+  const hasError = hasSyncError(strava, polar, stridee)
   const { data: imported } = importedRes
 
   const w = imported && Array.isArray(imported.workouts)
     ? imported.workouts[0]
     : (imported?.workouts as { id: string; title: string; date: string } | null | undefined)
 
+  // «Sist synket» for Stridee-merkene: connection-raden har ingen slik dato,
+  // og den ærlige kilden er da tidspunktet den siste økta faktisk kom inn.
+  // Den raden spør vi om uansett, så det koster ingen ekstra rundtur.
+  const strideeSist = imported?.source === 'stridee' ? (imported.imported_at as string | null) : null
   return {
     connected: true,
-    lastSyncAt: newestIso(strava?.last_sync_at ?? null, polar?.last_sync_at ?? null),
+    lastSyncAt: newestIso(newestIso(strava?.last_sync_at ?? null, polar?.last_sync_at ?? null), strideeSist),
     lastWorkout: w ? {
       id: w.id,
       title: w.title,

@@ -25,8 +25,16 @@ export function ProfilVarselBanner() {
     <div
       role="region"
       aria-label="Profil-påminnelse"
-      className="fixed inset-x-0 bottom-0 z-40 px-4 py-3 flex items-center justify-center gap-3 flex-wrap"
+      className="fixed inset-x-0 z-40 px-4 py-3 flex items-center justify-center gap-3 flex-wrap"
       style={{
+        // Over glasslinja, ikke under den. Med bottom-0 lå banneret rett bak
+        // navlinja: den oransje knappen skinte gjennom glasset (nav-en har
+        // backdrop-filter), og banneret stakk 17 px opp og 12 px ned utenfor
+        // den avrundede rammen i full bredde - det så ut som en oransje
+        // firkant i venstre kant (Sverre 10. sep). --xp-bunnlinje settes av
+        // GlassLinje; uten app-nav faller den til 0 og banneret ligger nederst
+        // som før.
+        bottom: 'calc(var(--xp-bunnlinje, 0px) + 12px + env(safe-area-inset-bottom, 0px))',
         backgroundColor: 'var(--flate-3)',
         borderTop: '1px solid var(--kant-3)',
         boxShadow: '0 -6px 24px rgba(0,0,0,0.25)',

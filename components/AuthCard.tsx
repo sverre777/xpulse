@@ -28,7 +28,7 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
               // Ordmerket følger logoens gradient i stedet for flat oransje.
               backgroundImage: `linear-gradient(100deg, ${XP_GRADIENT[1]}, ${XP_GRADIENT[2]})`,
               WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-              fontSize: '40px',
+              fontSize: '34px',
               letterSpacing: '0.4em',
             }}
           >

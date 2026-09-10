@@ -103,28 +103,28 @@ h2.st em{font-style:normal;color:#FF4500}
 /* ── app-vindu (PC) ── */
 .appvindu{position:relative;background:#0A0A0B;border:1px solid var(--line2);border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 :root[data-tema="lys"] .appvindu{background:#fff}
-.apptopp{display:flex;align-items:center;gap:16px;padding:9px 14px;border-bottom:1px solid var(--line)}
-.merke{display:flex;align-items:center;gap:7px}
+.apptopp{display:flex;align-items:center;gap:16px;padding:9px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+.merke{display:flex;align-items:center;gap:7px;flex:none}
 .xw{width:19px;height:19px;color:#fff;display:block} .xw svg{width:100%;height:100%}
 :root[data-tema="lys"] .xw{color:#111}
 .merke b{font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:.24em}
 .merke em{font-style:normal;font-family:'Barlow Condensed';font-weight:700;font-size:9px;letter-spacing:.12em;color:var(--mute);border:1px solid var(--line2);border-radius:5px;padding:1px 5px}
-.navrad{display:flex;gap:3px}
-.nv{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:9px;color:var(--dim);cursor:pointer;
+.navrad{display:flex;gap:3px;flex:none}
+.nv{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;flex:none;white-space:nowrap;border-radius:9px;color:var(--dim);cursor:pointer;
   font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
 .nv svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .nv.on{background:rgba(255,69,0,.14);color:#FF4500}
-.tophoyre{margin-left:auto;display:flex;align-items:center;gap:8px}
-.tik{width:32px;height:32px;border-radius:9px;border:0;background:transparent;color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tophoyre{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.tik{width:32px;height:32px;flex:none;border-radius:9px;border:0;background:transparent;color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 .tik svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
 .tik.sol{color:#FF4500}
-.synk{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(40,168,110,.5);background:rgba(40,168,110,.12);color:#28A86E;border-radius:9px;padding:7px 12px;cursor:pointer;
+.synk{display:inline-flex;align-items:center;gap:7px;flex:none;border:1px solid rgba(40,168,110,.5);background:rgba(40,168,110,.12);color:#28A86E;border-radius:9px;padding:7px 12px;cursor:pointer;
   font-family:'Barlow Condensed';font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
 .synk svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
-.rolle{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.rolle{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden;flex:none}
 .rolle span{padding:6px 13px;font-family:'Barlow Condensed';font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .rolle span.on{background:#FF4500;color:#fff}
-.avat{width:30px;height:30px;border-radius:50%;background:#FF4500;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:13px;box-shadow:0 0 0 2px rgba(255,69,0,.25)}
+.avat{width:30px;height:30px;flex:none;border-radius:50%;background:#FF4500;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:13px;box-shadow:0 0 0 2px rgba(255,69,0,.25)}
 .avat.sm{width:26px;height:26px;font-size:11px}
 .malrad{display:flex;align-items:center;gap:8px;padding:8px 16px;font-family:'Barlow';font-size:12px;color:var(--dim);border-bottom:1px solid var(--line)}
 .malrad .ml{font-family:'Barlow Condensed';font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
@@ -280,14 +280,20 @@ h2.st em{font-style:normal;color:#FF4500}
 .lv-ferdig{width:100%;background:#28A86E;color:#fff;border:0;border-radius:10px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
 .lv-fot{font-family:'Barlow';font-size:11.5px;color:var(--mute);margin-top:9px}
 
-.pcskall{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.pcinner{min-width:1040px}
-@media(max-width:1100px){
+.pcskall{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+.pcinner{min-width:1180px}
+.appvindu{contain:paint}
+@media(max-width:1240px){
   .pcskall{border:1px solid var(--line);border-radius:14px;padding:6px}
-  .pcinner{transform:scale(.82);transform-origin:top left;width:122%;margin-bottom:-16%}
+  .pcinner{width:1180px;min-width:1180px;transform:scale(.82);transform-origin:top left;
+    will-change:transform}
 }
-@media(max-width:620px){
-  .pcinner{transform:scale(.62);width:161%;margin-bottom:-40%}
+@media(max-width:820px){
+  .pcinner{transform:scale(.62)}
+}
+@media(max-width:480px){
+  .pcinner{transform:scale(.46)}
 }
 .pcskall::-webkit-scrollbar{height:6px}
 .pcskall::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
@@ -544,7 +550,10 @@ h2.st em{font-style:normal;color:#FF4500}
 <li><b>PC-visningen er Plan-siden</b> med profilmenyen åpen (Profil · Terskler & soner · Helseoppsett · Innboks · Innstillinger · Lys/mørk · Logg ut, med rollebryteren øverst og «Abonnement - håndteres på x-pulse.no» nederst). Tre uker vises - ikke hele måneden, den tar for mye plass.</li>
 <li><b>I Plan er ALLE øktene stiplet</b> - også de som er gjennomført. Gjennomføring markeres kun med en grønn ✓ foran tittelen (<code>#28A86E</code>), akkurat som i kalenderen i dag. Solid ramme finnes bare i Dagbok.</li>
 <li><b>Ukelinja viser også skudd og treff&nbsp;%</b> for skiskyttere, ved siden av tid, økter og sonefordelingen. Skjules for de som ikke har skiskyting.</li>
-<li><b>PC-visningen på mobil</b> krympes med <code>transform: scale()</code> og legges i en vannrett scroll-ramme - aldri omskrevet layout. Innholdet er det samme, bare mindre.</li>
+<li><b>PC-visningen på mobil</b> krympes med <code>transform: scale()</code> på en boks med FAST bredde (1180 px) i en vannrett scroll-ramme - aldri omskrevet layout, aldri prosentbredde. Prosentbredde gjorde at topplinja klemte seg sammen og elementene la seg oppå hverandre.</li>
+<li><b>Topplinja tåler ikke å krympes:</b> alle delene (logo, navrad, søk, Synk, innboks, rollebryter, tema, avatar) har <code>flex:none</code> og <code>white-space:nowrap</code>. Da strekkes linja ut i full bredde og scroller heller enn å overlappe.</li>
+<li><b>Høyden på rammen settes i kode</b> til <code>innerhøyde × skala</code> (eller bruk <code>zoom</code> i stedet for <code>transform</code>) - ellers står det igjen et stort tomrom under den skalerte boksen, siden transform ikke endrer layouthøyde.</li>
+<li><b>Scrollen skal ikke hakke:</b> den vannrette rammen har <code>overscroll-behavior-x: contain</code> og <code>touch-action: pan-x pan-y</code> så loddrett drag går rett videre til siden, den skalerte boksen har <code>will-change: transform</code>, og app-vinduet <code>contain: paint</code>. Ingen <code>backdrop-filter</code> inne i den skalerte boksen.</li>
 <li><b>Planen skal vise virkeligheten:</b> to økter på samme dag, hviledager, en samling som farger dagene den varer - og periodefargen følger intensiteten, så en hard samling står i rødt (<code>#E11D48</code>), ikke gull. Konkurransen er gull, planlagte økter stiplet og gjennomførte fylt med grønn venstrekant. Ukelinja under hver uke viser tid, antall økter og sonefordelingen.</li>
 <li><b>Mobilvisningen er Dagboka</b> med periodestripa, ukestripa, dagkortet og bunnlinja Hjem · Plan · Dagbok · Analyse · Mer. Menyene står LUKKET - hverken profilmenyen på PC eller ＋-menyen på mobil skal være åpen i seksjonen.</li>
 <li><b>Ukestripa på mobil viser sannheten:</b> dagene før valgt dag er fullført (fylte chips), valgt dag er markert, og dagen etter er planlagt (stiplet). Flere dager har to økter, og hviledagen står som «Hvile».</li>
@@ -559,6 +568,16 @@ h2.st em{font-style:normal;color:#FF4500}
 <li>Alt bygges for lys og mørk (regel 23). Fiktive data, men bare felt som finnes.</li>
 </ol></div>
 <script>
+(function(){
+  var skall=document.querySelector('.pcskall'), inner=document.querySelector('.pcinner');
+  function hoyde(){
+    if(!skall||!inner) return;
+    var m=getComputedStyle(inner).transform, sk=1;
+    if(m && m!=='none'){ var t=m.match(/matrix\(([^,]+)/); if(t) sk=parseFloat(t[1])||1; }
+    skall.style.height = (inner.offsetHeight*sk + 14) + 'px';
+  }
+  addEventListener('load',hoyde); addEventListener('resize',hoyde); setTimeout(hoyde,60);
+})();
 var bpc=document.getElementById('bpc'), bmob=document.getElementById('bmob');
 var pc=document.getElementById('pc'), mob=document.getElementById('mob');
 bpc.onclick=function(){pc.classList.remove('skjul');mob.classList.add('skjul');bpc.classList.add('on');bmob.classList.remove('on')};

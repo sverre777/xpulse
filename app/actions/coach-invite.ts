@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { getActiveSubscription, getCurrentTier } from '@/lib/subscriptions'
+import { getActiveSubscription, getCurrentTier, hasCoachTier } from '@/lib/subscriptions'
 
 // Unngå forvekslbare tegn: I, O, 0, 1
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -210,25 +210,29 @@ export async function redeemInviteCode(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  // Sjekk at brukeren har trener-rolle.
+  // Trener-rolle er ikke nok: å koble seg på en utøver krever aktivt
+  // trener-abonnement. has_coach_role velges selv ved registrering og koster
+  // ingenting - uten denne sjekken kunne en gratiskonto koble seg på.
   const { data: profile } = await supabase
     .from('profiles')
     .select('has_coach_role, active_role')
     .eq('id', user.id)
     .single()
   if (!profile?.has_coach_role) return { error: 'Brukeren har ikke trener-rolle' }
-
-  const { data: invite, error: inviteErr } = await supabase
-    .from('coach_invite_codes')
-    .select('id, athlete_id, expires_at, used_at')
-    .eq('code', code)
-    .maybeSingle()
-  if (inviteErr) return { error: inviteErr.message }
-  if (!invite) return { error: 'Koden finnes ikke eller er utløpt' }
-  if (invite.used_at) return { error: 'Koden er allerede brukt' }
-  if (new Date(invite.expires_at).getTime() < Date.now()) {
-    return { error: 'Koden er utløpt' }
+  const sub = await getActiveSubscription(supabase, user.id)
+  if (!hasCoachTier(sub)) {
+    return { error: 'Du må ha et aktivt Trener-abonnement for å koble til en utøver' }
   }
+
+  // Oppslaget går gjennom RPC-en (phase125): tabellen har ingen SELECT-policy
+  // for trenere lenger, nettopp fordi den lot hvem som helst med
+  // has_coach_role liste ALLE åpne koder. Funksjonen tar koden som argument
+  // og returnerer maks én rad.
+  const { data: treff, error: inviteErr } = await supabase
+    .rpc('slaa_opp_invitasjonskode', { p_kode: code })
+  if (inviteErr) return { error: inviteErr.message }
+  const invite = (treff as { id: string; athlete_id: string; expires_at: string }[] | null)?.[0]
+  if (!invite) return { error: 'Koden finnes ikke eller er utløpt' }
   if (invite.athlete_id === user.id) {
     return { error: 'Du kan ikke bruke din egen kode' }
   }
@@ -246,7 +250,7 @@ export async function redeemInviteCode(
   // — en allerede aktiv kobling passerer uendret. Trener Pro: ingen grense.
   const needsSlot = !existing || existing.status !== 'active'
   if (needsSlot) {
-    const sub = await getActiveSubscription(supabase, user.id)
+    // Abonnementet er allerede hentet over (tier-gaten) - ikke hent det igjen.
     if (getCurrentTier(sub) === 'trener_basic') {
       const { count, error: cntErr } = await supabase
         .from('coach_athlete_relations')
@@ -296,11 +300,19 @@ export async function redeemInviteCode(
     relationId = inserted.id
   }
 
-  // Marker koden som brukt.
-  await supabase
-    .from('coach_invite_codes')
-    .update({ used_at: new Date().toISOString(), used_by_coach_id: user.id })
-    .eq('id', invite.id)
+  // Marker koden som brukt. FAIL-CLOSED (regel 3): før svelget vi feilen her,
+  // og en innløst kode ble liggende åpen i sju dager - alle som hadde fått den
+  // kunne bruke den om igjen. Klarer vi ikke å merke den, skal innløsningen
+  // ikke lykkes stille: relasjonen rulles tilbake og brukeren får beskjed.
+  const { data: merket, error: merkeFeil } = await supabase
+    .rpc('merk_invitasjonskode_brukt', { p_kode: code })
+  if (merkeFeil || !merket) {
+    console.error('[redeemInviteCode] kunne ikke merke koden brukt:', merkeFeil?.message ?? 'ingen rad merket')
+    if (!alreadyConnected) {
+      await supabase.from('coach_athlete_relations').delete().eq('id', relationId)
+    }
+    return { error: 'Klarte ikke å låse invitasjonskoden. Be utøveren lage en ny kode og prøv igjen.' }
+  }
 
   // Hent utøvernavn for bekreftelse.
   const { data: athleteProfile } = await supabase

@@ -1,5 +1,19 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAuthUser } from '@/lib/auth'
+import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
+
+// Trener-tilgang til en ANNEN brukers data krever aktivt trener-abonnement.
+// Betalingsmuren i middleware gjelder kun dokumentnavigasjon (den er eksplisitt
+// slått av for actions og RSC), så uten denne holder en aktiv relasjon alene -
+// og relasjoner overlever at abonnementet utløper eller kanselleres.
+// Fail-closed: er svaret usikkert, er det nei.
+async function harTrenerTilgang(supabase: SupabaseClient, coachId: string): Promise<boolean> {
+  try {
+    return hasCoachTier(await getActiveSubscription(supabase, coachId))
+  } catch {
+    return false
+  }
+}
 
 export type PermissionKey =
   | 'can_edit_plan'
@@ -51,6 +65,10 @@ export async function resolveTargetUser(
   if (error) return { error: error.message }
   if (!data) return { error: 'Ingen aktiv relasjon til denne utøveren' }
 
+  if (!(await harTrenerTilgang(supabase, user.id))) {
+    return { error: 'Trener-abonnementet er ikke aktivt' }
+  }
+
   if (required) {
     const keys = Array.isArray(required) ? required : [required]
     if (!keys.some(k => data[k])) {
@@ -99,6 +117,11 @@ export async function resolveHealthTargetUser(
     ? (perms[0] as { can_see_health_data?: boolean } | undefined)?.can_see_health_data === true
     : (perms as { can_see_health_data?: boolean } | null)?.can_see_health_data === true
   if (!delt) return { error: 'Utøveren har ikke delt helsedata med deg' }
+
+  // Samme tier-krav som resolveTargetUser - helse er strengere, aldri mildere.
+  if (!(await harTrenerTilgang(supabase, user.id))) {
+    return { error: 'Trener-abonnementet er ikke aktivt' }
+  }
 
   return { userId: targetUserId, isCoachImpersonating: true, coachId: user.id }
 }

@@ -10,6 +10,8 @@ import {
   fetchStravaStreams,
   mapStravaSportToXpulse,
   hasRequiredStravaScope,
+  stravaKonflikt,
+  stravaLokalStart,
   type StravaActivitySummary,
   type StravaActivityDetail,
   type StravaLap,
@@ -29,8 +31,8 @@ import type { Sport } from '@/lib/types'
 // 3. quickSyncAll — gjør import for alle aktiviteter uten konflikt
 //    (brukes av auto-sync-polling)
 //
-// Konflikt = eksisterende workout samme dato innenfor ±30 min av Strava-
-// aktivitetens start_date.
+// Konflikt = eksisterende workout samme LOKALE dato innenfor ±30 min av
+// Strava-aktivitetens lokale starttid (start_date_local, ikke start_date).
 
 const CONFLICT_WINDOW_MINUTES = 30
 
@@ -40,7 +42,8 @@ export interface SyncableActivity {
   strava_id: number
   name: string
   sport_type: string
-  start_date: string  // ISO
+  start_date: string  // ISO, UTC
+  start_date_local: string  // veggklokka der økta ble gjennomført
   duration_minutes: number
   distance_km: number
   // null = ingen konflikt; ellers id på eksisterende workout som overlapper.
@@ -135,6 +138,7 @@ export async function listSyncableActivities(
         name: sa.name,
         sport_type: sa.sport_type,
         start_date: sa.start_date,
+        start_date_local: sa.start_date_local,
         duration_minutes: Math.round(sa.elapsed_time / 60),
         distance_km: Math.round((sa.distance / 1000) * 10) / 10,
         conflict_workout_id: conflicts.get(sa.id) ?? null,
@@ -499,25 +503,9 @@ function findConflict(
   strava: StravaActivitySummary,
   workouts: { id: string; date: string; time_of_day: string | null; duration_minutes: number | null }[],
 ): string | null {
-  const stravaStart = new Date(strava.start_date).getTime()
-  const stravaDate = strava.start_date.slice(0, 10)
-  for (const w of workouts) {
-    if (w.date !== stravaDate) continue
-    if (!w.time_of_day) {
-      // Manuelt loggede økter har typisk ingen time_of_day. Tidligere antok
-      // vi konflikt på samme dato, men det førte til at Strava-importer ble
-      // silent-droppet hver gang brukeren hadde en manuell loggføring samme
-      // dag. Nå: hopp over rader uten klokkeslett i konflikt-sjekken så
-      // Strava-importen får lov å eksistere side om side. Brukeren kan
-      // slå sammen via merge-handling i UI om de vil.
-      continue
-    }
-    const [h, m] = w.time_of_day.split(':').map(Number)
-    const wStart = new Date(`${w.date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`).getTime()
-    const diffMin = Math.abs(stravaStart - wStart) / 60000
-    if (diffMin <= CONFLICT_WINDOW_MINUTES) return w.id
-  }
-  return null
+  // Regelen bor i lib/strava.ts - samme funksjon som cron-veien bruker, og
+  // samme lokale tid som lagres. Økter uten klokkeslett teller ikke her.
+  return stravaKonflikt(strava, workouts, { vinduMin: CONFLICT_WINDOW_MINUTES })
 }
 
 async function createWorkoutFromStrava(
@@ -527,9 +515,8 @@ async function createWorkoutFromStrava(
   streams: StravaStreamSet,
   externalId: string,
 ): Promise<ImportResult> {
-  const startDate = new Date(detail.start_date)
-  const dateStr = startDate.toISOString().slice(0, 10)
-  const timeStr = startDate.toISOString().slice(11, 16)
+  // start_date er UTC - dagboka skal vise det klokka på stedet viste.
+  const { dateStr, timeStr } = stravaLokalStart(detail)
 
   // workouts.sport hentes fra brukerens primary_sport (en langrennsutøver
   // er fortsatt langrennsutøver selv om de logger en sykkeltur som krysstrening).

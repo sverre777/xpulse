@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   syntetiskLapFraAktivitet, avrundEllerNull, kolonneFraNotNullFeil,
+  stravaLokalStart, veggklokkeMin, stravaKonflikt,
   type StravaActivityDetail,
 } from '../lib/strava.ts'
 
@@ -29,6 +30,7 @@ const manuell = {
   type: 'Run',
   sport_type: 'Run',
   start_date: '2026-07-20T16:35:19Z',
+  start_date_local: '2026-07-20T18:35:19Z',
   elapsed_time: 3654,
   moving_time: 3600,
   distance: 6028.33,
@@ -180,6 +182,94 @@ const beholdt = rader.filter(r => (r as Record<string, unknown>)[kol] != null)
 const avvist = rader.filter(r => (r as Record<string, unknown>)[kol] == null).map(r => r.sort_order)
 ok('én ødelagt lap feller ikke de andre', beholdt.length === 2, beholdt.length)
 ok('den avviste raden navngis i loggen', avvist.join(',') === '1', avvist)
+
+
+// ══════════════════════════════════════════════════════════════════════
+// KLOKKESLETT I LOKAL TID (klarert enkeltfeilretting 2026-09-10)
+//
+// FEILEN DENNE VOKTER: begge import-veiene leste `start_date` (UTC) med
+// toISOString() og lagret resultatet som workouts.date/time_of_day. En økt
+// startet 09:40 i Oslo ble lagret som 07:40, og en økt startet 00:30 havnet på
+// gårsdagen. Strava sender riktig verdi i samme svar: start_date_local, som er
+// veggklokka på stedet med et Z-suffiks som LYVER - den skal skjæres ut som
+// tekst, aldri gjennom new Date().
+//
+// Konfliktsjekken hadde samme feil i BEGGE ender: et UTC-øyeblikk ble
+// sammenlignet mot en lagret tid som ble tolket i serverens sone.
+// ══════════════════════════════════════════════════════════════════════
+
+console.log('\n— lokal tid fra start_date_local —')
+{
+  const okt = (utc: string, lokal?: string) => ({ id: 1, start_date: utc, start_date_local: lokal })
+
+  const vinter = stravaLokalStart(okt('2026-01-15T08:40:00Z', '2026-01-15T09:40:00Z'))
+  ok('vintertid: 08:40Z lagres som 09:40', vinter.dateStr === '2026-01-15' && vinter.timeStr === '09:40', vinter)
+
+  const sommer = stravaLokalStart(okt('2026-07-15T07:40:00Z', '2026-07-15T09:40:00Z'))
+  ok('sommertid: 07:40Z lagres som 09:40', sommer.dateStr === '2026-07-15' && sommer.timeStr === '09:40', sommer)
+
+  // 23:30 lokalt i New York = 03:30 UTC DAGEN ETTER. Dato skal følge klokka.
+  const sent = stravaLokalStart(okt('2026-07-16T03:30:00Z', '2026-07-15T23:30:00Z'))
+  ok('23:30 lokalt beholder sin egen dato selv om UTC har gått over midnatt',
+    sent.dateStr === '2026-07-15' && sent.timeStr === '23:30', sent)
+
+  // Utenlandsøkt med et annet offset enn Oslo (samling i Colorado, -7).
+  const ute = stravaLokalStart(okt('2026-02-10T13:15:00Z', '2026-02-10T06:15:00Z'))
+  ok('utenlandsøkt får stedets klokke, ikke Oslos', ute.timeStr === '06:15', ute)
+
+  // Feltet mangler (gammel cache / fikstur): dagens oppførsel + én logglinje.
+  const advarsler: string[] = []
+  const gammelWarn = console.warn
+  console.warn = (...a: unknown[]) => { advarsler.push(String(a[0])) }
+  const uten = stravaLokalStart({ id: 42, start_date: '2026-07-15T07:40:00Z' })
+  console.warn = gammelWarn
+  ok('uten start_date_local: faller tilbake til UTC-verdien', uten.timeStr === '07:40' && uten.kilde === 'utc', uten)
+  ok('uten start_date_local: logges med økt-id',
+    advarsler.some(a => a.includes('[strava-tid]') && a.includes('42')), advarsler)
+
+  ok('veggklokkeMin regner minutter uten sone', veggklokkeMin('09:40') === 580 && veggklokkeMin('00:30:00') === 30)
+}
+
+console.log('\n— konfliktsjekken ser samme tid som lagres —')
+{
+  const strava = { id: 7, start_date: '2026-07-15T07:40:00Z', start_date_local: '2026-07-15T09:40:00Z' }
+  const w = (id: string, date: string, tid: string | null) => ({ id, date, time_of_day: tid })
+
+  ok('samme lokale klokkeslett blokkerer',
+    stravaKonflikt(strava, [w('w1', '2026-07-15', '09:45')]) === 'w1')
+  ok('to timer unna slipper gjennom',
+    stravaKonflikt(strava, [w('w2', '2026-07-15', '11:40')]) === null)
+  ok('den gamle UTC-tida blokkerer ikke lenger',
+    stravaKonflikt(strava, [w('w3', '2026-07-15', '07:40')]) === null)
+  ok('økt uten klokkeslett teller ikke i server-action-veien',
+    stravaKonflikt(strava, [w('w4', '2026-07-15', null)]) === null)
+  ok('økt uten klokkeslett teller i cron-veien',
+    stravaKonflikt(strava, [w('w5', '2026-07-15', null)], { utenTidTeller: true }) === 'w5')
+
+  // Den lokale datoen er 15., ikke 16. - en økt på UTC-datoen skal ikke treffe.
+  const sent = { id: 8, start_date: '2026-07-16T03:30:00Z', start_date_local: '2026-07-15T23:30:00Z' }
+  ok('konflikt slås opp på den LOKALE datoen',
+    stravaKonflikt(sent, [w('w6', '2026-07-15', '23:35')]) === 'w6'
+    && stravaKonflikt(sent, [w('w7', '2026-07-16', '03:35')]) === null)
+}
+
+console.log('\n— sømmen: ingen toISOString igjen i de fire stedene —')
+{
+  const rot2 = join(dirname(fileURLToPath(import.meta.url)), '..')
+  for (const [fil, navn] of [
+    ['app/actions/strava-sync.ts', 'server-action'],
+    ['app/api/cron/strava-sync/route.ts', 'cron'],
+  ] as const) {
+    const kode = readFileSync(join(rot2, fil), 'utf-8')
+    ok(`${navn}: lagrer tida fra stravaLokalStart`, /const \{ dateStr, timeStr \} = stravaLokalStart\(detail\)/.test(kode))
+    ok(`${navn}: konflikten bruker den delte regelen`, kode.includes('stravaKonflikt(strava, workouts'))
+    ok(`${navn}: ingen new Date(...start_date) igjen`, !/new Date\((detail|strava|sa)\.start_date\)/.test(kode))
+    ok(`${navn}: ingen toISOString paa oektas starttid`, !/startDate\.toISOString\(\)/.test(kode))
+  }
+  const cron = readFileSync(join(rot2, 'app/api/cron/strava-sync/route.ts'), 'utf-8')
+  ok('cron slaar opp eksisterende oekter paa LOKAL dato',
+    cron.includes('stravaLokalStart(a).dateStr'))
+}
 
 // Oppsummeringen MÅ ligge sist. Lå den midt i fila, ville tester lagt til
 // etterpå kjørt ETTER exit-sjekken og feilet grønt.

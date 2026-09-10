@@ -5,8 +5,11 @@ import {
   fetchStravaActivityDetail,
   fetchStravaStreams,
   mapStravaSportToXpulse,
+  stravaLokalStart,
+  stravaKonflikt,
   type StravaConnection,
   type StravaActivityDetail,
+  type StravaActivitySummary,
   type StravaStreamSet,
   type StravaLap,
   syntetiskLapFraAktivitet,
@@ -89,7 +92,9 @@ async function syncOneUser(
   const importedSet = new Set((alreadyImported ?? []).map(r => r.external_id as string))
 
   // Filter ut konflikter (samme dato +/- 30 min).
-  const dates = Array.from(new Set(stravaActivities.map(a => a.start_date.slice(0, 10))))
+  // Lokale datoer - samme dato som konfliktsjekken og lagringen bruker. Med
+  // UTC-datoen her ville en økt startet etter 22:00 slått opp på feil dag.
+  const dates = Array.from(new Set(stravaActivities.map(a => stravaLokalStart(a).dateStr)))
   const { data: existingWorkouts } = await supabase
     .from('workouts')
     .select('id, date, time_of_day')
@@ -100,7 +105,7 @@ async function syncOneUser(
   for (const sa of stravaActivities) {
     const externalId = `strava_${sa.id}`
     if (importedSet.has(externalId)) continue
-    if (hasConflict(sa.start_date, existingWorkouts ?? [])) continue
+    if (hasConflict(sa, existingWorkouts ?? [])) continue
 
     // Hent detalj + streams og lag workout.
     // FEIL-2 (c): per-økt try/catch. Uten den kastet ett feilende API-kall
@@ -132,18 +137,13 @@ async function syncOneUser(
 }
 
 function hasConflict(
-  isoStart: string,
-  workouts: { date: string; time_of_day: string | null }[],
+  strava: StravaActivitySummary,
+  workouts: { id: string; date: string; time_of_day: string | null }[],
 ): boolean {
-  const stravaTs = new Date(isoStart).getTime()
-  const stravaDate = isoStart.slice(0, 10)
-  for (const w of workouts) {
-    if (w.date !== stravaDate) continue
-    if (!w.time_of_day) return true
-    const wTs = new Date(`${w.date}T${w.time_of_day.slice(0, 5)}:00`).getTime()
-    if (Math.abs(stravaTs - wTs) / 60000 <= 30) return true
-  }
-  return false
+  // Samme regel og samme lokale tid som server-action-veien og som lagringen.
+  // Her teller en økt uten klokkeslett som konflikt: cron kjører uten at noen
+  // ser resultatet, så vi heller hopper over enn å lage en dublett.
+  return stravaKonflikt(strava, workouts, { utenTidTeller: true }) !== null
 }
 
 async function createWorkoutFromStrava(
@@ -164,9 +164,8 @@ async function createWorkoutFromStrava(
     .eq('id', userId)
     .maybeSingle()
   const sport = (profile?.primary_sport as string | null) ?? 'endurance'
-  const startDate = new Date(detail.start_date)
-  const dateStr = startDate.toISOString().slice(0, 10)
-  const timeStr = startDate.toISOString().slice(11, 16)
+  // start_date er UTC - dagboka skal vise det klokka på stedet viste.
+  const { dateStr, timeStr } = stravaLokalStart(detail)
 
   const { data: workout, error } = await supabase
     .from('workouts')

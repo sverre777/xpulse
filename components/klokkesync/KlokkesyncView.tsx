@@ -423,6 +423,14 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
   )
 }
 
+const MND_NO = ['jan.', 'feb.', 'mar.', 'apr.', 'mai', 'jun.', 'jul.', 'aug.', 'sep.', 'okt.', 'nov.', 'des.']
+
+/** «15. jul., 09:40» fra en ISO-streng som skal leses som veggklokke. */
+function visStrideeTid(iso: string): string {
+  const dag = Number(iso.slice(8, 10)), mnd = Number(iso.slice(5, 7))
+  return `${String(dag).padStart(2, '0')}. ${MND_NO[mnd - 1] ?? ''}, ${iso.slice(11, 16)}`
+}
+
 function ActivityRow({
   activity, onImport, onResolveConflict,
 }: {
@@ -430,7 +438,10 @@ function ActivityRow({
   onImport: () => void
   onResolveConflict: () => void
 }) {
-  const date = new Date(activity.start_date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  // start_date_local er veggklokka der økta ble gjennomført, med et Z-suffiks
+  // som lyver - den skal leses som tekst. Ellers viser lista noe annet enn det
+  // importen faktisk lagrer, for økter gjennomført i en annen sone.
+  const date = visStrideeTid(activity.start_date_local)
   const conflict = activity.conflict_workout_id != null
   const imported = activity.already_imported
   return (

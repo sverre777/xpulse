@@ -221,7 +221,10 @@ export interface StravaActivitySummary {
   name: string
   type: string
   sport_type: string
+  /** UTC. Bruk stravaLokalStart() til dato/klokkeslett, ikke denne. */
   start_date: string
+  /** Veggklokka der økta faktisk ble gjennomført. ISO uten sone (Z-en lyver). */
+  start_date_local: string
   elapsed_time: number
   moving_time: number
   distance: number
@@ -429,4 +432,77 @@ export function mapStravaSportToXpulse(stravaType: string): StravaMovementMappin
     console.warn(`[strava-sync] ukjent sport_type "${stravaType}" — bruker fallback Annet`)
   }
   return { movement: 'Annet', subcategory: null }
+}
+
+
+// ── Lokal tid ────────────────────────────────────────────────
+
+// start_date er UTC. Leser man den som klokkeslett blir en økt startet 09:40 i
+// Oslo lagret som 07:40, og en økt startet 00:30 havner på gårsdagen. Strava
+// sender allerede riktig verdi i samme svar: start_date_local er veggklokka på
+// stedet, formatert som ISO med et Z-suffiks som LYVER. Derfor skjæres den ut
+// som tekst - aldri gjennom new Date(), som ville tolket Z-en som ekte.
+export interface StravaLokalStart {
+  /** YYYY-MM-DD slik klokka viste den. */
+  dateStr: string
+  /** HH:MM slik klokka viste den. */
+  timeStr: string
+  /** 'lokal' = fra start_date_local, 'utc' = feltet manglet (logges). */
+  kilde: 'lokal' | 'utc'
+}
+
+/**
+ * ÉN kilde til dato og klokkeslett for en Strava-økt - både til lagring og til
+ * konfliktsjekken, som må se nøyaktig samme tid som den som lagres.
+ */
+export function stravaLokalStart(
+  a: { id?: number; start_date: string; start_date_local?: string | null },
+): StravaLokalStart {
+  const lokal = a.start_date_local
+  if (typeof lokal === 'string' && lokal.length >= 16) {
+    return { dateStr: lokal.slice(0, 10), timeStr: lokal.slice(11, 16), kilde: 'lokal' }
+  }
+  // Skal ikke skje - feltet er alltid med i Stravas svar. Gammel cache eller en
+  // fikstur kan mangle det; da beholder vi dagens oppførsel og logger, så vi ser
+  // om det faktisk skjer.
+  console.warn(`[strava-tid] mangler start_date_local for ${a.id ?? 'ukjent'}`)
+  return { dateStr: a.start_date.slice(0, 10), timeStr: a.start_date.slice(11, 16), kilde: 'utc' }
+}
+
+/**
+ * Minutter siden midnatt for HH:MM. Ren veggklokke - ingen sone-tolkning, som
+ * er hele poenget: konflikt sammenlignes veggklokke mot veggklokke.
+ */
+export function veggklokkeMin(hhmm: string): number {
+  const [h, m] = hhmm.slice(0, 5).split(':').map(Number)
+  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0)
+}
+
+/**
+ * Konflikt: eksisterende økt samme LOKALE dato innenfor ±`vinduMin`.
+ * Én kilde for begge importveiene, så sjekken og lagringen aldri kan se ulik tid.
+ *
+ * `utenTidTeller`: hva en eksisterende økt uten klokkeslett skal bety. Manuelt
+ * loggede økter har typisk ingen time_of_day. Server-action-veien lar dem stå
+ * side om side (false) - antok vi konflikt der, ble Strava-importen stille
+ * droppet hver gang brukeren hadde loggført samme dag. Cron-veien er
+ * forsiktigere (true) fordi ingen ser resultatet før i innboksen.
+ */
+export function stravaKonflikt(
+  strava: { id?: number; start_date: string; start_date_local?: string | null },
+  workouts: { id: string; date: string; time_of_day: string | null }[],
+  opts: { utenTidTeller?: boolean; vinduMin?: number } = {},
+): string | null {
+  const { dateStr, timeStr } = stravaLokalStart(strava)
+  const stravaMin = veggklokkeMin(timeStr)
+  const vindu = opts.vinduMin ?? 30
+  for (const w of workouts) {
+    if (w.date !== dateStr) continue
+    if (!w.time_of_day) {
+      if (opts.utenTidTeller) return w.id
+      continue
+    }
+    if (Math.abs(stravaMin - veggklokkeMin(w.time_of_day)) <= vindu) return w.id
+  }
+  return null
 }

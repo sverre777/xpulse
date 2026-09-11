@@ -925,6 +925,18 @@ body.nav-locked { overflow:hidden; }
     box-sizing:border-box; display:block;
   }
 .nav-panel-cta:hover { background:var(--orange-dark); }
+/* Panelet skal se NØYAKTIG ut som undersidenes (components/landing/landing-css.ts,
+   .lp-panel-*). Fargene der er appens flate-/kant-tokens, som forsiden ikke laster;
+   verdiene er derfor speilet her, for mørk og lys. Endres de der, endres de her. */
+.nav-panel { --pn-bg:#0A0A0B; --pn-card:#111113; --pn-surface:#060607; --pn-line:#262629; --pn-paper:#F2F0EC; --pn-dim:rgb(242 240 236 / .62); background:var(--pn-bg); }
+:root[data-tema="lys"] .nav-panel { --pn-bg:#F4F4F5; --pn-card:#ECECEE; --pn-surface:#F8F8F9; --pn-line:#D6D6D9; --pn-paper:#13110D; --pn-dim:rgb(19 17 13 / .62); }
+.nav-panel-close { color:var(--pn-paper); }
+.nav-panel-icon-btn { background:var(--pn-card); border-color:var(--pn-line); color:var(--pn-paper); }
+.nav-panel-links > a, .nav-panel-group > summary { background:var(--pn-card); color:var(--pn-paper); }
+.nav-panel-sublinks a { background:var(--pn-surface); color:var(--pn-dim); }
+.nav-panel-sublinks a:hover { color:var(--pn-paper); background:var(--pn-card); }
+.nav-panel-top .logo { gap:9px; }
+.nav-panel-top .logo span { font:700 22px/1 'Barlow Condensed','Arial Narrow',sans-serif; letter-spacing:.26em; padding-left:0; }
 .pricing-group-label {
     font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-weight:700;
     font-size:11px; letter-spacing:0.28em; text-transform:uppercase;
@@ -1009,7 +1021,7 @@ nav {
 .nav-logo {
     font-family:'Barlow Condensed','Arial Narrow',sans-serif;
     /* Ordmerket står litt under X-ens høyde. 34 px ble for stort (Sverre). */
-    font-weight:600; font-size:28px; letter-spacing:0.38em;
+    font-weight:600; font-size:25px; letter-spacing:0.38em;
     color:var(--white); text-decoration:none; text-transform:uppercase;
     display:inline-flex; align-items:center; gap:7px;
   }

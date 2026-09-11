@@ -936,7 +936,10 @@ body.nav-locked { overflow:hidden; }
 .nav-panel-sublinks a { background:var(--pn-surface); color:var(--pn-dim); }
 .nav-panel-sublinks a:hover { color:var(--pn-paper); background:var(--pn-card); }
 .nav-panel-top .logo { gap:9px; }
-.nav-panel-top .logo span { font:700 22px/1 'Barlow Condensed','Arial Narrow',sans-serif; letter-spacing:.26em; padding-left:0; }
+.nav-panel-top .logo span { font:700 22px/1.5 'Barlow Condensed','Arial Narrow',sans-serif; letter-spacing:.26em; padding-left:0; }
+.nav-panel { line-height:1.5; }                       /* undersidene arver 1.5, forsiden 1.6 - ga 1 px per rad */
+.nav-panel-top { height:33px; }                       /* samme topprad som .lp-panel-topp */
+.nav-panel-close { display:flex; padding:0; }         /* uten inline-linjeboks - den la 8 px på raden */
 .pricing-group-label {
     font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-weight:700;
     font-size:11px; letter-spacing:0.28em; text-transform:uppercase;
@@ -1021,7 +1024,8 @@ nav {
 .nav-logo {
     font-family:'Barlow Condensed','Arial Narrow',sans-serif;
     /* Ordmerket står litt under X-ens høyde. 34 px ble for stort (Sverre). */
-    font-weight:600; font-size:25px; letter-spacing:0.38em;
+    /* På mobil en tanke mindre - se @media under. */
+    font-weight:600; font-size:28px; letter-spacing:0.38em;
     color:var(--white); text-decoration:none; text-transform:uppercase;
     display:inline-flex; align-items:center; gap:7px;
   }
@@ -1032,6 +1036,7 @@ nav {
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
 .nav-logo svg, .footer-logo svg { display:block; flex-shrink:0; }
+@media (max-width:900px) { .nav-logo { font-size:25px; } }   /* en tanke mindre PULSE, KUN mobil (Sverre 11. sep) */
 .nav-links { display:flex; gap:32px; list-style:none; align-items:center; }
 .nav-links a {
     font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-weight:600;

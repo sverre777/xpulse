@@ -125,28 +125,56 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
       </header>
 
       {panel && (
+        /* Mobilpanelet er BYGGET LIKT forsidens (public/xpulse.html .nav-panel):
+           logo + lukk, tre ikonknapper (Logg inn · FAQ · Kontakt), radene
+           Idretter ▾ · Funksjoner ▾ · For trenere · Priser · Om oss, og den
+           oransje pillen nederst. Eneste forskjell er «Gå til forsiden», som
+           bare gir mening her (Sverre 11. sep). Endres det ene, endres det andre. */
         <div className="lp-panel" id="lp-panel" ref={panelRef} role="dialog" aria-modal="true" aria-label="Hovedmeny">
           <div className="lp-panel-topp">
             <Link href="/xpulse.html" className="lp-merke" onClick={() => setPanel(false)} aria-label="X-PULSE">
-              <XPulseIcon size={26} variant="gradient" /><b>PULSE</b>
+              <XPulseIcon size={32} variant="gradient" /><b>PULSE</b>
             </Link>
-            <button type="button" className="lp-burger" style={{ display: 'flex' }} aria-label="Lukk meny" onClick={() => setPanel(false)}>
-              <CloseIcon size={20} />
+            <button type="button" className="lp-panel-lukk" aria-label="Lukk meny" onClick={() => setPanel(false)}>
+              <CloseIcon size={26} />
             </button>
           </div>
-          <details>
-            <summary>Idretter <span aria-hidden>▾</span></summary>
-            {IDRETTER.map(s => <Link key={s.href} href={s.href} onClick={() => setPanel(false)}>{s.label}</Link>)}
-          </details>
-          <details>
-            <summary>Funksjoner <span aria-hidden>▾</span></summary>
-            {MODULER.map(m => <Link key={m.href} href={m.href} onClick={() => setPanel(false)}>{m.label}</Link>)}
-          </details>
-          <Link href="/funksjoner/trener" onClick={() => setPanel(false)}>For trenere</Link>
-          <Link href="/xpulse.html#priser" onClick={() => setPanel(false)}>Priser</Link>
-          <Link href="/om-oss" onClick={() => setPanel(false)}>Om oss</Link>
-          <Link href="/xpulse.html" onClick={() => setPanel(false)}>Gå til forsiden</Link>
-          <Link href="/xpulse.html#priser" className="lp-pill" onClick={() => setPanel(false)}>Start gratis prøve</Link>
+
+          <div className="lp-panel-ikoner">
+            <Link href="/app" className="lp-panel-ikon" onClick={() => setPanel(false)}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 3 H21 V9"/><path d="M10 14 L21 3"/><path d="M21 14 V21 H3 V3 H10"/></svg>
+              Logg inn
+            </Link>
+            <Link href="/xpulse.html#faq" className="lp-panel-ikon" onClick={() => setPanel(false)}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16 16"/></svg>
+              FAQ
+            </Link>
+            <Link href="/kontakt" className="lp-panel-ikon" onClick={() => setPanel(false)}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7 L12 13 L21 7"/></svg>
+              Kontakt
+            </Link>
+          </div>
+
+          <div className="lp-panel-lenker" role="navigation" aria-label="Sider">
+            <details className="lp-panel-gruppe">
+              <summary>Idretter <span className="lp-panel-chev" aria-hidden>▾</span></summary>
+              <div className="lp-panel-under">
+                {IDRETTER.map(s => <Link key={s.href} href={s.href} onClick={() => setPanel(false)}>{s.label}</Link>)}
+              </div>
+            </details>
+            <details className="lp-panel-gruppe">
+              <summary>Funksjoner <span className="lp-panel-chev" aria-hidden>▾</span></summary>
+              <div className="lp-panel-under">
+                {MODULER.map(m => <Link key={m.href} href={m.href} onClick={() => setPanel(false)}>{m.label}{'snart' in m && m.snart ? <span className="lp-panel-snart">Kommer snart</span> : null}</Link>)}
+              </div>
+            </details>
+            <Link href="/funksjoner/trener" onClick={() => setPanel(false)}>For trenere</Link>
+            <Link href="/xpulse.html#priser" onClick={() => setPanel(false)}>Priser</Link>
+            <Link href="/om-oss" onClick={() => setPanel(false)}>Om oss</Link>
+            <Link href="/xpulse.html" onClick={() => setPanel(false)}>Gå til forsiden</Link>
+          </div>
+
+          <Link href="/xpulse.html#priser" className="lp-panel-cta" onClick={() => setPanel(false)}>Start 30 dagers gratis prøve</Link>
         </div>
       )}
     </>

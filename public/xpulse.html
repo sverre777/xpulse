@@ -873,6 +873,8 @@ body.nav-locked { overflow:hidden; }
 .nav-panel.open .nav-panel-links > :nth-child(2) { animation-delay:.07s }
 .nav-panel.open .nav-panel-links > :nth-child(3) { animation-delay:.11s }
 .nav-panel.open .nav-panel-links > :nth-child(4) { animation-delay:.15s }
+.nav-panel.open .nav-panel-links > :nth-child(5) { animation-delay:.19s }
+.nav-panel.open .nav-panel-links > :nth-child(6) { animation-delay:.23s }
 @keyframes panelIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) {
   .nav-panel.open .nav-panel-links > a,
@@ -914,7 +916,7 @@ body.nav-locked { overflow:hidden; }
   }
 .nav-panel-sublinks a:hover { color:var(--white); background:var(--surface); }
 .nav-panel-cta {
-    margin-top:auto; padding:18px; border-radius:12px;
+    margin-top:auto; padding:18px; border-radius:999px;
     background:var(--orange); color:var(--white);
     text-align:center; text-decoration:none;
     font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-weight:700;
@@ -1013,7 +1015,7 @@ nav {
   }
 /* Ordmerket følger X-ens gradient, så X + PULSE leses som ETT merke.
    Fargene er de samme som i #xp-logo-gradient og XP_GRADIENT (én fasit). */
-.nav-logo span, .fu-merke b, .fu-mmerke b {
+.nav-logo span, .nav-panel-top .logo span, .fu-merke b, .fu-mmerke b {
     background-image:linear-gradient(100deg, #A5516C, #4B62AC);
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
@@ -2383,8 +2385,10 @@ section[id],header[id]{scroll-margin-top:108px}
   </div>
 
   <div class="nav-panel-links" role="navigation" aria-label="Sider">
+    <!-- Radene er de SAMME som i undersidenes panel (components/landing/LandingNav.tsx),
+         minus «Gå til forsiden» som bare gir mening der. Endres det ene, endres det andre. -->
     <details class="nav-panel-group">
-      <summary>Funksjoner <svg class="dropdown-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
+      <summary>Idretter <svg class="dropdown-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
       <div class="nav-panel-sublinks">
         <a href="/funksjoner/langrenn">Langrenn</a>
         <a href="/funksjoner/skiskyting">Skiskyting</a>
@@ -2393,19 +2397,23 @@ section[id],header[id]{scroll-margin-top:108px}
         <a href="/funksjoner/sykling">Sykling</a>
         <a href="/funksjoner/triatlon">Triatlon</a>
         <a href="/funksjoner/multisport">Multisport</a>
+      </div>
+    </details>
+    <details class="nav-panel-group">
+      <summary>Funksjoner <svg class="dropdown-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
+      <div class="nav-panel-sublinks">
         <a href="/funksjoner/dagbok-og-plan">Dagbok og Plan</a>
         <a href="/funksjoner/analyse">Analyse</a>
-        <a href="/funksjoner/trener">Trener</a>
         <a href="/funksjoner/klokkesync">Klokkesync</a>
+        <a href="/funksjoner/trener">For trenere</a>
         <a href="/funksjoner/ai-coach">AI Coach <span class="dropdown-soon">Kommer snart</span></a>
       </div>
     </details>
+    <a href="/funksjoner/trener">For trenere</a>
     <a href="#priser">Priser</a>
     <a href="/om-oss">Om oss</a>
-    <a href="#faq">FAQ</a>
-    <!-- Vilkår + Personvern er fjernet fra mobil-menyen - de finnes i footer.
-         Mobil-menyen ble for høy med dem og overflowet viewport, slik at
-         FUNKSJONER + topprad scrollet ut av syne. -->
+    <!-- FAQ ligger i ikonraden over. Vilkår + Personvern finnes i footer;
+         panelet ble for høyt med dem og overflowet viewport. -->
   </div>
 
   <a class="nav-panel-cta" href="#priser">Start 30 dagers gratis prøve</a>

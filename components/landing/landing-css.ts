@@ -72,15 +72,42 @@ export const LANDING_CSS = `
 }
 
 /* mobilpanel */
-.lp-panel{position:fixed;inset:0;z-index:200;background:var(--lp-bg);padding:20px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
-.lp-panel-topp{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.lp-panel a,.lp-panel summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border-radius:12px;
-  background:var(--lp-card);border:1px solid var(--lp-line);text-decoration:none;color:var(--lp-paper);cursor:pointer;
-  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
-.lp-panel details a{margin-top:6px;background:var(--lp-surface)}
-.lp-panel summary{list-style:none}
-.lp-panel summary::-webkit-details-marker{display:none}
-.lp-panel .lp-pill{margin-top:auto;padding:16px;font-size:13px}
+/* Mobilpanelet: SAMME tall som forsidens .nav-panel-* i public/xpulse.html
+   (padding, radius, skrift, sperring). Endres det ene, endres det andre. */
+.lp-panel{position:fixed;inset:0;z-index:200;background:var(--lp-bg);box-sizing:border-box;
+  padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  display:flex;flex-direction:column;gap:16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.lp-panel>*{width:100%;box-sizing:border-box}
+.lp-panel-topp{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.lp-panel-topp .lp-merke b{font-size:22px;letter-spacing:.26em}
+.lp-panel-lukk{background:none;border:0;color:var(--lp-paper);cursor:pointer;padding:6px;display:flex}
+.lp-panel-ikoner{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex-shrink:0}
+.lp-panel-ikon{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;padding:14px 8px;border-radius:10px;
+  background:var(--lp-card);border:1px solid var(--lp-line);color:var(--lp-paper);text-decoration:none;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  transition:background .15s,border-color .15s}
+.lp-panel-ikon:hover{border-color:var(--lp-oransje)}
+.lp-panel-lenker{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.lp-panel-gruppe{display:block;width:100%}
+.lp-panel-lenker>a,.lp-panel-gruppe>summary{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;
+  padding:16px 18px;border-radius:12px;border-left:3px solid transparent;background:var(--lp-card);
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--lp-paper);text-decoration:none;list-style:none;cursor:pointer;transition:background .15s}
+.lp-panel-lenker>a:hover,.lp-panel-gruppe>summary:hover{border-left-color:var(--lp-oransje)}
+.lp-panel-gruppe>summary::-webkit-details-marker{display:none}
+.lp-panel-gruppe>summary::marker{display:none;content:''}
+.lp-panel-chev{font-size:12px;transition:transform .15s}
+.lp-panel-gruppe[open]>summary .lp-panel-chev{transform:rotate(180deg)}
+.lp-panel-under{display:flex;flex-direction:column;gap:1px;margin-top:1px;width:100%}
+.lp-panel-under a{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;padding:13px 18px 13px 32px;border-radius:10px;
+  background:var(--lp-surface);color:var(--lp-dim);text-decoration:none;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;transition:background .15s,color .15s}
+.lp-panel-under a:hover{color:var(--lp-paper)}
+.lp-panel-snart{font-size:9px;letter-spacing:.12em;padding:2px 6px;border:1px solid var(--lp-line2);border-radius:999px;color:var(--lp-dim)}
+.lp-panel-cta{margin-top:auto;flex-shrink:0;display:block;box-sizing:border-box;padding:18px;border-radius:999px;text-align:center;
+  background:var(--lp-oransje);color:#fff;text-decoration:none;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2.5px;text-transform:uppercase;transition:background .2s}
+.lp-panel-cta:hover{filter:brightness(.92)}
 
 /* ── hero ────────────────────────────────────────────────── */
 .lp-uhero{position:relative;min-height:min(78vh,620px);display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--lp-line)}

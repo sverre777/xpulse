@@ -1,0 +1,15 @@
+<!-- Skjemadefinisjon for Netlify Forms. Netlify leser denne STATISKE fila ved
+     deploy og registrerer skjemaet «kontakt»; Next-sida /kontakt sender inn
+     med fetch mot samme feltnavn. Fila vises aldri for brukere.
+     Varsling til support@x-pulse.no slås på i Netlify: Site -> Forms ->
+     Form notifications. Uten det ligger innsendingene bare i dashbordet. -->
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><title>kontakt</title></head><body>
+<form name="kontakt" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="kontakt">
+  <input type="text" name="bot-field">
+  <input type="email" name="epost">
+  <input type="text" name="emne">
+  <textarea name="melding"></textarea>
+</form>
+</body></html>

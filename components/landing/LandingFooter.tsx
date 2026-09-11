@@ -54,8 +54,9 @@ export function LandingFooter() {
 
         <div>
           <FooterCol label="Selskap" items={[
+            { href: '/om-oss',                   label: 'Om oss' },
             { href: '/nytt',                     label: 'Hva er nytt' },
-            { href: 'mailto:support@x-pulse.no', label: 'Kontakt' },
+            { href: '/kontakt',                  label: 'Kontakt' },
             { href: '/personvern',               label: 'Personvern' },
             { href: '/vilkar',                   label: 'Vilkår' },
             { href: '/cookies',                  label: 'Cookies' },

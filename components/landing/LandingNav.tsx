@@ -109,7 +109,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
             </div>
             <Link href="/funksjoner/trener" className={`lp-ln${aktiv === 'trenere' ? ' on' : ''}`}>For trenere</Link>
             <Link href="/xpulse.html#priser" className={`lp-ln${aktiv === 'priser' ? ' on' : ''}`}>Priser</Link>
-            <Link href="/xpulse.html#hvorfor" className={`lp-ln${aktiv === 'om' ? ' on' : ''}`}>Om oss</Link>
+            <Link href="/om-oss" className={`lp-ln${aktiv === 'om' ? ' on' : ''}`}>Om oss</Link>
           </nav>
 
           <div className="lp-topp-h">
@@ -144,7 +144,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
           </details>
           <Link href="/funksjoner/trener" onClick={() => setPanel(false)}>For trenere</Link>
           <Link href="/xpulse.html#priser" onClick={() => setPanel(false)}>Priser</Link>
-          <Link href="/xpulse.html#hvorfor" onClick={() => setPanel(false)}>Om oss</Link>
+          <Link href="/om-oss" onClick={() => setPanel(false)}>Om oss</Link>
           <Link href="/xpulse.html" onClick={() => setPanel(false)}>Gå til forsiden</Link>
           <Link href="/xpulse.html#priser" className="lp-pill" onClick={() => setPanel(false)}>Start gratis prøve</Link>
         </div>

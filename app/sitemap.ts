@@ -34,6 +34,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page('/funksjoner/ai-coach', 0.7),
     page('/pris', 0.8),
     page('/nytt', 0.5),
+    page('/om-oss', 0.5, 'monthly'),
+    page('/kontakt', 0.4, 'monthly'),
     page('/kontakt', 0.4, 'monthly'),
     page('/personvern', 0.2, 'monthly'),
     page('/vilkar', 0.2, 'monthly'),

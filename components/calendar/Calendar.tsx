@@ -1749,14 +1749,17 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   // Radene pakkes i et to-kolonners rutenett: loddrett
                   // periodestripe til venstre, som spenner radene i samme
                   // periode (gridRow: span n), dagradene til høyre.
-                  const periodeIder: (string | null)[] = []
-                  const radMedStriper = (noder: React.ReactNode[]) => {
+                  // Hver rad bærer sin periode-id sammen med noden - ingen
+                  // parallell liste som muteres underveis (React Compiler-lint).
+                  type Rad = { id: string | null; node: React.ReactNode }
+                  const periodeId = (d: Date) => periodForDate(seasonPeriods, toISO(d))?.id ?? null
+                  const radMedStriper = (noder: Rad[]) => {
                     const ut: React.ReactNode[] = []
                     let k = 0
                     while (k < noder.length) {
-                      const id = periodeIder[k]
+                      const id = noder[k].id
                       let n = 1
-                      while (k + n < noder.length && periodeIder[k + n] === id) n++
+                      while (k + n < noder.length && noder[k + n].id === id) n++
                       if (id) {
                         ut.push(
                           <div key={`stripe-${k}`} style={{ gridColumn: 1, gridRow: `span ${n}`, display: 'flex' }}>
@@ -1764,17 +1767,14 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           </div>,
                         )
                       }
-                      for (let m = 0; m < n; m++) ut.push(<div key={`rad-${k + m}`} style={{ gridColumn: 2, minWidth: 0 }}>{noder[k + m]}</div>)
+                      for (let m = 0; m < n; m++) ut.push(<div key={`rad-${k + m}`} style={{ gridColumn: 2, minWidth: 0 }}>{noder[k + m].node}</div>)
                       k += n
                     }
                     return <div style={{ display: 'grid', gridTemplateColumns: '18px minmax(0, 1fr)', columnGap: 8 }}>{ut}</div>
                   }
 
                   // Variant A (plan): alle dager synlige.
-                  if (mode !== 'dagbok') {
-                    const noder = daysInMonth.map(d => { periodeIder.push(periodForDate(seasonPeriods, toISO(d))?.id ?? null); return renderDayRow(d) })
-                    return radMedStriper(noder)
-                  }
+                  if (mode !== 'dagbok') return radMedStriper(daysInMonth.map(d => ({ id: periodeId(d), node: renderDayRow(d) })))
 
                   // Variant B (dagbok): kollapser KUN helt tomme, passerte
                   // dager — dager med tilstand/nøkkeldato/helse-dot vises
@@ -1788,22 +1788,21 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       && keyDatesForDate(seasonKeyDates, dsx).length === 0
                       && !healthDates.has(dsx)
                   }
-                  const out: React.ReactNode[] = []
+                  const out: Rad[] = []
                   let i = 0
                   while (i < daysInMonth.length) {
-                    if (!collapsible(daysInMonth[i])) { periodeIder.push(periodForDate(seasonPeriods, toISO(daysInMonth[i]))?.id ?? null); out.push(renderDayRow(daysInMonth[i])); i++; continue }
+                    if (!collapsible(daysInMonth[i])) { out.push({ id: periodeId(daysInMonth[i]), node: renderDayRow(daysInMonth[i]) }); i++; continue }
                     let j = i
                     while (j < daysInMonth.length && collapsible(daysInMonth[j])) j++
                     const gapDays = daysInMonth.slice(i, j)
                     const gapKey = toISO(gapDays[0])
                     if (expandedGaps.has(gapKey)) {
-                      gapDays.forEach(d => { periodeIder.push(periodForDate(seasonPeriods, toISO(d))?.id ?? null); out.push(renderDayRow(d)) })
+                      gapDays.forEach(d => out.push({ id: periodeId(d), node: renderDayRow(d) }))
                     } else {
                       const first = gapDays[0]
                       const last = gapDays[gapDays.length - 1]
                       const single = gapDays.length === 1
-                      periodeIder.push(periodForDate(seasonPeriods, toISO(first))?.id ?? null)
-                      out.push(
+                      out.push({ id: periodeId(first), node:
                         <div key={`gap-${gapKey}`} className="flex items-start gap-2.5" style={{ position: 'relative', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
                           <div style={{ flex: '0 0 44px', textAlign: 'center', paddingTop: 3, opacity: 0.75 }}>
                             <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase', fontWeight: 700 }}>
@@ -1834,7 +1833,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             <span style={{ marginLeft: 'auto', color: 'var(--tekst-8-alt)' }}>{single ? '＋' : '▾'}</span>
                           </button>
                         </div>
-                      )
+                      })
                     }
                     i = j
                   }

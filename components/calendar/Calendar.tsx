@@ -2,7 +2,7 @@
 
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { buildWeekDates, toISO, getDateRange, getPrevRange, erSammeOmraade, type ServerOmraade } from '@/lib/kalender-omraade'
-import { Fragment, createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
+import { Fragment, createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -1275,7 +1275,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [], layout = 'grid' }: {
+function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [], layout = 'grid', mobilLayout = 'list' }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
@@ -1283,8 +1283,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   recoveryData: Record<string, RecoveryEntry[]>
   mode: CalendarMode
   // Desktop-layout: 'grid' (7-kolonners kalender, default) eller 'list'
-  // (stablet, samme som mobil — 2 kolonner over ~1100px). Mobil er alltid liste.
+  // (stablet - 2 kolonner over ~1100px).
   layout?: 'grid' | 'list'
+  // Mobil-layout (<768 px): liste som standard, rutenett når brukeren velger det.
+  mobilLayout?: 'grid' | 'list'
   seasonPeriods: import('@/app/actions/seasons').SeasonPeriod[]
   seasonMarkings?: import('@/app/actions/seasons').SeasonMarking[]
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
@@ -1304,9 +1306,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
     const t = new Date()
     if (t.getFullYear() !== year || t.getMonth() + 1 !== month) return
     if (typeof window === 'undefined') return
-    if (window.innerWidth >= 768 && layout !== 'list') return
+    if (window.innerWidth >= 768 ? layout !== 'list' : mobilLayout !== 'list') return
     document.querySelector('[data-week-current="1"]')?.scrollIntoView({ block: 'start' })
-  }, [year, month, layout])
+  }, [year, month, layout, mobilLayout])
 
   // ── Dra-og-slipp (måneds-grid): flytt økt til ny dag ──────────────────
   // Mus: drag etter 8px bevegelse (klikk forblir klikk → åpner edit). Touch:
@@ -1558,7 +1560,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           <Fragment key={wi}>
             {/* ── DESKTOP (≥768px): 7-kolonners grid - uendret (skjules helt
                 når Liste-layout er valgt) ── */}
-            <div className={layout === 'grid' ? 'hidden md:block' : 'hidden'}>
+            <div className={`${mobilLayout === 'grid' ? 'block' : 'hidden'} ${layout === 'grid' ? 'md:block' : 'md:hidden'}`} data-mnd-rutenett>
             {/* Periodestripen (Sverre 12. sep): samme pille som forsiden og
                 ukevisningen, over uka, delt på dagene når uka har flere
                 perioder. Samme kolonner og gap som dagcellene under. */}
@@ -1610,7 +1612,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 design.html, bolk 1 variant A). SAMME datakilder som griden:
                 byDate + filterByMode, dayStates, keyDates, health - kun
                 layouten er ny. ── */}
-            <div className={layout === 'grid' ? 'md:hidden px-3' : 'px-3'}
+            <div className={`${mobilLayout === 'list' ? 'block' : 'hidden'} ${layout === 'list' ? 'md:block' : 'md:hidden'} px-3`} data-mnd-liste
               data-week-current={weekHasToday ? '1' : undefined}
               style={{ scrollMarginTop: 96 }}>
               <div style={{ position: 'relative' }}>
@@ -2579,6 +2581,30 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
 
 // ── Main Calendar component ────────────────────────────────
 
+// Layout-valg som huskes i localStorage. Abonnerer på et eget hendelsesnavn
+// (og storage-hendelsen fra andre faner), så alle lesere oppdateres når det
+// skrives. Serveren ser alltid standardverdien.
+function useLagretLayout(nokkel: string, standard: 'grid' | 'list'): ['grid' | 'list', (l: 'grid' | 'list') => void] {
+  const les = useCallback((): 'grid' | 'list' => {
+    try {
+      const v = window.localStorage.getItem(nokkel)
+      return v === 'grid' || v === 'list' ? v : standard
+    } catch { return standard }
+  }, [nokkel, standard])
+  const abonner = useCallback((meld: () => void) => {
+    const paa = () => meld()
+    window.addEventListener('storage', paa)
+    window.addEventListener('xp-layout-endret', paa)
+    return () => { window.removeEventListener('storage', paa); window.removeEventListener('xp-layout-endret', paa) }
+  }, [])
+  const verdi = useSyncExternalStore(abonner, les, () => standard)
+  const sett = useCallback((l: 'grid' | 'list') => {
+    try { window.localStorage.setItem(nokkel, l) } catch { /* privat modus o.l. */ }
+    window.dispatchEvent(new Event('xp-layout-endret'))
+  }, [nokkel])
+  return [verdi, sett]
+}
+
 export function Calendar({
   mode, userId, primarySport, userSports, activityTypeFavorites, templates,
   initialView = 'måned', initialDate,
@@ -2604,19 +2630,19 @@ export function Calendar({
   // params → nåtid som før. Initialiseres fra URL, faller tilbake til props/nå.
   const urlView = searchParams.get('cv')
   const urlDate = searchParams.get('cd')
-  // Måneds-layout på desktop: Kalender (grid) eller Liste — persistert per
-  // bruker og delt mellom plan/dagbok (samme localStorage-nøkkel). Default
-  // grid; leses i effekt (ikke initializer) for å unngå hydration-avvik.
-  const [monthLayout, setMonthLayout] = useState<'grid' | 'list'>('grid')
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem('xp-mnd-layout') === 'list') setMonthLayout('list')
-    } catch { /* localStorage utilgjengelig (privat modus o.l.) */ }
-  }, [])
-  const setMonthLayoutPersist = (l: 'grid' | 'list') => {
-    setMonthLayout(l)
-    try { window.localStorage.setItem('xp-mnd-layout', l) } catch { /* ignorer */ }
-  }
+  // Måneds-layout: Kalender (grid) eller Liste, husket per bruker og delt
+  // mellom plan/dagbok. PC og mobil har hver sin nøkkel (Sverre 12. sep:
+  // bytte skal også gå på telefon, med liste som standard der), så valget på
+  // mobil ikke drar med seg PC-valget. Hvilken bryter som vises avgjøres av
+  // CSS-bruddpunktet (md), ikke av JS.
+  //
+  // FELLE: «les localStorage i en mount-effekt og setState» mistet
+  // oppdateringen her - effekten kjørte og leste riktig verdi, men ingen
+  // re-render fulgte (målt 12. sep). useSyncExternalStore leser lageret på
+  // klientens første render og bruker standardverdien på serveren, uten det
+  // spranget.
+  const [monthLayout, setMonthLayoutPersist] = useLagretLayout('xp-mnd-layout', 'grid')
+  const [mobilLayout, setMobilLayoutPersist] = useLagretLayout('xp-mnd-layout-mobil', 'list')
 
   const [view, setView] = useState<CalendarView>(
     (urlView === 'uke' || urlView === 'måned' || urlView === 'år') ? urlView : initialView
@@ -2982,20 +3008,35 @@ export function Calendar({
             ))}
           </div>
           {view === 'måned' && (
-            /* Ren wrapper for skjuling under md: xp-seg-pill setter egen
-               display og kan overstyre Tailwinds hidden på samme element. */
-            <div className="hidden md:block">
-              <div className="xp-seg-pill" role="group" aria-label="Måneds-layout">
-                <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
-                  onClick={() => setMonthLayoutPersist('grid')}
-                  className={monthLayout === 'grid' ? 'on' : undefined}
-                  style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
-                <button type="button" aria-label="Liste (stablet)" title="Liste"
-                  onClick={() => setMonthLayoutPersist('list')}
-                  className={monthLayout === 'list' ? 'on' : undefined}
-                  style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+            /* To brytere, én per bruddpunkt: over md styrer den PC-preferansen
+               (rutenett standard), under md mobilpreferansen (liste standard).
+               Wrapper-div-ene fordi xp-seg-pill setter egen display. */
+            <>
+              <div className="hidden md:block">
+                <div className="xp-seg-pill" role="group" aria-label="Måneds-layout" data-mnd-layout={monthLayout}>
+                  <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
+                    onClick={() => setMonthLayoutPersist('grid')}
+                    className={monthLayout === 'grid' ? 'on' : undefined}
+                    style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
+                  <button type="button" aria-label="Liste (stablet)" title="Liste"
+                    onClick={() => setMonthLayoutPersist('list')}
+                    className={monthLayout === 'list' ? 'on' : undefined}
+                    style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+                </div>
               </div>
-            </div>
+              <div className="md:hidden">
+                <div className="xp-seg-pill" role="group" aria-label="Måneds-layout" data-mnd-layout={mobilLayout}>
+                  <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
+                    onClick={() => setMobilLayoutPersist('grid')}
+                    className={mobilLayout === 'grid' ? 'on' : undefined}
+                    style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
+                  <button type="button" aria-label="Liste (stablet)" title="Liste"
+                    onClick={() => setMobilLayoutPersist('list')}
+                    className={mobilLayout === 'list' ? 'on' : undefined}
+                    style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
@@ -3087,7 +3128,7 @@ export function Calendar({
         </>
       )}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} mobilLayout={mobilLayout} />
       )}
       {view === 'uke' && (
         <UkeVisning

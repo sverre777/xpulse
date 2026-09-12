@@ -162,7 +162,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
 
         <div className="grid md:grid-cols-2 gap-6">
           <PlanGoalsSection season={activeSeason} keyDates={seasonKeyDates} todayISO={today} />
-          <PlanPhasesSection season={activeSeason} periods={seasonPeriods} todayISO={today} />
+          <PlanPhasesSection season={activeSeason} periods={seasonPeriods} todayISO={today} monthStart={monthStart} monthEnd={monthEnd} />
         </div>
 
       </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { Season, SeasonPeriod, Intensity } from '@/app/actions/seasons'
 import { PeriodModal } from '@/components/periodization/PeriodModal'
+import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const INTENSITY_COLOR: Record<Intensity, string> = {
   rolig: '#28A86E',
@@ -44,13 +45,19 @@ function EmptyCTA({ message }: { message: string }) {
 }
 
 export function PlanPhasesSection({
-  season, periods, todayISO,
+  season, periods, todayISO, monthStart, monthEnd,
 }: {
   season: Season | null
   periods: SeasonPeriod[]
   todayISO: string
+  /** Måneden kalenderen over viser (ISO). Uten dem vises alle periodene. */
+  monthStart?: string
+  monthEnd?: string
 }) {
   const [editing, setEditing] = useState<SeasonPeriod | null>(null)
+  // Sverre 12. sep: seksjonen viser periodene i INNEVÆRENDE måned (den
+  // kalenderen står på), og «Vis mer» åpner alle planlagte perioder.
+  const [visAlle, setVisAlle] = useState(false)
 
   if (!season) {
     return (
@@ -71,12 +78,17 @@ export function PlanPhasesSection({
   }
 
   const sorted = [...periods].sort((a, b) => a.start_date.localeCompare(b.start_date))
+  const iManeden = monthStart && monthEnd
+    ? sorted.filter(p => p.start_date <= monthEnd && p.end_date >= monthStart)
+    : sorted
+  const skjult = sorted.length - iManeden.length
+  const liste = visAlle || iManeden.length === 0 ? sorted : iManeden
 
   return (
-    <div>
+    <div data-plan-faser data-viser={visAlle ? 'alle' : 'maaned'}>
       <SectionHeader />
       <div className="space-y-2">
-        {sorted.map(p => {
+        {liste.map(p => {
           const isCurrent = p.start_date <= todayISO && todayISO <= p.end_date
           const startLabel = new Date(p.start_date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
           const endLabel = new Date(p.end_date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
@@ -123,6 +135,12 @@ export function PlanPhasesSection({
           )
         })}
       </div>
+      {skjult > 0 && iManeden.length > 0 && (
+        <button type="button" data-plan-faser-mer onClick={() => setVisAlle(v => !v)}
+          style={{ ...PILLE_BASIS, marginTop: 10, background: 'transparent', color: 'var(--tekst-1-app)', border: '1px solid var(--kant-4)' }}>
+          {visAlle ? 'Vis bare denne måneden' : `Vis mer · ${skjult} ${skjult === 1 ? 'periode' : 'perioder'} til`}
+        </button>
+      )}
 
       <PeriodModal
         open={editing !== null}

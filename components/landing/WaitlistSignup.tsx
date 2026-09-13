@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { joinWaitlist, type WaitlistResult } from '@/app/actions/waitlist'
-import { ArrowRightIcon } from '@/components/branding/nav-icons'
+import { Ikon } from '@/components/ui/ikoner'
 
 // E-post-skjema for waitlist (klokkesync, AI-tier). Optimistisk UI: viser
 // "Sender …" mens server-action kjører, og tydelig kvittering eller feil
@@ -85,10 +85,10 @@ export function WaitlistSignup({
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
           }}>
-          {success ? '✓ Du er på listen' : pending ? 'Sender …' : (
+          {success ? <><Ikon navn="fullfort" storrelse={14} />Du er på listen</> : pending ? 'Sender …' : (
             <>
               {cta}
-              <ArrowRightIcon size={14} />
+              <Ikon navn="neste" storrelse={14} />
             </>
           )}
         </button>

@@ -6,6 +6,7 @@ import { useActionState, useEffect } from 'react'
 import { switchActiveRole } from '@/app/actions/roles'
 import { startRollebytte } from './RollebytteSkjelett'
 import { AvatarMenyProps } from './AvatarMeny'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const BEBAS = "'Bebas Neue', sans-serif"
@@ -13,8 +14,6 @@ const ORANSJE = '#FF4500'
 const COACH_BLUE = '#1A6FD4'
 
 import { merPoster } from '@/lib/mer-poster'
-
-const Ikon = ({ d }: { d: string }) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={d} /></svg>
 
 export function MerSide({ rolle, userName, hasAthleteRole = true, hasCoachRole = false, hasCoachTier = false, harPlan = false, harSkiskyting = false, unreadInboxCount = 0, sportEtikett, planEtikett }: AvatarMenyProps & { harPlan?: boolean; harSkiskyting?: boolean }) {
   void harSkiskyting
@@ -26,7 +25,7 @@ export function MerSide({ rolle, userName, hasAthleteRole = true, hasCoachRole =
         {poster.map(p => (
           <Link key={p.id} href={p.href} data-mer-post={p.id} className="flex items-center gap-3"
             style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 12px', minHeight: 64, textDecoration: 'none', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14.5, fontWeight: 700, lineHeight: 1.15 }}>
-            <span style={{ color: aksent, flexShrink: 0 }}><Ikon d={p.ikon} /></span>
+            <span style={{ color: aksent, flexShrink: 0, display: 'inline-flex' }}><Ikon navn={p.ikon} storrelse={22} /></span>
             <span style={{ flex: 1, minWidth: 0 }}>{p.navn}</span>
             {p.tall != null && p.tall > 0 && <span data-mer-tall style={{ minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: COACH_BLUE, color: '#fff', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{p.tall}</span>}
           </Link>
@@ -61,7 +60,7 @@ function Profilrad({ rolle, userName, hasAthleteRole, hasCoachRole, hasCoachTier
           <p style={{ fontFamily: BEBAS, fontSize: 22, letterSpacing: '0.04em', color: 'var(--tekst-1-app)', margin: 0, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName ?? 'Bruker'}</p>
           <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-5-app)', margin: '3px 0 0' }}>{[sportEtikett, rolle === 'coach' ? 'Trener' : 'Utøver', planEtikett].filter(Boolean).join(' · ')}</p>
         </div>
-        <Link href="/app/innstillinger/profil" data-mer-profil style={{ fontFamily: FONT, fontSize: 12.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: aksent, textDecoration: 'none', fontWeight: 700, flexShrink: 0 }}>Profil →</Link>
+        <Link href="/app/innstillinger/profil" data-mer-profil style={{ fontFamily: FONT, fontSize: 12.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: aksent, textDecoration: 'none', fontWeight: 700, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}>Profil<Ikon navn="neste" storrelse={14} /></Link>
       </div>
       {kanBytte && <div className="flex mt-3" style={{ border: '1px solid var(--line2)', borderRadius: 999, padding: 3, gap: 2 }}>{knapp('athlete', 'Utøver', ORANSJE)}{knapp('coach', 'Trener', COACH_BLUE)}</div>}
       {state?.error && <p style={{ fontFamily: FONT, fontSize: 12, color: '#E23A5A', margin: '6px 0 0' }}>{state.error}</p>}

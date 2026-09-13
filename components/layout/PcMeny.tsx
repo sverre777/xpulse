@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { AvatarMeny, type AvatarMenyProps } from './AvatarMeny'
 import { merPoster } from '@/lib/mer-poster'
-import { MerGlyph } from './NavLinkIcons'
+import { Ikon } from '@/components/ui/ikoner'
 import { MerPanel } from './MerPanel'
 
 const FONT = "'Barlow Condensed', sans-serif"
@@ -65,7 +65,7 @@ export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0, toppLenker = 
       <button type="button" data-pc-mer onClick={() => setAapen(v => !v)} aria-haspopup="menu" aria-expanded={aapen} title="Mer"
         className="px-3 min-[1400px]:px-4 flex items-center gap-2 text-sm uppercase transition-colors"
         style={{ fontFamily: FONT, fontWeight: 600, letterSpacing: '0.16em', color: aktiv || aapen ? accent : 'rgb(var(--tekst-land-rgb) / 0.55)', height: 36, borderRadius: 999, background: aktiv || aapen ? (rolle === 'coach' ? 'var(--blue-soft)' : 'var(--accent-soft)') : 'transparent', border: 'none', cursor: 'pointer' }}>
-        <MerGlyph size={18} />
+        <Ikon navn="mer" storrelse={22} />
         <span className="hidden min-[1400px]:inline">Mer</span>
         <span className="min-[1400px]:hidden sr-only">Mer</span>
       </button>
@@ -77,7 +77,7 @@ export function MerNedtrekk({ rolle, accent, unreadInboxCount = 0, toppLenker = 
               {poster.map(p => (
                 <Link key={p.id} href={p.href} role="menuitem" data-pc-mer-valg={p.id} onClick={() => setAapen(false)} className="flex items-center gap-3"
                   style={{ padding: '9px 12px', borderRadius: 10, textDecoration: 'none', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14.5, fontWeight: 600, minHeight: 40 }}>
-                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={p.ikon} /></svg>
+                  <Ikon navn={p.ikon} storrelse={18} style={{ color: accent }} />
                   <span style={{ flex: 1 }}>{p.navn}</span>
                   {p.tall != null && p.tall > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999, background: '#1A6FD4', color: '#fff', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{p.tall}</span>}
                 </Link>

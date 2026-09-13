@@ -10,6 +10,7 @@ import { SearchResultGroup } from './SearchResultGroup'
 import { SearchSortDropdown } from './SearchSortDropdown'
 import { SearchFilterPanel } from './SearchFilterPanel'
 import { SearchActiveFiltersChips } from './SearchActiveFiltersChips'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Props {
   open: boolean
@@ -140,7 +141,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
           className="flex items-center gap-2 px-4 py-3"
           style={{ borderBottom: '1px solid var(--line)' }}
         >
-          <SearchGlyph color="var(--tekst-5-app)" />
+          <Ikon navn="sok" style={{ color: 'var(--tekst-5-app)' }} />
           <input
             ref={inputRef}
             value={query}
@@ -254,24 +255,5 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
         </div>
       </div>
     </div>
-  )
-}
-
-function SearchGlyph({ color }: { color: string }) {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
   )
 }

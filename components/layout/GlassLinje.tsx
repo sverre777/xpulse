@@ -3,8 +3,8 @@
 // NAVIGASJON v2 bolk 1 — GLASS-LINJE NEDERST (fasit design/xpulse-app-navigasjon-
 // design.html + -trener-design.html). Fem faner per rolle, flytende pille 12 px
 // fra kantene, 64 px høy, blur + svak kant + innvendig lys topplinje — alt via
-// color-mix på tokens så lysmodus følger. Ikoner = dagens strekikon-sett (strek
-// 1,7 · 23 px), etikett 10,5 px Barlow Condensed. Aktiv fane følger ruta:
+// color-mix på tokens så lysmodus følger. Ikoner = Sverres ikonsett (strek,
+// 22 px), etikett 10,5 px Barlow Condensed. Aktiv fane følger ruta:
 // utøver oransje, trener COACH_BLUE. safe-area-inset-bottom. Vises bare når
 // erMobilNav() er sann (≤ 620 px eller Capacitor).
 
@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useErMobilNav } from '@/lib/er-app'
-import { HomeGlyph, CalendarGlyph, BookGlyph, ChartGlyph, CalendarPlusGlyph, UsersGlyph, MerGlyph } from './NavLinkIcons'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { MerPanel } from './MerPanel'
 import type { AvatarMenyProps } from './AvatarMeny'
 
@@ -22,21 +22,22 @@ const COACH_BLUE = '#1A6FD4'
 /** Høyden innholdet må gi plass til (pille 64 + 12 under + 12 luft). */
 export const GLASS_LINJE_HOYDE = 88
 
-type Fane = { id: string; navn: string; href: string; Ikon: (p: { size?: number; strokeWidth?: number }) => React.ReactNode; aktiv: (p: string) => boolean }
+type Fane = { id: string; navn: string; href: string; ikon: IkonNavn; aktiv: (p: string) => boolean }
 
 const UTOVER: Fane[] = [
-  { id: 'hjem', navn: 'Hjem', href: '/app/oversikt', Ikon: HomeGlyph, aktiv: p => p === '/app/oversikt' || p === '/app' },
-  { id: 'plan', navn: 'Plan', href: '/app/plan', Ikon: CalendarGlyph, aktiv: p => p.startsWith('/app/plan') || p.startsWith('/app/periodisering') },
-  { id: 'dagbok', navn: 'Dagbok', href: '/app/dagbok', Ikon: BookGlyph, aktiv: p => p.startsWith('/app/dagbok') || p.startsWith('/app/okt/') },
-  { id: 'analyse', navn: 'Analyse', href: '/app/analyse', Ikon: ChartGlyph, aktiv: p => p.startsWith('/app/analyse') },
-  { id: 'mer', navn: 'Mer', href: '/app/mer', Ikon: MerGlyph, aktiv: () => false },
+  { id: 'hjem', navn: 'Hjem', href: '/app/oversikt', ikon: 'hjem', aktiv: p => p === '/app/oversikt' || p === '/app' },
+  { id: 'plan', navn: 'Plan', href: '/app/plan', ikon: 'plan', aktiv: p => p.startsWith('/app/plan') || p.startsWith('/app/periodisering') },
+  { id: 'dagbok', navn: 'Dagbok', href: '/app/dagbok', ikon: 'dagbok', aktiv: p => p.startsWith('/app/dagbok') || p.startsWith('/app/okt/') },
+  { id: 'analyse', navn: 'Analyse', href: '/app/analyse', ikon: 'analyse', aktiv: p => p.startsWith('/app/analyse') },
+  { id: 'mer', navn: 'Mer', href: '/app/mer', ikon: 'mer', aktiv: () => false },
 ]
+// Utøvere = `trener` (to personer) - nærmeste på arkene.
 const TRENER: Fane[] = [
-  { id: 'hjem', navn: 'Hjem', href: '/app/trener', Ikon: HomeGlyph, aktiv: p => p === '/app/trener' },
-  { id: 'planlegg', navn: 'Planlegg', href: '/app/trener/planlegg', Ikon: CalendarPlusGlyph, aktiv: p => p.startsWith('/app/trener/planlegg') },
-  { id: 'kalender', navn: 'Kalender', href: '/app/trener/kalender', Ikon: CalendarGlyph, aktiv: p => p.startsWith('/app/trener/kalender') },
-  { id: 'utovere', navn: 'Utøvere', href: '/app/trener/utovere', Ikon: UsersGlyph, aktiv: p => p.startsWith('/app/trener/utovere') },
-  { id: 'mer', navn: 'Mer', href: '/app/mer', Ikon: MerGlyph, aktiv: () => false },
+  { id: 'hjem', navn: 'Hjem', href: '/app/trener', ikon: 'hjem', aktiv: p => p === '/app/trener' },
+  { id: 'planlegg', navn: 'Planlegg', href: '/app/trener/planlegg', ikon: 'planlegg', aktiv: p => p.startsWith('/app/trener/planlegg') },
+  { id: 'kalender', navn: 'Kalender', href: '/app/trener/kalender', ikon: 'plan', aktiv: p => p.startsWith('/app/trener/kalender') },
+  { id: 'utovere', navn: 'Utøvere', href: '/app/trener/utovere', ikon: 'trener', aktiv: p => p.startsWith('/app/trener/utovere') },
+  { id: 'mer', navn: 'Mer', href: '/app/mer', ikon: 'mer', aktiv: () => false },
 ]
 
 // Trenerens egne undersider (Sammenligne, grupper, plasser …) hører til Mer; bare
@@ -83,7 +84,7 @@ export function GlassLinje({ rolle, meny }: {
         const stil: React.CSSProperties = { textDecoration: 'none', color: aktiv ? aksent : 'var(--tekst-5-app)', borderRadius: 18, background: aktiv ? `color-mix(in srgb, ${aksent} 14%, transparent)` : 'transparent', minHeight: 44, transition: 'color .15s, background .15s', border: 'none', cursor: 'pointer' }
         const innhold = (
           <>
-            <f.Ikon size={23} strokeWidth={1.7} />
+            <Ikon navn={f.ikon} storrelse={22} />
             <span style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1 }}>{f.navn}</span>
           </>
         )

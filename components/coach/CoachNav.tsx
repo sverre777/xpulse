@@ -11,7 +11,7 @@ import { PcAvatar, MerNedtrekk } from '@/components/layout/PcMeny'
 import { VERSJONS_MERKE } from '@/lib/versjon'
 import { TemaBryter } from '@/components/layout/TemaBryter'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
-import { COACH_NAV_GLYPHS } from '@/components/layout/NavLinkIcons'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const COACH_BLUE = '#1A6FD4'
@@ -32,11 +32,12 @@ const HOME_HREF = '/app/trener'
 // TODO: AI Coach for trener kommer senere.
 // Navigasjon v2 bolk 7 + rettelser (Sverre 6. sep): på PC står både Utøvere og
 // Sammenligne i toppen — Hjem · Planlegg · Kalender · Utøvere · Sammenligne · Mer.
-const NAV_LINKS = [
-  { href: '/app/trener/planlegg',    label: 'Planlegg' },
-  { href: '/app/trener/kalender',    label: 'Kalender' },
-  { href: '/app/trener/utovere',     label: 'Utøvere' },
-  { href: '/app/trener/sammenligne', label: 'Sammenligne' },
+// Utøvere = `trener` (to personer) og Sammenligne = `analyse` - nærmeste på arkene.
+const NAV_LINKS: { href: string; label: string; ikon: IkonNavn }[] = [
+  { href: '/app/trener/planlegg',    label: 'Planlegg',    ikon: 'planlegg' },
+  { href: '/app/trener/kalender',    label: 'Kalender',    ikon: 'plan' },
+  { href: '/app/trener/utovere',     label: 'Utøvere',     ikon: 'trener' },
+  { href: '/app/trener/sammenligne', label: 'Sammenligne', ikon: 'analyse' },
 ]
 
 export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier = true, unreadInboxCount = 0 }: CoachNavProps) {
@@ -93,11 +94,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
         </Link>
 
         <div className="flex items-center gap-0">
-          {[{ href: HOME_HREF, label: 'Hjem' }, ...NAV_LINKS].map(({ href, label }) => {
+          {[{ href: HOME_HREF, label: 'Hjem', ikon: 'hjem' as IkonNavn }, ...NAV_LINKS].map(({ href, label, ikon }) => {
             const active = href === HOME_HREF
               ? pathname === href
               : pathname === href || pathname.startsWith(href + '/')
-            const Glyph = COACH_NAV_GLYPHS[href]
             return (
               <Link
                 key={href}
@@ -114,7 +114,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                   textDecoration: 'none',
                 }}
               >
-                {Glyph ? <Glyph size={18} /> : null}
+                <Ikon navn={ikon} storrelse={22} />
                 <span className="hidden min-[1400px]:inline">{label}</span>
                 <span className="min-[1400px]:hidden sr-only">{label}</span>
               </Link>
@@ -138,25 +138,6 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
 }
 
 
-function MailIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="m22 7-10 5L2 7" />
-    </svg>
-  )
-}
-
 function InboxIconLink({ unreadCount, isActive }: {
   unreadCount: number
   isActive: boolean
@@ -177,7 +158,7 @@ function InboxIconLink({ unreadCount, isActive }: {
         transition: 'color 150ms',
       }}
     >
-      <MailIcon />
+      <Ikon navn="innboks" />
       {unreadCount > 0 && (
         <span
           aria-hidden="true"

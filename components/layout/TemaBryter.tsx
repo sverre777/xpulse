@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { gjeldendeTema, nesteTema, settTema, temaEtikett, type Tema } from '@/lib/tema'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Props {
   /** Aksentfargen fra navigasjonen — brukes ved hover, som de andre ikonene. */
@@ -63,7 +64,7 @@ export function TemaBryter({ accent, storrelse = 40, variant = 'ikon' }: Props) 
           whiteSpace: 'nowrap',
         }}
       >
-        {tema === 'lys' ? <ManeGlyph /> : <SolGlyph />}
+        {tema === 'lys' ? <Ikon navn="mork" /> : <Ikon navn="lys" />}
         {neste === 'lys' ? 'Lys modus' : 'Mørk modus'}
       </button>
     )
@@ -94,26 +95,7 @@ export function TemaBryter({ accent, storrelse = 40, variant = 'ikon' }: Props) 
     >
       {/* Før montering vet vi ikke temaet. Sola er standardtemaets ikon og
           holder plassen, slik at raden ikke hopper når verdien kommer. */}
-      {tema === 'lys' ? <ManeGlyph /> : <SolGlyph />}
+      {tema === 'lys' ? <Ikon navn="mork" /> : <Ikon navn="lys" />}
     </button>
-  )
-}
-
-function SolGlyph() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-    </svg>
-  )
-}
-
-function ManeGlyph() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
   )
 }

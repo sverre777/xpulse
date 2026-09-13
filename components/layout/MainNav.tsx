@@ -13,7 +13,7 @@ import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { PcAvatar, MerNedtrekk } from './PcMeny'
 import { RollebytteSkjelett } from './RollebytteSkjelett'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
-import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import type { Role } from '@/lib/types'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -35,11 +35,11 @@ const HOME_HREF = '/app/oversikt'
 // Navigasjon v2 bolk 7 + rettelser (Sverre 6. sep): Hjem · Plan · Dagbok ·
 // Analyse · Maler · Mer (nedtrekk m/ de ni postene). Maler & standardøkter
 // står i topplinja på PC.
-const NAV_LINKS = [
-  { href: '/app/plan',          label: 'Plan' },
-  { href: '/app/dagbok',        label: 'Dagbok' },
-  { href: '/app/analyse',       label: 'Analyse' },
-  { href: '/app/maler',         label: 'Maler' },
+const NAV_LINKS: { href: string; label: string; ikon: IkonNavn }[] = [
+  { href: '/app/plan',          label: 'Plan',    ikon: 'plan' },
+  { href: '/app/dagbok',        label: 'Dagbok',  ikon: 'dagbok' },
+  { href: '/app/analyse',       label: 'Analyse', ikon: 'analyse' },
+  { href: '/app/maler',         label: 'Maler',   ikon: 'maler' },
 ]
 
 export function MainNav({
@@ -94,11 +94,10 @@ export function MainNav({
         </Link>
 
         <div className="flex items-center gap-0">
-          {[{ href: HOME_HREF, label: 'Hjem' }, ...NAV_LINKS].map(({ href, label }) => {
+          {[{ href: HOME_HREF, label: 'Hjem', ikon: 'hjem' as IkonNavn }, ...NAV_LINKS].map(({ href, label, ikon }) => {
             const active = href === HOME_HREF
               ? pathname === href
               : pathname === href || pathname.startsWith(href + '/') || (href === '/app/plan' && pathname.startsWith('/app/periodisering'))
-            const Glyph = ATHLETE_NAV_GLYPHS[href]
             return (
               <Link
                 key={href}
@@ -117,7 +116,7 @@ export function MainNav({
                   textDecoration: 'none',
                 }}
               >
-                {Glyph ? <Glyph size={18} /> : null}
+                <Ikon navn={ikon} storrelse={22} />
                 <span className="hidden min-[1400px]:inline">{label}</span>
                 <span className="min-[1400px]:hidden sr-only">{label}</span>
               </Link>
@@ -146,25 +145,6 @@ export function MainNav({
 }
 
 
-function MailIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="m22 7-10 5L2 7" />
-    </svg>
-  )
-}
-
 function InboxIconLink({ unreadCount, accent, isActive }: {
   unreadCount: number
   accent: string
@@ -186,7 +166,7 @@ function InboxIconLink({ unreadCount, accent, isActive }: {
         transition: 'color 150ms',
       }}
     >
-      <MailIcon />
+      <Ikon navn="innboks" />
       {unreadCount > 0 && (
         <span
           aria-hidden="true"

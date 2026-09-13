@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { TemaBryter } from '@/components/layout/TemaBryter'
-import { MenuIcon, CloseIcon } from '@/components/branding/nav-icons'
+import { Ikon } from '@/components/ui/ikoner'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { FEATURE_SPORTS } from '@/lib/landing-meta'
 
@@ -118,7 +118,7 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
             <Link href="/xpulse.html#priser" className="lp-pill">Start gratis prøve</Link>
             <button type="button" className="lp-burger" aria-label="Åpne meny" aria-expanded={panel}
               aria-controls="lp-panel" onClick={() => setPanel(true)}>
-              <MenuIcon size={20} />
+              <Ikon navn="hamburgermeny" storrelse={22} />
             </button>
           </div>
         </div>
@@ -136,21 +136,21 @@ export function LandingNav({ aktiv }: { aktiv?: LandingNavAktiv }) {
               <XPulseIcon size={32} variant="gradient" /><b>PULSE</b>
             </Link>
             <button type="button" className="lp-panel-lukk" aria-label="Lukk meny" onClick={() => setPanel(false)}>
-              <CloseIcon size={26} />
+              <Ikon navn="lukk" storrelse={26} />
             </button>
           </div>
 
           <div className="lp-panel-ikoner">
             <Link href="/app" className="lp-panel-ikon" onClick={() => setPanel(false)}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 3 H21 V9"/><path d="M10 14 L21 3"/><path d="M21 14 V21 H3 V3 H10"/></svg>
+              <Ikon navn="apne-fane" storrelse={22} />
               Logg inn
             </Link>
             <Link href="/xpulse.html#faq" className="lp-panel-ikon" onClick={() => setPanel(false)}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16 16"/></svg>
+              <Ikon navn="sok" storrelse={22} />
               FAQ
             </Link>
             <Link href="/kontakt" className="lp-panel-ikon" onClick={() => setPanel(false)}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7 L12 13 L21 7"/></svg>
+              <Ikon navn="innboks" storrelse={22} />
               Kontakt
             </Link>
           </div>

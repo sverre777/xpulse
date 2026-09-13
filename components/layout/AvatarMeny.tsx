@@ -13,6 +13,7 @@ import { logout } from '@/app/actions/auth'
 import { switchActiveRole } from '@/app/actions/roles'
 import { startRollebytte } from './RollebytteSkjelett'
 import { gjeldendeTema, nesteTema, settTema } from '@/lib/tema'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ORANSJE = '#FF4500'
@@ -31,17 +32,6 @@ export interface AvatarMenyProps {
   /** PC: menyen henger under navnet i toppmenyen — samme komponent. */
   plassering?: 'mobil' | 'pc'
 }
-
-const IKON = {
-  profil: 'M20 21a8 8 0 1 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z',
-  terskler: 'M3 12h4l3-8 4 16 3-8h4',
-  helse: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z',
-  innboks: 'M3 7h18v12H3zM3 7l9 6 9-6',
-  innstillinger: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
-  tema: 'M12 3a9 9 0 1 0 9 9c0-.5 0-.9-.1-1.4A7 7 0 0 1 12 3z',
-  ut: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
-}
-const Ikon = ({ d }: { d: string }) => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={d} /></svg>
 
 function RolleSegment({ rolle }: { rolle: 'athlete' | 'coach' }) {
   const [state, formAction, pending] = useActionState(switchActiveRole, {} as { redirectTo?: string; error?: string })
@@ -90,15 +80,15 @@ export function AvatarMeny({ rolle, userName, hasAthleteRole = true, hasCoachRol
         <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-5-app)', margin: '3px 0 0' }}>{[rolle === 'coach' ? 'Trener' : 'Utøver', sportEtikett, planEtikett].filter(Boolean).join(' · ')}</p>
       </div>
       {hasAthleteRole && hasCoachRole && hasCoachTier && <RolleSegment rolle={rolle} />}
-      <Link href="/app/innstillinger/profil" role="menuitem" data-meny-valg="profil" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.profil} /></span>Profil</Link>
-      <Link href="/app/innstillinger/profil/terskler" role="menuitem" data-meny-valg="terskler" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.terskler} /></span>Terskler & soner</Link>
-      <Link href="/app/innstillinger/helse" role="menuitem" data-meny-valg="helse" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.helse} /></span>Helseoppsett</Link>
-      <Link href="/app/innboks" role="menuitem" data-meny-valg="innboks" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.innboks} /></span>Innboks{unreadInboxCount > 0 && <span style={{ marginLeft: 'auto', minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: COACH_BLUE, color: '#fff', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unreadInboxCount}</span>}</Link>
-      <Link href="/app/innstillinger" role="menuitem" data-meny-valg="innstillinger" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon d={IKON.innstillinger} /></span>Innstillinger</Link>
-      <button type="button" role="menuitem" data-meny-valg="tema" style={rad} onClick={byttTema}><span style={{ color: aksent }}><Ikon d={IKON.tema} /></span>Lys / mørk<span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--tekst-5-app)', fontWeight: 400 }}>{tema === 'lys' ? 'lys' : tema === 'mork' ? 'mørk' : '…'}</span></button>
+      <Link href="/app/innstillinger/profil" role="menuitem" data-meny-valg="profil" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon navn="profil" /></span>Profil</Link>
+      <Link href="/app/innstillinger/profil/terskler" role="menuitem" data-meny-valg="terskler" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon navn="soner" /></span>Terskler & soner</Link>
+      <Link href="/app/innstillinger/helse" role="menuitem" data-meny-valg="helse" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon navn="helse" /></span>Helseoppsett</Link>
+      <Link href="/app/innboks" role="menuitem" data-meny-valg="innboks" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon navn="innboks" /></span>Innboks{unreadInboxCount > 0 && <span style={{ marginLeft: 'auto', minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: COACH_BLUE, color: '#fff', fontSize: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unreadInboxCount}</span>}</Link>
+      <Link href="/app/innstillinger" role="menuitem" data-meny-valg="innstillinger" style={rad} onClick={onLukk}><span style={{ color: aksent }}><Ikon navn="innstillinger" /></span>Innstillinger</Link>
+      <button type="button" role="menuitem" data-meny-valg="tema" style={rad} onClick={byttTema}><span style={{ color: aksent }}><Ikon navn={tema === 'lys' ? 'mork' : 'lys'} /></span>Lys / mørk<span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--tekst-5-app)', fontWeight: 400 }}>{tema === 'lys' ? 'lys' : tema === 'mork' ? 'mørk' : '…'}</span></button>
       <p data-meny-abonnement style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-app)', margin: '6px 12px 4px', lineHeight: 1.35 }}>Abonnement - håndteres på x-pulse.no</p>
       <form action={logout}>
-        <button type="submit" role="menuitem" data-meny-valg="loggut" style={{ ...rad, color: 'var(--tekst-5-app)' }}><span><Ikon d={IKON.ut} /></span>Logg ut</button>
+        <button type="submit" role="menuitem" data-meny-valg="loggut" style={{ ...rad, color: 'var(--tekst-5-app)' }}><span><Ikon navn="logg-ut" /></span>Logg ut</button>
       </form>
     </div>
   )

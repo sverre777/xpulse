@@ -230,6 +230,17 @@ async function importOneExercise(
   }
 
   const zones = await computeZonesForWorkout(supabase, conn.user_id, parsed, durationSec)
+  // Sverre 11. sep 2026: fart og kadens på aktivitetsraden der Polar gir det.
+  // AccessLink-detaljen har ingen snitt/maks-fart eller kadens på øktnivå,
+  // men prøvene (samples) har dem: snittfart = distanse/varighet, maksfart =
+  // høyeste fartsprøve, kadens = snitt av kadensprøvene. Ingen watt her -
+  // Polar gir ikke effekt for løp/ski, og vi dikter ikke.
+  const fart = parsed.samples.pace_samples ?? []
+  const kadens = parsed.samples.cadence_samples ?? []
+  const avgSpeedMs = detail.distance != null && detail.distance > 0 && durationSec > 0
+    ? Math.round((detail.distance / durationSec) * 1000) / 1000 : null
+  const maxSpeedMs = fart.length > 0 ? Math.round(Math.max(...fart.map(p => p.mps)) * 1000) / 1000 : null
+  const avgCadence = kadens.length > 0 ? Math.round(kadens.reduce((sum, p) => sum + p.cad, 0) / kadens.length) : null
   const { data: activity, error: aErr } = await supabase
     .from('workout_activities')
     .insert({
@@ -241,6 +252,9 @@ async function importOneExercise(
       distance_meters: activityDistanceM,
       avg_heart_rate: detail.heart_rate?.average ?? null,
       max_heart_rate: detail.heart_rate?.maximum ?? null,
+      avg_speed_ms: avgSpeedMs,
+      max_speed_ms: maxSpeedMs,
+      avg_cadence: avgCadence,
       sort_order: 0,
       zones,
       external_id: externalId,

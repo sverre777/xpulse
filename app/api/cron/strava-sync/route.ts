@@ -261,12 +261,16 @@ async function createWorkoutFromStrava(
           .insert(beholdt)
           .select('id, sort_order')
         if (redErr) {
-          console.error(`[strava-cron] redningsinsert FAILED for ${detail.id}:`, redErr.message)
+          // Klarert enkeltfiks (Sverre 13. sep 2026): feilen skal aldri svelges stille igjen -
+          // alt som trengs for å finne økta igjen står i loggen. Økta står da uten
+          // aktivitetsrader; det finnes ingen kolonne for «delvis import» (se rapporten).
+          console.error(`[strava-cron] redningsinsert FAILED: workout ${workout.id} · strava ${detail.id} · bruker ${userId} · ${redErr.message}`)
         } else {
           activityIds = (redda ?? []) as Array<{ id: string; sort_order: number }>
         }
       } else {
-        console.error(`[strava-cron] workout_activities insert FAILED for ${detail.id}:`, lapErr.message)
+        // Samme klarerte fiks: workout_id, strava-id, bruker og feiltekst i én linje, alltid.
+        console.error(`[strava-cron] workout_activities insert FAILED: workout ${workout.id} · strava ${detail.id} · bruker ${userId} · ${rows.length} rader avvist · ${lapErr.message}${lapErr.details ? ' | ' + lapErr.details : ''}`)
       }
     } else {
       activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>

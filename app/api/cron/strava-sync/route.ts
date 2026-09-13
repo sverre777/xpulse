@@ -219,7 +219,12 @@ async function createWorkoutFromStrava(
       distance_meters: avrundEllerNull(lap.distance),
       avg_heart_rate: lap.average_heartrate ?? null,
       max_hr: lap.max_heartrate ?? null,
-      avg_watts: lap.average_watts ?? null,
+      // avg_watts er INTEGER i prod (kolonnen fantes før numeric-migrasjonen, som
+      // var «add column if not exists» og derfor ikke traff). Strava sender
+      // desimalwatt (løpe-watt fra Garmin, sykkel) - da avviste Postgres HELE
+      // rad-insert-en, og økta sto uten aktivitetsrader og soner (183 økter
+      // per 13. sep 2026). Avrundes som de andre heltallsfeltene.
+      avg_watts: avrundEllerNull(lap.average_watts),
       max_watts: lap.max_watts ?? null,
       avg_speed_ms: lap.average_speed ?? null,
       max_speed_ms: lap.max_speed ?? null,

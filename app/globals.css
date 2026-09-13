@@ -1216,3 +1216,8 @@ html[data-app-nav] .xp-push-ark > div { max-width: none !important; border-radiu
 /* BOLK B1: aktivitetsfeeden og gruppene side om side over 1200 px, under hverandre ellers. */
 .xp-trener-par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 @media (max-width: 1200px) { .xp-trener-par { grid-template-columns: minmax(0, 1fr); } }
+
+/* Idrettsikonene (public/sport-icons, oransje strek): hvite i mørk modus,
+   sorte i lys modus. Samme regel som forsidens disiplinrad. */
+.xp-idrettsikon { filter: brightness(0) invert(1); }
+[data-tema="lys"] .xp-idrettsikon { filter: brightness(0); }

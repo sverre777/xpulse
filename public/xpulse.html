@@ -46,26 +46,26 @@ document.documentElement.classList.add('js');</script>
 <link rel="preload" href="/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/photos/hero-bg.jpg">
 <style>
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:italic; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-italic-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:italic; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-italic-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/barlow-condensed-normal-300-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/barlow-condensed-normal-300-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-normal-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:400; font-display:optional; src:url('/fonts/barlow-condensed-normal-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/barlow-condensed-normal-500-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/barlow-condensed-normal-500-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:600; font-display:swap; src:url('/fonts/barlow-condensed-normal-600-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:600; font-display:optional; src:url('/fonts/barlow-condensed-normal-600-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:700; font-display:swap; src:url('/fonts/barlow-condensed-normal-700-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-style:normal; font-weight:700; font-display:optional; src:url('/fonts/barlow-condensed-normal-700-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Barlow Condensed'; font-style:italic; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-italic-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Barlow Condensed'; font-style:italic; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-italic-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/barlow-condensed-normal-300-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/barlow-condensed-normal-300-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-normal-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:400; font-display:optional; src:url('/fonts/barlow-condensed-normal-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/barlow-condensed-normal-500-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/barlow-condensed-normal-500-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:600; font-display:swap; src:url('/fonts/barlow-condensed-normal-600-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:600; font-display:optional; src:url('/fonts/barlow-condensed-normal-600-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:700; font-display:swap; src:url('/fonts/barlow-condensed-normal-700-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Barlow Condensed'; font-style:normal; font-weight:700; font-display:optional; src:url('/fonts/barlow-condensed-normal-700-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family:'Barlow'; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/barlow-normal-300-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family:'Barlow'; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/barlow-normal-300-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family:'Barlow'; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/barlow-normal-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family:'Barlow'; font-style:normal; font-weight:400; font-display:optional; src:url('/fonts/barlow-normal-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family:'Barlow'; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/barlow-normal-500-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family:'Barlow'; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/barlow-normal-500-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/bebas-neue-normal-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif; font-style:normal; font-weight:400; font-display:optional; src:url('/fonts/bebas-neue-normal-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family:'Bebas Neue'; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/bebas-neue-normal-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family:'Bebas Neue'; font-style:normal; font-weight:400; font-display:optional; src:url('/fonts/bebas-neue-normal-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family:'Inter'; font-style:normal; font-weight:100 900; font-display:optional; src:url('/fonts/inter-variable-latin.woff2') format('woff2'); }
 
 :root{
@@ -1986,9 +1986,10 @@ section[id],header[id]{scroll-margin-top:108px}
   font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);transition:color .2s,border-color .2s,background .2s;min-height:34px}
 .dn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 /* Idrettsikonene (Sverre 12. sep): strektegningene i public/sport-icons, de
-   samme som undersidene bruker. Oransje strek på gjennomsiktig bunn - samme
-   ikon i lys og mørk modus. */
-.dn .dn-ikon{width:18px;height:18px;object-fit:contain;display:block;flex-shrink:0}
+   samme som undersidene bruker. Filene er oransje strek på gjennomsiktig bunn;
+   filteret gjør dem hvite i mørk modus og sorte i lys modus (Sverre 13. sep). */
+.dn .dn-ikon{width:18px;height:18px;object-fit:contain;display:block;flex-shrink:0;filter:brightness(0) invert(1)}
+:root[data-tema="lys"] .dn .dn-ikon{filter:brightness(0)}
 .dn:hover{color:var(--paper);border-color:var(--paper)}
 .dn.on{color:#fff;background:#FF4500;border-color:#FF4500}
 .dn:focus-visible{outline:2px solid #FF4500;outline-offset:3px}
@@ -2000,6 +2001,9 @@ section[id],header[id]{scroll-margin-top:108px}
 .dp-inn{position:absolute;inset:auto 0 0 0;padding:15px 16px 17px;display:block}
 .dp-navn{display:flex;align-items:center;gap:9px}
 .dp-navn svg{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.9;flex:none}
+/* Idrettsikonet på panelbildet: hvitt som teksten ved siden av. Panelene
+   holder hvit tekst også i lys modus (fotoet er mørkt), så ikonet følger. */
+.dp-navn .dp-ikon{width:19px;height:19px;object-fit:contain;display:block;flex:none;opacity:.9;filter:brightness(0) invert(1)}
 .dp-navn b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:16px;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
 .dp-chips{display:block;margin-top:6px;font-family:'Barlow',sans-serif;font-size:11.5px;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dp-mer{display:block;max-height:0;opacity:0;overflow:hidden;transition:max-height .55s cubic-bezier(.2,.7,.2,1),opacity .35s ease .1s}
@@ -3123,7 +3127,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="true" style="--bg:url('/photos/langrenn.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19.5l14-13M6.5 21l14-13"/><circle cx="14.5" cy="4.5" r="1.6"/><path d="M11 9l3 2.5-1.5 3 3 2"/></svg><b>Langrenn</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/langrenn.png" alt="" width="19" height="19" loading="lazy"><b>Langrenn</b></span>
         <span class="dp-chips">skipark · ski-tester · teknikk</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for langrenn</span>
@@ -3140,7 +3144,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/skiskyting.webp')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><b>Skiskyting</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/skiskyting.png" alt="" width="19" height="19" loading="lazy"><b>Skiskyting</b></span>
         <span class="dp-chips">treff % · vind · skuddplott</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for skiskyting</span>
@@ -3157,7 +3161,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/langlop.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5l14-13M7.5 21l14-13"/><path d="M2 12h4M18 5h4"/></svg><b>Langløp</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/langlop.png" alt="" width="19" height="19" loading="lazy"><b>Langløp</b></span>
         <span class="dp-chips">birken · pacing · glid</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for langløp</span>
@@ -3174,7 +3178,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/loping.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="14" cy="4.6" r="1.9"/><path d="M13 8.5l-3.5 4 3 2.5.8 5"/><path d="M9.5 12.5L5 14M12.5 15L8 20"/><path d="M13 8.5l4 1.6 1.6 3.4"/></svg><b>Løping</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/loping.png" alt="" width="19" height="19" loading="lazy"><b>Løping</b></span>
         <span class="dp-chips">soner · terskel · GAP</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for løping</span>
@@ -3191,7 +3195,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/sykling.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M8 17l3.5-6.5H16M9.5 10.5H14l4.5 6.5"/><circle cx="15.5" cy="4.5" r="1.5"/></svg><b>Sykling</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/sykling.png" alt="" width="19" height="19" loading="lazy"><b>Sykling</b></span>
         <span class="dp-chips">watt · NP/IF · effektsoner</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for sykling</span>
@@ -3208,7 +3212,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/triatlon.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 18c1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.6 0 1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.2 0"/><circle cx="7" cy="6" r="1.8"/><path d="M4 12l4-2.5 3.5 1.5 3-3"/><circle cx="18" cy="7" r="2.6"/></svg><b>Triatlon</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/triatlon.png" alt="" width="19" height="19" loading="lazy"><b>Triatlon</b></span>
         <span class="dp-chips">brick · bytte-tider · tre grener</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for triatlon</span>
@@ -3225,7 +3229,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/multisport.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><path d="M17.25 13.5v7.5M13.5 17.25h7.5"/></svg><b>Multisport</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/multisport.png" alt="" width="19" height="19" loading="lazy"><b>Multisport</b></span>
         <span class="dp-chips">alt i én · egne felt</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for multisport</span>
@@ -3244,7 +3248,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/langrenn.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19.5l14-13M6.5 21l14-13"/><circle cx="14.5" cy="4.5" r="1.6"/><path d="M11 9l3 2.5-1.5 3 3 2"/></svg><b>Langrenn</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/langrenn.png" alt="" width="19" height="19" loading="lazy"><b>Langrenn</b></span>
         <span class="dp-chips">skipark · ski-tester · teknikk</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for langrenn</span>
@@ -3261,7 +3265,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/skiskyting.webp')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><b>Skiskyting</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/skiskyting.png" alt="" width="19" height="19" loading="lazy"><b>Skiskyting</b></span>
         <span class="dp-chips">treff % · vind · skuddplott</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for skiskyting</span>
@@ -3278,7 +3282,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/langlop.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5l14-13M7.5 21l14-13"/><path d="M2 12h4M18 5h4"/></svg><b>Langløp</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/langlop.png" alt="" width="19" height="19" loading="lazy"><b>Langløp</b></span>
         <span class="dp-chips">birken · pacing · glid</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for langløp</span>
@@ -3295,7 +3299,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/loping.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="14" cy="4.6" r="1.9"/><path d="M13 8.5l-3.5 4 3 2.5.8 5"/><path d="M9.5 12.5L5 14M12.5 15L8 20"/><path d="M13 8.5l4 1.6 1.6 3.4"/></svg><b>Løping</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/loping.png" alt="" width="19" height="19" loading="lazy"><b>Løping</b></span>
         <span class="dp-chips">soner · terskel · GAP</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for løping</span>
@@ -3312,7 +3316,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/sykling.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M8 17l3.5-6.5H16M9.5 10.5H14l4.5 6.5"/><circle cx="15.5" cy="4.5" r="1.5"/></svg><b>Sykling</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/sykling.png" alt="" width="19" height="19" loading="lazy"><b>Sykling</b></span>
         <span class="dp-chips">watt · NP/IF · effektsoner</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for sykling</span>
@@ -3329,7 +3333,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/triatlon.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 18c1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.6 0 1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.2 0"/><circle cx="7" cy="6" r="1.8"/><path d="M4 12l4-2.5 3.5 1.5 3-3"/><circle cx="18" cy="7" r="2.6"/></svg><b>Triatlon</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/triatlon.png" alt="" width="19" height="19" loading="lazy"><b>Triatlon</b></span>
         <span class="dp-chips">brick · bytte-tider · tre grener</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for triatlon</span>
@@ -3346,7 +3350,7 @@ section[id],header[id]{scroll-margin-top:108px}
       aria-expanded="false" style="--bg:url('/photos/multisport.jpg')">
       <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
       <span class="dp-inn">
-        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><path d="M17.25 13.5v7.5M13.5 17.25h7.5"/></svg><b>Multisport</b></span>
+        <span class="dp-navn"><img class="dp-ikon" src="/sport-icons/multisport.png" alt="" width="19" height="19" loading="lazy"><b>Multisport</b></span>
         <span class="dp-chips">alt i én · egne felt</span>
         <span class="dp-mer">
           <span class="dp-seo">Treningsdagbok for multisport</span>
@@ -3865,10 +3869,14 @@ section[id],header[id]{scroll-margin-top:108px}
     o.pans.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('gone',k<i)});
     o.cur=i;
   }
+  /* Pinne-lengden er seksjonens høyde minus den FESTEDE delens høyde (100vh på PC,
+     100svh på mobil) - ikke innerHeight. innerHeight endrer seg hver gang
+     adresselinja på mobil kommer og går, og da hoppet panelet (Sverre 13. sep). */
+  function festet(o){ if(!o.st) o.st=o.sc.querySelector('.flyt-sticky,.prob-sticky'); return o.st?o.st.offsetHeight:innerHeight; }
   function onScroll(){
     if(reduced) return;
     secs.forEach(function(o){
-      var r=o.sc.getBoundingClientRect(), total=o.sc.offsetHeight-innerHeight;
+      var r=o.sc.getBoundingClientRect(), total=o.sc.offsetHeight-festet(o);
       var y=Math.min(Math.max(-r.top,0),total), prog=total>0?y/total:0;
       var seg=1/o.N, i=Math.min(o.N-1,Math.floor(prog/seg)), inner=(prog-i*seg)/seg;
       setActive(o,i);
@@ -3897,7 +3905,7 @@ section[id],header[id]{scroll-margin-top:108px}
   function sjekkLytter(){ var skal=!reduced; if(skal&&!lytter){ addEventListener('scroll',planlegg,{passive:true}); lytter=true; } else if(!skal&&lytter){ removeEventListener('scroll',planlegg); lytter=false; } window.__flytLytter=lytter; }
   addEventListener('resize',function(){ sjekkLytter(); planlegg(); }); sjekkLytter(); onScroll();
   secs.forEach(function(o){o.sls.forEach(function(b){b.addEventListener('click',function(){
-    var i=+b.dataset.i, total=o.sc.offsetHeight-innerHeight, top=o.sc.getBoundingClientRect().top+scrollY;
+    var i=+b.dataset.i, total=o.sc.offsetHeight-festet(o), top=o.sc.getBoundingClientRect().top+scrollY;
     scrollTo({top:top+total*(i/o.N)+8,behavior:reduced?'auto':'smooth'});
   })})});
 })();

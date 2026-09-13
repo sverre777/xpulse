@@ -181,7 +181,7 @@ export function NesteOektKort({
   // future_planned
   return (
     <CardShell
-      accent="#F5C542"
+      accent="var(--gold)"
       tittel="Neste økt"
       kicker={`${naarTekst(next.workout.date)} · ${fmtDate(next.workout.date)}`}
       ctaHref={`/app/plan?edit=${next.workout.id}`}

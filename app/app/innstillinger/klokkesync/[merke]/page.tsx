@@ -196,7 +196,7 @@ function BrandFacts({ brand }: { brand: KlokkesyncBrand }) {
           <p className="mb-2" style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
             letterSpacing: '0.16em', textTransform: 'uppercase',
-            color: block.tone === 'advarsel' ? '#F5C542' : 'var(--tekst-5-app)', margin: 0,
+            color: block.tone === 'advarsel' ? 'var(--gold)' : 'var(--tekst-5-app)', margin: 0,
           }}>
             {block.title}
           </p>

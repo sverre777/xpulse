@@ -1487,10 +1487,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
       </Section>
 
-      {/* ── OPPSUMMERING (auto - read-only) ── */}
+      </fieldset>
+      {/* ── OPPSUMMERING (auto - read-only) ──
+          Utenfor det deaktiverte fieldsettet (Sverre 13. sep 2026): GRAF · KURVER ·
+          BEGGE og chipene skal virke også når skjemaet er lesing (trener ser økt).
+          Kortet får readOnly selv, så føring (opplevd/forventet) er låst der. */}
       {form.activities.length > 0 && (
         <div className="mt-4">
           <ActivitySummary
+            readOnly={readOnly}
             activities={form.activities}
             heartZones={heartZones}
             sport={form.sport}
@@ -1508,6 +1513,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           />
         </div>
       )}
+      <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minInlineSize: 'auto' }}>
 
       {/* ── SAMMENLIGN MED PLAN - togglable ── */}
       {!isPlanMode && (form.planned_activities?.length ?? 0) > 0 && form.activities.length > 0 && (

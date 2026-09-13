@@ -6,21 +6,22 @@
  *   BEGGE  = kurvene tegnet oppå blokkene
  * Valget huskes per bruker (regel 19) — som de andre visningsvalgene
  * (tema, samlet/splittet, vis plan) i localStorage: det følger
- * nettleseren, ikke kontoen. Uten et husket valg gjelder flatens
- * standard: GRAF i skjemaet/dagboka, BEGGE på øktsiden, i byggeren og på
- * Hjem (Sverre 6. sep: «graf-visning i bakgrunn samt stigning» på Hjem-kortet).
+ * nettleseren, ikke kontoen. Uten et husket valg er standarden BEGGE
+ * overalt (Sverre 13. sep 2026; før: GRAF i skjemaet).
  */
 
 
 export type GrafVisning = 'graf' | 'kurver' | 'begge'
 export type GrafFlate = 'hovedside' | 'skjema' | 'bygger' | 'oversikt'
-export const VISNING_NOKKEL = 'xpulse-graf-visning'
+// Nøkkelen fikk «-2» 13. sep 2026 da standarden ble BEGGE overalt: et gammelt
+// husket GRAF fra tida med GRAF-standard i skjemaet skal ikke overstyre den.
+export const VISNING_NOKKEL = 'xpulse-graf-visning-2'
 export const VISNING_HENDELSE = 'xpulse-graf-visning-endret'
 
-export function standardVisning(flate: GrafFlate): GrafVisning {
-  // Øktsiden, byggeren og Hjem-kortene: BEGGE (kurvene oppå blokkene).
-  // Skjemaet: GRAF.
-  return flate === 'skjema' ? 'graf' : 'begge'
+export function standardVisning(_flate: GrafFlate): GrafVisning {
+  // Sverre 13. sep 2026: BEGGE er standard på ALLE flater - også skjemaets
+  // oppsummering. Flaten står igjen som parameter for et husket valg per flate senere.
+  return 'begge'
 }
 
 const gyldig = (v: unknown): v is GrafVisning => v === 'graf' || v === 'kurver' || v === 'begge'

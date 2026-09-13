@@ -45,6 +45,8 @@ interface Props {
       av opplevd på gjennomført. */
   forventet?: number | null
   onForventet?: (v: number | null) => void
+  /** Skjemaet er lesing (trener ser økt): grafen virker, føring er låst. */
+  readOnly?: boolean
   /** Punktene fra skjemaet (bolk 8) — live i begge grafene. */
   tidspunktNotater?: TidspunktNotat[]
   /** Sverre 5. sep: skjemaets laktat-/ernæringsrader (også ulagrede) styrer
@@ -86,7 +88,7 @@ function ernaeringFraSkjema(rader: NutritionEntryRow[]): NutritionMarker[] {
   return ut
 }
 
-export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
+export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid - ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -325,7 +327,7 @@ export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activi
           I plan vises ingen belastningscelle før «forventet» har et felt. */}
       <div className="mb-3">
         <Nokkeltall celler={celler}
-          rpe={erPlanlagt ? forventet : rpe} onRpe={erPlanlagt ? onForventet : onRpe}
+          rpe={erPlanlagt ? forventet : rpe} onRpe={readOnly ? undefined : erPlanlagt ? onForventet : onRpe}
           forventetRpe={erPlanlagt ? null : forventet} rpeEtikett={erPlanlagt ? 'Forventet' : 'Opplevd'} />
       </div>
 

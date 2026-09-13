@@ -164,6 +164,9 @@ export function tilSpokelser(blokker: PlanBlokk[]): SpokelseBlokk[] {
     id: b.id, type: b.type, navn: b.etikett,
     startSek: b.startSek, sluttSek: b.startSek + b.sek,
     sone: b.slag === 'sone' ? b.sone : null,
+    // Sverre 13. sep: BEGGE skal vise de samme sonefargene som GRAF. Uten
+    // fordelingen tegnet spøkelset bare hovedsonen (én farge, lav blokk).
+    soner: b.slag === 'sone' && Object.keys(b.soneSek).length > 0 ? (b.soneSek as Record<string, number>) : undefined,
   }))
 }
 

@@ -750,9 +750,13 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
     bakgrunnen), ellers plan-grafen fra radene — med én gang. */
 function ChipKurve({ w, hoyde = 26 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
   const kurve = useKompaktKurve(w.id)
-  // Oversikten (kompakt) er alltid GRAF — gjennomført-kartet (samlet rettelse).
+  // Oversikten (kompakt): gjennomført-kartet (GRAF, sonefarger) - og har økta
+  // pulskurve, tegnes den OPPÅ kartet (Sverre 13. sep 2026: «graf med pulskurve
+  // oppå, kun graf dersom ingen pulskurve»). Miniatyr av BEGGE, uten bryter.
   if (kurve && kurve.blokker.length > 0) {
-    return <div style={{ marginTop: 3 }} data-gjennomfort-kart-kompakt><PlanGraf blokker={kurve.blokker} tetthet="kompakt" hoyde={hoyde - 4} totalSek={kurve.totalSek} spokelser={tilSpokelseBlokker(kurve.plan)} punkter={fraKompaktPunkter(kurve.punkter)} kilde="faktisk" /></div>
+    return <div style={{ marginTop: 3, position: 'relative' }} data-gjennomfort-kart-kompakt data-med-kurve={kurve.hr.length >= 2 ? '1' : undefined}>
+      <PlanGraf blokker={kurve.blokker} tetthet="kompakt" hoyde={hoyde - 4} totalSek={kurve.totalSek} spokelser={tilSpokelseBlokker(kurve.plan)} punkter={fraKompaktPunkter(kurve.punkter)} kilde="faktisk" />{kurve.hr.length >= 2 && <KompaktKurve bareLinje hr={kurve.hr} totalSek={kurve.totalSek} segmenter={[]} hoyde={hoyde} />}
+    </div>
   }
   if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} punkter={kurve.punkter} />
   if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null

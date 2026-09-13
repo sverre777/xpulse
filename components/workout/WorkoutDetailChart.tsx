@@ -174,11 +174,11 @@ export function WorkoutDetailChart({
   // Påslåtte serier + hvem som eier aksen. Klikk på en av-chip slår den
   // PÅ og gir den fokus; klikk på fokus-chipen slår serien AV.
   // Styrt utenfra (bolk 5): forelderen eier valget for flere grafer.
-  // Hjem-kortene (Sverre 6. sep): stigningen (høydekurven) er på fra start sammen med pulsen —
-  // «graf-visning i bakgrunn samt stigning». Ellers bare første serie (puls).
+  // Stigningen (høydekurven) er på fra start sammen med pulsen på ALLE flater
+  // (Sverre 13. sep 2026; før bare Hjem-kortene). Ellers bare første serie (puls).
   const [paaIdsEgen, setPaaIds] = useState<string[]>(() => {
     const paa = egneSerier.slice(0, 1).map(s => s.id)
-    if (flate === 'oversikt' && egneSerier.some(s => s.id === 'hoyde') && !paa.includes('hoyde')) paa.push('hoyde')
+    if (egneSerier.some(s => s.id === 'hoyde') && !paa.includes('hoyde')) paa.push('hoyde')
     return paa
   })
   const [fokusIdEgen, setFokusId] = useState<string | null>(forsteId)

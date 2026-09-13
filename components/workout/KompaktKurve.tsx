@@ -16,7 +16,7 @@ import { SEGMENT_FARGER, segmentBakgrunn, type Segment, type SegmentType } from 
 // Ingen kontroller, ingen etiketter — bare formen, så et blikk på
 // kalenderen viser om økta var jevn eller hadde drag.
 
-export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], punkter = [] }: {
+export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], punkter = [], bareLinje = false }: {
   hr: Array<{ t: number; hr: number }>
   totalSek: number
   segmenter: Segment[]
@@ -25,6 +25,10 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], p
   plan?: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string; soner?: Record<string, number> }>
   /** Punktene som ikoner øverst (bolk 8). */
   punkter?: KompaktPunkt[]
+  /** Sverre 13. sep 2026: bare pulslinja, lagt OPPÅ gjennomført-kartet i
+      oversikten (GRAF med pulskurve oppå = BEGGE i miniatyr). Ingen bånd,
+      ingen spøkelser, ingen punkter - kartet under har dem. */
+  bareLinje?: boolean
 }) {
   const B = 320
   const sti = useMemo(() => {
@@ -39,6 +43,15 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], p
   }, [hr, totalSek, hoyde])
   if (totalSek <= 0 || (hr.length < 2 && segmenter.length === 0)) return null
   const pct = (t: number) => `${Math.max(0, Math.min(100, (t / totalSek) * 100))}%`
+  if (bareLinje) {
+    if (!sti) return null
+    return (
+      <svg data-kompakt-linje viewBox={`0 0 ${B} ${hoyde - 6}`} preserveAspectRatio="none" aria-hidden
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        <path d={sti} fill="none" stroke="#E23A5A" strokeWidth={1.2} opacity={0.9} vectorEffect="non-scaling-stroke" />
+      </svg>
+    )
+  }
   const spokelser: PlanBlokk[] = plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone, soner: p.soner }))
   return (
     <div data-kompakt-kurve aria-hidden style={{ position: 'relative', height: hoyde, marginTop: 3 }}>

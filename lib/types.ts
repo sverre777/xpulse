@@ -539,13 +539,20 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'annet',             label: 'Annet',              icon: 'annet',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]
 
-// Typer som IKKE er treningstid. Pause-familien og veksling deler denne
-// eksklusjonen, men de er ULIKE kategorier: veksling summeres aldri inn i
-// pausetiden (Sverre 29. aug). ÉN kilde for alle aggregatene (regel 11).
+// Typer som IKKE er treningstid. Veksling summeres aldri inn i pausetiden -
+// det er en EGEN kategori (Sverre 29. aug). ÉN kilde for alle aggregatene
+// (regel 11).
+//
+// Sverre 14. sep 2026: AKTIV PAUSE ER treningstid - man beveger seg, og
+// elapsed time (klokka står stille mens man hviler) er ikke totaltid. Ren
+// PAUSE teller derfor ikke, aktiv pause gjør det. PAUSE_TYPER er fortsatt
+// pause-FAMILIEN og brukes strukturelt (ingen bev.form, ingen sone å lese,
+// samme bolk i Samlet); PASSIV_PAUSE_TYPER er den som holdes utenfor tida.
 export const IKKE_TRENINGSTID_TYPER: ReadonlySet<string> = new Set([
-  'pause', 'aktiv_pause', 'veksling',
+  'pause', 'veksling',
 ])
 export const PAUSE_TYPER: ReadonlySet<string> = new Set(['pause', 'aktiv_pause'])
+export const PASSIV_PAUSE_TYPER: ReadonlySet<string> = new Set(['pause'])
 export const VEKSLING_TYPER: ReadonlySet<string> = new Set(['veksling'])
 
 export function findActivityType(v: ActivityType): ActivityTypeOption | null {

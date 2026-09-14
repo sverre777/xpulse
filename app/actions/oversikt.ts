@@ -4,7 +4,7 @@ import { beregnPR, type StyrkeSett } from '@/lib/styrke-pr'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
-import type { Sport, WorkoutType } from '@/lib/types'
+import { IKKE_TRENINGSTID_TYPER, type Sport, type WorkoutType } from '@/lib/types'
 import { toISO, mondayOf, addDays, isoWeekNum } from '@/lib/season-calendar'
 import { hoyIntensitetSek, computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
 import { getHelseOversikt, type HelseOversiktData } from './helse-oversikt'
@@ -389,7 +389,7 @@ function treffPctAv(x: { forte: number; treff: number }): number | null {
   return x.forte > 0 ? Math.round((x.treff / x.forte) * 100) : null
 }
 const HARD_TYPER = new Set(['interval', 'threshold', 'hard_combo', 'competition', 'testlop'])
-const PAUSE_TYPER_UKE = new Set(['pause', 'aktiv_pause', 'veksling'])
+
 /** Resultatmål fra goal_details: én linje per mål, tomme linjer hopper vi over (maks 2). */
 function resultatMaalFra(tekst: string | null | undefined): OversiktResultatMaal[] {
   return (tekst ?? '').split(/\r?\n/).map(l => l.replace(/^[\s\-•·\d.)]+/, '').trim()).filter(Boolean).slice(0, 2)
@@ -985,7 +985,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     const bevMap = new Map<string, { sek: number; km: number }>()
     for (const a of weekActs) {
       const navn = (a.movement_name ?? '').trim()
-      if (!navn || (a.activity_type ?? '').startsWith('skyting') || PAUSE_TYPER_UKE.has(a.activity_type ?? '')) continue
+      if (!navn || (a.activity_type ?? '').startsWith('skyting') || IKKE_TRENINGSTID_TYPER.has(a.activity_type ?? '')) continue
       const e = bevMap.get(navn) ?? { sek: 0, km: 0 }
       e.sek += a.duration_seconds ?? 0; e.km += (a.distance_meters ?? 0) / 1000
       bevMap.set(navn, e)

@@ -1,4 +1,4 @@
-import { PAUSE_TYPER, VEKSLING_TYPER } from './types'
+import { PASSIV_PAUSE_TYPER, VEKSLING_TYPER } from './types'
 import {
   ALL_ZONE_NAMES,
   ExtendedZoneName,
@@ -49,7 +49,7 @@ export interface ActivityLike {
 }
 
 export interface ActivityTotals {
-  totalSeconds: number      // sum av varighet - pauser OG skyting ekskludert ("ren treningstid")
+  totalSeconds: number      // sum av varighet - ren pause OG skyting ekskludert ("ren treningstid"; aktiv pause teller)
   pauseSeconds: number
   /** Veksling/bytt-tid — egen kategori, aldri i pauseSeconds. */
   vekslingSeconds: number
@@ -101,7 +101,9 @@ export function isShootingActivityType(t: string): boolean {
 
 const SHOOTING_TYPES = SHOOTING_ACTIVITY_TYPES
 
-const PAUSE_TYPES = PAUSE_TYPER
+// Bare ren pause holdes utenfor treningstida - aktiv pause er trening
+// (Sverre 14. sep). Se IKKE_TRENINGSTID_TYPER i lib/types.
+const PAUSE_TYPES = PASSIV_PAUSE_TYPER
 const VEKSLING_TYPES = VEKSLING_TYPER
 
 // Returnerer sone-tid i SEKUNDER (phase 64+). Eldre kode kalte denne

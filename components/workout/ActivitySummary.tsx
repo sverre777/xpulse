@@ -90,8 +90,11 @@ function ernaeringFraSkjema(rader: NutritionEntryRow[]): NutritionMarker[] {
 
 export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
-    let totalSeconds = 0     // ren treningstid - ekskl. pauser OG skyting
+    let totalSeconds = 0     // ren treningstid - ekskl. ren pause OG skyting (aktiv pause teller)
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
+    // Sverre 14. sep: elapsed = hele spennet økta tar, men KUN fra øktas egne
+    // rader - treningstid + pauser + veksling + skyting.
+    let elapsedSeconds = 0
     let totalMeters = 0
     const movementSeconds: Record<string, number> = {}
     // Pace per bevegelsesform: vekt = sekunder, slik at lange økter teller mer.
@@ -119,6 +122,7 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
       const meta = findActivityType(a.activity_type)
       const isPause = IKKE_TRENINGSTID_TYPER.has(a.activity_type)
       const durSec = parseActivityDuration(a.duration) ?? 0
+      elapsedSeconds += durSec
 
       // Skytestatistikk — summer skudd alltid; summer treff (og "scored"-nevner)
       // kun der treff er eksplisitt fylt inn.
@@ -238,6 +242,7 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
     return {
       totalSeconds,
       shootingSeconds,
+      elapsedSeconds,
       totalMeters,
       movementList,
       zoneSeconds,
@@ -276,6 +281,11 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
     : planNokkeltallCeller(planBlokker ?? [], heartZones)
   if (klokke?.data.samples && totalKm > 0) celler.push({ id: 'km', etikett: 'Distanse', verdi: totalKm.toFixed(1), hale: 'km' })
   if (summary.shootingSeconds > 0) celler.push({ id: 'skyting', etikett: 'Skyting', verdi: `${Math.round(summary.shootingSeconds / 60)}`, hale: 'min · utenfor treningstid' })
+  // Elapsed vises bare når den faktisk skiller seg fra treningstida - altså
+  // når økta har ren pause eller veksling i seg.
+  if (summary.elapsedSeconds > summary.totalSeconds + summary.shootingSeconds + 30) {
+    celler.push({ id: 'elapsed', etikett: 'Elapsed', verdi: `${Math.round(summary.elapsedSeconds / 60)}`, hale: 'min · med pause' })
+  }
   if (summary.bestPaceSeconds != null) celler.push({ id: 'pace', etikett: 'Beste pace', verdi: formatPace(summary.bestPaceSeconds, paceUnit), hale: summary.bestPaceMovement ?? undefined })
   if (summary.lactateCount > 0) celler.push({ id: 'laktat', etikett: 'Laktat', verdi: `${summary.lactateCount}×`, hale: summary.lactateMax != null ? `maks ${summary.lactateMax.toFixed(1)}` : undefined })
 

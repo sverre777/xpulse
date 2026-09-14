@@ -1,5 +1,5 @@
 import { normaliserBevform } from '@/lib/types'
-import { CalendarWorkoutSummary, CompetitionType, ShotStats, PAUSE_TYPER, VEKSLING_TYPER } from './types'
+import { CalendarWorkoutSummary, CompetitionType, ShotStats, PASSIV_PAUSE_TYPER, VEKSLING_TYPER } from './types'
 import { lesTidspunktNotater } from './tidspunkt-notater'
 import { fraRaaRader } from './plan-graf'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from './heart-zones'
@@ -89,7 +89,7 @@ function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
     const s = Number(a.duration_seconds) || 0
     if (VEKSLING_TYPER.has(a.activity_type ?? '')) {
       veksling += s
-    } else if (PAUSE_TYPER.has(a.activity_type ?? '')) {
+    } else if (PASSIV_PAUSE_TYPER.has(a.activity_type ?? '')) {
       pause += s
     } else if (isShootingActivityType(a.activity_type)) {
       shooting += s

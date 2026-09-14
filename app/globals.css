@@ -358,6 +358,14 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-selwrap { position: relative; }
 .xp-selwrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--dim); pointer-events: none; font-size: 13px; }
 .xp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Grid-celler har min-width auto som standard: et dato-/klokkefelt med bred
+   egenbredde (iOS) presser da kolonnen ut av kortet. Sverre 14. sep: «fra/til
+   og klokkeslett glir ut». Cellene får min-width 0, og felttypene som har
+   egenbredde bindes til kolonnen. */
+.xp-grid2 > *, .sf17-meta > *, .grid > * { min-width: 0; }
+input[type="date"], input[type="time"], input[type="datetime-local"] {
+  width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+}
 .xp-grid2 .xp-full { grid-column: 1 / -1; }
 
 /* ── Flagg-chips ── */
@@ -465,8 +473,21 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-btn.xp-icon { flex: 0 0 54px; background: var(--knapp-flate); border: 1px solid var(--accent-50); color: var(--accent); font-size: 19px; }
 .xp-btn.xp-icon:hover { background: var(--accent-soft); }
 
+/* Sett-raden i styrke (SETT · REPS · VEKT · TID · RPE · slett). Kolonnene er
+   like på PC; på mobil krymper etiketten og RPE så feltene faktisk får plass
+   (Sverre 14. sep: «50» ble klippet). */
+.xp-settrad { grid-template-columns: 36px 1fr 1fr 1fr 60px 22px; }
+
 /* ── Mobil + reduced motion ── */
 @media (max-width: 560px) {
+  .xp-settrad { grid-template-columns: 22px 1fr 1fr 1fr 44px 20px; gap: 5px; }
+  /* Live styrke: settraden pakker om i stedet for å presse knappene ut
+     (Sverre 14. sep). Feltene krymper, «Start/logg» får egen linje ved behov. */
+  .xp-live-settrad { flex-wrap: wrap; gap: 6px; row-gap: 4px; }
+  .xp-live-settrad input { min-width: 0; width: 54px; font-size: 14px; padding-left: 5px; padding-right: 5px; }
+  .xp-live-settrad > button:last-child { margin-left: auto; }
+  .xp-settrad input { padding-left: 4px; padding-right: 4px; font-size: 14px; }
+  .xp-settrad > span:first-child { font-size: 12px; }
   /* Sverre 14. sep: med Styrke valgt ble raden Avbryt · Lagre plan · Start live ·
      bokmerke bredere enn skjermen. Kortere tekst (se .xp-kort-mobil) + tettere
      knapper, og ikon-knappen krymper. */

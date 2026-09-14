@@ -1737,10 +1737,9 @@ function ExerciseBlock({
       {/* Set rows - Tid-kolonnen er for isometriske hold (planke, statisk
           muskeldraining). Bruker kan fylle reps/kg/tid uavhengig. */}
       <div className="space-y-1.5">
-        <div className="grid gap-2 px-1 text-xs tracking-widest uppercase"
+        <div className="grid gap-2 px-1 text-xs tracking-widest uppercase xp-settrad"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
-            gridTemplateColumns: '36px 1fr 1fr 1fr 60px 22px',
           }}>
           <span>Sett</span>
           <span>Reps</span>
@@ -1750,8 +1749,7 @@ function ExerciseBlock({
           <span></span>
         </div>
         {exercise.sets.map(s => (
-          <div key={s.id} className="grid gap-2 items-center"
-            style={{ gridTemplateColumns: '36px 1fr 1fr 1fr 60px 22px' }}>
+          <div key={s.id} className="grid gap-2 items-center xp-settrad">
             <span style={{
               fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px', textAlign: 'center',
             }}>{s.set_number}</span>

@@ -359,7 +359,7 @@ export function LiveSessionView({
                   {ls && (
                     <button type="button" onClick={() => repeatLast(ex)}
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE, background: 'none', border: '1px solid #3A2418', padding: '2px 8px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                      ↺ Gjenta forrige
+                      <Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta forrige
                     </button>
                   )}
                 </div>
@@ -369,7 +369,7 @@ export function LiveSessionView({
                 const done = doneSets.has(s.id)
                 const active = s.id === activeSetId
                 return (
-                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid var(--kant-1-app)' }}>
+                  <div key={s.id} className="xp-live-settrad" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid var(--kant-1-app)' }}>
                     <span style={{ width: 22, color: done ? '#28A86E' : active ? ORANGE : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
                       {done ? <Ikon navn="fullfort" variant="strek" storrelse={14} /> : si + 1}
                     </span>

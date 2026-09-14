@@ -16,6 +16,34 @@ export const SHOOTING_TYPES_V2: { key: ShootingActivityTypeV2; label: string; co
   { key: 'torrtrening',    label: 'Tørrtrening',    color: '#6E6E78' },
 ]
 
+/**
+ * Aktivitetstypen en skyterad SKAL ha, ut fra posisjonene som faktisk er ført
+ * (Sverre 14. sep 2026): bare liggende = «Skyting L», bare stående =
+ * «Skyting S», begge = «Skyting L+S». Ingen serier ført = null, og da står
+ * typen som den er - vi gjetter ikke.
+ *
+ * ÉN KILDE for regelen. Byggeren setter den samme veien ut fra
+ * posisjonsmønsteret (lib/intervall-generator).
+ */
+export function skytetypeAvPosisjoner(
+  serier: { position?: 'L' | 'S' | null }[] | null | undefined,
+  proneShots?: string | null,
+  standingShots?: string | null,
+): 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert' | null {
+  const L = (serier ?? []).some(s => s.position === 'L') || (parseInt(String(proneShots ?? '')) || 0) > 0
+  const S = (serier ?? []).some(s => s.position === 'S') || (parseInt(String(standingShots ?? '')) || 0) > 0
+  if (L && S) return 'skyting_kombinert'
+  if (L) return 'skyting_liggende'
+  if (S) return 'skyting_staaende'
+  return null
+}
+
+/** Typene som skal FØLGE posisjonene. Innskyting og basis er markeringer i
+    typeform - de beholder sin egen betydning. */
+export const POSISJONSSTYRTE_SKYTETYPER: ReadonlySet<string> = new Set([
+  'skyting_liggende', 'skyting_staaende', 'skyting_kombinert',
+])
+
 // Posisjonsfarger (samme som liggende/stående i analysen).
 export const POSITION_COLORS = { L: '#1A6FD4', S: '#FF8C00' } as const
 

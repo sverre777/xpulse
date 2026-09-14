@@ -7,7 +7,7 @@ import { SerieListe } from './SerieListe'
 import { PunktEtiketter } from './WorkoutDetailChart'
 import { bevFelterFor, spesifikkTekst, kmtTilSekPerKm, sekPerKmTilKmtTekst, splitTilSekPerKm, sekPerKmTilSplitTekst } from '@/lib/bevform-felter'
 import type { Segment } from '@/lib/segmenter'
-import { shootingSummary } from '@/lib/shooting'
+import { shootingSummary, POSISJONSSTYRTE_SKYTETYPER, skytetypeAvPosisjoner } from '@/lib/shooting'
 import { createPortal } from 'react-dom'
 import {
   SEGMENT_FARGER, PUNKT_FARGER, segmentBakgrunn, segmentTypeFor, fmtKlokkeSek, pulsIVindu, fmtVarighetKort,
@@ -1383,7 +1383,16 @@ function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false, vinduPuls =
       </div>
       {/* Sverre 5. sep: hele seriefeltet (L/S · skudd · treff · tid · puls · maks · + legg til serie) - samme som i aktivitetsraden. */}
       <div className="mt-2" data-skyting-serier>
-        <SerieListe series={rad.shooting_series ?? []} onChange={next => onEndre({ shooting_series: next })} planMode={planMode} showPoints={false} />
+        <SerieListe series={rad.shooting_series ?? []} planMode={planMode} showPoints={false}
+          onChange={next => {
+            // Samme regel som i føringen: typen følger posisjonene (L, S, L+S).
+            const ny = POSISJONSSTYRTE_SKYTETYPER.has(rad.activity_type)
+              ? skytetypeAvPosisjoner(next, rad.prone_shots, rad.standing_shots)
+              : null
+            onEndre(ny && ny !== rad.activity_type
+              ? { shooting_series: next, activity_type: ny }
+              : { shooting_series: next })
+          }} />
       </div>
     </div>
   )

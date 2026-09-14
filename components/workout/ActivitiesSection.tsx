@@ -36,7 +36,7 @@ import {
 import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
-import { shootingSummary, SHOOTING_TYPES_V2 } from '@/lib/shooting'
+import { shootingSummary, SHOOTING_TYPES_V2, POSISJONSSTYRTE_SKYTETYPER, skytetypeAvPosisjoner } from '@/lib/shooting'
 import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
 import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -2161,15 +2161,22 @@ function ShootingFields({
       const ok = await xpConfirm(`Erstatte seriene med oppsettet fra «${name}» (${flat.length} serier)?`)
       if (!ok) return
     }
+    const nyeSerier = flat.map(f => ({
+      id: crypto.randomUUID(), position: f.position, shots: String(f.shots),
+      hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
+      note: '', shot_plot: null, points: '',
+      vind_retning: null, vind_styrke: null, sikt: null,
+    }))
+    // Typen følger posisjonene i testoppsettet (en NSSF-test med både L og S
+    // gjør raden til «Skyting L+S»).
+    const nyType = POSISJONSSTYRTE_SKYTETYPER.has(row.activity_type)
+      ? skytetypeAvPosisjoner(nyeSerier, row.prone_shots, row.standing_shots)
+      : null
     onUpdate({
       shooting_test_ref: ref,
       shooting_surface: (std?.surface ?? own?.config.surface ?? row.shooting_surface) as ActivityRow['shooting_surface'],
-      shooting_series: flat.map(f => ({
-        id: crypto.randomUUID(), position: f.position, shots: String(f.shots),
-        hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
-        note: '', shot_plot: null, points: '',
-        vind_retning: null, vind_styrke: null, sikt: null,
-      })),
+      shooting_series: nyeSerier,
+      ...(nyType && nyType !== row.activity_type ? { activity_type: nyType } : {}),
     })
   }
 
@@ -2368,7 +2375,18 @@ function ShootingFields({
       ) : (
         <SerieListe
           series={series}
-          onChange={(next: ShootingSeriesRow[]) => onUpdate({ shooting_series: next })}
+          onChange={(next: ShootingSeriesRow[]) => {
+            // Sverre 14. sep: typen FØLGER posisjonene. Fører man bare
+            // liggende serier blir raden «Skyting L», bare stående «Skyting S»,
+            // begge «Skyting L+S». Innskyting og basis er markeringer i
+            // typeform og beholder sin egen betydning.
+            const ny = POSISJONSSTYRTE_SKYTETYPER.has(row.activity_type)
+              ? skytetypeAvPosisjoner(next, row.prone_shots, row.standing_shots)
+              : null
+            onUpdate(ny && ny !== row.activity_type
+              ? { shooting_series: next, activity_type: ny }
+              : { shooting_series: next })
+          }}
           planMode={planMode}
           showPoints={showPoints}
           etterSum={showAutoSum ? (

@@ -1030,6 +1030,8 @@ export interface WorkoutKeyDateLink {
   location: string | null
   distance_format: string | null
   event_date: string
+  /** Formtopp-mål - merkes i årsplanen ELLER i planen (Sverre 14. sep). */
+  is_peak_target: boolean
 }
 
 export async function getKeyDateForWorkout(
@@ -1041,7 +1043,7 @@ export async function getKeyDateForWorkout(
   // RLS på season_key_dates går via seasons.user_id — egne + coach-lest.
   const { data } = await supabase
     .from('season_key_dates')
-    .select('id, event_type, name, location, distance_format, event_date')
+    .select('id, event_type, name, location, distance_format, event_date, is_peak_target')
     .eq('linked_workout_id', workoutId)
     .maybeSingle()
   if (!data) return null
@@ -1052,7 +1054,33 @@ export async function getKeyDateForWorkout(
     location: (data.location as string | null) ?? null,
     distance_format: (data.distance_format as string | null) ?? null,
     event_date: data.event_date as string,
+    is_peak_target: !!data.is_peak_target,
   }
+}
+
+/**
+ * Formtopp-mål på en nøkkeldato (Sverre 14. sep 2026).
+ *
+ * Merkes en A-konkurranse i PLANEN, skal den kunne merkes som formtopp der
+ * også - samme felt som årsplanen skriver, ingen kopi.
+ */
+export async function settFormtoppMaal(
+  keyDateId: string,
+  paa: boolean,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { data, error } = await supabase
+    .from('season_key_dates')
+    .update({ is_peak_target: paa })
+    .eq('id', keyDateId)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data || data.length === 0) return { error: 'Fant ikke nøkkeldatoen' }
+  revalidatePath('/app/periodisering')
+  revalidatePath('/app/plan')
+  return {}
 }
 
 export async function updateKeyDatePriority(

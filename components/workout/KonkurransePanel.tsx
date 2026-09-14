@@ -25,7 +25,7 @@ import { STANDARD_SHOOTING_TESTS, expandTestSeries } from '@/lib/shooting-test-t
 import { listMyShootingTests, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { TestDataModule } from './TestDataModule'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
-import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
+import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON, MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
 
 const GULL = '#E8B93C'
 const GULL2 = '#D4A017'
@@ -51,7 +51,7 @@ const TYPE_CHIPS: { verdi: PanelType; etikett: string; ikon: IkonNavn }[] = [
 
 export function KonkurransePanel({
   type, onTypeChange, data, onChange, sport, mode, onSportChange,
-  onRequestGenerate, activityCount, keyDate, onPrioritetChange,
+  onRequestGenerate, activityCount, keyDate, onPrioritetChange, onFormtoppChange,
   testData, onTestDataChange,
   onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal,
   aktivTestMalId = null, kanLageNyMal = true,
@@ -68,6 +68,8 @@ export function KonkurransePanel({
   // Årsplan-kobling (SF-2 del 1): satt når en key date peker på økta.
   keyDate: WorkoutKeyDateLink | null
   onPrioritetChange: (p: 'a' | 'b' | 'c') => void
+  /** Formtopp-mål på den koblede nøkkeldatoen - samme felt som årsplanen. */
+  onFormtoppChange?: (paa: boolean) => void
   testData: TestData | null
   onTestDataChange: (d: TestData) => void
   // #50 bolk 2 — «Hvilken test?»:
@@ -261,6 +263,23 @@ export function KonkurransePanel({
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#28A86E', flexShrink: 0 }} />
                     Hentet fra <b style={{ color: 'var(--tekst-1-app)' }}>årsplanen</b> - kan overstyres
                   </div>
+                )}
+                {/* Formtopp-mål (Sverre 14. sep): merkes her som i årsplanen -
+                    samme felt på nøkkeldatoen, ikke et duplikat. */}
+                {keyDate && onFormtoppChange && prioritet === 'a' && (
+                  <button type="button" data-formtopp aria-pressed={keyDate.is_peak_target}
+                    onClick={() => onFormtoppChange(!keyDate.is_peak_target)}
+                    className="inline-flex items-center gap-2 mt-2"
+                    style={{
+                      fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
+                      textTransform: 'uppercase', borderRadius: 999, padding: '6px 13px', minHeight: 32,
+                      cursor: 'pointer', background: keyDate.is_peak_target ? 'rgba(212,160,23,.14)' : 'transparent',
+                      border: `1.5px solid ${keyDate.is_peak_target ? GULL : 'var(--line2)'}`,
+                      color: keyDate.is_peak_target ? GULL : 'var(--mut)',
+                    }}>
+                    <Ikon navn={MARKERING_IKON.peak} variant="fyll" storrelse={14} />
+                    Formtoppmål
+                  </button>
                 )}
               </div>
             )}

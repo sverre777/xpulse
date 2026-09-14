@@ -1107,9 +1107,101 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   const childErrors = (await Promise.all(childOps)).filter((e): e is string => !!e)
   if (childErrors.length > 0) return { error: childErrors[0] }
 
+  // Toveis-synk: konkurranse/testløp/test i planen skal også stå i årsplanen.
+  await synkNokkeldato(supabase, resolved.userId, savedId!, data)
+
   revalidateWorkoutPaths(resolved.userId)
+  revalidatePath('/app/periodisering')
   console.log(`[saveWorkout] ${workoutId ? 'oppdatert' : 'opprettet'} ${savedId} på ${Date.now() - t0}ms (${childOps.length} parallelle child-skrivinger)`)
   return { id: savedId }
+}
+
+// ── TOVEIS-SYNK PLAN <-> ÅRSPLAN (Sverre 14. sep 2026) ──────────────
+//
+// Årsplanen har alltid kunnet lage økta (createKeyDate lager en koblet
+// workout). Den andre veien manglet: en konkurranse, et testløp eller en
+// test ført i PLANEN dukket aldri opp blant nøkkeldatoene.
+//
+// ÉN SANNHET: nøkkeldatoen er fortsatt kilden til A/B/C (event_type, se
+// #50) - denne funksjonen speiler bare øktas type, dato og navn inn dit, og
+// oppretter raden når den mangler. Feiler noe her, feiler ALDRI lagringen av
+// økta: synken er et tillegg, ikke en forutsetning. En trener uten
+// can_edit_periodization treffer RLS og får ingen synk - økta lagres likevel.
+// Typen skrives lokalt med vilje: seasons.ts er 'use server', og en
+// type-import derfra er ikke verdt risikoen (Turbopack visker den ikke alltid
+// ut, og da dør hele action-chunken).
+type NokkeldatoType = 'competition_a' | 'competition_b' | 'competition_c' | 'testlop' | 'test'
+
+const NOKKELDATO_TYPE: Record<string, 'competition' | 'testlop' | 'test'> = {
+  competition: 'competition', testlop: 'testlop', test: 'test',
+}
+
+function nokkeldatoTypeFor(data: WorkoutFormData): NokkeldatoType | null {
+  const grunn = NOKKELDATO_TYPE[data.workout_type as string]
+  if (!grunn) return null
+  if (grunn !== 'competition') return grunn
+  const p = data.competition_data?.priority
+  // Uten valgt prioritet er en konkurranse en C - den laveste. Velger
+  // utøveren A eller B, skrives det hit ved neste lagring.
+  return `competition_${p === 'a' || p === 'b' ? p : 'c'}` as NokkeldatoType
+}
+
+async function synkNokkeldato(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  workoutId: string,
+  data: WorkoutFormData,
+): Promise<void> {
+  try {
+    const onsket = nokkeldatoTypeFor(data)
+    const { data: eksisterende } = await supabase
+      .from('season_key_dates')
+      .select('id, event_type, event_date, name')
+      .eq('linked_workout_id', workoutId)
+      .maybeSingle()
+
+    if (!onsket) {
+      // Økta er ikke lenger konkurranse/testløp/test - da skal den heller
+      // ikke stå som nøkkeldato. Nøkkeldatoen ER økta, så den følger med.
+      if (eksisterende) await supabase.from('season_key_dates').delete().eq('id', eksisterende.id)
+      return
+    }
+
+    const navn = (data.competition_data?.name || data.title || '').trim() || 'Konkurranse'
+    if (eksisterende) {
+      const felt: Record<string, unknown> = {}
+      if (eksisterende.event_type !== onsket) felt.event_type = onsket
+      if (eksisterende.event_date !== data.date) felt.event_date = data.date
+      if ((eksisterende.name ?? '') !== navn) felt.name = navn
+      if (Object.keys(felt).length > 0) await supabase.from('season_key_dates').update(felt).eq('id', eksisterende.id)
+      return
+    }
+
+    // Ny nøkkeldato - men bare når en sesong faktisk dekker datoen.
+    const { data: sesong } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('user_id', userId)
+      .lte('start_date', data.date)
+      .gte('end_date', data.date)
+      .order('start_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (!sesong) return
+    await supabase.from('season_key_dates').insert({
+      season_id: sesong.id,
+      event_type: onsket,
+      event_date: data.date,
+      name: navn,
+      sport: data.sport ?? null,
+      location: data.competition_data?.location?.trim() || null,
+      distance_format: data.competition_data?.distance_format?.trim() || null,
+      linked_workout_id: workoutId,
+      is_peak_target: false,
+    })
+  } catch (e) {
+    console.log('[synkNokkeldato] hoppet over:', e instanceof Error ? e.message : String(e))
+  }
 }
 
 export async function markCompleted(workoutId: string, targetUserId?: string): Promise<{ error?: string }> {

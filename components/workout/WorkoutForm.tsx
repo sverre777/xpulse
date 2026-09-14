@@ -35,7 +35,7 @@ import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, TESTSPORT_TIL_SPORT, type PanelType } from './KonkurransePanel'
 import { createPortal } from 'react-dom'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
-import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
+import { getKeyDateForWorkout, settFormtoppMaal, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
 import { ActivitySummary } from './ActivitySummary'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { useKlokkedata } from './useKlokkedata'
@@ -1566,6 +1566,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           onSportChange={s2 => handleSportChange(s2)}
           activityCount={form.activities.length}
           keyDate={keyDate}
+          onFormtoppChange={paa => { void (async () => {
+            // Formtopp-mål bor på nøkkeldatoen (samme felt som årsplanen).
+            if (!keyDate) return
+            const forrige = keyDate
+            setKeyDate({ ...keyDate, is_peak_target: paa })
+            const res = await settFormtoppMaal(keyDate.key_date_id, paa)
+            if (res.error) { setKeyDate(forrige); void xpAlert(res.error) }
+          })() }}
           onPrioritetChange={p => { void (async () => {
             // Alltid inn i øktas eget felt; MED årsplan-kobling skrives den
             // også tilbake dit (samme sannhet begge steder).

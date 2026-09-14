@@ -467,6 +467,13 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 
 /* ── Mobil + reduced motion ── */
 @media (max-width: 560px) {
+  /* Sverre 14. sep: med Styrke valgt ble raden Avbryt · Lagre plan · Start live ·
+     bokmerke bredere enn skjermen. Kortere tekst (se .xp-kort-mobil) + tettere
+     knapper, og ikon-knappen krymper. */
+  .xp-savebar { gap: 6px; padding: 14px 0 12px; }
+  .xp-savebar .xp-btn { padding: 14px 6px; font-size: 13.5px; letter-spacing: .08em; }
+  .xp-savebar .xp-btn.xp-icon { flex: 0 0 44px; }
+  .xp-savebar .xp-lang-mobil { display: none; }
   .xp-grid2 { gap: 10px; }
   .xp-pulse-strip .xp-v { font-size: 26px; }
   .xp-card-b { padding: 4px 14px 16px; }

@@ -20,6 +20,7 @@ import { SeasonCanvas, type CanvasPeriodMutators } from '@/components/periodizat
 import type { Season, SeasonPeriod, SeasonMarking, Intensity, PeriodInput } from '@/app/actions/seasons'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 import { Ikon } from '@/components/ui/ikoner'
+import { MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 // Del F: malens lerret tegner på en SYNTETISK tidslinje forankret i en
 // mandag — U1 = anker-uka; offsets ⇄ datoer er ren aritmetikk. Anvendelse
@@ -584,7 +585,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
               <BtnSm onClick={() => { const uid = addMarking(); setSelectedMarkingUid(uid) }}>+ Samling/høyde</BtnSm>
             </div>
             {markingsBox.list.length === 0 ? (
-              <EmptyHint>Ingen markeringer ennå - bruk <Ikon navn="samling" variant="fyll" storrelse={14} />-verktøyet i lerretet, eller legg til manuelt. Laget ligger fritt over periodene.</EmptyHint>
+              <EmptyHint>Ingen markeringer ennå - bruk <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />-verktøyet i lerretet, eller legg til manuelt. Laget ligger fritt over periodene.</EmptyHint>
             ) : (
               <div className="flex flex-col gap-2">
                 {markingsBox.list.map(m => (
@@ -749,13 +750,13 @@ function MarkingRow({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14 }}>
             <input type="checkbox" checked={marking.is_training_camp}
               onChange={e => onChange({ is_training_camp: e.target.checked })} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn="samling" variant="fyll" storrelse={14} />Samling</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />Samling</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14 }}>
             <input type="checkbox" checked={marking.is_altitude}
               onChange={e => onChange({ is_altitude: e.target.checked })} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn="hoydesamling" variant="fyll" storrelse={14} />Høyde</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />Høyde</span>
           </label>
         </div>
         <DateOrDayField

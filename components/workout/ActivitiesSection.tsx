@@ -159,11 +159,24 @@ import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
+import { SKYTE_FARGER, SEGMENT_FARGER } from '@/lib/segmenter'
 
 /** Ikonet for en aktivitetstype - slås opp i ACTIVITY_TYPES (lib/types), som er
  *  ÉN kilde for etikett og ikon. Ukjent type faller til «annet». */
 function ikonForAktivitetstype(t: string): IkonNavn {
   return ACTIVITY_TYPES.find(a => a.value === t)?.icon ?? 'annet'
+}
+
+/** Fargen på radens ikon: aktivitet gult (lynet), skyting i skytefargen,
+    oppvarming/nedjogg/pause i segmentfargen. Ellers arver den teksten. */
+function fargeForAktivitetstype(t: string): string | undefined {
+  if (t === 'aktivitet') return 'var(--gold)'
+  if (t === 'skyting_staaende') return SKYTE_FARGER.staa
+  if (t.startsWith('skyting')) return SKYTE_FARGER.ligg
+  if (t === 'oppvarming') return SEGMENT_FARGER.oppvarming
+  if (t === 'nedjogg') return SEGMENT_FARGER.nedjogg
+  if (t === 'pause' || t === 'aktiv_pause' || t === 'veksling') return SEGMENT_FARGER.pause
+  return undefined
 }
 
 
@@ -1060,18 +1073,18 @@ function ActivityRowItem({
                 {showFavoritesGroup ? (
                   <optgroup label="Alle">
                     {typeOptions.map(t => (
-                      <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
+                      <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
                   </optgroup>
                 ) : (
                   typeOptions.map(t => (
-                    <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
+                    <option key={t.value} value={t.value}>{t.label}</option>
                   ))
                 )}
                 {/* Gamle rader m/ legacy skyting-variant: behold verdien synlig.
                     Kombinert uten L/S i seriene → «Skyting · velg L/S» (bolk 24). */}
                 {meta?.legacy && !typeOptions.some(t => t.value === meta.value) && (
-                  <option value={meta.value}>{meta.icon}  {legacySkytingLabel(row, meta)}</option>
+                  <option value={meta.value}>{legacySkytingLabel(row, meta)}</option>
                 )}
               </select>
             </Field>
@@ -2246,7 +2259,7 @@ function ShootingFields({
         {chip('Innskyting', row.shooting_is_innskyting, 'var(--tekst-5-app)',
           () => onUpdate({ shooting_is_innskyting: !row.shooting_is_innskyting }))}
         {chip('Skytetest', row.shooting_is_test, '#D4A017',
-          () => onUpdate({ shooting_is_test: !row.shooting_is_test }), { ikon: 'laktat' })}
+          () => onUpdate({ shooting_is_test: !row.shooting_is_test }), { ikon: 'test' })}
         {isComp && chip('Konkurranse', true, '#D4A017', undefined,
           { dashed: true, title: 'Automatisk - følger øktas konkurranse-markering', ikon: KONKURRANSE_CHIP_IKON })}
         {isTestlop && chip('Testløp', true, '#1A6FD4', undefined,

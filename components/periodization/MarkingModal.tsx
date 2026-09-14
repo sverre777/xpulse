@@ -14,7 +14,7 @@ import {
 } from '@/app/actions/seasons'
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
 import { Ikon } from '@/components/ui/ikoner'
-import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
+import { MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 export function MarkingModal({
   open, onClose, seasonId, seasonStart, seasonEnd, editing, initialStart, initialEnd, targetUserId,
@@ -106,7 +106,7 @@ export function MarkingModal({
         <div className="mb-3" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
           <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             <input type="checkbox" checked={isCamp} onChange={e => setIsCamp(e.target.checked)} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn="samling" variant="fyll" storrelse={14} />Treningssamling</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />Treningssamling</span>
           </label>
           {isCamp && (
             <div className="mt-2">
@@ -119,7 +119,7 @@ export function MarkingModal({
         <div className="mb-3" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
           <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             <input type="checkbox" checked={isAltitude} onChange={e => setIsAltitude(e.target.checked)} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={18} />Høydeopphold</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={18} style={{ color: MARKERING_FARGE.hoyde }} />Høydeopphold</span>
           </label>
           {isAltitude && (
             <div className="mt-2">

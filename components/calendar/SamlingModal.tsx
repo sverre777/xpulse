@@ -12,7 +12,7 @@ import {
 } from '@/app/actions/seasons'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { Ikon } from '@/components/ui/ikoner'
-import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
+import { MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 const ORANGE = '#FF4500'
 
@@ -99,10 +99,10 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
 
           <div className="flex gap-2">
             <Chip aktiv={form.is_training_camp} onClick={() => set({ is_training_camp: !form.is_training_camp })}>
-              <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} /> Samling
+              <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} /> Samling
             </Chip>
             <Chip aktiv={form.is_altitude} onClick={() => set({ is_altitude: !form.is_altitude })}>
-              <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} /> Høyde
+              <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} /> Høyde
             </Chip>
           </div>
 

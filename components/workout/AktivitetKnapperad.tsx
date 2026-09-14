@@ -1,6 +1,7 @@
 'use client'
 
 import { Ikon } from '@/components/ui/ikoner'
+import { SKYTE_FARGER } from '@/lib/segmenter'
 
 // Felles knapperad over aktivitetsradene — ÉN komponent brukt i både plan
 // og dagbok (regel 11). Fasit: design/xpulse-plott-treff-design.html +
@@ -52,26 +53,32 @@ export function AktivitetKnapperad({
   const visBygger = !!onOktbygger
   return (
     <div className="flex gap-2 items-center flex-wrap mb-3" data-aktivitet-knapperad>
+      {/* Sverre 14. sep: begge knappene leses likt - pluss, så ikonet i sin
+          farge, så teksten. Aktivitet er oransje (lynet), skyting rødt (blinken). */}
       <button type="button" onClick={onLeggTilAktivitet} className={PILL_KLASSE}
         style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-        <Ikon navn="legg-til" storrelse={18} /> <span className={LANG}>Legg til </span>aktivitet
+        <Ikon navn="legg-til" storrelse={18} />
+        <Ikon navn="aktivitet" variant="fyll" storrelse={18} style={{ color: 'var(--gold)', margin: '0 5px 0 3px' }} />
+        <span className={LANG}>Legg til </span>aktivitet
       </button>
       {userHasBiathlon && (
         <button type="button" onClick={onLeggTilSkyting} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-          <Ikon navn="skyting" storrelse={18} /> <Ikon navn="legg-til" storrelse={18} /> <span className={LANG}>Legg til </span>skyting
+          <Ikon navn="legg-til" storrelse={18} />
+          <Ikon navn="skyting" variant="fyll" storrelse={18} style={{ color: SKYTE_FARGER.ligg, margin: '0 5px 0 3px' }} />
+          <span className={LANG}>Legg til </span>skyting
         </button>
       )}
       {visBygger && (
         <button type="button" onClick={onOktbygger} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
-          <Ikon navn="aktivitet" storrelse={18} /> Øktbygger
+          <Ikon navn="aktivitet" variant="fyll" storrelse={18} style={{ color: 'var(--gold)' }} /> Øktbygger
         </button>
       )}
       {visPlottTreff && (
         <button type="button" onClick={onPlottTreff} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid #FF4500', color: '#FF4500' }}>
-          <Ikon navn="skyting" storrelse={18} /> Plott treff
+          <Ikon navn="skyting" variant="fyll" storrelse={18} /> Plott treff
         </button>
       )}
     </div>

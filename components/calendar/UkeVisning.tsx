@@ -37,7 +37,7 @@ import { fmtHM } from '@/components/oversikt/kort-deler'
 import type { DayState } from '@/lib/day-state-types'
 import { INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS, weekOverlayFor, formatSpanNO } from '@/lib/periodization-overlay'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
-import { NOKKELDATO_IKON, MARKERING_IKON, KONKURRANSE_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
+import { NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE, KONKURRANSE_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 import {
   planVisual, secondsFor, metersFor, zoneSecondsFor, filterByMode, includeInSum,
   competitionChipStyle, intensityAccent, type CalendarMode,
@@ -190,8 +190,8 @@ function UkeBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyD
           ))}
           {weekMarkings.map(m => (
             <span key={m.id} className="inline-flex items-center gap-1 text-xs" title={`${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`} style={{ fontFamily: FONT, color: '#D4A017', fontWeight: 700 }}>
-              {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
-              {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+              {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}
+              {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />}
               {m.name}{m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
             </span>
           ))}

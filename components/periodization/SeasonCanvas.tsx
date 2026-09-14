@@ -20,7 +20,7 @@ import {
 } from '@/app/actions/seasons'
 import { INTENSITY_COLOR, weekIntensityGradient } from '@/lib/periodization-overlay'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
-import { NOKKELDATO_IKON, MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
+import { NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const INTENSITY_LABEL: Record<Intensity, string> = {
@@ -516,6 +516,24 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
     </button>
   )
 
+  /** Samling/høyde-verktøyet bærer begge ikonene - knappen lager begge slags bånd. */
+  const toolBtnTo = (bru: Brush, label: string): React.ReactNode => (
+    <button key={bru} type="button" onClick={() => setBrush(bru)}
+      className="inline-flex items-center gap-1.5 transition-colors"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
+        letterSpacing: '0.06em', borderRadius: 9, padding: '8px 13px', cursor: 'pointer', minHeight: 40,
+        border: '1px solid var(--line2)',
+        color: brush === bru ? 'var(--tekst-1-ren)' : 'var(--mut)',
+        background: brush === bru ? 'var(--flate-17)' : 'none',
+        boxShadow: brush === bru ? '0 0 0 2px var(--accent), 0 4px 16px rgba(255,69,0,.2)' : 'none',
+      }}>
+      <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />
+      <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />
+      {label}
+    </button>
+  )
+
   const granBtn = (g: Granularity, label: string): React.ReactNode => (
     <button key={g} type="button" onClick={() => { setGranularity(g); setSel(null); setEdgeDrag(null) }}
       style={{
@@ -580,7 +598,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
               }}>
                 <span>U{weekLabel(w)}</span>
                 {kd[0] && <Ikon navn={keyIkon(kd[0].event_type, kd[0].is_peak_target)} variant="fyll" storrelse={14} />}
-                {!kd[0] && samling && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+                {!kd[0] && samling && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}
               </div>
             )
           })}
@@ -653,7 +671,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           </div>
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase' }}>Markering</span>
-            {toolBtn('samling', 'Samling/høyde', 'var(--gold)', MARKERING_IKON.samling)}
+            {toolBtnTo('samling', 'Samling/høyde')}
           </div>
           {onStampDay && (
             <div className="flex gap-2 items-center p-2 flex-wrap" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
@@ -828,7 +846,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                               // Sverre 5. sep: navnet på båndet — i uka det starter.
                               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 8.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
                               color: '#D4A017', lineHeight: '10px', padding: '0 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                            }}>{startsHere ? <>{m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}{m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />} {m.name}</> : ''}</span>
+                            }}>{startsHere ? <>{m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}{m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />} {m.name}</> : ''}</span>
                         )
                       })}
                     {isStartWeek && p && (

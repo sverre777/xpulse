@@ -1072,7 +1072,7 @@ export function PunktEtiketter({ punkter, synlig, segmentVed, stil = 'etikett' }
             }}>
               {en ? (
                 <>
-                  {en.slag !== 'skyting' && <Ikon navn={PUNKT_SLAG[en.slag].ikon} variant="fyll" storrelse={14} style={{ marginRight: 3 }} />}
+                  <Ikon navn={PUNKT_SLAG[en.slag].ikon} variant="fyll" storrelse={14} style={{ marginRight: 3, color: farge }} />
                   {en.tittel}
                 </>
               ) : `${kl.punkter.length} punkter`}

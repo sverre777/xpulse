@@ -27,6 +27,14 @@ export const MARKERING_IKON = {
   peak: 'peak',
 } as const satisfies Record<string, IkonNavn>
 
+/** Fargen på markeringene: samling lilla som teltet på arket, høyde blå som
+    fjellet, peak gull. Brukes der ikonet står alene (knapper, badges, lerret). */
+export const MARKERING_FARGE = {
+  samling: '#7C5CFF',
+  hoyde: '#1A6FD4',
+  peak: 'var(--gold)',
+} as const
+
 /** Konkurranse-chipen på en ØKT i dagbok/uke: alltid rutete flagg - aldri trofé/medalje der. */
 export const KONKURRANSE_CHIP_IKON: IkonNavn = 'konkurranse'
 /** Testløp-økt (workout_type 'testlop') i dagbok/uke. */

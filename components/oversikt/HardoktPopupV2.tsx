@@ -24,9 +24,10 @@ import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { Ikon } from '@/components/ui/ikoner'
 import { KortPopup, PopupSeksjon } from './KortPopup'
 import { ZoneBar, fmtHM, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
+import { PUNKT_FARGER } from '@/lib/segmenter'
 
 const FONT = "'Barlow Condensed', sans-serif"
-const LAKTAT = '#E8B93C'
+const LAKTAT = PUNKT_FARGER.laktat
 const ERNAERING = '#28A86E'
 const UKEDAG = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag']
 const MND = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember']

@@ -295,7 +295,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const nv = etiketter.nivaaFor(b.id) * NIVAA_H
             if (skyting) return (
               <g key={`e-${b.id}`} data-skytemarkor data-nivaa={etiketter.nivaaFor(b.id) + 1}>
-                <text x={cx} y={topp - 30 - nv} textAnchor="middle"
+                <GrafIkon navn="skyting" x={cx - (b.etikett.length * 3 + 8)} y={topp - 34 - nv} storrelse={11} farge="var(--tekst-1-app)" />
+                <text x={cx + 6} y={topp - 30 - nv} textAnchor="middle"
                   style={{ font: "700 11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.04em' }}>
                   {b.etikett}
                 </text>
@@ -382,7 +383,11 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                 {(pk.slag === 'skyting' || pk.slag === 'veksling') && (
                   <GrafIkon navn={PUNKT_SLAG[pk.slag].ikon} x={cx} y={cy} storrelse={12} farge={farge} />
                 )}
-                <text x={cx} y={topp - 30 - nv} textAnchor="middle" data-punkt-etikett
+                {/* Sverre 14. sep: ikonet står foran verdien, som pillene i øktgrafen
+                    (dråpe + mmol, eple + gram, blink + L/S). */}
+                <GrafIkon navn={PUNKT_SLAG[pk.slag].ikon} x={cx - (pk.tittel.length * 3 + 8)} y={topp - 34 - nv}
+                  storrelse={11} farge={farge} opacity={pk.planlagt ? 0.8 : 1} />
+                <text x={cx + 6} y={topp - 30 - nv} textAnchor="middle" data-punkt-etikett
                   style={{ font: "700 11px 'Barlow Condensed', sans-serif", fill: farge, letterSpacing: '.05em', textTransform: 'uppercase', opacity: pk.planlagt ? 0.8 : 1 }}>
                   {pk.tittel}{pk.planlagt ? ' · plan' : ''}
                 </text>

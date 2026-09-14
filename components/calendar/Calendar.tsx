@@ -70,9 +70,9 @@ import type { ShotStats } from '@/lib/types'
 import { PeriodeStripe } from '@/components/calendar/PeriodeStripe'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import {
-  NOKKELDATO_IKON, MARKERING_IKON, KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON,
+  NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE, KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON,
 } from '@/lib/nokkeldato-ikoner'
-import { DAGSTATUS_IKON } from '@/lib/day-state-types'
+import { DAGSTATUS_IKON, DAGSTATUS_FARGE } from '@/lib/day-state-types'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -441,8 +441,8 @@ function WeekAnalysisStripe({
       {markings?.map(m => (
         <span key={m.id} className="inline-flex items-center gap-1 text-xs" title={`${m.name} (${m.start_date} - ${m.end_date})`}
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: m.is_training_camp ? '#D4A017' : '#5B8DEF' }}>
-          {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
-          {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+          {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}
+          {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />}
           {m.is_training_camp ? (m.location || m.name) : m.name}
           {m.is_altitude && m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
         </span>
@@ -1226,11 +1226,11 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         <div className="flex items-center gap-1">
           {/* Samling/høyde vises maks én gang hver - per dag i spennet. */}
           {markingsOnDay.some(m => m.is_training_camp) && (
-            <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ opacity: 0.85 }}
+            <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling, opacity: 0.85 }}
               tittel={markingsOnDay.filter(m => m.is_training_camp).map(m => `${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')} />
           )}
           {markingsOnDay.some(m => m.is_altitude) && (
-            <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ opacity: 0.85 }}
+            <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde, opacity: 0.85 }}
               tittel={markingsOnDay.filter(m => m.is_altitude).map(m => `${m.name}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')} />
           )}
           <DayStateIndicator states={states} />
@@ -1647,9 +1647,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     <span key={m.id} title={`${m.name} (${m.start_date} - ${m.end_date})`}
                       className="inline-flex items-center gap-1"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
-                      {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+                      {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}
                       {m.is_training_camp ? (m.location || m.name) : ''}
-                      {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+                      {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />}
                       {m.is_altitude ? `${m.altitude_meters ? `${m.altitude_meters} moh` : !m.is_training_camp ? m.name : ''}` : ''}
                     </span>
                   ))}
@@ -1681,8 +1681,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         style={{ padding: '6px 0 3px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.05em', fontWeight: 700 }}>
                         {markingStartsHere.map(m => (
                           <span key={m.id} className="inline-flex items-center gap-1" style={{ color: '#D4A017' }}>
-                            {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
-                            {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+                            {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}
+                            {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />}
                             {m.name}
                             {m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
                             {' · '}{formatSpanNO(m.start_date, m.end_date)}
@@ -1945,8 +1945,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               onClick={() => { if (!readOnly) onEditMarking(m) }}
                               className="inline-flex items-center gap-1"
                               style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#D4A017', border: '1px solid rgba(212,160,23,0.45)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em', background: 'none', cursor: readOnly ? 'default' : 'pointer' }}>
-                              {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
-                              {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+                              {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />}
+                              {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />}
                               {m.name}
                               {m.location ? ` · ${m.location}` : ''}
                               {m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
@@ -2315,25 +2315,25 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           {/* Dag-tilstander: hviledag kan planlegges (også fremtid);
                               syk/skade markeres kun på inntrufne dager. */}
                           <button type="button" onClick={() => onMarkDayState(ds, 'hviledag')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                            <Ikon navn={DAGSTATUS_IKON.hviledag} variant="fyll" storrelse={14} /> Hviledag
+                            <Ikon navn={DAGSTATUS_IKON.hviledag} variant="fyll" storrelse={14} style={{ color: DAGSTATUS_FARGE.hviledag }} /> Hviledag
                           </button>
                           {/* Reisedag kan planlegges frem i tid, som hviledag. */}
                           <button type="button" onClick={() => onMarkDayState(ds, 'reisedag')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                            <Ikon navn={DAGSTATUS_IKON.reisedag} variant="fyll" storrelse={14} /> Reisedag
+                            <Ikon navn={DAGSTATUS_IKON.reisedag} variant="fyll" storrelse={14} style={{ color: DAGSTATUS_FARGE.reisedag }} /> Reisedag
                           </button>
                           {/* Samling/høyde planlegges med fra-til - bor i
                               årsplanens markeringslag (én kilde). */}
                           <button type="button" onClick={() => onPlanSamling(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                            <Ikon navn={MARKERING_IKON.leggTil} variant="strek" storrelse={14} /> Samling
+                            <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} /> Samling
                           </button>
                           {!isFuture && (
                             <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                              <Ikon navn={DAGSTATUS_IKON.sykdom} variant="fyll" storrelse={14} /> Syk
+                              <Ikon navn={DAGSTATUS_IKON.sykdom} variant="fyll" storrelse={14} style={{ color: DAGSTATUS_FARGE.sykdom }} /> Syk
                             </button>
                           )}
                           {!isFuture && (
                             <button type="button" onClick={() => onMarkDayState(ds, 'skade')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                              <Ikon navn={DAGSTATUS_IKON.skade} variant="fyll" storrelse={14} /> Skade
+                              <Ikon navn={DAGSTATUS_IKON.skade} variant="fyll" storrelse={14} style={{ color: DAGSTATUS_FARGE.skade }} /> Skade
                             </button>
                           )}
                           {mode !== 'plan' && !healthData[ds] && (

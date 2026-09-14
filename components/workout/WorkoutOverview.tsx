@@ -906,7 +906,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           const legacyLabel = ACTIVITY_TYPES.find(t => t.value === a.activity_type)?.label
           const chips: ReactNode[] = []
           if (a.shooting_is_innskyting) chips.push(chip('innskyting', 'Innskyting', 'var(--mut)'))
-          if (a.shooting_is_test) chips.push(chip('skytetest', <><Ikon navn="laktat" variant="strek" storrelse={14} /> Skytetest</>, '#D4A017'))
+          if (a.shooting_is_test) chips.push(chip('skytetest', <><Ikon navn="test" variant="strek" storrelse={14} /> Skytetest</>, '#D4A017'))
           if (data.workout_type === 'competition') chips.push(chip('konkurranse', <><Ikon navn={KONKURRANSE_CHIP_IKON} variant="fyll" storrelse={14} /> Konkurranse</>, '#D4A017', true))
           if (data.workout_type === 'testlop') chips.push(chip('testlop', <><Ikon navn={TESTLOP_CHIP_IKON} variant="fyll" storrelse={14} /> Testløp</>, '#D4A017', true))
           if (a.shooting_is_test && a.shooting_surface) chips.push(chip('overflate', SURFACE_LABELS[a.shooting_surface] ?? a.shooting_surface, 'var(--mut)'))

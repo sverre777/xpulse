@@ -4,6 +4,15 @@ import type { IkonNavn } from '@/components/ui/ikoner'
 // i tid som hviledag, og sameksisterer med trening og alt annet ført samme dag.
 export type DayStateType = 'hviledag' | 'sykdom' | 'skade' | 'reisedag'
 
+/** Fargen per dagstatus - samme verdier som DayStateIndicator har brukt:
+    hviledag grønn, sykdom rød, skade oransje, reisedag blå. */
+export const DAGSTATUS_FARGE: Record<DayStateType, string> = {
+  hviledag: '#28A86E',
+  sykdom: '#E11D48',
+  skade: '#FF8C00',
+  reisedag: '#5B8DEF',
+}
+
 /** Dagstatus-ikonene, definert ÉN gang (ikonjobben 13. sep 2026): seng, medisinsk kors
     (rød i kontekst - ikke termometer), plaster, fly. Fargen settes av konteksten. */
 export const DAGSTATUS_IKON: Record<DayStateType, IkonNavn> = {

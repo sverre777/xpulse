@@ -92,7 +92,9 @@ export function segmentTypeFor(type: string, bevegelsesform: string): SegmentTyp
 // notatet): laktat GULL, ernæring GRØNN. Ikke puls-rødt: et laktatpunkt
 // tegnes PÅ pulskurven, og en rød prikk på en rød kurve forsvinner.
 export const PUNKT_FARGER = {
-  laktat: '#E8B93C',
+  // Sverre 14. sep: laktat-dråpen er ALLTID rød - den delte tone med sone I3
+  // (#E8B93C) og ble lest som en gul sone i stedet for en måling.
+  laktat: '#E23A5A',
   ernaering: '#28A86E',
   notat: '#A6A6AF',
 } as const

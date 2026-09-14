@@ -1898,12 +1898,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               {saving
                 ? 'Lagrer...'
                 : markingCompleted
-                ? <><Ikon navn="fullfort" variant="fyll" storrelse={18} /> Lagre som gjennomført</>
+                ? <><Ikon navn="fullfort" variant="fyll" storrelse={18} /> Lagre<span className="xp-lang-mobil"> som gjennomført</span></>
                 : workoutId
-                ? 'Lagre endringer'
+                ? <>Lagre<span className="xp-lang-mobil"> endringer</span></>
                 : isPlanMode
-                ? 'Lagre plan'
-                : 'Lagre økt'}
+                ? <>Lagre<span className="xp-lang-mobil"> plan</span></>
+                : <>Lagre<span className="xp-lang-mobil"> økt</span></>}
             </button>
           )}
           {/* ＋-knapp bolk 3: «Start live» ved siden av Lagre - begge alltid når økta har Styrke. */}
@@ -1911,7 +1911,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <button type="button" onClick={startLiveFlow} disabled={startingLive || saving} data-start-live
               className="xp-btn inline-flex items-center justify-center gap-2"
               style={{ backgroundColor: '#28A86E', borderColor: '#28A86E', color: 'var(--tekst-1-ren)', boxShadow: '0 6px 24px rgba(40,168,110,0.25)', opacity: startingLive ? 0.6 : 1 }}>
-              {startingLive ? 'Starter…' : <><Ikon navn="play" variant="fyll" storrelse={18} /> Start live</>}
+              {startingLive ? 'Starter…' : <><Ikon navn="play" variant="fyll" storrelse={18} /> Start<span className="xp-lang-mobil"> live</span></>}
             </button>
           )}
           {/* Save as template - sekundær CTA; skjules i template-building/capture-modus. */}
@@ -2380,7 +2380,9 @@ function SfChip({ active, onClick, color = 'var(--tekst-8-app)', ikon, tekst, ko
         color: active ? color : 'var(--mut)',
         border: `1px solid ${active ? color : 'var(--line2)'}`,
       }}>
-      {ikon && <span aria-hidden className="sf17-chip-ikon"><Ikon navn={ikon} variant="fyll" storrelse={14} /></span>}
+      {/* Sverre 14. sep: ikonet bærer sin egen farge også når chipen er av -
+          da leses raden på farge, ikke bare på tekst. */}
+      {ikon && <span aria-hidden className="sf17-chip-ikon" style={{ color }}><Ikon navn={ikon} variant="fyll" storrelse={14} /></span>}
       <span className="sf17-chip-lang">{tekst}</span>
       {kort !== undefined && kort !== '' && <span className="sf17-chip-kort" aria-hidden>{kort}</span>}
     </button>

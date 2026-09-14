@@ -7,7 +7,7 @@ import { MarkingModal } from './MarkingModal'
 import { KeyDateModal } from './KeyDateModal'
 import { SeasonCanvas } from './SeasonCanvas'
 import { Ikon } from '@/components/ui/ikoner'
-import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
+import { MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 const INTENSITY_COLOR: Record<Intensity, string> = {
   rolig: '#28A86E',
@@ -180,8 +180,8 @@ export function PeriodsSection({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>
-                      {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ marginRight: 5 }} />}
-                      {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ marginRight: 5 }} />}
+                      {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling, marginRight: 5 }} />}
+                      {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde, marginRight: 5 }} />}
                       {m.name}
                     </span>
                     {m.is_training_camp && m.location && (

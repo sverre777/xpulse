@@ -23,10 +23,11 @@ import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { Ikon } from '@/components/ui/ikoner'
 import { fmtHM, KortFot, VisMer, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
 import { HardoktPopupV2 } from './HardoktPopupV2'
+import { PUNKT_FARGER } from '@/lib/segmenter'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ROED = '#E11D48'
-const LAKTAT = '#E8B93C'
+const LAKTAT = PUNKT_FARGER.laktat
 const ERNAERING = '#28A86E'
 
 function sportLabel(v: string): string { return SPORTS.find(s => s.value === v)?.label ?? v }

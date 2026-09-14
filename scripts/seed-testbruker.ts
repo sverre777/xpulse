@@ -316,7 +316,11 @@ function intervall(dato: string, form: Form, drag: number, dragMin: number, s: '
       const sr = skyterad(skyting, i % 2 === 0 ? 'L' : 'S', sjanse(0.22) ? 2 : 1, heltall(150, 172), sjanse(0.35), daarlig, { start: klokke, lengde: 60 })
       rader.push(sr); klokke += sr.duration_seconds
     }
-    if (i < drag - 1) {
+    // Sverre 11. sep: HARD KOMB har ingen pause etter standplass - neste drag
+    // starter rett etterpå, så pulsen STIGER de neste 60 sekundene i stedet for
+    // å falle videre (kurvene 25.08 og 08.09 viste 145 -> 123). Rolig komb og
+    // intervaller uten skyting har pause som før.
+    if (i < drag - 1 && !(skyting === 'hard_komb')) {
       const psek = Math.round(dragMin * 60 * mellom(0.4, 0.6))
       rader.push(rad('aktiv_pause', form, psek, 'I1')); klokke += psek
     }
@@ -865,7 +869,11 @@ async function seed() {
     annual_shot_goal: 8500,
   }).select('id').single(), 'sesong') as { id: string }
 
-  maa(await admin.from('season_periods').insert(byggPerioder().map((p, i) => ({
+  // Sverre 11. sep: season_periods skal bære de ÅTTE makroperiodene, ikke de
+  // 22 ukeklassene. Ukeklassene (byggPerioder) er uke-mot-nabouke-fargene og
+  // hører hjemme i ukevisningen hvis de skal noe sted - de rapporteres nedenfor,
+  // men skrives ikke som perioder.
+  maa(await admin.from('season_periods').insert(PERIODER.map((p, i) => ({
     season_id: sesong.id, name: p.navn, focus: p.fokus, start_date: p.fra, end_date: p.til,
     intensity: p.intensity, sort_order: i,
   }))).select('id'), 'perioder')
@@ -934,7 +942,7 @@ function velgUtstyr(o: Okt): string[] {
 // komme opp igjen etterpå. Fallet er større når utøveren er sliten (sent i
 // økta) og litt større liggende enn stående.
 type Kurve = {
-  samples: { t: number; val: number }[]
+  samples: { t: number; hr: number }[]
   start: number[]                       // starttid per aktivitetsrad
   standplass: { i: number; inn: number; lav: number; etter60: number | null; avg: number; maks: number }[]
 }
@@ -943,7 +951,7 @@ function byggKurve(o: Okt): Kurve {
   let t = 0
   for (const a of o.akt) { start.push(t); t += a.duration_seconds }
   const totalt = t
-  const samples: { t: number; val: number }[] = []
+  const samples: { t: number; hr: number }[] = []
   const standplass: Kurve['standplass'] = []
   let forrige = o.akt[0]?.avg_heart_rate ?? 120
 
@@ -961,13 +969,13 @@ function byggKurve(o: Okt): Kurve {
         const k = x / Math.max(10, a.duration_seconds)
         const v = Math.round(inn - fall * Math.min(1, k * 1.15) + mellom(-2, 2))
         lav = Math.min(lav, v)
-        samples.push({ t: fra + x, val: Math.max(70, v) })
+        samples.push({ t: fra + x, hr: Math.max(70, v) })
       }
       const vindu = samples.filter(p => p.t >= fra && p.t < fra + a.duration_seconds)
       standplass.push({
         i, inn, lav, etter60: null,
-        avg: Math.round(vindu.reduce((s2, p) => s2 + p.val, 0) / Math.max(1, vindu.length)),
-        maks: Math.max(...vindu.map(p => p.val)),
+        avg: Math.round(vindu.reduce((s2, p) => s2 + p.hr, 0) / Math.max(1, vindu.length)),
+        maks: Math.max(...vindu.map(p => p.hr)),
       })
       forrige = lav
     } else {
@@ -976,7 +984,7 @@ function byggKurve(o: Okt): Kurve {
         const v = rampe && x < rampe
           ? forrige + (maal - forrige) * (x / rampe)
           : maal
-        samples.push({ t: fra + x, val: Math.max(70, Math.round(v + mellom(-4, 4))) })
+        samples.push({ t: fra + x, hr: Math.max(70, Math.round(v + mellom(-4, 4))) })
       }
       forrige = maal
     }
@@ -985,12 +993,12 @@ function byggKurve(o: Okt): Kurve {
   for (const sp of standplass) {
     const slutt = start[sp.i] + o.akt[sp.i].duration_seconds
     const p = samples.find(x => x.t >= slutt + 60)
-    sp.etter60 = p?.val ?? null
+    sp.etter60 = p?.hr ?? null
   }
   return { samples, start, standplass }
 }
 
-function lagSamples(o: Okt, kurve: Kurve): { t: number; val: number }[] | null {
+function lagSamples(o: Okt, kurve: Kurve): { t: number; hr: number }[] | null {
   const totalt = o.akt.reduce((s, a) => s + a.duration_seconds, 0)
   if (!o.klokke || totalt < 45 * 60) return null
   return kurve.samples
@@ -1202,7 +1210,12 @@ function rapport() {
       else { perType[t].skuddS += s.shots; perType[t].treffS += s.hits }
     }
   }
-  console.log('\n── PERIODER MOT FAKTISK BELASTNING ──')
+  console.log('\n── MAKROPERIODER (season_periods) ──')
+  for (const p of PERIODER.filter(p => p.fra <= PLAN_TIL)) {
+    const t = alleOkter.filter(o => o.dato >= p.fra && o.dato <= p.til).reduce((a, o) => a + sek(o) / 3600, 0)
+    console.log(`  ${p.fra} → ${p.til}  ${t.toFixed(1)} t   ${p.navn} (${p.intensity})`)
+  }
+  console.log('\n── UKEKLASSER MOT FAKTISK BELASTNING (kun rapport, ikke lagret) ──')
   for (const p of byggPerioder().filter(p => p.fra <= PLAN_TIL)) {
     const t = alleOkter.filter(o => o.dato >= p.fra && o.dato <= p.til).reduce((a, o) => a + sek(o) / 3600, 0)
     const merke = p.intensity === 'hard' ? 'RØD  ' : p.intensity === 'medium' ? 'GUL  ' : 'GRØNN'

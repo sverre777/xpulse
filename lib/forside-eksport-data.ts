@@ -10,7 +10,7 @@ import type { HelseOversiktData, HelseDag } from '@/app/actions/helse-oversikt'
 import type { Season, SeasonPeriod, SeasonMarking, SeasonKeyDate } from '@/app/actions/seasons'
 import type { PlottTreffGruppe } from '@/app/actions/plott-treff'
 
-// ── ØKTA TOR 3. SEP: oppv 20 · 2 × 10 min I3 / 3 min (🎯 L/S i pausene) · 3 × 5 min I4 / 2 min (🎯) · nedjogg 15 ──
+// ── ØKTA TOR 3. SEP: oppv 20 · 2 × 10 min I3 / 3 min (L/S i pausene) · 3 × 5 min I4 / 2 min () · nedjogg 15 ──
 export interface OktDel { type: string; sek: number; sone?: string; skudd?: 'L' | 'S' }
 export const OKTA: OktDel[] = [
   { type: 'oppvarming', sek: 1200, sone: 'I1' },

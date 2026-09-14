@@ -70,7 +70,7 @@ export function ZoneBar({ zones, legend = true }: {
 }
 
 /**
- * SKYTING SOM PILLE + MÅLER. Samme uttrykk som skjermbildet: 🎯 i en
+ * SKYTING SOM PILLE + MÅLER. Samme uttrykk som skjermbildet: i en
  * avrundet pille med treff/skudd og prosent, og en måler ved siden av som
  * viser den samme prosenten som lengde.
  *

@@ -239,12 +239,12 @@ export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = [
     const start = b.startSek ?? t; t = start + b.sek
     if (erSkyting(b.type)) {
       // Rettelse 1: ingen sonefarge, ingen høyde i sonespråket — samme
-      // farge og høyde som pause. Markøren over (🎯 L/S) bærer innholdet.
+      // farge og høyde som pause. Markøren over (L/S) bærer innholdet.
       const staa = b.standingShots > 0 && b.proneShots === 0
       const begge = b.proneShots > 0 && b.standingShots > 0
       ut.push({ ...b, startSek: start, slag: staa ? 'skyting_staa' : 'skyting_ligg', sone: null, soneAndeler: [],
         farge: SEGMENT_FARGER.pause, hoyde: 0.18,
-        etikett: `🎯 ${staa ? 'S' : begge ? 'L+S' : b.proneShots > 0 || b.type === 'skyting_liggende' ? 'L' : b.type === 'skyting_staaende' ? 'S' : 'Skyting'}${b.navn ? ` · ${b.navn}` : ''}` })
+        etikett: `${staa ? 'S' : begge ? 'L+S' : b.proneShots > 0 || b.type === 'skyting_liggende' ? 'L' : b.type === 'skyting_staaende' ? 'S' : 'Skyting'}${b.navn ? ` · ${b.navn}` : ''}` })
       continue
     }
     if (PAUSE_TYPER.has(b.type)) {

@@ -7,14 +7,14 @@ import { Ikon } from '@/components/ui/ikoner'
 // Øktbygger-omleggingen v6.
 //
 // Rekkefølge (Øktbygger-fasiten): + Legg til aktivitet ·
-// 🎯 + Legg til skyting · Øktbygger · 🎯 Plott treff.
-// Under 560 px kortes de to første til «+ AKTIVITET» / «🎯 + SKYTING» (Sverre 6. sep).
+// + Legg til skyting · Øktbygger · Plott treff.
+// Under 560 px kortes de to første til «+ AKTIVITET» / «+ SKYTING» (Sverre 6. sep).
 //
 // Betingelser — knapper SKJULES (aldri deaktiveres) når de ikke gjelder:
 //   + Legg til aktivitet  — alltid (plan og dagbok)
 //   + Legg til skyting    — brukeren har skiskyting (samme regel som
 //                           styrer skyting ellers: userHasBiathlon)
-//   🎯 Plott treff        — dagbok + økta har minst én skyting-rad,
+//   Plott treff        — dagbok + økta har minst én skyting-rad,
 //                           uavhengig av klokkesynk. Aldri i plan.
 //   Øktbygger          — ALLTID: plan og dagbok, med og uten klokke, med
 //                           og uten lagret økt. Inni ligger hurtigoppsettet
@@ -31,7 +31,7 @@ const PILL_BASE: React.CSSProperties = {
   whiteSpace: 'nowrap', minHeight: 36, background: 'transparent',
 }
 // Sverre 6. sep: på smal skjerm gikk raden utenfor kortet. Kortformene «+ AKTIVITET»
-// og «🎯 + SKYTING» sparer plassen (teksten er uppercase uansett), og pillene blir
+// og «+ SKYTING» sparer plassen (teksten er uppercase uansett), og pillene blir
 // tettere. Padding ligger i klassen, ikke i inline-stilen, så media-regelen vinner.
 const PILL_KLASSE = 'px-[18px] py-2 max-[560px]:px-3'
 const LANG = 'max-[560px]:hidden'

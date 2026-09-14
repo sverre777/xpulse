@@ -66,7 +66,7 @@ function Blink({ point, isL, color, number, onPick, onClear }: {
 }
 
 export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
-  // Én serie (🎯 på raden) eller flere (bulk) — farge per serie + legend.
+  // Én serie (på raden) eller flere (bulk) — farge per serie + legend.
   series: ShootingSeriesRow[]
   // Serienummer i blokken (for label «Serie 2 · S»).
   seriesNumbers: number[]

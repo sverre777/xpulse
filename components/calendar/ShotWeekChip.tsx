@@ -1,6 +1,6 @@
 'use client'
 
-// Kø #47 bolk 5: 🎯-chip for uke-sammendrag (wsum i måned + uke-banner).
+// Kø #47 bolk 5: -chip for uke-sammendrag (wsum i måned + uke-banner).
 // Chip-tallet = REELLE skudd (tørrtrening telles i TID og vises kun i
 // tooltip, jf. brukerpresisering). Treff % følger den globale «kun førte»-
 // regelen (aggregert i lib/calendar-summary — aldri lokale kopier).

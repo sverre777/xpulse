@@ -23,7 +23,7 @@
 //      førte soner (mest tid), så I1 for oppvarming/nedjogg — ellers grå
 //      lav blokk. Slik blir «økt uten klokkedata» det samme kartet med
 //      førte tall.
-// Skyting og pause er grå (sonefri) som i planen; 🎯 L/S-markøren og
+// Skyting og pause er grå (sonefri) som i planen; L/S-markøren og
 // treffet bærer innholdet.
 
 import { pulsIVindu, type Segment } from './segmenter'

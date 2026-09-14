@@ -49,7 +49,7 @@ export const SEGMENT_FARGER: Record<SegmentType, string> = {
   // SKYTING HAR IKKE FARGE PÅ TIDSLINJA (rettelse 1, 3. sep): en farget
   // blokk leses som en sone. Skyting er et nøytralt, lavt mellomrom i
   // pausefargen — plan-graf, segmentbånd, spøkelse og bygger — med en
-  // 🎯-MARKØR over (L/S + treff) som de andre punktene. Skytefargene bor
+  // -MARKØR over (L/S + treff) som de andre punktene. Skytefargene bor
   // fortsatt i skytefanen og treff-plottet: SKYTE_FARGER.
   skyting_ligg:  '#43434B',
   skyting_staa:  '#43434B',
@@ -64,11 +64,11 @@ export function erSkytesegment(type: SegmentType): boolean {
   return type.startsWith('skyting')
 }
 
-/** Markørteksten over et skytesegment: «🎯 L 4/5», «🎯 S», «🎯 L+S». */
+/** Markørteksten over et skytesegment: «L 4/5», «S», «L+S». */
 export function skyteMarkor(type: SegmentType, etikett: string, treff: string | null): string {
   const pos = type === 'skyting_ligg' ? 'L' : type === 'skyting_staa' ? 'S' : /l\+s/i.test(etikett) ? 'L+S' : ''
   const navn = pos ? pos : etikett
-  return `🎯 ${navn}${treff ? ` ${treff}` : ''}`
+  return `${navn}${treff ? ` ${treff}` : ''}`
 }
 
 /** Aktivitetstype (+ bev.form) → segmenttype. Brukes av båndet, spøkelseslaget
@@ -298,7 +298,7 @@ export function fmtVarighetKort(sek: number): string {
 }
 
 export function gruppeEtikett(antall: number, arbeidSek: number, pauseSek: number): string {
-  // Rettelse 9: aldri «+ skyting» i teksten — skytingene står med 🎯 L/S.
+  // Rettelse 9: aldri «+ skyting» i teksten — skytingene står med L/S.
   if (pauseSek <= 0) {
     return `${antall} × ${fmtVarighetKort(arbeidSek)}${Math.round(arbeidSek) < 90 ? ' s' : ''}`
   }

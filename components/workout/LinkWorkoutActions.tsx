@@ -10,6 +10,7 @@ import {
   hentFlettGrunnlag, flettOkter,
   type FlettGrunnlag, type FlettModus,
 } from '@/app/actions/flett'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Knappebar høyt oppe i WorkoutForm. Kontekst-avhengige knapper:
 //   - «✓ Marker som fullført» — planlagte rader uten flett, dato i dag/
@@ -126,7 +127,7 @@ export function LinkWorkoutActions({
 
   const showMarkCompleted = isPlanned && !effectivelyLinked && !isCompleted && formMode === 'plan' && !hideMarkCompleted
   const showLinkButton = !effectivelyLinked
-  const linkButtonLabel = erSynket ? '🔗 Koble / flett med økt' : '🔗 Koble / flett med synket økt'
+  const linkButtonLabel = erSynket ? 'Koble / flett med økt' : 'Koble / flett med synket økt'
   void prominent
 
   if (isFutureDate) return null
@@ -141,14 +142,15 @@ export function LinkWorkoutActions({
         <button type="button"
           onClick={handleMarkCompleted}
           disabled={busy}
-          className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+          className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90 inline-flex items-center gap-1.5"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: '#28A86E', color: 'var(--tekst-1-ren)', border: 'none',
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
             minHeight: '38px',
           }}>
-          ✓ Marker som fullført
+          <Ikon navn="fullfort" variant="strek" storrelse={14} />
+          Marker som fullført
         </button>
       )}
 
@@ -160,7 +162,7 @@ export function LinkWorkoutActions({
         <button type="button"
           onClick={apnePicker}
           disabled={busy}
-          className="text-xs font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
+          className="text-xs font-semibold tracking-widest uppercase transition-opacity hover:opacity-90 inline-flex items-center gap-1.5"
           style={erSynket ? {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)',
@@ -174,14 +176,16 @@ export function LinkWorkoutActions({
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
             minHeight: '38px', padding: '0 20px', fontSize: '12px',
           }}>
+          <Ikon navn="koble-flett" variant="strek" storrelse={14} />
           {linkButtonLabel}
         </button>
       )}
 
       {effectivelyLinked && (
-        <span className="text-xs"
+        <span className="inline-flex items-center gap-1.5 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', marginLeft: '4px' }}>
-          ⌚ Flettet med synket økt - angre i økt-visningen
+          <Ikon navn="klokke" variant="strek" storrelse={14} />
+          Flettet med synket økt - angre i økt-visningen
         </span>
       )}
 
@@ -298,7 +302,10 @@ function PickerModal({
                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
                       {c.title}
                       {c.imported_from === 'strava' && (
-                        <span style={{ color: '#FC4C02', marginLeft: '6px', fontSize: '11px' }}>↻ Strava</span>
+                        <span className="inline-flex items-center gap-1" style={{ color: '#FC4C02', marginLeft: '6px', fontSize: '11px' }}>
+                          <Ikon navn="synk" variant="strek" storrelse={14} />
+                          Strava
+                        </span>
                       )}
                       {c.is_planned && (
                         <span style={{ color: 'var(--tekst-5-app)', marginLeft: '6px', fontSize: '11px' }}>planlagt</span>
@@ -481,7 +488,7 @@ function FlettDialog({
             Avbryt
           </button>
           <button type="button" onClick={handleFlett} disabled={saving}
-            className="text-xs font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
+            className="text-xs font-semibold tracking-widest uppercase transition-opacity hover:opacity-90 inline-flex items-center gap-1.5"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)',
@@ -489,7 +496,7 @@ function FlettDialog({
               minHeight: '38px', padding: '0 20px',
               cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
             }}>
-            {saving ? 'Fletter…' : 'Flett ✓'}
+            {saving ? 'Fletter…' : <>Flett <Ikon navn="fullfort" variant="strek" storrelse={14} /></>}
           </button>
         </div>
       </div>

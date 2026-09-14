@@ -28,6 +28,7 @@ import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { emptyNutritionEntryRow } from '@/lib/types'
 import { verdiVed } from './OktKurve'
 import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
+import { Ikon } from '@/components/ui/ikoner'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { lesVisning, settVisning, abonnerVisning, VISNING_ETIKETT, type GrafVisning } from '@/lib/kurve-valg'
 import { byggPlanBlokker, fraActivityRows, type PlanBlokkInn } from '@/lib/plan-graf'
@@ -72,8 +73,9 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
         color: 'var(--accent)', background: 'rgba(255,69,0,.08)',
         border: '1px solid var(--accent)', borderRadius: 999,
         padding: '6px 14px', cursor: 'pointer', minHeight: 32,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
       }}>
-      ⚡ Øktbygger
+      <Ikon navn="aktivitet" variant="strek" storrelse={14} />Øktbygger
     </button>
   )
 }
@@ -401,19 +403,19 @@ export function OktbyggerPopup({
           </h2>
           <div className="ml-auto flex items-center gap-2 flex-wrap">
             {angreStabel.length > 0 && (
-              <button type="button" onClick={angre} style={pille()}>↶ Angre</button>
+              <button type="button" onClick={angre} style={pille()}><Ikon navn="angre" variant="strek" storrelse={14} />Angre</button>
             )}
             {workoutId && skytingRader.length > 0 && (
               <button type="button" onClick={() => setVisPlottTreff(true)}
                 style={pille('#FF4500')}>
-                🎯 Plott treff
+                <Ikon navn="skyting" variant="strek" storrelse={14} />Plott treff
               </button>
             )}
             {/* Sverre 5. sep: «Ferdig» høyt oppe - også når hurtigoppsettet er skjult. */}
             <button type="button" onClick={onClose} data-ferdig-topp className="xp-pill xp-pill-primary" style={{ minHeight: 34, padding: '4px 14px' }}>Ferdig</button>
             <button type="button" onClick={onClose} aria-label="Lukk"
-              style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontSize: 20, cursor: 'pointer', minWidth: 36, minHeight: 36 }}>
-              ×
+              style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', minWidth: 36, minHeight: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Ikon navn="lukk" variant="strek" storrelse={18} />
             </button>
           </div>
         </div>
@@ -432,7 +434,7 @@ export function OktbyggerPopup({
                   color: 'var(--tekst-5-app)', background: 'none', border: 'none',
                   padding: '4px 0', cursor: 'pointer', minHeight: 36,
                 }}>
-                <span style={{ color: 'var(--accent)' }}>⚡</span> Hurtigoppsett - antall × dragtid × sone / pause
+                <Ikon navn="aktivitet" variant="strek" storrelse={14} style={{ color: 'var(--accent)' }} /> Hurtigoppsett - antall × dragtid × sone / pause
                 <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)' }}>{hurtigAapent ? '▴' : '▾'}</span>
               </button>
               {hurtigAapent && (
@@ -518,7 +520,7 @@ export function OktbyggerPopup({
                     <button type="button" data-legg-skyting-knapp aria-expanded={leggSkyting.aapen}
                       onClick={() => setLeggSkyting(v => ({ ...v, aapen: !v.aapen }))}
                       style={pille(leggSkyting.radId ? PUNKT_SLAG.skyting.farge : undefined, !!leggSkyting.radId)}>
-                      🎯 Legg skyting på puls{leggSkyting.radId ? ` · ${uplasserteSkytinger.find(x => x.rad.id === leggSkyting.radId)?.navn ?? ''}` : ` (${uplasserteSkytinger.length})`}
+                      <Ikon navn="skyting" variant="strek" storrelse={14} />Legg skyting på puls{leggSkyting.radId ? ` · ${uplasserteSkytinger.find(x => x.rad.id === leggSkyting.radId)?.navn ?? ''}` : ` (${uplasserteSkytinger.length})`}
                     </button>
                     {leggSkyting.aapen && (
                       <span data-legg-skyting-liste role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 30, marginTop: 4, background: 'var(--flate-3)', border: '1px solid var(--kant-3)', borderRadius: 10, padding: 6, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 190, boxShadow: '0 8px 24px rgba(0,0,0,.25)' }}>
@@ -526,7 +528,7 @@ export function OktbyggerPopup({
                           <button key={rad.id} type="button" data-legg-skyting-valg={rad.id} role="option" aria-selected={leggSkyting.radId === rad.id}
                             onClick={() => velgSkytingForPlassering(rad)}
                             style={{ ...pille(), justifyContent: 'flex-start', textTransform: 'none', letterSpacing: 0 }}>
-                            🎯 {navn}
+                            <Ikon navn="skyting" variant="strek" storrelse={14} />{navn}
                           </button>
                         ))}
                       </span>
@@ -539,7 +541,7 @@ export function OktbyggerPopup({
                           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); plasserFraTid() } }}
                           style={{ width: 64, minHeight: 32, padding: '4px 8px', borderRadius: 8, border: '1px solid var(--kant-3)', background: 'var(--flate-3)', color: 'var(--tekst-1-app)', fontVariantNumeric: 'tabular-nums' }} />
                         <button type="button" data-legg-skyting-plasser onClick={plasserFraTid} disabled={parseActivityDuration(leggSkyting.tid) == null} style={pille()}>Plasser</button>
-                        <button type="button" aria-label="Avbryt plassering" onClick={() => { setLeggSkyting({ aapen: false, radId: null, tid: '' }); setPunktModus(false) }} style={{ ...pille(), padding: '4px 8px' }}>×</button>
+                        <button type="button" aria-label="Avbryt plassering" onClick={() => { setLeggSkyting({ aapen: false, radId: null, tid: '' }); setPunktModus(false) }} style={{ ...pille(), padding: '4px 8px' }}><Ikon navn="lukk" variant="strek" storrelse={14} /></button>
                       </>
                     )}
                   </span>
@@ -547,7 +549,7 @@ export function OktbyggerPopup({
                 <button type="button" onClick={() => { setKuttModus(v => !v); setStartHerModus(false) }}
                   aria-pressed={kuttModus} data-kutt-modus
                   style={pille(kuttModus ? 'var(--accent)' : undefined, kuttModus)}>
-                  ✂ Kutt {kuttModus ? '· klikk på kurven' : ''}
+                  <Ikon navn="kutt" variant="strek" storrelse={14} />Kutt {kuttModus ? '· klikk på kurven' : ''}
                 </button>
                 {harKurve && (
                   <button type="button" disabled={!valgtRad}
@@ -555,7 +557,7 @@ export function OktbyggerPopup({
                     aria-pressed={startHerModus} data-start-her
                     title={valgtRad ? 'Klikk på kurven der raden skal starte - kjeden følger' : 'Velg en rad først'}
                     style={{ ...pille(startHerModus ? 'var(--accent)' : undefined, startHerModus), opacity: valgtRad ? 1 : 0.5 }}>
-                    ⇥ Start her {startHerModus ? '· klikk på kurven' : ''}
+                    <Ikon navn="play" variant="strek" storrelse={14} />Start her {startHerModus ? '· klikk på kurven' : ''}
                   </button>
                 )}
                 <PunktKnapp aktiv={punktModus} onClick={() => { setPunktModus(v => !v); setKuttModus(false); setStartHerModus(false) }}
@@ -566,16 +568,17 @@ export function OktbyggerPopup({
                   {([
                     { t: 'laktat', ikon: PUNKT_SLAG.laktat.ikon, navn: PUNKT_SLAG.laktat.navn, farge: PUNKT_SLAG.laktat.farge },
                     { t: 'ernaering', ikon: PUNKT_SLAG.ernaering.ikon, navn: PUNKT_SLAG.ernaering.navn, farge: PUNKT_SLAG.ernaering.farge },
+                    // Ligg/stå deler skyte-ikonet - bare navnet skiller dem.
                     // Skyting velges som ligg eller stå (Sverre 4. sep) — bare for skiskyttere.
-                    { t: 'skyting_ligg', ikon: '🎯', navn: 'Ligg', farge: PUNKT_SLAG.skyting.farge },
-                    { t: 'skyting_staa', ikon: '🎯', navn: 'Stå', farge: PUNKT_SLAG.skyting.farge },
+                    { t: 'skyting_ligg', ikon: PUNKT_SLAG.skyting.ikon, navn: 'Ligg', farge: PUNKT_SLAG.skyting.farge },
+                    { t: 'skyting_staa', ikon: PUNKT_SLAG.skyting.ikon, navn: 'Stå', farge: PUNKT_SLAG.skyting.farge },
                     { t: 'notat', ikon: PUNKT_SLAG.notat.ikon, navn: PUNKT_SLAG.notat.navn, farge: PUNKT_SLAG.notat.farge },
                   ] as const).filter(v => userHasBiathlon || (v.t !== 'skyting_ligg' && v.t !== 'skyting_staa')).map(({ t, ikon, navn, farge }) => (
                     <button key={t} type="button" data-punkt-valg={t}
                       onClick={() => { setPunktType(t); setPunktModus(true); setKuttModus(false); setStartHerModus(false) }}
                       aria-pressed={punktModus && punktType === t}
                       style={{ ...pille(punktModus && punktType === t ? farge : undefined, punktModus && punktType === t), padding: '5px 10px', minHeight: 32, opacity: punktModus || punktType !== t ? 1 : 0.85 }}>
-                      {ikon} {navn}
+                      <Ikon navn={ikon} variant="fyll" storrelse={14} /> {navn}
                     </button>
                   ))}
                 </span>
@@ -585,7 +588,7 @@ export function OktbyggerPopup({
                 {harKurve && klokkerunder && klokkerunder.length > 0 && (
                   <button type="button" onClick={snapp} data-snapp
                     style={pille()}>
-                    ⌚ Snapp til klokkerunder ({klokkerunder.length})
+                    <Ikon navn="klokke" variant="strek" storrelse={14} />Snapp til klokkerunder ({klokkerunder.length})
                   </button>
                 )}
                 {(() => {
@@ -643,7 +646,7 @@ export function OktbyggerPopup({
               )}
               {utenfor.length > 0 && (
                 <p data-over-kurven style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#E23A5A', margin: 0 }}>
-                  ⚠ Bygget er lengre enn kurven: {utenfor.length} {utenfor.length === 1 ? 'rad stikker' : 'rader stikker'} ut forbi {fmtKlokkeSek(totalSek)}.
+                  <Ikon navn="advarsel" variant="strek" storrelse={14} /> Bygget er lengre enn kurven: {utenfor.length} {utenfor.length === 1 ? 'rad stikker' : 'rader stikker'} ut forbi {fmtKlokkeSek(totalSek)}.
                   Ingenting klippes - kort inn, eller snapp til klokkerundene.
                 </p>
               )}
@@ -816,6 +819,7 @@ function pille(farge?: string, fylt = false): React.CSSProperties {
     background: fylt ? (farge ?? 'var(--accent)') : 'none',
     border: `1.5px solid ${farge ?? 'var(--line2)'}`, borderRadius: 999,
     padding: '6px 14px', cursor: 'pointer', minHeight: 36, whiteSpace: 'nowrap',
+    display: 'inline-flex', alignItems: 'center', gap: 6,
   }
 }
 
@@ -1011,7 +1015,7 @@ function KurveMedRader({
           </span>
         )
       })}
-      {/* Skytingene: stiplet linje + 🎯 på kurven (pilla over bærer L/S og treff). */}
+      {/* Skytingene: stiplet linje + blink på kurven (pilla over bærer L/S og treff). */}
       {utkast.filter(u => u.type.startsWith('skyting')).map(u => (
         <span key={`sky-${u.id}`} aria-hidden>
           <span style={{ position: 'absolute', left: h.pct(u.startSek), top: 0, bottom: 22, width: 0, borderLeft: '1px dashed var(--tekst-1-app)', opacity: 0.5, pointerEvents: 'none', zIndex: 4 }} />
@@ -1092,7 +1096,7 @@ function KurveMedRader({
   }
 
   const valgt = utkast.find(u => u.id === valgtRad) ?? null
-  // Sverre 5. sep: pillene over kurven (🩸 2,8 · 🍌 40 g · 🎯 L 5/5) med
+  // Sverre 5. sep: pillene over kurven (laktat 2,8 · ernæring 40 g · skyting L 5/5) med
   // stiplet strek ned — samme komponent som øktgrafen. Verdien når den er
   // ført, «fyll inn» ellers.
   const pillePunkter = [
@@ -1334,7 +1338,7 @@ function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false, vinduPuls =
   return (
     <div data-punkt-panel="skyting" style={{ border: '1px solid var(--accent)', borderRadius: 10, padding: '8px 10px', background: 'var(--flate-12-alt)' }}>
       <div className="flex items-center gap-2 mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-5-app)' }}>
-        <span style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>🎯 {ligg && staa ? 'Skyting L+S' : ligg ? 'Skyting L' : 'Skyting S'} ved {rad.window_start_seconds != null ? fmtKlokkeSek(rad.window_start_seconds) : '-'}</span>
+        <span className="inline-flex items-center gap-1" style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}><Ikon navn="skyting" variant="fyll" storrelse={14} />{ligg && staa ? 'Skyting L+S' : ligg ? 'Skyting L' : 'Skyting S'} ved {rad.window_start_seconds != null ? fmtKlokkeSek(rad.window_start_seconds) : '-'}</span>
         {tom && <span data-fyll-inn style={{ fontWeight: 700, fontSize: 11, color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 999, padding: '2px 8px' }}>fyll inn</span>}
         <button type="button" onClick={onLukk} aria-label="Lukk punktet" style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--tekst-8-alt)', cursor: 'pointer', fontSize: 16 }}>×</button>
       </div>
@@ -1388,14 +1392,19 @@ function ByggerBaand({ utkast, valgtId, onVelg, fraSek, tilSek, modus, onKlikkSe
     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 10.5, letterSpacing: '0.08em',
     textTransform: 'uppercase', background: 'var(--flate-12-alt)', border: '1px solid var(--line2)',
     color: 'var(--tekst-1-app)', borderRadius: 999, padding: '4px 9px', minHeight: 28, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: 5,
   }
   return (
     <div data-bygger-baand data-modus={modus ?? undefined} style={{ position: 'relative', marginTop: valgt && !modus ? 34 : 6 }}>
       {/* Små knapper på det valgte segmentet - bare uten modus. */}
       {valgt && !modus && (
         <div style={{ position: 'absolute', left: pct(valgt.startSek), top: -32, display: 'flex', gap: 4, zIndex: 3 }}>
-          <button type="button" style={knapp} onClick={() => onDelHer(valgt.id)} disabled={valgt.varighetSek < 10} data-baand-del>Del her</button>
-          <button type="button" style={knapp} onClick={() => onSlaaSammen(valgt.id)} data-baand-slaa>Slå sammen</button>
+          <button type="button" style={knapp} onClick={() => onDelHer(valgt.id)} disabled={valgt.varighetSek < 10} data-baand-del>
+            <Ikon navn="del-her" variant="strek" storrelse={14} />Del her
+          </button>
+          <button type="button" style={knapp} onClick={() => onSlaaSammen(valgt.id)} data-baand-slaa>
+            <Ikon navn="sla-sammen" variant="strek" storrelse={14} />Slå sammen
+          </button>
         </div>
       )}
       <div
@@ -1564,6 +1573,7 @@ function Rad({
     letterSpacing: '0.08em', textTransform: 'uppercase', background: 'none',
     border: '1px solid var(--line2)', color: 'var(--tekst-1-app)',
     borderRadius: 999, padding: '6px 12px', minHeight: 36, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: 6,
   }
   return (
     <div data-oktbygger-rad data-valgt={valgt ? '1' : '0'}
@@ -1612,18 +1622,20 @@ function Rad({
           <NavnFelt navn={u.navn} plassholder={etikettFor(u, alle)} onNavn={onNavn} />
           <button type="button" style={knapp} onClick={onDel} disabled={u.varighetSek < 10}
             title="Deler raden på midten - begge får start og varighet">
-            Del her
+            <Ikon navn="del-her" variant="strek" storrelse={14} />Del her
           </button>
           {harNabo && (
-            <button type="button" style={knapp} onClick={onSlaaSammen}>Slå sammen med neste</button>
+            <button type="button" style={knapp} onClick={onSlaaSammen}>
+              <Ikon navn="sla-sammen" variant="strek" storrelse={14} />Slå sammen med neste
+            </button>
           )}
           {onPaaPuls && (
             <button type="button" style={knapp} onClick={onPaaPuls} data-rad-paa-puls title="Klikk på kurven der skytingen skal ligge, eller skriv tid">
-              🎯 → puls
+              <Ikon navn="skyting" variant="strek" storrelse={14} />til puls
             </button>
           )}
           <button type="button" style={{ ...knapp, color: '#E23A5A', borderColor: '#E23A5A55' }} onClick={onSlett}>
-            Slett
+            <Ikon navn="slett" variant="strek" storrelse={14} />Slett
           </button>
         </div>
       )}

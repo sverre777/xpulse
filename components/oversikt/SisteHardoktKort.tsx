@@ -20,6 +20,7 @@ import { beregnSoneTss } from '@/lib/belastning'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
+import { Ikon } from '@/components/ui/ikoner'
 import { fmtHM, KortFot, VisMer, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
 import { HardoktPopupV2 } from './HardoktPopupV2'
 
@@ -118,7 +119,7 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: '0.03em', lineHeight: 1.05, color: 'var(--tekst-1-app)', margin: 0 }}>{w.title}</h3>
-        {harKurve && <span data-klokke-chip style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 7px' }}>⌚ klokkesynk</span>}
+        {harKurve && <span data-klokke-chip style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 7px' }}><Ikon navn="klokke" storrelse={14} /> klokkesynk</span>}
       </div>
       <p className="flex items-center gap-x-2 gap-y-1 flex-wrap" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', margin: '4px 0 0' }}>
         <span>{sportLabel(w.sport)}</span><span style={{ color: 'var(--tekst-8-alt)' }}>·</span>
@@ -158,11 +159,11 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
       <div className="mt-3"><Nokkeltall celler={celler} /></div>
 
       <div className="mt-3 flex items-center gap-2 flex-wrap" data-hardokt-piller>
-        {laktatVerdier.length > 0 && <Pille farge={LAKTAT} data="laktat">🩸 {laktatVerdier.map(fmtMmol).join(' · ')}</Pille>}
-        {laktatVerdier.length === 0 && w.lactate_mmol != null && <Pille farge={LAKTAT} data="laktat">🩸 {fmtMmol(w.lactate_mmol)}</Pille>}
-        {karbo > 0 && <Pille farge={ERNAERING} data="ernaering">🍌 {Math.round(karbo)} g karbo</Pille>}
-        {harSki && ligg && ligg.shots > 0 && <Pille farge={COLOR_PRONE} data="ligg">🎯 L {ligg.hits}/{ligg.shots}</Pille>}
-        {harSki && staa && staa.shots > 0 && <Pille farge={COLOR_STANDING} data="staa">🎯 S {staa.hits}/{staa.shots}</Pille>}
+        {laktatVerdier.length > 0 && <Pille farge={LAKTAT} data="laktat"><Ikon navn="laktat" storrelse={14} /> {laktatVerdier.map(fmtMmol).join(' · ')}</Pille>}
+        {laktatVerdier.length === 0 && w.lactate_mmol != null && <Pille farge={LAKTAT} data="laktat"><Ikon navn="laktat" storrelse={14} /> {fmtMmol(w.lactate_mmol)}</Pille>}
+        {karbo > 0 && <Pille farge={ERNAERING} data="ernaering"><Ikon navn="ernaering" storrelse={14} /> {Math.round(karbo)} g karbo</Pille>}
+        {harSki && ligg && ligg.shots > 0 && <Pille farge={COLOR_PRONE} data="ligg"><Ikon navn="skyting" storrelse={14} /> L {ligg.hits}/{ligg.shots}</Pille>}
+        {harSki && staa && staa.shots > 0 && <Pille farge={COLOR_STANDING} data="staa"><Ikon navn="skyting" storrelse={14} /> S {staa.hits}/{staa.shots}</Pille>}
         {w.rpe != null && <Pille farge="var(--tekst-5-app)" data="opplevd">Opplevd {w.rpe}/10</Pille>}
       </div>
 

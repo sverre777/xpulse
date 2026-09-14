@@ -6,6 +6,7 @@ import {
   isTrainerAttendingWorkout,
   getAttendingTrainersForWorkout,
 } from '@/app/actions/trainer-calendar'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -89,7 +90,11 @@ function CoachToggle({ workoutId }: { workoutId: string }) {
             cursor: pending ? 'not-allowed' : 'pointer',
             opacity: pending ? 0.7 : 1,
           }}>
-          {pending ? '…' : attending ? '✓ Deltar' : 'Delta'}
+          {pending
+            ? '…'
+            : attending
+              ? <span className="inline-flex items-center gap-1"><Ikon navn="fullfort" variant="strek" storrelse={14} />Deltar</span>
+              : 'Delta'}
         </button>
       </div>
       {error && (
@@ -139,7 +144,7 @@ function AthleteBadge({ workoutId }: { workoutId: string }) {
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
         }}>
-        👥 {label}
+        <Ikon navn="trener" variant="fyll" storrelse={14} />{label}
       </span>
     </div>
   )

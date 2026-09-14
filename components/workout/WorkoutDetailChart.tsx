@@ -31,6 +31,7 @@ import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { beregnSoneTss } from '@/lib/belastning'
 import { gapFart } from '@/lib/prestasjon'
 import { RpeSkala, rpeFarge } from '@/components/ui/RpeSkala'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -109,8 +110,9 @@ interface Props {
       og planlagte punkter (hule, vises med «Vis plan»). Ført laktat og
       ernæring kommer som lactate/nutrition. */
   tidspunktNotater?: TidspunktNotat[]
-  /** Knapperaden under grafen (fasit v6): ⚡ Øktbygger · 🎯 Plott treff ·
-      🩸 Sett laktat · 📝 Notat. Bare knapper med handling vises. */
+  /** Knapperaden under grafen (fasit v6): Øktbygger (ikon aktivitet) · Plott
+      treff (ikon skyting) · Sett laktat (ikon laktat) · Notat (ikon for-okt).
+      Bare knapper med handling vises. */
   handlinger?: { onOktbygger?: () => void; onPlottTreff?: () => void; onSettLaktat?: () => void; onNotat?: () => void }
   /** Planens blokker gitt direkte (forsidens eksport med fiktive data) —
       ellers hentes de fra basen via workoutId. */
@@ -187,7 +189,8 @@ export function WorkoutDetailChart({
   // Annoteringene (fasitens «PÅ GRAFEN»-gruppe) — uavhengige av seriene.
   const [visSkyting, setVisSkyting] = useState(true)
   const [visSegmenter, setVisSegmenter] = useState(true)
-  // PÅ GRAFEN (fasit v6): 🩸 Laktat · 🍌 Ernæring · 📝 Notat er hver sin bryter.
+  // PÅ GRAFEN (fasit v6): Laktat (ikon laktat) · Ernæring (ikon ernaering) ·
+  // Notat (ikon for-okt) er hver sin bryter.
   const [visLaktat, setVisLaktat] = useState(true)
   const [visErnaering, setVisErnaering] = useState(true)
   const [visNotat, setVisNotat] = useState(true)
@@ -348,7 +351,7 @@ export function WorkoutDetailChart({
   // Punktene som etiketter over grafen (pekelinje ned til kurven).
   const punkter: Punkt[] = useMemo(() => {
     const ut: Punkt[] = [
-      // Pillene bærer VERDIEN (🩸 2,8 · 🍌 40 g) — ikonet står i pilla.
+      // Pillene bærer VERDIEN (2,8 mmol · 40 g) - ikonet står i pilla.
       ...(visLaktat ? lactate.map((l, i) => ({
         id: `lac-${i}`, slag: 'laktat' as const, t: l.t, planlagt: false,
         tittel: String(l.mmol).replace('.', ','),
@@ -384,7 +387,7 @@ export function WorkoutDetailChart({
 
   const segmentVed = (t: number) => segmenter.find(x => t >= x.startSek && t <= x.sluttSek) ?? null
   // Kartets punkter: samme punkter, i øktkartets form. Skyting bæres av
-  // skyteblokkene selv (🎯 L/S + treff), så de skytepunktene utelates her.
+  // skyteblokkene selv (ikon skyting, L/S + treff), så de skytepunktene utelates her.
   const grafPunkter: GrafPunkt[] = useMemo(() => punkter
     .filter(p => p.slag !== 'skyting' && p.slag !== 'veksling')
     .map(p => ({ id: p.id, sek: p.t, slag: p.slag, planlagt: p.planlagt, tittel: p.planlagt ? p.tittel.replace(/ · plan$/, '') : p.tittel })),
@@ -438,13 +441,13 @@ export function WorkoutDetailChart({
           )}
           {kontroller === 'alle' && <Gruppe navn="På grafen">
             {visKurve && serier.filter(s => !s.gruppe).map(s => (
-              <Chip key={s.id} farge={s.farge} etikett={s.navn}
+              <Chip key={s.id} farge={s.farge} etikett={s.navn} ikon={SERIE_IKON[s.id]}
                 paa={paaIds.includes(s.id)}
                 fokus={fokusId === s.id && !s.somAreal}
                 onClick={() => velgSerie(s.id)} />
             ))}
             {!visKurve && serier.filter(s => !s.somAreal && !s.gruppe).map(s => (
-              <Chip key={s.id} farge={s.farge} etikett={s.navn} paa={false} fokus={false}
+              <Chip key={s.id} farge={s.farge} etikett={s.navn} ikon={SERIE_IKON[s.id]} paa={false} fokus={false}
                 onClick={() => velgSerie(s.id)} />
             ))}
                 {segmenter.length > 0 && visKurve && (
@@ -460,17 +463,17 @@ export function WorkoutDetailChart({
                     onClick={() => setOppsett(settPlanOppsett(oppsett === 'delt' ? 'bak' : 'delt'))} />
                 )}
                 {(lactate.length > 0 || tidspunktNotater.some(p => p.type === 'laktat') || planPunkter.some(p => p.type === 'laktat')) && (
-                  <Chip farge={PUNKT_FARGER.laktat} etikett="🩸 Laktat" paa={visLaktat} fokus={false} onClick={() => setVisLaktat(v => !v)} />
+                  <Chip farge={PUNKT_FARGER.laktat} etikett="Laktat" ikon="laktat" paa={visLaktat} fokus={false} onClick={() => setVisLaktat(v => !v)} />
                 )}
                 {(nutrition.length > 0 || tidspunktNotater.some(p => p.type === 'ernaering') || planPunkter.some(p => p.type === 'ernaering')) && (
-                  <Chip farge={PUNKT_FARGER.ernaering} etikett="🍌 Ernæring" paa={visErnaering} fokus={false} onClick={() => setVisErnaering(v => !v)} />
+                  <Chip farge={PUNKT_FARGER.ernaering} etikett="Ernæring" ikon="ernaering" paa={visErnaering} fokus={false} onClick={() => setVisErnaering(v => !v)} />
                 )}
                 {harSkyting && (
-                  <Chip farge={SKYTE_FARGER.ligg} etikett="🎯 Skyting" paa={visSkyting} fokus={false}
+                  <Chip farge={SKYTE_FARGER.ligg} etikett="Skyting" ikon="skyting" paa={visSkyting} fokus={false}
                     onClick={() => setVisSkyting(v => !v)} />
                 )}
                 {(tidspunktNotater.some(p => p.type === 'notat') || planPunkter.some(p => p.type === 'notat')) && (
-                  <Chip farge={PUNKT_SLAG.notat.farge} etikett="📝 Notat" paa={visNotat} fokus={false} onClick={() => setVisNotat(v => !v)} />
+                  <Chip farge={PUNKT_SLAG.notat.farge} etikett="Notat" ikon="for-okt" paa={visNotat} fokus={false} onClick={() => setVisNotat(v => !v)} />
                 )}
                 {laps.length > 1 && (
                   <Chip farge="var(--tekst-8-alt)" etikett="Runder" paa={visRunder} fokus={false}
@@ -555,7 +558,9 @@ export function WorkoutDetailChart({
                   letterSpacing: '0.08em', textTransform: 'uppercase',
                   color: SEGMENT_FARGER[sg.type],
                 }}>
-                  {punktStil === 'ikon' ? '🎯' : `${sg.etikett}${sg.treff ? ` ${sg.treff}` : ''}`}
+                  {punktStil === 'ikon'
+                    ? <Ikon navn="skyting" variant="fyll" storrelse={14} />
+                    : `${sg.etikett}${sg.treff ? ` ${sg.treff}` : ''}`}
                 </span>
               </span>
             ))}
@@ -662,8 +667,8 @@ export function WorkoutDetailChart({
       )}
 
       {/* DETALJRADEN + KNAPPERADEN (fasit v6): opplevd 1-10 som kvadrater,
-          laktat/ernæring/skyting som små kort, så ⚡ Øktbygger · 🎯 Plott
-          treff · 🩸 Sett laktat · 📝 Notat. */}
+          laktat/ernæring/skyting som små kort, så Øktbygger · Plott treff ·
+          Sett laktat · Notat (ikonene aktivitet/skyting/laktat/for-okt). */}
       {!skjema && (
         <Detaljrad rpe={rpe} onRpe={onRpe} lactate={lactate} nutrition={nutrition} segmenter={segmenter}
           handlinger={handlinger && {
@@ -714,6 +719,12 @@ export function WorkoutDetailChart({
 // ── Serie-modellen ───────────────────────────────────────────
 // Sport-reglene er de samme som før: watt skjules der det sjelden er
 // meningsfylt, og tempo vises som hastighet for sykling/triatlon.
+
+/** Serie-ikonene i chip-raden (måleverdiene). GAP har ingen egen ikon -
+    den deler tempo sin idé, men er en egen, sjeldnere kurve. */
+const SERIE_IKON: Partial<Record<string, IkonNavn>> = {
+  hr: 'puls', watt: 'watt', fart: 'tempo', kadens: 'kadens', hoyde: 'hoyde',
+}
 export function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
   const ut: KurveSerie[] = []
   const wattRelevant = sport === 'cycling' || sport === 'triathlon' ||
@@ -1044,7 +1055,7 @@ export function PunktEtiketter({ punkter, synlig, segmentVed, stil = 'etikett' }
             <div key={kl.id} style={{ position: 'absolute', left: `${Math.max(0, Math.min(100, kl.x))}%`, top: 0 }}>
               <span data-punkt-pille={en?.slag ?? 'klynge'} data-punkt-stil="ikon" data-planlagt={en?.planlagt || undefined} title={tips}
                 style={{ display: 'inline-block', transform: 'translateX(-50%)', fontSize: 12, lineHeight: '16px', color: farge, opacity: en?.planlagt ? 0.7 : 1, cursor: 'help' }}>
-                {en ? PUNKT_SLAG[en.slag].ikon : `${kl.punkter.length}×`}
+                {en ? <Ikon navn={PUNKT_SLAG[en.slag].ikon} variant="fyll" storrelse={14} /> : `${kl.punkter.length}×`}
               </span>
             </div>
           )
@@ -1059,7 +1070,12 @@ export function PunktEtiketter({ punkter, synlig, segmentVed, stil = 'etikett' }
               background: 'var(--flate-12-alt)', opacity: en?.planlagt ? 0.75 : 1,
               borderStyle: en?.planlagt ? 'dashed' : 'solid',
             }}>
-              {en ? `${en.slag === 'skyting' ? '' : PUNKT_SLAG[en.slag].ikon + ' '}${en.tittel}` : `${kl.punkter.length} punkter`}
+              {en ? (
+                <>
+                  {en.slag !== 'skyting' && <Ikon navn={PUNKT_SLAG[en.slag].ikon} variant="fyll" storrelse={14} style={{ marginRight: 3 }} />}
+                  {en.tittel}
+                </>
+              ) : `${kl.punkter.length} punkter`}
             </span>
             <span style={{
               display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5,
@@ -1121,12 +1137,14 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
   const staa = skyte.filter(sg => sg.type === 'skyting_staa').map(sg => treffTall(sg.treff)).filter((x): x is number[] => !!x)
   const sumAv = (xs: number[][]) => `${xs.reduce((a, t) => a + t[0], 0)}/${xs.reduce((a, t) => a + t[1], 0)}`
   const harNoe = rpe != null || !!onRpe || mmol.length > 0 || nutrition.length > 0 || skyte.length > 0
-  const knapper = [
-    handlinger?.onOktbygger && { navn: '⚡ Øktbygger', farge: 'var(--accent)', kall: handlinger.onOktbygger, id: 'oktbygger' },
-    handlinger?.onPlottTreff && { navn: '🎯 Plott treff', farge: '#E23A5A', kall: handlinger.onPlottTreff, id: 'plott' },
-    handlinger?.onSettLaktat && { navn: '🩸 Sett laktat', farge: 'var(--tekst-5-app)', kall: handlinger.onSettLaktat, id: 'laktat' },
-    handlinger?.onNotat && { navn: '📝 Notat', farge: 'var(--tekst-5-app)', kall: handlinger.onNotat, id: 'notat' },
-  ].filter((x): x is { navn: string; farge: string; kall: () => void; id: string } => !!x)
+  type DetaljKnapp = { navn: string; ikon: IkonNavn; farge: string; kall: () => void; id: string }
+  const knappRader: Array<DetaljKnapp | false | undefined> = [
+    handlinger?.onOktbygger && { navn: 'Øktbygger', ikon: 'aktivitet', farge: 'var(--accent)', kall: handlinger.onOktbygger, id: 'oktbygger' },
+    handlinger?.onPlottTreff && { navn: 'Plott treff', ikon: 'skyting', farge: '#E23A5A', kall: handlinger.onPlottTreff, id: 'plott' },
+    handlinger?.onSettLaktat && { navn: 'Sett laktat', ikon: 'laktat', farge: 'var(--tekst-5-app)', kall: handlinger.onSettLaktat, id: 'laktat' },
+    handlinger?.onNotat && { navn: 'Notat', ikon: 'for-okt', farge: 'var(--tekst-5-app)', kall: handlinger.onNotat, id: 'notat' },
+  ]
+  const knapper = knappRader.filter((x): x is DetaljKnapp => !!x)
   if (!harNoe && knapper.length === 0) return null
   return (
     <div data-detaljrad className="mt-3">
@@ -1165,6 +1183,7 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
                 textTransform: 'uppercase', border: `1px solid ${b.farge}`, borderRadius: 999, padding: '8px 13px',
                 minHeight: 36, color: b.farge, background: b.id === 'oktbygger' ? 'rgba(255,69,0,.06)' : 'transparent', cursor: 'pointer',
               }}>
+              <Ikon navn={b.ikon} variant="strek" storrelse={14} style={{ marginRight: 5 }} />
               {b.navn}
             </button>
           ))}
@@ -1242,8 +1261,11 @@ export function Gruppe({ navn, children }: { navn: string; children: React.React
   )
 }
 
-export function Chip({ farge, etikett, paa, fokus, onClick }: {
+export function Chip({ farge, etikett, paa, fokus, onClick, ikon }: {
   farge: string; etikett: string; paa: boolean; fokus: boolean; onClick: () => void
+  /** Ikon ved siden av fargeprikken (chip-raden under grafen). Valgfritt -
+      eldre kallere (analyse-fanene) lar den stå. */
+  ikon?: IkonNavn
 }) {
   return (
     <button type="button" onClick={onClick}
@@ -1253,7 +1275,7 @@ export function Chip({ farge, etikett, paa, fokus, onClick }: {
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         border: `1px solid ${paa ? farge : 'var(--kant-3)'}`,
-        // Fokus-chipen har lys ramme (fasiten) — den eier aksen.
+        // Fokus-chipen har lys ramme (fasiten) - den eier aksen.
         boxShadow: fokus ? '0 0 0 1.5px var(--tekst-1-app)' : 'none',
         color: paa ? farge : 'var(--tekst-8-app)',
         background: 'none', padding: '5px 10px', minHeight: 36, cursor: 'pointer',
@@ -1264,6 +1286,7 @@ export function Chip({ farge, etikett, paa, fokus, onClick }: {
         backgroundColor: paa ? farge : 'transparent', border: `1px solid ${farge}`,
         verticalAlign: 'middle',
       }} />
+      {ikon && <Ikon navn={ikon} variant="strek" storrelse={14} style={{ marginRight: 4 }} />}
       {etikett}
     </button>
   )
@@ -1399,7 +1422,7 @@ function SegmentBaand({
               textTransform: 'uppercase', color: 'var(--tekst-1-ren)', lineHeight: `${BAAND_HOYDE}px`,
               whiteSpace: 'nowrap',
             }}>
-            {/* Fasit v6: draget viser VARIGHETEN inni («10 MIN»), skyting L/S inni og 🎯 rett over;
+            {/* Fasit v6: draget viser VARIGHETEN inni («10 MIN»), skyting L/S inni og blinken rett over;
                 andre segmenter navnet der det er plass (i en klamme bærer klammen navnet). */}
             {sg.type === 'drag'
               ? (a >= 0.035 ? `${fmtVarighetKort(sg.sluttSek - sg.startSek)}${(sg.sluttSek - sg.startSek) < 90 ? ' s' : ''}`.toUpperCase() : '')
@@ -1407,7 +1430,8 @@ function SegmentBaand({
                 ? (sg.type === 'skyting_ligg' ? 'L' : sg.type === 'skyting_staa' ? 'S' : 'L+S')
                 : (!gruppe && a >= ETIKETT_ANDEL ? sg.etikett : '')}
             {erSkytesegment(sg.type) && (
-              <span aria-hidden style={{ position: 'absolute', left: '50%', top: -13, transform: 'translateX(-50%)', fontSize: 11, lineHeight: 1 }}>🎯</span>
+              <Ikon navn="skyting" variant="fyll" storrelse={14}
+                style={{ position: 'absolute', left: '50%', top: -15, transform: 'translateX(-50%)' }} />
             )}
             {smalt && (
               <span aria-hidden style={{

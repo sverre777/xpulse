@@ -21,6 +21,7 @@ import { SEGMENT_FARGER } from '@/lib/segmenter'
 import { formatMinPerKm } from '@/lib/pace-utils'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
+import { Ikon } from '@/components/ui/ikoner'
 import { KortPopup, PopupSeksjon } from './KortPopup'
 import { ZoneBar, fmtHM, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
 
@@ -174,7 +175,7 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
                     return (
                       <div key={l.id ?? i} style={{ display: 'contents' }} data-runde={l.index}>
                         <span style={{ width: 8, height: 8, borderRadius: 999, background: lapFarge(l.lap_type), display: 'inline-block' }} />
-                        <span style={tall}>{skyting && harSki ? '🎯' : ''} {l.index}</span>
+                        <span style={{ ...tall, display: 'inline-flex', alignItems: 'center', gap: 4 }}>{skyting && harSki && <Ikon navn="skyting" storrelse={14} />}{l.index}</span>
                         <span style={tall}>{fmtKlokke(l.duration_seconds)}{skyting && harSki && skudd > 0 ? <span style={{ ...tekst, marginLeft: 6 }}>{treff}/{skudd}</span> : null}</span>
                         <span style={tall}>{l.distance_meters ? (l.distance_meters / 1000).toFixed(2).replace('.', ',') : '-'}</span>
                         <span style={tall}>{l.avg_speed_ms && l.avg_speed_ms > 0 ? formatMinPerKm(1000 / l.avg_speed_ms) : '-'}</span>
@@ -201,11 +202,11 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
               <PopupSeksjon tittel="Laktat & ernæring">
                 <div className="flex flex-col gap-1" data-popup-laktat-ernaering>
                   {(klokke?.lactate ?? []).map((l, i) => (
-                    <span key={`l${i}`} style={tekst}><b style={{ color: LAKTAT }}>🩸 {fmtMmol(l.mmol)} mmol</b> ved {fmtKlokke(l.t)}</span>
+                    <span key={`l${i}`} style={tekst}><b style={{ color: LAKTAT, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ikon navn="laktat" storrelse={14} /> {fmtMmol(l.mmol)} mmol</b> ved {fmtKlokke(l.t)}</span>
                   ))}
-                  {(klokke?.lactate.length ?? 0) === 0 && w.lactate_mmol != null && <span style={tekst}><b style={{ color: LAKTAT }}>🩸 {fmtMmol(w.lactate_mmol)} mmol</b> (høyeste)</span>}
+                  {(klokke?.lactate.length ?? 0) === 0 && w.lactate_mmol != null && <span style={tekst}><b style={{ color: LAKTAT, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ikon navn="laktat" storrelse={14} /> {fmtMmol(w.lactate_mmol)} mmol</b> (høyeste)</span>}
                   {(klokke?.nutrition ?? []).map((n, i) => (
-                    <span key={`n${i}`} style={tekst}><b style={{ color: ERNAERING }}>🍌 {n.carbs_g != null ? `${Math.round(n.carbs_g)} g karbo` : n.type}</b> ved {fmtKlokke(n.t)}{n.carbs_g != null && n.type ? ` · ${n.type}` : ''}</span>
+                    <span key={`n${i}`} style={tekst}><b style={{ color: ERNAERING, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ikon navn="ernaering" storrelse={14} /> {n.carbs_g != null ? `${Math.round(n.carbs_g)} g karbo` : n.type}</b> ved {fmtKlokke(n.t)}{n.carbs_g != null && n.type ? ` · ${n.type}` : ''}</span>
                   ))}
                 </div>
               </PopupSeksjon>

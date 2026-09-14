@@ -17,6 +17,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 
@@ -63,8 +64,8 @@ export function KortPopup({
             )}
           </div>
           <button type="button" onClick={onClose} aria-label="Lukk" data-popup-lukk
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--mut)', fontSize: 18, lineHeight: 1, minWidth: 44, minHeight: 44 }}>
-            ✕
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mut)', minWidth: 44, minHeight: 44 }}>
+            <Ikon navn="lukk" storrelse={18} />
           </button>
         </div>
 
@@ -72,8 +73,8 @@ export function KortPopup({
 
         <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
           <Link href={videreHref}
-            style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent, #FF4500)', textDecoration: 'none' }}>
-            {videreTekst} →
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent, #FF4500)', textDecoration: 'none' }}>
+            {videreTekst} <Ikon navn="apne-fane" storrelse={14} />
           </Link>
         </div>
       </div>

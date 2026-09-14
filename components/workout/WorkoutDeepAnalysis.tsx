@@ -9,6 +9,7 @@ import type { Sport } from '@/lib/types'
 // Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import type { ExtendedZoneName } from '@/lib/heart-zones'
+import { Ikon } from '@/components/ui/ikoner'
 
 // "Vis dypere analyse" — beregner avansert per-økt-statistikk fra samples
 // uten ekstra DB-kall. Alt regnes ut én gang via useMemo så toggles ikke
@@ -127,9 +128,9 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
               accent={decouplingColor(stats.decoupling)}
             />
             <div>
-              <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+              <p className="text-xs inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {stats.decoupling < 5
-                  ? '✓ Stabil aerob form gjennom økten'
+                  ? <><Ikon navn="fullfort" variant="strek" storrelse={14} /> Stabil aerob form gjennom økten</>
                   : stats.decoupling < 10
                   ? 'Moderat decoupling - kan tyde på begynnende tretthet'
                   : 'Høy decoupling - øktintensiteten var for høy aerobt eller du var sliten'}

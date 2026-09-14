@@ -24,6 +24,8 @@ import { useEffect } from 'react'
 import { STANDARD_SHOOTING_TESTS, expandTestSeries } from '@/lib/shooting-test-templates'
 import { listMyShootingTests, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { TestDataModule } from './TestDataModule'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 
 const GULL = '#E8B93C'
 const GULL2 = '#D4A017'
@@ -41,10 +43,10 @@ const LBL: React.CSSProperties = {
 
 export type PanelType = 'competition' | 'testlop' | 'test'
 
-const TYPE_CHIPS: { verdi: PanelType; etikett: string }[] = [
-  { verdi: 'competition', etikett: '🏁 Konkurranse' },
-  { verdi: 'testlop', etikett: '⏱ Testløp' },
-  { verdi: 'test', etikett: '🧪 Test' },
+const TYPE_CHIPS: { verdi: PanelType; etikett: string; ikon: IkonNavn }[] = [
+  { verdi: 'competition', etikett: 'Konkurranse', ikon: KONKURRANSE_CHIP_IKON },
+  { verdi: 'testlop', etikett: 'Testløp', ikon: TESTLOP_CHIP_IKON },
+  { verdi: 'test', etikett: 'Test', ikon: 'test' },
 ]
 
 export function KonkurransePanel({
@@ -125,12 +127,14 @@ export function KonkurransePanel({
         <span className="flex flex-wrap sm:ml-auto" style={{ border: '1px solid var(--line2)', borderRadius: 10, overflow: 'hidden' }}>
           {TYPE_CHIPS.map(c => (
             <button key={c.verdi} type="button" onClick={() => onTypeChange(c.verdi)}
+              className="inline-flex items-center gap-1.5"
               style={{
                 padding: '8px 14px', fontFamily: FONT, fontSize: 14, cursor: 'pointer', border: 'none',
                 color: type === c.verdi ? GULL : 'var(--mut)',
                 background: type === c.verdi ? 'rgba(232,185,60,.14)' : 'transparent',
                 fontWeight: type === c.verdi ? 700 : 400,
               }}>
+              <Ikon navn={c.ikon} variant="strek" storrelse={14} />
               {c.etikett}
             </button>
           ))}
@@ -142,7 +146,8 @@ export function KonkurransePanel({
         <div className="flex items-center gap-3 flex-wrap mx-4 mt-4 px-4 py-3"
           style={{ border: '1px solid rgba(232,185,60,.35)', background: 'rgba(232,185,60,.06)', borderRadius: 11 }}>
           <span style={{ fontFamily: FONT, fontSize: 14.5, color: 'var(--tekst-1-app)', minWidth: 180, flex: 1 }}>
-            ⚡ <b style={{ color: GULL }}>{data.distance_format}</b>
+            <Ikon navn="aktivitet" variant="strek" storrelse={14} style={{ marginRight: 4 }} />
+            <b style={{ color: GULL }}>{data.distance_format}</b>
             {type === 'testlop' ? ' (testløp)' : ''} genererer aktivitets-strukturen
             {sport === 'biathlon' ? ' - runder og skyteserier klare til føring' : ' - klar til føring'}
           </span>
@@ -300,7 +305,7 @@ export function KonkurransePanel({
             <div className="mt-3 p-3" style={{ background: 'var(--surface, var(--card))', border: '1px solid var(--line)', borderRadius: 9 }}>
               <div style={{ ...LBL, marginBottom: 4, color: 'var(--mut)' }}>Fra planen</div>
               {data.goal.trim() !== '' && (
-                <p style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-1-app)', whiteSpace: 'pre-wrap' }}>🎯 {data.goal}</p>
+                <p style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-1-app)', whiteSpace: 'pre-wrap' }}>{data.goal}</p>
               )}
               {data.pre_comment.trim() !== '' && (
                 <p style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-3-app)', whiteSpace: 'pre-wrap', marginTop: 4 }}>{data.pre_comment}</p>
@@ -356,7 +361,8 @@ export function KonkurransePanel({
       {kanLageNyMal && (
       <div className="flex items-center gap-3 flex-wrap px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
         <span style={{ fontFamily: FONT, fontSize: 13, color: 'var(--mut)', flex: 1, minWidth: 200 }}>
-          💾 <b style={{ color: 'var(--tekst-1-app)' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> - ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
+          <Ikon navn="lagre" variant="strek" storrelse={14} style={{ marginRight: 4 }} />
+          <b style={{ color: 'var(--tekst-1-app)' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> - ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
         </span>
         <button type="button" onClick={onNyMal}
           style={{ fontFamily: FONT, fontWeight: 700, fontSize: 13, color: 'var(--mut)', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
@@ -408,7 +414,7 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
     listMyShootingTests().then(r => setEgne(Array.isArray(r) ? r : []))
   }, [erSkiskyting, egne])
 
-  const rad = (nokkel: string, navn: string, detalj: string, tag: string | null, egen: boolean, aktiv: boolean, onClick: () => void) => (
+  const rad = (nokkel: string, navn: React.ReactNode, detalj: string, tag: string | null, egen: boolean, aktiv: boolean, onClick: () => void) => (
     <button key={nokkel} type="button" onClick={onClick}
       className="flex justify-between items-center gap-3 w-full text-left"
       style={{
@@ -454,8 +460,13 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
             </p>
           )}
           {relevanteMaler.map(t =>
-            rad(t.id, `${t.erBibliotek ? '📚 ' : ''}🧪 ${t.navn}`,
-              t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
+            rad(t.id, (
+              <span className="inline-flex items-center gap-1.5">
+                {t.erBibliotek && <Ikon navn="bibliotek" variant="strek" storrelse={14} />}
+                <Ikon navn="test" variant="strek" storrelse={14} />
+                {t.navn}
+              </span>
+            ), t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
               null, !t.erBibliotek, aktivTestMalId === t.id, () => onVelgTestMal(t.id)))}
           {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg - lagres i biblioteket', null, false, false, onNyMal)}
         </div>

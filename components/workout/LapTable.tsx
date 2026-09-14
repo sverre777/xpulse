@@ -1,6 +1,7 @@
 'use client'
 
 import type { Sport } from '@/lib/types'
+import { Ikon } from '@/components/ui/ikoner'
 
 // En "lap" tilsvarer en rad i workout_activities for klokkesync-importerte
 // økter. Vi bruker LapTable for å vise per-lap detaljer (varighet, distanse,
@@ -63,8 +64,9 @@ export function LapTable({ laps, sport, kilde = null }: Props & { kilde?: 'backu
 
   return (
     <div data-rundetabell data-rundekilde={kilde ?? 'klokkerader'}>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 4px' }}>
-        ⌚ {kildeTekst}
+      <p className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 4px' }}>
+        <Ikon navn="klokke" variant="strek" storrelse={14} />
+        {kildeTekst}
       </p>
     <div className="overflow-x-auto" style={{ border: '1px solid var(--kant-3)' }}>
       <table className="w-full text-xs"

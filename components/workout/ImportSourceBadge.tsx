@@ -1,5 +1,6 @@
 import { PoweredByStravaBadge } from '@/components/strava/StravaBrand'
 import { fitSourceLabel } from '@/lib/fit-mapping'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Felles wrapper som velger riktig badge basert på workouts.imported_from:
 //   - 'strava'                → orange Strava-badge med Powered by-tekst
@@ -43,21 +44,8 @@ function FitSourceBadge({ source, compact }: { source: string; compact: boolean 
         textTransform: 'uppercase',
         lineHeight: 1,
       }}>
-      <WatchIcon size={compact ? 10 : 12} />
+      <Ikon navn="klokke" variant="strek" storrelse={14} />
       {label}
     </span>
-  )
-}
-
-function WatchIcon({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-      aria-hidden="true">
-      <circle cx="12" cy="12" r="6" />
-      <polyline points="12 10 12 12 13 13" />
-      <path d="M16.13 7.66l-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05" />
-      <path d="M7.88 16.36l.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05" />
-    </svg>
   )
 }

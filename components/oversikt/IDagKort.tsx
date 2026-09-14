@@ -22,6 +22,7 @@ import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 import type { ExtendedZoneName } from '@/lib/heart-zones'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
+import { Ikon } from '@/components/ui/ikoner'
 import { fmtHM } from './kort-deler'
 
 const FONT = "'Barlow Condensed', sans-serif"
@@ -122,7 +123,7 @@ function NesteOektLinje({ w, todayISO, liten = false, harSki = true }: { w: Over
         <div style={{ width: 120, flexShrink: 0 }}><Blokkgraf w={w} hoyde={34} harSki={harSki} /></div>
       )}
     </Link>
-    {live && <Link href={`/app/okt/${w.id}`} data-neste-live={w.id} title="Start live styrke" style={{ fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: GRONN, border: `1px solid ${GRONN}`, borderRadius: 999, padding: '3px 9px', textDecoration: 'none', flexShrink: 0 }}>▶ Live</Link>}
+    {live && <Link href={`/app/okt/${w.id}`} data-neste-live={w.id} title="Start live styrke" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: GRONN, border: `1px solid ${GRONN}`, borderRadius: 999, padding: '3px 9px', textDecoration: 'none', flexShrink: 0 }}><Ikon navn="play" storrelse={14} /> Live</Link>}
     </div>
   )
 }
@@ -193,7 +194,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
             hoved.effective_duration_minutes != null ? fmtHM(hoved.effective_duration_minutes * 60) : null,
             <SoneChip key="s" sone={hoved.primary_intensity_zone} />,
             hoved.distance_km != null && hoved.distance_km > 0 ? `${hoved.distance_km.toFixed(1).replace('.', ',')} km` : null,
-            harKurve ? <span key="k" data-klokke-chip style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 7px' }}>⌚ klokkesynk</span> : null,
+            harKurve ? <span key="k" data-klokke-chip style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 7px' }}><Ikon navn="klokke" storrelse={14} /> klokkesynk</span> : null,
           ]} />
 
           <div className="mt-3" data-idag-graf={harKurve ? 'kurve' : harGraf ? 'blokker' : 'ingen'}>
@@ -233,7 +234,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
               <>
                 <Link href={`/app/dagbok?edit=${hoved.id}`} className="xp-hbtn" data-idag-knapp="logg" style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)' }}>Logg økta</Link>
                 <Link href={`/app/plan?edit=${hoved.id}`} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="plan" style={{ color: BLAA }}>Åpne i plan</Link>
-                {erPlanlagtStyrke(hoved) && <Link href={`/app/okt/${hoved.id}`} className="xp-hbtn" data-idag-knapp="live" style={{ backgroundColor: GRONN, color: 'var(--tekst-1-ren)' }}>▶ Start live</Link>}
+                {erPlanlagtStyrke(hoved) && <Link href={`/app/okt/${hoved.id}`} className="xp-hbtn" data-idag-knapp="live" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: GRONN, color: 'var(--tekst-1-ren)' }}><Ikon navn="play" storrelse={14} /> Start live</Link>}
               </>
             )}
           </div>

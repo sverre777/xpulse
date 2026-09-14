@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getActiveLiveSession, type ActiveLiveSession } from '@/app/actions/strength-session'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Viser en «gjenoppta»-lenke når brukeren har en pågående live styrkeøkt
 // (workouts.live_started_at != null, ikke fullført). Self-fetcher ved mount.
@@ -20,11 +21,13 @@ export function ResumeSessionBanner() {
       style={{ background: '#1A0F08', border: '1px solid #3A2418', borderLeft: '3px solid #FF4500', padding: '12px 14px', textDecoration: 'none' }}>
       <div className="flex items-center justify-between gap-3">
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 15 }}>
-          <span style={{ color: '#FF4500', fontWeight: 700 }}>▶ Pågående styrkeøkt</span>
+          <span className="inline-flex items-center gap-1" style={{ color: '#FF4500', fontWeight: 700 }}>
+            <Ikon navn="play" variant="fyll" storrelse={14} />Pågående styrkeøkt
+          </span>
           {' - '}{session.title || 'Styrke'}
         </span>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', fontSize: 14, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Gjenoppta →
+        <span className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', fontSize: 14, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          Gjenoppta<Ikon navn="neste" variant="strek" storrelse={14} />
         </span>
       </div>
     </Link>

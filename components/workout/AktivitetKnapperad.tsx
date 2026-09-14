@@ -1,5 +1,7 @@
 'use client'
 
+import { Ikon } from '@/components/ui/ikoner'
+
 // Felles knapperad over aktivitetsradene — ÉN komponent brukt i både plan
 // og dagbok (regel 11). Fasit: design/xpulse-plott-treff-design.html +
 // Øktbygger-omleggingen v6.
@@ -52,24 +54,24 @@ export function AktivitetKnapperad({
     <div className="flex gap-2 items-center flex-wrap mb-3" data-aktivitet-knapperad>
       <button type="button" onClick={onLeggTilAktivitet} className={PILL_KLASSE}
         style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-        + <span className={LANG}>Legg til </span>aktivitet
+        <Ikon navn="legg-til" storrelse={18} /> <span className={LANG}>Legg til </span>aktivitet
       </button>
       {userHasBiathlon && (
         <button type="button" onClick={onLeggTilSkyting} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-          🎯 + <span className={LANG}>Legg til </span>skyting
+          <Ikon navn="skyting" storrelse={18} /> <Ikon navn="legg-til" storrelse={18} /> <span className={LANG}>Legg til </span>skyting
         </button>
       )}
       {visBygger && (
         <button type="button" onClick={onOktbygger} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
-          ⚡ Øktbygger
+          <Ikon navn="aktivitet" storrelse={18} /> Øktbygger
         </button>
       )}
       {visPlottTreff && (
         <button type="button" onClick={onPlottTreff} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid #FF4500', color: '#FF4500' }}>
-          🎯 Plott treff
+          <Ikon navn="skyting" storrelse={18} /> Plott treff
         </button>
       )}
     </div>

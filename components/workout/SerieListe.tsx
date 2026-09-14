@@ -6,6 +6,7 @@ import { shootingSummary, POSITION_COLORS } from '@/lib/shooting'
 import { ringValueFromPoint, isShotHit, sightLabel, windShort } from '@/lib/shooting'
 import { WindSightModal, VimpelIcon, type WindSightValue } from '@/components/workout/WindSightModal'
 import { ShotPlotModal } from '@/components/workout/ShotPlotModal'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Serie-føringen for én skyting-rad — HØSTET ordrett ut av
 // ActivitiesSection/ShootingFields (regel 18: mønsteret fantes, men var
@@ -109,7 +110,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
             )}
             {showPoints && (
               <input value={s.points} onChange={e => updSeries(s.id, { points: e.target.value })}
-                placeholder="Poeng" title="Ring-/poengsum for serien (kan leses fra 🎯-plottet)"
+                placeholder="Poeng" title="Ring-/poengsum for serien (kan leses fra skyteplottet)"
                 inputMode="decimal" style={{ ...nSt, width: 62, borderColor: '#D4A01755' }} />
             )}
             {showPoints && s.shot_plot?.some(p => p != null) && (
@@ -118,9 +119,10 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                   points: String((s.shot_plot ?? []).reduce((acc, pt) => acc + (pt ? ringValueFromPoint(pt) : 0), 0)),
                 })}
                 title="Les poeng fra skuddplottet (ringverdi per skudd)"
-                className="text-xs"
+                className="text-xs inline-flex items-center gap-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017', background: 'none', border: '1px solid #D4A01755', borderRadius: 8, padding: '0 8px', minHeight: 40, cursor: 'pointer' }}>
-                ⤓🎯
+                <Ikon navn="last-ned" variant="strek" storrelse={14} />
+                <Ikon navn="skyting" variant="strek" storrelse={14} />
               </button>
             )}
             {!planMode && (
@@ -153,9 +155,8 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                     minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
                     background: s.shot_plot?.some(p => p) ? '#2A1E10' : 'var(--card2)',
                     border: `1px solid ${s.shot_plot?.some(p => p) ? '#FF8C0066' : 'var(--line2)'}`,
-                    fontSize: 14,
                   }}>
-                  🎯
+                  <Ikon navn="skyting" variant="strek" storrelse={18} />
                 </button>
                 {/* Kø #49: vind & sikt - lite symbol mellom plotting og
                     notat (brukerplassering 2026-08-16). */}
@@ -187,22 +188,22 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                   style={{
                     minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
                     background: noteOpenId === s.id || s.note ? 'var(--tonet-gronn-2)' : 'var(--card2)',
-                    border: '1px solid var(--line2)', fontSize: 14,
+                    border: '1px solid var(--line2)',
                   }}>
-                  📝
+                  <Ikon navn="for-okt" variant="strek" storrelse={18} />
                 </button>
                 <button type="button" aria-label="Fjern serie"
                   onClick={() => removeSeries(s.id)}
-                  style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: 'var(--mut)', fontSize: 13 }}>
-                  ✕
+                  style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: 'var(--mut)' }}>
+                  <Ikon navn="lukk" variant="strek" storrelse={14} />
                 </button>
               </div>
             )}
             {planMode && (
               <button type="button" aria-label="Fjern serie"
                 onClick={() => removeSeries(s.id)}
-                style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: 'var(--mut)', fontSize: 13 }}>
-                ✕
+                style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: 'var(--mut)' }}>
+                <Ikon navn="lukk" variant="strek" storrelse={14} />
               </button>
             )}
           </div>
@@ -254,9 +255,10 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
           Fylt + synlig (brukerønske 2026-08-16) - plott-oransje aksent. */}
       {!planMode && series.filter(s => (parseInt(s.shots) || 0) > 0).length > 1 && (
         <button type="button" onClick={() => setPlotTarget('all')}
-          className="mt-1 text-xs"
+          className="mt-1 text-xs inline-flex items-center gap-1.5"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: '#FF8C00', background: '#2A1E10', border: '1px solid #FF8C0066', borderRadius: 8, cursor: 'pointer', padding: '9px 14px', minHeight: 40, letterSpacing: '0.06em' }}>
-          🎯 Plott alle serier
+          <Ikon navn="skyting" variant="strek" storrelse={14} />
+          Plott alle serier
         </button>
       )}
 

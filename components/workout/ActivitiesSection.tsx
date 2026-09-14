@@ -70,7 +70,7 @@ function isIndoorActivityFor(name: string, subcategory: string): boolean {
 }
 
 interface Props {
-  // Felles knapperad (fasit): ⚡ Øktbygger står alltid; 🎯 Plott treff
+  // Felles knapperad (fasit): Øktbygger står alltid; Plott treff
   // gjelder kun dagbok — betingelsene ligger i AktivitetKnapperad.
   onOktbygger?: () => void
   onPlottTreff?: () => void
@@ -96,7 +96,7 @@ interface Props {
   mode?: 'plan' | 'dagbok'
   // Brukerens default pace-enhet fra profiles.default_pace_unit. null = min_per_km.
   defaultPaceUnit?: PaceUnit | null
-  // Kø #47: øktas workout_type — driver auto-markeringene 🏁/⏱ på skyteblokker.
+  // Kø #47: øktas workout_type — driver auto-markeringene konkurranse/testløp på skyteblokker.
   workoutType?: string
   // Utstyr bolk 4: ⇄ per aktivitetsrad — bytte av utstyr KUN der man faktisk
   // byttet (hele økta-arven settes i «Utstyr brukt»-seksjonen). Keyet på
@@ -157,6 +157,25 @@ function sumZoneSeconds(z: ActivityZoneMinutes): number {
 import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
+
+// Ikonjobben: ikon per aktivitetstype - egen tabell her (ikke ACTIVITY_TYPES.icon,
+// som fortsatt bærer emoji og ligger utenfor ikonjobbens filliste).
+const AKTIVITET_TYPE_IKON: Record<ActivityType, IkonNavn> = {
+  oppvarming: 'oppvarming',
+  aktivitet: 'aktivitet',
+  pause: 'pause',
+  aktiv_pause: 'aktiv-pause',
+  veksling: 'veksling',
+  skyting_liggende: 'skyting',
+  skyting_staaende: 'skyting',
+  skyting_kombinert: 'skyting',
+  skyting_innskyting: 'skyting',
+  skyting_basis: 'skyting',
+  nedjogg: 'nedjogg',
+  annet: 'annet',
+}
 
 /** Bolk 24: posisjonene en gammel «Skyting»-rad (kombinert) faktisk bærer. */
 function skytingPosisjoner(row: ActivityRow): { L: boolean; S: boolean } {
@@ -328,7 +347,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
     <div className="space-y-2">
       {/* Felles knapperad (regel 11) - over radene, i plan OG dagbok.
           Var tidligere to knapper nederst; fasiten flytter dem hit og
-          legger 🎯/⌚-inngangene i samme rad. */}
+          legger skyting-/klokke-inngangene i samme rad. */}
       <AktivitetKnapperad
         isPlanMode={isPlanMode}
         harSkyting={harSkyting}
@@ -524,7 +543,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
           }}>
             {n} ×
           </span>
-          <span style={{ fontSize: '14px' }}>🎯</span>
+          <Ikon navn="skyting" variant="strek" storrelse={14} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
             {typeInfo?.label ?? 'Skyting'}
           </span>
@@ -611,13 +630,15 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         }}>
           {monster ? monster : `${n} ×`}
         </span>
-        <span style={{ fontSize: '14px' }}>{alt ? '∑' : isStrength ? '🏋' : (meta?.icon ?? '•')}</span>
+        {alt
+          ? <span style={{ fontSize: '14px' }}>∑</span>
+          : <Ikon navn={isStrength ? 'live-styrke' : (AKTIVITET_TYPE_IKON[forste.activity_type] ?? 'annet')} variant="strek" storrelse={14} />}
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
           {alt ? 'Hele økta' : monster ? 'Intervaller' : (meta?.label ?? forste.activity_type)}
         </span>
         {alt && skudd.skudd > 0 && (
-          <span data-skudd-sum style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
-            · 🎯 {skudd.treff}/{skudd.skudd} treff
+          <span data-skudd-sum className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
+            · <Ikon navn="skyting" variant="strek" storrelse={14} /> {skudd.treff}/{skudd.skudd} treff
           </span>
         )}
         {fordeling && (
@@ -653,12 +674,14 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
             style={{
               background: 'none', border: fellesUtstyr.length > 0 ? '1px solid #FF4500' : '1px solid var(--line2)',
               borderRadius: 6, cursor: 'pointer', color: fellesUtstyr.length > 0 ? '#FF4500' : 'var(--tekst-8-app)',
-              fontSize: '12px', lineHeight: 1, padding: '4px 6px',
+              fontSize: '12px', lineHeight: 1, padding: '4px 6px', display: 'inline-flex', alignItems: 'center', gap: 2,
             }}>
-            ⇄{fellesUtstyr.length > 0 ? fellesUtstyr.length : ''}
+            <Ikon navn="synk" variant="strek" storrelse={14} />{fellesUtstyr.length > 0 ? fellesUtstyr.length : ''}
           </button>
         )}
-        <span style={{ color: 'var(--tekst-8-app)', fontSize: '12px', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms', marginLeft: '4px' }}>▶</span>
+        <span style={{ color: 'var(--tekst-8-app)', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms', marginLeft: '4px', display: 'inline-flex' }}>
+          <Ikon navn="neste" variant="strek" storrelse={14} />
+        </span>
       </div>
       {utstyrOpen && onActivityEquipmentChange && (
         <UtstyrVelgerPopup
@@ -674,8 +697,13 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <Field label={alt ? 'Hele økta' : 'Aktivitetstype'}>
-              <div style={{ ...iSt, display: 'flex', alignItems: 'center', opacity: 0.8 }} title={alt ? 'Sonene er en fordeling - ikke redigerbare her' : 'Type endres per rad i splittet visning'}>
-                {alt ? `∑ ${n} rader · soner som fordeling` : `${meta?.icon} ${meta?.label ?? forste.activity_type}`}
+              <div style={{ ...iSt, display: 'flex', alignItems: 'center', gap: 6, opacity: 0.8 }} title={alt ? 'Sonene er en fordeling - ikke redigerbare her' : 'Type endres per rad i splittet visning'}>
+                {alt ? `∑ ${n} rader · soner som fordeling` : (
+                  <>
+                    <Ikon navn={isStrength ? 'live-styrke' : (AKTIVITET_TYPE_IKON[forste.activity_type] ?? 'annet')} variant="strek" storrelse={14} />
+                    {meta?.label ?? forste.activity_type}
+                  </>
+                )}
               </div>
             </Field>
             {(alt || meta?.usesMovement) && (
@@ -889,7 +917,7 @@ function ActivityRowItem({
     onUpdate(patch)
   }
 
-  const displayIcon = isStrength ? '🏋' : (meta?.icon ?? '•')
+  const displayIkon: IkonNavn = isStrength ? 'live-styrke' : (AKTIVITET_TYPE_IKON[row.activity_type] ?? 'annet')
 
   return (
     <div className="xp-act">
@@ -919,7 +947,7 @@ function ActivityRowItem({
         </div>
 
         {/* Type icon + label */}
-        <span style={{ fontSize: '14px' }}>{displayIcon}</span>
+        <Ikon navn={displayIkon} variant="strek" storrelse={14} />
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: 'var(--tekst-1-app)',
@@ -969,9 +997,9 @@ function ActivityRowItem({
               border: equipmentIds.length > 0 ? '1px solid #FF4500' : '1px solid var(--line2)',
               borderRadius: 6, cursor: 'pointer',
               color: equipmentIds.length > 0 ? '#FF4500' : 'var(--tekst-8-app)',
-              fontSize: '12px', lineHeight: 1, padding: '4px 6px',
+              fontSize: '12px', lineHeight: 1, padding: '4px 6px', display: 'inline-flex', alignItems: 'center', gap: 2,
             }}>
-            ⇄{equipmentIds.length > 0 ? equipmentIds.length : ''}
+            <Ikon navn="synk" variant="strek" storrelse={14} />{equipmentIds.length > 0 ? equipmentIds.length : ''}
           </button>
         )}
 
@@ -982,7 +1010,7 @@ function ActivityRowItem({
           transition: 'transform 150ms',
           marginLeft: '4px',
         }}>
-          ▶
+          <Ikon navn="neste" variant="strek" storrelse={14} />
         </span>
 
         {/* Delete - større touch-mål */}
@@ -990,9 +1018,9 @@ function ActivityRowItem({
           aria-label="Slett aktivitet"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--tekst-8-app)', fontSize: '20px', lineHeight: 1,
+            color: 'var(--tekst-8-app)', lineHeight: 1,
             padding: '6px 8px', marginRight: '-6px',
-          }}>×</button>
+          }}><Ikon navn="slett" variant="strek" storrelse={18} /></button>
       </div>
 
       {equipOpen && onEquipmentChange && (
@@ -1612,7 +1640,7 @@ function StrengthEditor({
           fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
           background: 'none', border: '1px dashed #FF4500', cursor: 'pointer', width: '100%',
         }}>
-        + Legg til øvelse
+        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til øvelse
       </button>
     </div>
   )
@@ -1684,8 +1712,8 @@ function ExerciseBlock({
           libraryNames={libraryNames}
         />
         <button type="button" onClick={onDelete}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '16px', padding: '0 6px' }}
-          title="Slett øvelse">×</button>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', padding: '0 6px' }}
+          title="Slett øvelse"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
       </div>
 
       {/* Forrige-økt-hint på samme øvelse (nøkles på navn, kontekst-uavhengig)
@@ -1696,9 +1724,9 @@ function ExerciseBlock({
             Sist: {summarizeLastSession(lastSession)} ({daysAgoLabel(lastSession.date)})
           </span>
           <button type="button" onClick={repeatLast}
-            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80 inline-flex items-center gap-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', background: 'none', border: '1px solid #3A2418', padding: '2px 8px', cursor: 'pointer' }}>
-            ↺ Gjenta forrige
+            <Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta forrige
           </button>
         </div>
       )}
@@ -1742,8 +1770,8 @@ function ExerciseBlock({
               inputMode="numeric" placeholder="-"
               style={{ ...iSt, textAlign: 'center' }} />
             <button type="button" onClick={() => deleteSet(s.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '14px' }}
-              title="Slett sett">×</button>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)' }}
+              title="Slett sett"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
           </div>
         ))}
       </div>
@@ -1754,7 +1782,7 @@ function ExerciseBlock({
           fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
         }}>
-        + Legg til sett
+        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til sett
       </button>
     </div>
   )
@@ -1936,8 +1964,8 @@ function LactateMeasurementsEditor({
               onChange={e => updateMeasurement(m.id, { measured_at: e.target.value })}
               style={{ ...iSt, textAlign: 'center' }} />
             <button type="button" onClick={() => deleteMeasurement(m.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '14px' }}
-              title="Slett måling">×</button>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)' }}
+              title="Slett måling"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
           </div>
         ))}
       </div>
@@ -1948,7 +1976,7 @@ function LactateMeasurementsEditor({
           fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
           background: 'none', border: '1px dashed #FF4500', cursor: 'pointer', width: '100%',
         }}>
-        + Legg til laktat
+        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til laktat
       </button>
     </div>
   )
@@ -1975,12 +2003,12 @@ function VektTillegg({ row, onUpdate, biathlon }: {
   if (val === '' && !open) {
     return (
       <div className="flex items-center gap-2 mt-2">
-        <button type="button" onClick={() => setOpen(true)} style={ghost}>
-          ＋ Vekt (vest/våpen)
+        <button type="button" onClick={() => setOpen(true)} style={{ ...ghost, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          <Ikon navn="legg-til" variant="strek" storrelse={14} /> Vekt (vest/våpen)
         </button>
         {biathlon && (
-          <button type="button" onClick={() => onUpdate({ pack_weight_kg: '3.5' })} style={ghost}>
-            🔫 Børsa 3,5 kg
+          <button type="button" onClick={() => onUpdate({ pack_weight_kg: '3.5' })} style={{ ...ghost, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <Ikon navn="borse-pa-ryggen" variant="strek" storrelse={14} /> Børsa 3,5 kg
           </button>
         )}
       </div>
@@ -1988,8 +2016,8 @@ function VektTillegg({ row, onUpdate, biathlon }: {
   }
   return (
     <div className="flex items-center gap-2 mt-2 flex-wrap">
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)', letterSpacing: '0.06em' }}>
-        ⚖ Vekt
+      <span className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)', letterSpacing: '0.06em' }}>
+        <Ikon navn="vekt" variant="strek" storrelse={14} /> Vekt
       </span>
       <input value={val} inputMode="decimal" placeholder="kg" autoFocus={open && val === ''}
         onChange={e => onUpdate({ pack_weight_kg: e.target.value })}
@@ -1998,17 +2026,17 @@ function VektTillegg({ row, onUpdate, biathlon }: {
       {biathlon && (
         <button type="button"
           onClick={() => onUpdate({ pack_weight_kg: erBorsa ? '' : '3.5' })}
-          style={{ ...ghost, borderStyle: 'solid',
+          style={{ ...ghost, borderStyle: 'solid', display: 'inline-flex', alignItems: 'center', gap: 5,
             color: erBorsa ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
             borderColor: erBorsa ? '#FF4500' : 'var(--line2)',
             background: erBorsa ? 'rgba(255,69,0,0.08)' : 'none' }}>
-          🔫 Børsa 3,5 kg
+          <Ikon navn="borse-pa-ryggen" variant="strek" storrelse={14} /> Børsa 3,5 kg
         </button>
       )}
       <button type="button" aria-label="Fjern vekt"
         onClick={() => { onUpdate({ pack_weight_kg: '' }); setOpen(false) }}
-        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', cursor: 'pointer', fontSize: 13, padding: '0 2px' }}>
-        ✕
+        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', cursor: 'pointer', padding: '0 2px' }}>
+        <Ikon navn="fjern" variant="strek" storrelse={14} />
       </button>
     </div>
   )
@@ -2091,11 +2119,11 @@ function TurFields({
 
 // ── Skyting: FØRING V2 (kø #47 bolk 2) ─────────────────────
 // Type per blokk (fargeprikk-chips) + markeringer (manuelle: innskyting,
-// 🧪 skytetest; automatiske: 🏁/⏱ fra øktas konkurranse/testløp-type) +
+// skytetest; automatiske: konkurranse/testløp fra øktas konkurranse/testløp-type) +
 // serie-rader L/S · skudd · treff · tid · puls på seriemodellen (fase 85).
 // Blokk-total skytetid = radens Varighet-felt (utenfor treningstid som før);
 // auto-sum-hint fra serie-tidene. Tørrtrening fører KUN skytetid.
-// 🎯 skuddplott kommer i bolk 3. Delt beregning: shootingSummary (kun førte).
+// skuddplott kommer i bolk 3. Delt beregning: shootingSummary (kun førte).
 function ShootingFields({
   row, onUpdate, planMode, workoutType,
 }: {
@@ -2113,7 +2141,7 @@ function ShootingFields({
   const isComp = workoutType === 'competition'
   const isTestlop = workoutType === 'testlop'
 
-  // Lazy-last egne testmaler første gang 🧪 er på.
+  // Lazy-last egne testmaler første gang skytetest er på.
   useEffect(() => {
     if (!row.shooting_is_test || ownTests !== null) return
     let cancelled = false
@@ -2172,7 +2200,7 @@ function ShootingFields({
 
   const chip = (
     label: string, active: boolean, color: string,
-    onClick?: () => void, opts?: { dashed?: boolean; title?: string },
+    onClick?: () => void, opts?: { dashed?: boolean; title?: string; ikon?: IkonNavn },
   ) => (
     <button key={label} type="button" onClick={onClick} disabled={!onClick}
       title={opts?.title}
@@ -2187,6 +2215,7 @@ function ShootingFields({
         opacity: !onClick && !active ? 0.5 : 1,
       }}>
       <span aria-hidden style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      {opts?.ikon && <Ikon navn={opts.ikon} variant="fyll" storrelse={14} />}
       {label}
     </button>
   )
@@ -2226,15 +2255,15 @@ function ShootingFields({
         </span>
         {chip('Innskyting', row.shooting_is_innskyting, 'var(--tekst-5-app)',
           () => onUpdate({ shooting_is_innskyting: !row.shooting_is_innskyting }))}
-        {chip('🧪 Skytetest', row.shooting_is_test, '#D4A017',
-          () => onUpdate({ shooting_is_test: !row.shooting_is_test }))}
-        {isComp && chip('🏁 Konkurranse', true, '#D4A017', undefined,
-          { dashed: true, title: 'Automatisk - følger øktas konkurranse-markering' })}
-        {isTestlop && chip('⏱ Testløp', true, '#1A6FD4', undefined,
-          { dashed: true, title: 'Automatisk - følger øktas testløp-markering' })}
+        {chip('Skytetest', row.shooting_is_test, '#D4A017',
+          () => onUpdate({ shooting_is_test: !row.shooting_is_test }), { ikon: 'laktat' })}
+        {isComp && chip('Konkurranse', true, '#D4A017', undefined,
+          { dashed: true, title: 'Automatisk - følger øktas konkurranse-markering', ikon: KONKURRANSE_CHIP_IKON })}
+        {isTestlop && chip('Testløp', true, '#1A6FD4', undefined,
+          { dashed: true, title: 'Automatisk - følger øktas testløp-markering', ikon: TESTLOP_CHIP_IKON })}
       </div>
 
-      {/* Bolk 4: skytetest-mal (🧪) - forhåndsutfyller serier/underlag. */}
+      {/* Bolk 4: skytetest-mal - forhåndsutfyller serier/underlag. */}
       {row.shooting_is_test && (
         <div className="mb-3 p-2" style={{ border: '1px dashed rgba(212,160,23,0.4)', borderRadius: 10 }}>
           <div className="flex flex-wrap items-center" style={{ gap: 6 }}>
@@ -2321,7 +2350,9 @@ function ShootingFields({
                   Lagre
                 </button>
                 <button type="button" onClick={() => setSaveTestName(null)} aria-label="Avbryt"
-                  style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 40, minWidth: 32 }}>✕</button>
+                  style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 40, minWidth: 32 }}>
+                  <Ikon navn="lukk" variant="strek" storrelse={14} />
+                </button>
               </span>
             )}
           </div>

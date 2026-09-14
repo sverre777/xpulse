@@ -1,7 +1,7 @@
 'use client'
 
 // «Utstyr brukt» i økt-skjemaet — kompakt chip-rad (fasit: design seksjon 5).
-// Valgt utstyr vises som chips m/ ✕; «+ Velg utstyr» åpner UtstyrVelgerPopup.
+// Valgt utstyr vises som chips m/ fjern-ikon; «Velg utstyr» åpner UtstyrVelgerPopup.
 // Valget her er «hele økta»-ARV: utstyret telles på hver aktivitet automatisk.
 // Bytte per aktivitet gjøres med ⇄ på aktivitetsraden — aldri krav per drag.
 // Seksjonen finnes både i dagbok og plan. I PLAN er valget en intensjon
@@ -15,6 +15,7 @@ import {
   type Equipment,
 } from '@/lib/equipment-types'
 import { UtstyrVelgerPopup } from './UtstyrVelgerPopup'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Props {
   available: Equipment[]
@@ -38,13 +39,13 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
           som chips på samme linje, bryter ved behov. */}
       <span className="sf17-utstyr-etikett">{planlagt ? 'Utstyr - planlagt' : 'Utstyr brukt'}</span>
       <button type="button" onClick={() => setOpen(true)}
-        className="sf17-utstyr-knapp"
+        className="sf17-utstyr-knapp inline-flex items-center gap-1"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: 'var(--tekst-5-app)', background: 'none',
           border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer',
         }}>
-        + Velg utstyr
+        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Velg utstyr
       </button>
       <span className="sf17-utstyr-hjelp">
         {planlagt
@@ -59,12 +60,12 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
             border: '1px solid var(--line2)', borderRadius: 999,
             backgroundColor: 'rgba(255,69,0,0.06)',
           }}>
-          <span aria-hidden>{EQUIPMENT_CATEGORY_ICONS[normalizeCategory(e.category)]}</span>
+          <Ikon navn={EQUIPMENT_CATEGORY_ICONS[normalizeCategory(e.category)]} variant="strek" storrelse={14} />
           {e.name}
           <button type="button" aria-label={`Fjern ${e.name}`}
             onClick={() => onChange(selectedIds.filter(id => id !== e.id))}
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '13px', padding: 0, minWidth: 24, minHeight: 24 }}>
-            ✕
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', padding: 0, minWidth: 24, minHeight: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Ikon navn="lukk" variant="strek" storrelse={14} />
           </button>
         </span>
       ))}

@@ -18,6 +18,7 @@ import type { HeartZone, ExtendedZoneName } from '@/lib/heart-zones'
 import type { PlanBlokk as SpokelseBlokk } from '@/app/actions/runder'
 import { Nokkeltall, fmtVarighetLang, type NokkeltallCelle } from './WorkoutDetailChart'
 import { PUNKT_SLAG, type GrafPunkt } from './Punkt'
+import { ikonStier, type IkonNavn } from '@/components/ui/ikoner'
 
 const B = 660          // viewBox-bredde
 const PLOT = 120       // plotflatas høyde
@@ -27,11 +28,25 @@ const BUNN_FULL = 20
 // Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
 const TEGN_BREDDE = 6.2
 
+/** Ikon fra settet tegnet INNE i graf-SVG-en (grafen kan ikke bruke <Ikon>,
+ *  som er et eget <svg>-element). Samme paths, fyll-varianten, i oppgitt farge. */
+function GrafIkon({ navn, x, y, storrelse = 12, farge, opacity }: {
+  navn: IkonNavn; x: number; y: number; storrelse?: number; farge: string; opacity?: number
+}) {
+  const { stier } = ikonStier(navn, 'fyll', storrelse)
+  const k = storrelse / 24
+  return (
+    <g transform={`translate(${x - storrelse / 2} ${y - storrelse / 2}) scale(${k})`} fill={farge} opacity={opacity}>
+      {stier.map((d, i) => <path key={i} d={d} />)}
+    </g>
+  )
+}
+
 export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan', runder = [], onKlikkSek, onVelgBlokk, valgtId = null, punktStil = 'etikett' }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
   tetthet?: 'full' | 'kompakt'
-  /** Bolk 21: 'ikon' = punktene (og skytingene 🎯) som ikon uten
+  /** Bolk 21: 'ikon' = punktene (og skytingene) som ikon uten
       etikett-tekst, med tooltip — oversiktens kompakte kart. */
   punktStil?: 'etikett' | 'ikon'
   /** Kompakt: pikselhøyde på kortet. */
@@ -253,12 +268,15 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         </pattern>
       </defs>
       {kompakt && punkter.filter(pk => pk.sek >= 0 && pk.sek <= total).map(pk => (
-        <text key={`kp-${pk.id}`} x={x(pk.sek)} y={topp + 8} textAnchor="middle" data-graf-punkt={pk.slag} data-planlagt={pk.planlagt || undefined}
-          style={{ font: "9px sans-serif", fill: PUNKT_SLAG[pk.slag].farge, opacity: pk.planlagt ? 0.6 : 1 }}>{PUNKT_SLAG[pk.slag].ikon}</text>
+        <g key={`kp-${pk.id}`} data-graf-punkt={pk.slag} data-planlagt={pk.planlagt || undefined}>
+          <GrafIkon navn={PUNKT_SLAG[pk.slag].ikon} x={x(pk.sek)} y={topp + 5} storrelse={10}
+            farge={PUNKT_SLAG[pk.slag].farge} opacity={pk.planlagt ? 0.6 : 1} />
+        </g>
       ))}
       {kompakt && blokker.filter(b => b.slag === 'skyting_ligg' || b.slag === 'skyting_staa').map(b => (
-        <text key={`k-${b.id}`} x={x(b.startSek + b.sek / 2)} y={topp + 8} textAnchor="middle" data-skytemarkor
-          style={{ font: "9px sans-serif", fill: 'var(--tekst-1-app)' }}>🎯</text>
+        <g key={`k-${b.id}`} data-skytemarkor>
+          <GrafIkon navn="skyting" x={x(b.startSek + b.sek / 2)} y={topp + 5} storrelse={10} farge="var(--tekst-1-app)" />
+        </g>
       ))}
       {!kompakt && (
         <>
@@ -326,12 +344,12 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
               </g>
             )
           })}
-          {/* Bolk 21: på oversikten (ikon-stil) får skyteblokkene 🎯 L/S over
+          {/* Bolk 21: på oversikten (ikon-stil) får skyteblokkene blink + L/S over
               seg - kun ikon, stillingen og treffene i tooltip. */}
           {punktStil === 'ikon' && blokker.filter(b => b.slag === 'skyting_ligg' || b.slag === 'skyting_staa').map(b => (
             <g key={`ki-${b.id}`} data-skytemarkor data-punkt-stil="ikon">
               <title>{b.etikett}</title>
-              <text x={x(b.startSek + b.sek / 2)} y={gulv - plot * (b.hoyde ?? 0.36) - 8} textAnchor="middle" style={{ font: '11px sans-serif' }}>🎯</text>
+              <GrafIkon navn="skyting" x={x(b.startSek + b.sek / 2)} y={gulv - plot * (b.hoyde ?? 0.36) - 11} storrelse={12} farge="var(--tekst-1-app)" />
             </g>
           ))}
           {/* Punktene (bolk 8): markør på blokka, etikett med pekelinje. Planlagte
@@ -346,7 +364,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
               return (
                 <g key={`p-${pk.id}`} data-graf-punkt={pk.slag} data-punkt-stil="ikon" data-planlagt={pk.planlagt || undefined}>
                   <title>{PUNKT_SLAG[pk.slag].navn} · {pk.tittel}{pk.planlagt ? ' · plan' : ''}</title>
-                  <text x={cx} y={cy - 8} textAnchor="middle" style={{ font: '11px sans-serif', opacity: pk.planlagt ? 0.6 : 1 }}>{PUNKT_SLAG[pk.slag].ikon}</text>
+                  <GrafIkon navn={PUNKT_SLAG[pk.slag].ikon} x={cx} y={cy - 8} storrelse={12}
+                    farge={PUNKT_SLAG[pk.slag].farge} opacity={pk.planlagt ? 0.6 : 1} />
                 </g>
               )
             }
@@ -360,10 +379,12 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                 {pk.slag === 'laktat' && <circle cx={cx} cy={cy} r={5} fill={fyll} stroke={strek} strokeWidth={2} strokeDasharray={pk.planlagt ? '2 2' : undefined} />}
                 {pk.slag === 'ernaering' && <rect x={cx - 4.5} y={cy - 4.5} width={9} height={9} transform={`rotate(45 ${cx} ${cy})`} fill={fyll} stroke={strek} strokeWidth={2} strokeDasharray={pk.planlagt ? '2 2' : undefined} />}
                 {pk.slag === 'notat' && <rect x={cx - 4.5} y={cy - 4.5} width={9} height={9} rx={1.5} fill={fyll} stroke={strek} strokeWidth={2} strokeDasharray={pk.planlagt ? '2 2' : undefined} />}
-                {(pk.slag === 'skyting' || pk.slag === 'veksling') && <text x={cx} y={cy + 4} textAnchor="middle" style={{ font: '11px sans-serif' }}>{PUNKT_SLAG[pk.slag].ikon}</text>}
+                {(pk.slag === 'skyting' || pk.slag === 'veksling') && (
+                  <GrafIkon navn={PUNKT_SLAG[pk.slag].ikon} x={cx} y={cy} storrelse={12} farge={farge} />
+                )}
                 <text x={cx} y={topp - 30 - nv} textAnchor="middle" data-punkt-etikett
                   style={{ font: "700 11px 'Barlow Condensed', sans-serif", fill: farge, letterSpacing: '.05em', textTransform: 'uppercase', opacity: pk.planlagt ? 0.8 : 1 }}>
-                  {PUNKT_SLAG[pk.slag].ikon} {pk.tittel}{pk.planlagt ? ' · plan' : ''}
+                  {pk.tittel}{pk.planlagt ? ' · plan' : ''}
                 </text>
               </g>
             )

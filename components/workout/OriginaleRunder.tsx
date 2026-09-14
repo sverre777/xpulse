@@ -16,6 +16,7 @@ import type { Sport } from '@/lib/types'
 import type { WorkoutSamples } from './WorkoutDetailChart'
 import { gapFart, stigningPctForVindu } from '@/lib/prestasjon'
 import type { LapRow } from './LapTable'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 
@@ -106,8 +107,8 @@ export function OriginaleRunder({ laps, sport, samples, kilde }: {
   return (
     <div data-originale-runder data-kilde={kilde ?? undefined} data-antall={runder.length} className="mt-3" style={{ overflowX: 'auto' }}>
       <div className="flex items-baseline gap-2 flex-wrap mb-1">
-        <span style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: 'var(--tekst-5-app)' }}>
-          ⌚ Klokkas originale runder
+        <span className="inline-flex items-center gap-1" style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: 'var(--tekst-5-app)' }}>
+          <Ikon navn="klokke" variant="strek" storrelse={14} />Klokkas originale runder
         </span>
         <span style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-alt)' }}>
           {kilde === 'backup' ? 'sikkerhetskopien tatt før første endring' : 'radene med klokke-proveniens'} · uendret av kutt, match og samling

@@ -57,6 +57,8 @@ import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER, finnOktMal, erTestMal, type OktMalDef
 import { oktMalTilWorkoutTemplate, normaliserMalSok, oktMalTilIntervallOppsett, oktTypeToWorkoutType } from '@/lib/okt-mal-kopi'
 import { showCompletionCheck } from '@/lib/interactions'
 import { iDagISO } from '@/lib/local-date'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
 // felter/analyse/visning. Generiske kategorier (langtur/intervall/terskel/rolig/
@@ -77,10 +79,10 @@ const MEANINGFUL_WORKOUT_TYPES: WorkoutType[] = [
   'hard_combo', 'easy_combo', 'basis_shooting',
 ]
 // Spesialtyper med egne skjema-felter — vises som chips, ikke i nedtrekkslista.
-const SPECIAL_WORKOUT_TYPES: { value: WorkoutType; label: string; color: string }[] = [
-  { value: 'competition', label: '🏁 Konkurranse', color: '#E11D48' },
-  { value: 'testlop', label: '⏱️ Testløp', color: '#F59E0B' },
-  { value: 'test', label: '🧪 Test', color: '#8B5CF6' },
+const SPECIAL_WORKOUT_TYPES: { value: WorkoutType; label: string; ikon: IkonNavn; color: string }[] = [
+  { value: 'competition', label: 'Konkurranse', ikon: KONKURRANSE_CHIP_IKON, color: '#E11D48' },
+  { value: 'testlop', label: 'Testløp', ikon: TESTLOP_CHIP_IKON, color: '#F59E0B' },
+  { value: 'test', label: 'Test', ikon: 'test', color: '#8B5CF6' },
 ]
 
 interface WorkoutFormProps {
@@ -277,7 +279,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [templateSerieId, setTemplateSerieId] = useState('')
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [templateError, setTemplateError] = useState<string | null>(null)
-  // Aktiveres når bruker trykker "✓ Merk som gjennomført" på en planlagt økt i Dagbok.
+  // Aktiveres når bruker trykker «Merk som gjennomført» på en planlagt økt i Dagbok.
   // Viser full dagbok-utfylling med plan-verdier forhåndsutfylt. Ved lagring settes is_completed=true.
   // planReference: frosset kopi av planen som vises read-only øverst mens bruker redigerer actuals.
   const [markingCompleted, setMarkingCompleted] = useState(false)
@@ -351,7 +353,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
-  // ⚡ Øktbygger fra knapperaden — ALLTID: plan og dagbok, med og uten
+  // Øktbygger fra knapperaden — ALLTID: plan og dagbok, med og uten
   // lagret økt. Hurtigoppsettet skriver radene rett i skjemaet.
   // Bolk 20: på en NY økt (plan eller dagbok) er byggeren brukbar uten
   // lagring — radene bygges i minnet og lagres sammen med økta. Den åpner
@@ -626,7 +628,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // ÉN regel for hva et test-valg gjør med skjemaet — uansett inngang
   // (panelets testvelger, skytetest-biblioteket, mal-velgeren i toppen eller
-  // bibliotek-byggeren): 🧪 økt-type, og tittel + testpanelets «Navn på
+  // bibliotek-byggeren): test som økt-type, og tittel + testpanelets «Navn på
   // testen» + test_type fra testens navn, så resultatet lagres som resultat
   // AV den testen. Tomme felter fylles — utfylte røres aldri.
   const testFelter = (f: WorkoutFormData, navn: string, sportHint?: Sport | null): Partial<WorkoutFormData> => {
@@ -684,7 +686,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       // navn ER tittelen (settes fra øktens tittel når malen lagres).
       title: template.name || f.title,
       sport: template.sport ?? d.sport ?? f.sport,
-      // Kø #49: økt fra test-mal får 🧪 forhåndsvalgt (kan fjernes før lagring).
+      // Kø #49: økt fra test-mal får test forhåndsvalgt (kan fjernes før lagring).
       workout_type: template.is_test ? 'test' : (d.workout_type ?? f.workout_type),
       movements: (d.movements ?? []).map((m: MovementRow) => ({
         ...m,
@@ -765,7 +767,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     setTemplateName(form.title.trim())
     setTemplateDescription('')
     setTemplateCategory('Annet')
-    // 🧪 forhåndsvelges når økta selv er markert som test.
+    // Test forhåndsvelges når økta selv er markert som test.
     setTemplateIsTest(form.workout_type === 'test')
     setTemplateError(null)
     setTemplateSport(form.sport)
@@ -1005,7 +1007,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               <button type="button" onClick={handlePlanMarkCompleted} disabled={markingBusy}
                 className="transition-opacity hover:opacity-90"
                 style={{
-                  flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
+                  flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
                   textTransform: 'uppercase', backgroundColor: '#28A86E',
                   color: 'var(--tekst-1-ren)', border: '1px solid #28A86E', borderRadius: 12,
@@ -1014,7 +1017,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   opacity: markingBusy ? 0.6 : 1,
                   boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
                 }}>
-                {markingBusy ? 'Markerer…' : '✓ Marker som fullført'}
+                {markingBusy ? 'Markerer…' : <><Ikon navn="fullfort" variant="fyll" storrelse={14} /> Marker som fullført</>}
               </button>
             )}
             {showMarkCompletedCTA && (
@@ -1022,14 +1025,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 onClick={() => { setPlanReference(form); setMarkingCompleted(true) }}
                 className="transition-opacity hover:opacity-90"
                 style={{
-                  flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
+                  flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
                   textTransform: 'uppercase', backgroundColor: '#28A86E',
                   color: 'var(--tekst-1-ren)', border: '1px solid #28A86E', borderRadius: 12,
                   padding: '13px 10px', cursor: 'pointer',
                   boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
                 }}>
-                ✓ Merk som gjennomført
+                <Ikon navn="fullfort" variant="fyll" storrelse={14} /> Merk som gjennomført
               </button>
             )}
           </div>
@@ -1072,13 +1076,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0 xp-scrollrow xp-scrollfade">
               {([
                 { key: 'alle', label: 'Alle' },
-                { key: 'test', label: '🧪 Test' },
-                ...(harSkiForm ? [{ key: 'skyting' as const, label: 'Skyting' }] : []),
+                { key: 'test', label: 'Test', ikon: 'test' },
+                ...(harSkiForm ? [{ key: 'skyting', label: 'Skyting' }] : []),
                 { key: 'styrke', label: 'Styrke' },
-                { key: 'standard', label: '⟳ Standardøkt' },
-              ] as const).map(c => (
+                { key: 'standard', label: 'Standardøkt', ikon: 'standardokt-serie' },
+              ] as { key: 'alle' | 'test' | 'skyting' | 'styrke' | 'standard'; label: string; ikon?: IkonNavn }[]).map(c => (
                 <button key={c.key} type="button" onClick={() => setMalHurtig(c.key)}
                   style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
                     borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
                     color: malHurtig === c.key ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
@@ -1086,6 +1091,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                     border: `1px solid ${malHurtig === c.key ? 'var(--accent)' : 'var(--line2)'}`,
                     fontWeight: malHurtig === c.key ? 700 : 400,
                   }}>
+                  {c.ikon && <Ikon navn={c.ikon} variant="fyll" storrelse={14} />}
                   {c.label}
                 </button>
               ))}
@@ -1164,7 +1170,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 }} className="xp-mal"
                 style={erBibliotekMal(t) ? { color: 'var(--tekst-4-alt)', borderStyle: 'dashed' } : undefined}
                 title={erBibliotekMal(t) ? 'Fra biblioteket - alt kan endres etter valg' : undefined}>
-                {erBibliotekMal(t) ? '📚 ' : ''}{t.is_test ? '🧪 ' : ''}{t.standard_session_series_id ? '⟳ ' : ''}{t.name}
+                {erBibliotekMal(t) && <Ikon navn="bibliotek" variant="fyll" storrelse={14} style={{ marginRight: 4 }} />}
+                {t.is_test && <Ikon navn="test" variant="fyll" storrelse={14} style={{ marginRight: 4 }} />}
+                {t.standard_session_series_id && <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} style={{ marginRight: 4 }} />}
+                {t.name}
               </button>
             ))}
             {/* ⟳ Standardøkt bor i markerings-raden (chip). */}
@@ -1235,10 +1244,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           <div className="sf17-chips">
             <div className="sf17-chips-venstre">
               <div className="sf17-chiplinje">
-                <SfChip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500" ikon="★" tekst="Viktig økt" kort="Viktig" />
-                <SfChip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4" ikon="👥" tekst="Fellestrening" kort="Felles" />
+                <SfChip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500" ikon="favoritt" tekst="Viktig økt" kort="Viktig" />
+                <SfChip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4" ikon="fellestrening" tekst="Fellestrening" kort="Felles" />
                 {showCoachAttendChip && (
-                  <SfChip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4" ikon="👥" tekst="Skal delta" kort="Delta" />
+                  <SfChip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4" ikon="trener" tekst="Skal delta" kort="Delta" />
                 )}
                 {/* Fase 97: standardøkt som markering - én chip blant markeringene,
                     fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
@@ -1254,7 +1263,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                       setStandardPickerOpen(o => !o)
                     }
                   })() }}
-                  color="#FF8A5C" ikon="⟳"
+                  color="#FF8A5C" ikon="standardokt-serie"
                   tekst={form.standard_session_series_id ? (form.standard_session_series_name ?? 'Standardøkt') : 'Standardøkt'}
                   kort={form.standard_session_series_id ? (form.standard_session_series_name ?? 'Std.') : 'Std.økt'} />
               </div>
@@ -1262,7 +1271,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 {SPECIAL_WORKOUT_TYPES.map(s => (
                   <SfChip key={s.value} active={form.workout_type === s.value}
                     onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
-                    color={s.color} tekst={s.label.replace(/^[^A-Za-zÆØÅæøå]+/, '').trim()} ikon={s.label.match(/^[^A-Za-zÆØÅæøå]+/)?.[0]?.trim()}
+                    color={s.color} tekst={s.label} ikon={s.ikon}
                     kort={s.value === 'competition' ? 'Konk.' : s.value === 'testlop' ? 'Testløp' : 'Test'} />
                 ))}
               </div>
@@ -1271,8 +1280,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 (WorkoutOverview, WorkoutCard, Calendar, AltitudeHeatTab) beholder
                 «Høydetrening»/«Varmetrening». */}
             <div className="sf17-forhold">
-              <SfChip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF" ikon="🏔️" tekst="Høyde" kort="" forhold />
-              <SfChip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B" ikon="🌡️" tekst="Varme" kort="" forhold />
+              <SfChip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF" ikon="hoyde" tekst="Høyde" kort="" forhold />
+              <SfChip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B" ikon="varmetrening" tekst="Varme" kort="" forhold />
             </div>
           </div>
         </div>
@@ -1283,8 +1292,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           {serieSuggestion && !standardPickerOpen && (
             <div className="mt-2 mb-1 p-3 flex flex-wrap items-center gap-2"
               style={{ background: '#1A0F08', border: '1px solid #3A2418', borderRadius: 'var(--r-field)' }}>
-              <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C' }}>
-                ⟳ Legg til i serien «{serieSuggestion.name}»?
+              <span className="text-xs inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C' }}>
+                <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} /> Legg til i serien «{serieSuggestion.name}»?
               </span>
               <button type="button" onClick={() => selectSerie(serieSuggestion)}
                 className="text-xs tracking-widest uppercase"
@@ -1355,7 +1364,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                       Opprett
                     </button>
                     <button type="button" onClick={() => { setNewSerieName(null); setNewSerieSted('') }} aria-label="Avbryt"
-                      style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 36, minWidth: 32 }}>✕</button>
+                      style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 36, minWidth: 32 }}><Ikon navn="lukk" storrelse={18} /></button>
                   </span>
                 )}
               </div>
@@ -1367,7 +1376,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', border: '1px solid #3A2418', background: '#1A0F08', borderRadius: 999 }}>
-                ⟳ Standardøkt: {form.standard_session_series_name ?? 'serie'}
+                <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} /> Standardøkt: {form.standard_session_series_name ?? 'serie'}
               </span>
               <button type="button" onClick={() => setStandardPickerOpen(true)}
                 className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
@@ -1375,14 +1384,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 Bytt serie
               </button>
               <button type="button" onClick={clearSerie}
-                className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+                className="inline-flex items-center gap-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                Fjern kobling ✕
+                Fjern kobling <Ikon navn="lukk" storrelse={14} />
               </button>
               <a href={`/app/analyse?tab=standardokter&serie=${form.standard_session_series_id}`}
-                className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+                className="inline-flex items-center gap-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'none' }}>
-                Se utvikling →
+                Se utvikling <Ikon navn="neste" storrelse={14} />
               </a>
             </div>
           )}
@@ -1393,7 +1402,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', background: 'none', borderRadius: 999 }}>
-                ⟳ Standardøkt (gammel tagg): {form.standard_workout_template_name ?? 'mal'}
+                <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} /> Standardøkt (gammel tagg): {form.standard_workout_template_name ?? 'mal'}
               </span>
             </div>
           )}
@@ -1403,7 +1412,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             teksten sier «høyde-oppholdet», ikke belastningsperioden. */}
         {inheritedAltitude && (
           <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', lineHeight: 1.5 }}>
-            🏔️ Datoen er i høyde-oppholdet «{inheritedAltitude.period_name}»
+            <Ikon navn="hoydesamling" variant="fyll" storrelse={14} /> Datoen er i høyde-oppholdet «{inheritedAltitude.period_name}»
             {inheritedAltitude.altitude_meters ? ` (${inheritedAltitude.altitude_meters} moh)` : ''}.
             {form.is_altitude_training && form.altitude_meters != null && form.altitude_meters !== inheritedAltitude.altitude_meters
               ? ` Egen høyde for økten: ${form.altitude_meters} moh (overstyrer oppholdet).`
@@ -1575,7 +1584,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           aktivSkytetestRef={form.activities.find(a => a.shooting_is_test && a.shooting_test_ref)?.shooting_test_ref ?? null}
           onVelgSkytetest={oppsett => { void (async () => {
             // Genererer serieoppsettet i aktivitetslista (gull-markeringen er
-            // shooting_is_test på raden; 🧪 er allerede workout_type='test').
+            // shooting_is_test på raden; test er allerede workout_type='test').
             const nySerier = oppsett.serier.map(f => ({
               id: crypto.randomUUID(), position: f.position, shots: String(f.shots),
               hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
@@ -1620,7 +1629,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           aktivTestMalId={valgtTestMalId}
           onVelgTestMal={id => {
             // Valgt test skal MARKERES og resultatet KOBLES til testen — ikke
-            // bare generere struktur: gull-rad i velgeren, 🧪 test som økt-type,
+            // bare generere struktur: gull-rad i velgeren, test som økt-type,
             // testnavnet inn i tittel + «Navn på testen», og test_type settes
             // til malens navn så resultatet lagres som resultat AV DEN testen
             // (samme mal = samme test i test-/PR-analysen, på tvers av økter).
@@ -1727,8 +1736,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       {/* Allerede gjennomført - vis status */}
       {isPlanned && isCompleted && !isPlanMode && (
         <div className="my-4 p-3" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', borderLeft: '3px solid #28A86E' }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', letterSpacing: '0.1em' }}>
-            ✓ GJENNOMFØRT - endringer oppdaterer faktiske verdier (planen bevares i Plan-kalenderen)
+          <span className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', letterSpacing: '0.1em' }}>
+            <Ikon navn="fullfort" variant="fyll" storrelse={14} /> GJENNOMFØRT - endringer oppdaterer faktiske verdier (planen bevares i Plan-kalenderen)
           </span>
         </div>
       )}
@@ -1767,7 +1776,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {form.tags.map(tag => (
                   <Chip key={tag} active onClick={() => toggleTag(tag)}>
-                    {tag} ×
+                    {tag} <Ikon navn="lukk" storrelse={14} />
                   </Chip>
                 ))}
               </div>
@@ -1885,11 +1894,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               {captureSubmitLabel ?? 'Lagre til mal'}
             </button>
           ) : (
-            <button type="submit" disabled={saving} className="xp-btn xp-primary">
+            <button type="submit" disabled={saving} className="xp-btn xp-primary inline-flex items-center justify-center gap-2">
               {saving
                 ? 'Lagrer...'
                 : markingCompleted
-                ? '✓ Lagre som gjennomført'
+                ? <><Ikon navn="fullfort" variant="fyll" storrelse={18} /> Lagre som gjennomført</>
                 : workoutId
                 ? 'Lagre endringer'
                 : isPlanMode
@@ -1900,16 +1909,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           {/* ＋-knapp bolk 3: «Start live» ved siden av Lagre - begge alltid når økta har Styrke. */}
           {showStartLive && (
             <button type="button" onClick={startLiveFlow} disabled={startingLive || saving} data-start-live
-              className="xp-btn"
+              className="xp-btn inline-flex items-center justify-center gap-2"
               style={{ backgroundColor: '#28A86E', borderColor: '#28A86E', color: 'var(--tekst-1-ren)', boxShadow: '0 6px 24px rgba(40,168,110,0.25)', opacity: startingLive ? 0.6 : 1 }}>
-              {startingLive ? 'Starter…' : '▶ Start live'}
+              {startingLive ? 'Starter…' : <><Ikon navn="play" variant="fyll" storrelse={18} /> Start live</>}
             </button>
           )}
           {/* Save as template - sekundær CTA; skjules i template-building/capture-modus. */}
           {!templateBuildingMode && !captureOnlyMode && (
             <button type="button" onClick={openTemplateModal}
               className="xp-btn xp-icon" title="Lagre som mal" aria-label="Lagre som mal">
-              🔖
+              <Ikon navn="bokmerke" storrelse={18} />
             </button>
           )}
         </div>
@@ -1931,9 +1940,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           style={{ backgroundColor: 'var(--scrim-70)' }}
           onClick={() => setMalBygger(null)}>
           <div className="w-full max-w-xl" onClick={e => e.stopPropagation()}>
-            <p className="mb-1 text-xs tracking-widest uppercase"
+            <p className="mb-1 text-xs tracking-widest uppercase inline-flex items-center gap-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-4-alt)' }}>
-              📚 {malBygger.navn}
+              <Ikon navn="bibliotek" variant="fyll" storrelse={14} /> {malBygger.navn}
             </p>
             <IntervallBygger
               sport={form.sport}
@@ -1948,7 +1957,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   const base = {
                     ...f,
                     title: tittel,
-                    // okt_type fra malen som før (bolk 1): test → 🧪, ellers mappes.
+                    // okt_type fra malen som før (bolk 1): test beholdes, ellers mappes.
                     workout_type: (erTestMal(mal) ? 'test'
                       : (oktTypeToWorkoutType(mal.type) ?? f.workout_type)) as WorkoutFormData['workout_type'],
                     activities: rader,
@@ -2124,7 +2133,7 @@ function SaveAsTemplateModal({
           </div>
 
           {/* Kø #49: test-mal = vanlig øktmal m/ flagg. Økt fra test-mal
-              får 🧪 forhåndsvalgt (kan fjernes før lagring). */}
+              får test forhåndsvalgt (kan fjernes før lagring). */}
           <button type="button" onClick={() => onIsTest(!isTest)}
             className="inline-flex items-center gap-2 mt-3"
             style={{
@@ -2135,15 +2144,15 @@ function SaveAsTemplateModal({
               background: isTest ? '#D4A01722' : 'transparent',
               border: `1px solid ${isTest ? '#D4A017' : 'var(--kant-4)'}`,
             }}>
-            🧪 Marker som test
+            <Ikon navn="test" variant="fyll" storrelse={14} /> Marker som test
             <span style={{ color: 'var(--tekst-8-app)', fontSize: 12 }}>
-              {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
+              {isTest ? 'økter fra malen merkes som test' : 'valgfritt'}
             </span>
           </button>
 
           {typeGitt && !isTest && (
-            <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              {typeGitt === 'Konkurranse' ? '🏁' : '⏱'} Lagres som {typeGitt.toLowerCase()}-mal - kategorien følger økt-typen.
+            <p className="text-xs mt-2 inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+              <Ikon navn={typeGitt === 'Konkurranse' ? KONKURRANSE_CHIP_IKON : TESTLOP_CHIP_IKON} variant="fyll" storrelse={14} /> Lagres som {typeGitt.toLowerCase()}-mal - kategorien følger økt-typen.
             </p>
           )}
 
@@ -2170,9 +2179,9 @@ function SaveAsTemplateModal({
               Typen gitt: skjult - konkurranse/testløp/test er ikke standardøkt. */}
           {!typeGitt && seriesList.length > 0 && (
             <div className="mt-3">
-              <label className="block text-xs mb-1"
+              <label className="flex items-center gap-1 text-xs mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', letterSpacing: '0.05em' }}>
-                ⟳ Standardøkt-serie (valgfritt)
+                <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} /> Standardøkt-serie (valgfritt)
               </label>
               <select value={serieId} onChange={e => onSerieId(e.target.value)}
                 className="w-full px-3 py-2"
@@ -2326,7 +2335,7 @@ function Section({ label, children, collapsible = false, defaultCollapsed = fals
           }}>
             {summary || '- ikke satt'}
           </span>
-          <span className="xp-chev">▶</span>
+          <span className="xp-chev"><Ikon navn="neste" storrelse={14} /></span>
         </>
       )}
     </div>
@@ -2361,7 +2370,7 @@ function Label({ children }: { children: React.ReactNode }) {
     (44 × 36) for forholdene HØYDE/VARME på mobil. aria-label bærer hele
     teksten uansett. */
 function SfChip({ active, onClick, color = 'var(--tekst-8-app)', ikon, tekst, kort, forhold = false }: {
-  active: boolean; onClick: () => void; color?: string; ikon?: string; tekst: string; kort?: string; forhold?: boolean
+  active: boolean; onClick: () => void; color?: string; ikon?: IkonNavn; tekst: string; kort?: string; forhold?: boolean
 }) {
   return (
     <button type="button" onClick={onClick} aria-pressed={active} aria-label={tekst}
@@ -2371,7 +2380,7 @@ function SfChip({ active, onClick, color = 'var(--tekst-8-app)', ikon, tekst, ko
         color: active ? color : 'var(--mut)',
         border: `1px solid ${active ? color : 'var(--line2)'}`,
       }}>
-      {ikon && <span aria-hidden className="sf17-chip-ikon">{ikon}</span>}
+      {ikon && <span aria-hidden className="sf17-chip-ikon"><Ikon navn={ikon} variant="fyll" storrelse={14} /></span>}
       <span className="sf17-chip-lang">{tekst}</span>
       {kort !== undefined && kort !== '' && <span className="sf17-chip-kort" aria-hidden>{kort}</span>}
     </button>

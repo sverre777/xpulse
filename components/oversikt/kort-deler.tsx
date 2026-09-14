@@ -14,6 +14,7 @@ import type { OversiktShots, OversiktZoneSeconds } from '@/app/actions/oversikt'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { COLOR_PRONE, COLOR_STANDING } from '@/components/analysis/SkytingSummaryCards'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Bolk 7: ALLE soner — synlige = de med tid, så I6–I8 vises bare når de er ført.
 export const ZONE_KEYS = ALL_ZONE_NAMES
@@ -90,7 +91,7 @@ export function ShotChip({ shots }: { shots: OversiktShots | null }) {
           border: '1px solid var(--line2)', borderRadius: 999,
           padding: '5px 12px 5px 10px', background: 'rgb(var(--tekst-ren-rgb) / 0.02)',
         }}>
-        <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>🎯</span>
+        <Ikon navn="skyting" storrelse={14} />
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.02em', color: 'var(--ink)', lineHeight: 1 }}>
           {harTreff ? `${shots.hits}/${shots.recorded_shots}` : shots.shots}
         </span>
@@ -121,10 +122,11 @@ export function VisMer({ onClick }: { onClick: () => void }) {
     <button type="button" onClick={onClick}
       style={{
         marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
+        display: 'inline-flex', alignItems: 'center', gap: 4,
         fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.08em',
         textTransform: 'uppercase', color: 'var(--mut)', padding: '4px 0',
       }}>
-      Vis mer ⤢
+      Vis mer <Ikon navn="apne-fane" storrelse={14} />
     </button>
   )
 }

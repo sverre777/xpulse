@@ -1,7 +1,7 @@
 'use client'
 
 // ØKTBYGGEREN BOLK 4 — rundevalget over kurven.
-// Fasit: design/xpulse-oktbyggeren-design.html (★ planens runder på
+// Fasit: design/xpulse-oktbyggeren-design.html (planens runder på
 // klokkas kurve).
 //
 // Tre TILSTANDER, ikke tre brytere: raden sier hva rundene ER nå, og
@@ -13,6 +13,7 @@
 
 import { useEffect, useState } from 'react'
 import { hentRundeValg, beholdPlanensRunder, tilbakestillTilKlokka } from '@/app/actions/runder'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Valg {
   kilde: 'klokke' | 'plan' | 'ingen'
@@ -29,6 +30,7 @@ const PILL: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.08em',
   fontSize: 12, textTransform: 'uppercase', borderRadius: 999, padding: '7px 14px',
   cursor: 'pointer', minHeight: 36, background: 'transparent', whiteSpace: 'nowrap',
+  display: 'inline-flex', alignItems: 'center', gap: 6,
 }
 
 export function RundeValg({ workoutId, onEndret }: { workoutId: string; onEndret: () => void }) {
@@ -68,11 +70,11 @@ export function RundeValg({ workoutId, onEndret }: { workoutId: string; onEndret
       }}>
         Runder
       </span>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)' }}>
+      <span className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)' }}>
         {valg.kilde === 'klokke'
-          ? `⌚ Fra klokka · ${valg.antallNa}`
+          ? <><Ikon navn="klokke" variant="strek" storrelse={14} />{`Fra klokka · ${valg.antallNa}`}</>
           : valg.kilde === 'plan'
-            ? `📋 Planens runder · ${valg.antallNa}`
+            ? <><Ikon navn="maler" variant="strek" storrelse={14} />{`Planens runder · ${valg.antallNa}`}</>
             : 'Ingen runder ennå'}
       </span>
 
@@ -81,7 +83,7 @@ export function RundeValg({ workoutId, onEndret }: { workoutId: string; onEndret
           onClick={() => kjor(() => beholdPlanensRunder(workoutId))}
           style={{ ...PILL, border: '1.5px solid var(--accent)', color: 'var(--accent)',
                    opacity: jobber ? 0.5 : 1 }}>
-          📋 Behold planens runder ({valg.antallPlanRunder})
+          <Ikon navn="maler" variant="strek" storrelse={14} />Behold planens runder ({valg.antallPlanRunder})
         </button>
       )}
       {valg.kanTilbakestille && (
@@ -89,14 +91,14 @@ export function RundeValg({ workoutId, onEndret }: { workoutId: string; onEndret
           onClick={() => kjor(() => tilbakestillTilKlokka(workoutId))}
           style={{ ...PILL, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)',
                    opacity: jobber ? 0.5 : 1 }}>
-          ↩ Tilbakestill til klokka ({valg.antallIBackup})
+          <Ikon navn="angre" variant="strek" storrelse={14} />Tilbakestill til klokka ({valg.antallIBackup})
         </button>
       )}
 
       {valg.resynkVarsel && (
         <p style={{ flexBasis: '100%', margin: 0, fontSize: 12.5, color: '#E8B93C',
                     fontFamily: "'Barlow Condensed', sans-serif" }}>
-          ⚠ Klokka har levert runder på nytt. Backupen fra forrige gang står urørt -
+          <Ikon navn="advarsel" variant="strek" storrelse={14} /> Klokka har levert runder på nytt. Backupen fra forrige gang står urørt -
           ingenting er overskrevet, og du velger selv hva som skal gjelde.
         </p>
       )}

@@ -13,6 +13,7 @@ import type { OwnShootingTest } from '@/app/actions/shooting-tests'
 import { pulsIVindu, fmtKlokkeSek } from '@/lib/segmenter'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import type { ShootingSeriesRow } from '@/lib/types'
+import { Ikon } from '@/components/ui/ikoner'
 
 // «Plott treff» (bolk B). Fasit: design/xpulse-plott-treff-design.html.
 //
@@ -171,8 +172,8 @@ export function PlottTreffPopup({
             Avbryt
           </button>
           <button type="button" onClick={lagre} disabled={lagrer || laster || grupper.length === 0}
-            className="xp-pill xp-pill-primary">
-            {lagrer ? 'Lagrer …' : 'Lagre alle serier ✓'}
+            className="xp-pill xp-pill-primary inline-flex items-center gap-1.5">
+            {lagrer ? 'Lagrer …' : <>Lagre alle serier <Ikon navn="fullfort" variant="strek" storrelse={14} /></>}
           </button>
         </div>
       </div>
@@ -238,9 +239,9 @@ export function Gruppe({
         }}>
           {etikett}
         </span>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: plassert ? 'var(--tekst-8-alt)' : 'var(--mut)' }}>
+        <span className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: plassert ? 'var(--tekst-8-alt)' : 'var(--mut)' }}>
           {plassert
-            ? `plassert ${fmtKlokkeSek(gruppe.startSek!)}-${fmtKlokkeSek(gruppe.sluttSek!)} ⌚`
+            ? <>plassert {fmtKlokkeSek(gruppe.startSek!)}-{fmtKlokkeSek(gruppe.sluttSek!)} <Ikon navn="klokke" variant="strek" storrelse={14} /></>
             : 'ikke plassert i tid - puls føres manuelt'}
         </span>
         <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-5-app)' }}>

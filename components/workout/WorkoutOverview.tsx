@@ -1,8 +1,8 @@
 'use client'
 
-// Øktoversikt (kø #40, fase 1) — pen read-only visning av GJENNOMFØRT økt.
+// Øktoversikt (kø #40, fase 1) - pen read-only visning av GJENNOMFØRT økt.
 // Følger design/xpulse-oktoversikt-design.html: hero m/ status-piller,
-// hero-stats-grid, sonefordeling og aktivitets-tidslinje. «✎ Rediger»
+// hero-stats-grid, sonefordeling og aktivitets-tidslinje. «Rediger økt»
 // bytter til det eksisterende redigeringsskjemaet (WorkoutModal styrer).
 //
 // KJERNEREGEL: tomme seksjoner rendres ikke — visningen ser komplett ut
@@ -30,6 +30,8 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
+import { Ikon } from '@/components/ui/ikoner'
+import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { OktbyggerInngang } from './Oktbygger'
 import { SamletBryter } from './SamletBryter'
@@ -66,6 +68,19 @@ function fmtZoneTime(sec: number): string {
 
 function fmtNo(n: number, decimals = 1): string {
   return n.toLocaleString('nb-NO', { maximumFractionDigits: decimals })
+}
+
+/** Dagsform-raden (fysisk/mental, 1-5): fylte favoritt-ikoner opp til
+    verdien, strek-ikoner resten - erstatter de gamle stjernetegnene. */
+function DagsformStjerner({ verdi }: { verdi: number }) {
+  return (
+    <div className="flex" style={{ gap: 2 }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <Ikon key={i} navn="favoritt" variant={i < verdi ? 'fyll' : 'strek'} storrelse={18}
+          style={{ color: i < verdi ? '#E8B93C' : 'var(--line2)', filter: i < verdi ? 'drop-shadow(0 0 4px rgba(232,185,60,.45))' : undefined }} />
+      ))}
+    </div>
+  )
 }
 
 const WEEKDAYS = ['Søn', 'Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør']
@@ -106,9 +121,9 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
 }
 
 
-/** Bolk 21 (Sverre 5. sep): laktat 🩸, ernæring 🍌 og notatene som
-    ikon-punkter på oversiktens kart (skyting 🎯 tegner kartet selv fra
-    skyteradene). Laktat bor som klokkeslett — sekunder fra øktstart. */
+/** Bolk 21 (Sverre 5. sep): laktat (ikon laktat), ernæring (ikon ernaering)
+    og notatene som ikon-punkter på oversiktens kart (skyting tegner kartet
+    selv fra skyteradene). Laktat bor som klokkeslett - sekunder fra øktstart. */
 function oversiktPunkter(
   notater: Parameters<typeof fraTidspunktNotater>[0],
   laktat: Array<{ id: string; measured_at_time: string | null; mmol: number | string }> | null | undefined,
@@ -150,7 +165,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   onMarkCompleted?: () => void
   onStartLive?: () => void
   // Pop-upene her skriver rett til basen — modalen må hente øktdataene på
-  // nytt, ellers åpner «✎ Rediger» skjemaet med foreldet draft og neste
+  // nytt, ellers åpner «Rediger økt» skjemaet med foreldet draft og neste
   // lagring skriver tilbake de gamle radene/seriene.
   onDataEndret?: () => void
 }) {
@@ -358,7 +373,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 borderRadius: 12, padding: '13px 10px', cursor: 'pointer',
                 boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
               }}>
-              ✓ Marker som gjennomført
+              <Ikon navn="fullfort" variant="strek" storrelse={14} /> Marker som gjennomført
             </button>
           )}
           {onStartLive && (
@@ -371,7 +386,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 borderRadius: 12, padding: '13px 10px', cursor: 'pointer',
                 boxShadow: '0 6px 24px var(--accent-soft)',
               }}>
-              ▶ Start live
+              <Ikon navn="play" variant="strek" storrelse={14} /> Start live
             </button>
           )}
         </div>
@@ -381,9 +396,9 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       <div className="pb-4">
         <div className="flex flex-wrap gap-2 mb-3">
           {isPlannedView ? (
-            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>🕒 Planlagt</span>
+            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}><Ikon navn="klokke" variant="strek" storrelse={14} /> Planlagt</span>
           ) : (
-            <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}>✓ Gjennomført</span>
+            <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}><Ikon navn="fullfort" variant="fyll" storrelse={14} /> Gjennomført</span>
           )}
           {/* Strava-synk vises med offisiell Strava-logo (attribution) -
               aldri den røde trekanten. */}
@@ -392,12 +407,12 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           )}
           {data.created_by_coach_id && <TrenerChip navn={data.created_by_coach_name} />}
           {data.imported_from && data.imported_from !== 'strava' && (
-            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>⌚ Klokkesynk</span>
+            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}><Ikon navn="klokke" variant="strek" storrelse={14} /> Klokkesynk</span>
           )}
           {/* Flettet økt: bærer klokkedata bak egne rader (fase 109).
               Treneren ser samme badge. */}
           {data.merged_source && (
-            <span style={pillStyle('#1A6FD4', 'rgba(26,111,212,.10)', 'rgba(26,111,212,.4)')}>⌚ + klokke{data.merged_source !== 'strava' ? ` · ${fitSourceLabel(data.merged_source)}` : ''}</span>
+            <span style={pillStyle('#1A6FD4', 'rgba(26,111,212,.10)', 'rgba(26,111,212,.4)')}><Ikon navn="klokke" variant="strek" storrelse={14} /> + klokke{data.merged_source !== 'strava' ? ` · ${fitSourceLabel(data.merged_source)}` : ''}</span>
           )}
           {fromTemplate && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
@@ -405,13 +420,13 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           {/* Kø #48: standardøkt-serie - diskret pille i heroen. */}
           {data.standard_session_series_name && (
             <span style={pillStyle('#FF8A5C', 'rgba(255,69,0,.08)', 'rgba(255,69,0,.35)')}>
-              ⟳ Standardøkt: {data.standard_session_series_name}
+              <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} /> Standardøkt: {data.standard_session_series_name}
             </span>
           )}
         </div>
         {/* Kobling mot planlagt økt - lever i VISNINGEN, øverst (Sverre
             27. aug: knappen fantes bare i redigeringsskjemaet, og der
-            fant ingen den). Viser også «Fjern kobling»/✓ når koblet. */}
+            fant ingen den). Viser også «Fjern kobling»/ikonet fullfort når koblet. */}
         {!isPlannedView && canEdit && workoutId && data.date && (
           <LinkWorkoutActions
             workoutId={workoutId}
@@ -440,13 +455,13 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         {(data.is_important || data.is_altitude_training || data.is_heat_training || data.is_group_session || gearNames.length > 0) && (
           <div className="flex flex-wrap gap-2 mt-3.5">
             {data.is_important && (
-              <span style={{ ...chipStyle, color: 'var(--gold)', borderColor: 'rgba(212,160,23,.4)' }}>★ Viktig økt</span>
+              <span style={{ ...chipStyle, color: 'var(--gold)', borderColor: 'rgba(212,160,23,.4)' }}><Ikon navn="favoritt" variant="fyll" storrelse={14} /> Viktig økt</span>
             )}
             {data.is_altitude_training && (
-              <span style={chipStyle}>🏔 Høydetrening{data.altitude_meters ? ` · ${data.altitude_meters} moh` : ''}</span>
+              <span style={chipStyle}><Ikon navn="hoydesamling" variant="fyll" storrelse={14} /> Høydetrening{data.altitude_meters ? ` · ${data.altitude_meters} moh` : ''}</span>
             )}
-            {data.is_heat_training && <span style={chipStyle}>🌡 Varmetrening</span>}
-            {data.is_group_session && <span style={chipStyle}>👥 Fellestrening</span>}
+            {data.is_heat_training && <span style={chipStyle}><Ikon navn="varmetrening" variant="fyll" storrelse={14} /> Varmetrening</span>}
+            {data.is_group_session && <span style={chipStyle}><Ikon navn="fellestrening" variant="fyll" storrelse={14} /> Fellestrening</span>}
             {/* Planlagt økt: utstyret er en intensjon - km/tid telles først
                 når økta markeres gjennomført. */}
             {gearNames.map(n => (
@@ -483,7 +498,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 <VisPlanBryter paa={visPlanBak_} antall={planBakBlokker.length} onEndre={p2 => settVisPlanBak(workoutId ?? '', p2)} />
               </div>
             )}
-            {/* Sverre 5. sep: punktene som på øktkartet - pille/etikett med strek, emoji og verdi (ikke bare ikon). */}
+            {/* Sverre 5. sep: punktene som på øktkartet - pille/etikett med strek, ikon og verdi (ikke bare ikon). */}
             <PlanGraf blokker={fraActivityRows(activities)} tetthet="full"
               spokelser={!isPlannedView && visPlanBak_ ? planBakBlokker : []}
               punkter={oversiktPunkter(data.tidspunkt_notater, data.lactate, data.nutrition_entries, data.time_of_day)} />
@@ -566,7 +581,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {data.merged_source && flett && (
         <div className="mb-3.5 p-4" style={{ border: '1px solid rgba(26,111,212,.35)', borderRadius: 14, background: 'rgba(26,111,212,.05)' }}>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#1A6FD4', textTransform: 'uppercase' }}>
-            ⌚ Fra klokka - {flett.modus === 'legg_bak' ? 'lagt bak' : 'aktivitetene byttet'}
+            <Ikon navn="klokke" variant="strek" storrelse={14} /> Fra klokka - {flett.modus === 'legg_bak' ? 'lagt bak' : 'aktivitetene byttet'}
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: 'var(--mut)' }}>
             {flett.snittpuls != null && <span>Snittpuls <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{flett.snittpuls}</b></span>}
@@ -590,7 +605,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           })()}
           <div className="flex items-center justify-between gap-3 mt-3 pt-3" style={{ borderTop: '1px solid rgba(26,111,212,.2)' }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--mut)' }}>
-              Flettet med «{flett.kildeTittel}» ⌚{flett.flettetAt ? ` · ${new Date(flett.flettetAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}` : ''}
+              Flettet med «{flett.kildeTittel}» <Ikon navn="klokke" variant="strek" storrelse={14} />{flett.flettetAt ? ` · ${new Date(flett.flettetAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}` : ''}
             </span>
             {canEdit && (
               <button type="button" onClick={() => { setAngreFeil(null); setVisAngre(true) }}
@@ -624,7 +639,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 fontFamily: "'Barlow Condensed', sans-serif", color: '#E2A33A', lineHeight: 1.5,
                 border: '1px solid rgba(226,163,58,.4)', background: 'rgba(226,163,58,.08)',
               }}>
-                ⚠ Økta er endret ETTER fletten - de endringene går tapt når
+                <Ikon navn="advarsel" variant="strek" storrelse={14} /> Økta er endret ETTER fletten - de endringene går tapt når
                 fletten angres.
               </p>
             )}
@@ -732,7 +747,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                             {monster ?? `${g.rader.length} ×`}
                           </span>
                         )}
-                        {g.nokkel === 'alt' ? '∑ Hele økta' : monster ? 'Intervaller' : g.nokkel.startsWith('skyting|') ? `🎯 ${SHOOTING_TYPES_V2.find(t => t.key === g.nokkel.slice(8))?.label ?? 'Skyting'}` : activityLabel(a)}
+                        {g.nokkel === 'alt' ? '∑ Hele økta' : monster ? 'Intervaller' : g.nokkel.startsWith('skyting|') ? <><Ikon navn="skyting" variant="strek" storrelse={14} /> {SHOOTING_TYPES_V2.find(t => t.key === g.nokkel.slice(8))?.label ?? 'Skyting'}</> : activityLabel(a)}
                         <small style={{ color: 'var(--mut)', fontWeight: 500 }}>
                           {a.movement_name ? ` · ${a.movement_name}${a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}` : ''}
                         </small>
@@ -819,7 +834,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── SKYTING ── Vises når skyte-data finnes ELLER økta er skiskyting
           (også uten førte skudd): etter #40 åpner alle eksisterende økter som
           oversikt, og uten en synlig inngang her var treff-føringen «borte»
-          for skiskyttere - skjemaets skytefelter lå gjemt bak ✎ Rediger.
+          for skiskyttere - skjemaets skytefelter lå gjemt bak «Rediger økt».
           Kø #47 bolk 9: seriemodellen - totalene regnes m/ delt kun-førte-
           funksjon, og hver blokk vises m/ type, markeringer og serie-liste. ── */}
       {(() => {
@@ -877,8 +892,9 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             {s.pct != null && dots(s.recordedHits, s.recordedShots)}
           </div>
         )
-        const chip = (label: string, color: string, dim = false): ReactNode => (
-          <span key={label} style={{
+        const chip = (key: string, label: ReactNode, color: string, dim = false): ReactNode => (
+          <span key={key} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.08em',
             textTransform: 'uppercase', color, border: `1px solid ${color}44`,
             borderRadius: 7, padding: '1.5px 7px', opacity: dim ? 0.75 : 1,
@@ -889,11 +905,11 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           const meta = SHOOTING_TYPES_V2.find(t => t.key === a.shooting_type)
           const legacyLabel = ACTIVITY_TYPES.find(t => t.value === a.activity_type)?.label
           const chips: ReactNode[] = []
-          if (a.shooting_is_innskyting) chips.push(chip('Innskyting', 'var(--mut)'))
-          if (a.shooting_is_test) chips.push(chip('🧪 Skytetest', '#D4A017'))
-          if (data.workout_type === 'competition') chips.push(chip('🏁 Konkurranse', '#D4A017', true))
-          if (data.workout_type === 'testlop') chips.push(chip('⏱ Testløp', '#D4A017', true))
-          if (a.shooting_is_test && a.shooting_surface) chips.push(chip(SURFACE_LABELS[a.shooting_surface] ?? a.shooting_surface, 'var(--mut)'))
+          if (a.shooting_is_innskyting) chips.push(chip('innskyting', 'Innskyting', 'var(--mut)'))
+          if (a.shooting_is_test) chips.push(chip('skytetest', <><Ikon navn="laktat" variant="strek" storrelse={14} /> Skytetest</>, '#D4A017'))
+          if (data.workout_type === 'competition') chips.push(chip('konkurranse', <><Ikon navn={KONKURRANSE_CHIP_IKON} variant="fyll" storrelse={14} /> Konkurranse</>, '#D4A017', true))
+          if (data.workout_type === 'testlop') chips.push(chip('testlop', <><Ikon navn={TESTLOP_CHIP_IKON} variant="fyll" storrelse={14} /> Testløp</>, '#D4A017', true))
+          if (a.shooting_is_test && a.shooting_surface) chips.push(chip('overflate', SURFACE_LABELS[a.shooting_surface] ?? a.shooting_surface, 'var(--mut)'))
           const blockSec = parseActivityDuration(a.duration) ?? 0
           return (
             <div className="flex flex-wrap items-center gap-2">
@@ -996,7 +1012,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                   color: '#E23A5A', background: 'none', border: '1px solid rgba(226,58,90,0.55)',
                   borderRadius: 10, padding: '9px 14px', cursor: 'pointer', marginTop: 12,
                 }}>
-                🎯 {shots > 0 ? 'Rediger treff' : 'Før treff'}
+                <Ikon navn="skyting" variant="strek" storrelse={18} /> {shots > 0 ? 'Rediger treff' : 'Før treff'}
               </button>
             )}
           </Card>
@@ -1040,19 +1056,13 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             {data.day_form_physical != null && (
               <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
                 <div style={{ ...K_STYLE, marginBottom: 6 }}>Fysisk form</div>
-                <div style={{ color: 'var(--line2)', fontSize: 19, letterSpacing: 2 }}>
-                  <b style={{ color: '#E8B93C', textShadow: '0 0 10px rgba(232,185,60,.35)', fontWeight: 400 }}>{'★'.repeat(data.day_form_physical)}</b>
-                  {'★'.repeat(Math.max(0, 5 - data.day_form_physical))}
-                </div>
+                <DagsformStjerner verdi={data.day_form_physical} />
               </div>
             )}
             {data.day_form_mental != null && (
               <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
                 <div style={{ ...K_STYLE, marginBottom: 6 }}>Mental form</div>
-                <div style={{ color: 'var(--line2)', fontSize: 19, letterSpacing: 2 }}>
-                  <b style={{ color: '#E8B93C', textShadow: '0 0 10px rgba(232,185,60,.35)', fontWeight: 400 }}>{'★'.repeat(data.day_form_mental)}</b>
-                  {'★'.repeat(Math.max(0, 5 - data.day_form_mental))}
-                </div>
+                <DagsformStjerner verdi={data.day_form_mental} />
               </div>
             )}
             {data.rpe != null && (
@@ -1158,7 +1168,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             color: 'var(--accent)', background: 'none', border: '1px solid var(--accent)',
             borderRadius: 12, padding: '12px', cursor: 'pointer', marginTop: 4,
           }}>
-          ✎ Rediger økt
+          <Ikon navn="for-okt" variant="strek" storrelse={14} /> Rediger økt
         </button>
       )}
 

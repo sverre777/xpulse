@@ -519,7 +519,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             {/* Synlig TID | KM-bryter (Sverre 5. sep) - den aktive er fylt. */}
             <span role="group" aria-label="Dragtid eller kilometer" data-drag-bryter={r.modus}
               className="xp-ib-modus"
-              style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden', flex: '0 1 auto', minWidth: 0 }}>
+              style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden', flex: '0 0 auto' }}>
               {(['tid', 'km'] as const).map(m => (
                 <button key={m} type="button" data-drag-modus={m} aria-pressed={r.modus === m} onClick={() => oppdater(i, 'modus', m)}
                   style={{ fontFamily: FONT, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', padding: '5px 8px', minHeight: 30, cursor: 'pointer', border: 'none',
@@ -530,9 +530,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             </span>
             {r.modus === 'km' ? (
               <input value={r.km} onChange={e => oppdater(i, 'km', e.target.value)} inputMode="decimal" placeholder="km" aria-label="Drag i km" data-drag-km
-                style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 44, flex: '1 1 44px' }} />
+                className="xp-ib-tid"
+                style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
             ) : (
-              <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 0 }} />
+              <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS"
+                className="xp-ib-tid" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
             )}
           </div>
           <select value={r.sone} onChange={e => oppdater(i, 'sone', e.target.value)}

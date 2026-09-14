@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { upsertMonthlyVolumePlan } from '@/app/actions/volume-plans'
+import { Ikon } from '@/components/ui/ikoner'
 
 const MONTHS_NO = [
   'Januar','Februar','Mars','April','Mai','Juni',
@@ -264,7 +265,7 @@ export function MonthlyVolumeInput({
                         <button type="button" aria-label="Fjern"
                           onClick={() => { setMovRows(rows => rows.filter((_, xi) => xi !== i)); touch(); doSave() }}
                           style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
-                          ✕
+                          <Ikon navn="lukk" variant="strek" storrelse={14} />
                         </button>
                       </div>
                     ))}

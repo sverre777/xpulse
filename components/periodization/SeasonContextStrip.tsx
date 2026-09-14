@@ -3,6 +3,8 @@ import {
   INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS,
   periodForDate, nextKeyDate, daysBetween,
 } from '@/lib/periodization-overlay'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 // Liten informasjonsstripe som vises øverst på /app/plan og gir kontekst
 // fra periodiseringen: gjeldende periode, fokus, nest neste A-konkurranse,
@@ -67,7 +69,7 @@ export function SeasonContextStrip({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Neste A
           </span>
-          <span aria-hidden>{KEY_EVENT_VISUALS[nextA.event_type].icon}</span>
+          <Ikon navn={NOKKELDATO_IKON[nextA.event_type]} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS[nextA.event_type].color }} />
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.04em' }}>
             {nextA.name}
           </span>

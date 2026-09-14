@@ -9,17 +9,21 @@ import {
 import type { Sport } from '@/lib/types'
 import { SPORTS } from '@/lib/types'
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 // Fase 104 + panel-språket fra økt-føringen (Sverre 22. aug): typen velges
-// med chips (🏁 Konkurranse / ⏱ Testløp / 🧪 Test / ⚑ Annet), og A/B/C er
-// PRIORITET på konkurransen — ikke egne typer i nedtrekket.
+// med chips (Konkurranse / Testløp / Test / Annet, hvert med ikon), og A/B/C er
+// PRIORITET på konkurransen - ikke egne typer i nedtrekket.
 type HendelseKind = 'konkurranse' | 'testlop' | 'test' | 'other'
 
-const KIND_CHIPS: { verdi: HendelseKind; etikett: string }[] = [
-  { verdi: 'konkurranse', etikett: '🏁 Konkurranse' },
-  { verdi: 'testlop', etikett: '⏱ Testløp' },
-  { verdi: 'test', etikett: '🧪 Test' },
-  { verdi: 'other', etikett: '⚑ Annet' },
+// Konkurranse-chipen er typen UTEN prioritet: rutete flagg. Trofé/medalje/
+// søyler hører til event_type (A/B/C) og tegnes der nøkkeldatoen vises.
+const KIND_CHIPS: { verdi: HendelseKind; etikett: string; ikon: IkonNavn }[] = [
+  { verdi: 'konkurranse', etikett: 'Konkurranse', ikon: 'konkurranse' },
+  { verdi: 'testlop', etikett: 'Testløp', ikon: NOKKELDATO_IKON.testlop },
+  { verdi: 'test', etikett: 'Test', ikon: NOKKELDATO_IKON.test },
+  { verdi: 'other', etikett: 'Annet', ikon: NOKKELDATO_IKON.other },
 ]
 
 function kindFraEventType(e: KeyEventType): HendelseKind {
@@ -139,11 +143,12 @@ export function KeyDateModal({
               <button key={c.verdi} type="button" onClick={() => setKind(c.verdi)}
                 style={{
                   padding: '8px 13px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
-                  cursor: 'pointer', border: 'none',
+                  cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 5,
                   color: kind === c.verdi ? GULL : 'var(--mut)',
                   background: kind === c.verdi ? 'rgba(232,185,60,.14)' : 'transparent',
                   fontWeight: kind === c.verdi ? 700 : 400,
                 }}>
+                <Ikon navn={c.ikon} variant="fyll" storrelse={14} />
                 {c.etikett}
               </button>
             ))}

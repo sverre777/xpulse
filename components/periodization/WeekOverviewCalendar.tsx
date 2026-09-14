@@ -11,6 +11,8 @@ import {
   DAYS_NO_LONG, toISO, parseISO, mondayOf, isoWeekNum, addDays,
   findPeriod, indexByDate, PEAK_GLOW, MONTHS_NO,
 } from '@/lib/season-calendar'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 export function WeekOverviewCalendar({
   season, periods, keyDates, plannedWorkouts,
@@ -144,7 +146,7 @@ export function WeekOverviewCalendar({
                     fontWeight: e.is_peak_target ? 600 : 400,
                   }}
                   title={e.name}>
-                  <span aria-hidden className="mr-1">{KEY_EVENT_VISUALS[e.event_type].icon}</span>
+                  <Ikon navn={NOKKELDATO_IKON[e.event_type]} variant="fyll" storrelse={14} className="mr-1" style={{ color: KEY_EVENT_VISUALS[e.event_type].color }} />
                   {e.name}
                 </div>
               ))}

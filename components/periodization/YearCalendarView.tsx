@@ -7,6 +7,8 @@ import type {
 import { INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS } from '@/lib/periodization-overlay'
 import { monthsForSeason, indexByDate, toISO } from '@/lib/season-calendar'
 import { MonthMiniCalendar } from './MonthMiniCalendar'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 export function YearCalendarView({
   season, periods, keyDates, plannedWorkouts, markings = [],
@@ -54,16 +56,16 @@ export function YearCalendarView({
           </span>
         ))}
         <span className="flex items-center gap-1">
-          <span aria-hidden>{KEY_EVENT_VISUALS.competition_a.icon}</span> A-konk
+          <Ikon navn={NOKKELDATO_IKON.competition_a} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.competition_a.color }} /> A-konk
         </span>
         <span className="flex items-center gap-1">
-          <span aria-hidden>{KEY_EVENT_VISUALS.competition_b.icon}</span> B-konk
+          <Ikon navn={NOKKELDATO_IKON.competition_b} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.competition_b.color }} /> B-konk
         </span>
         <span className="flex items-center gap-1">
-          <span aria-hidden>{KEY_EVENT_VISUALS.competition_c.icon}</span> C/test
+          <Ikon navn={NOKKELDATO_IKON.competition_c} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.competition_c.color }} /> C/test
         </span>
         <span className="flex items-center gap-1">
-          <span aria-hidden>{KEY_EVENT_VISUALS.camp.icon}</span> Samling
+          <Ikon navn={NOKKELDATO_IKON.camp} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.camp.color }} /> Samling
         </span>
         <span className="flex items-center gap-1">
           <span style={{ width: 12, height: 3, borderRadius: 2, backgroundColor: 'rgba(212, 160, 23, 0.85)', display: 'inline-block' }} />

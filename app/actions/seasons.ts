@@ -9,7 +9,7 @@ import { iDagISO } from '@/lib/local-date'
 export type Intensity = 'rolig' | 'medium' | 'hard'
 export type KeyEventType =
   | 'competition_a' | 'competition_b' | 'competition_c'
-  // Fase 104: 'testlop' er egen type; 'test' er heretter REN 🧪 test
+  // Fase 104: 'testlop' er egen type; 'test' er heretter REN test
   // (eksisterende test-rader migrert til testlop — de var alltid testløp).
   | 'testlop' | 'test' | 'camp' | 'other'
 
@@ -536,7 +536,7 @@ export async function deletePeriod(
   }
 }
 
-// ── Kø #39 del B: markeringsperioder (📍 samling / 🏔 høyde) ──
+// ── Kø #39 del B: markeringsperioder (samling / høyde) ──
 // Eget lag i season_markings (fase 82) — fri overlapp med belastnings-
 // periodene og hverandre; eneste grense er sesongens datospenn.
 
@@ -1076,7 +1076,7 @@ export async function updateKeyDatePriority(
 
 // ── Samling/høyde i kalenderen (plan + dagbok) ───────────────
 //
-// Kalenderen viser 📍/🏔 per dag i markeringsperiodene og lar deg planlegge
+// Kalenderen viser samling-/høyde-ikon per dag i markeringsperiodene og lar deg planlegge
 // samling direkte (ved siden av reisedag). ALT går mot season_markings —
 // samme rader som årsplanen viser, så redigering herfra ER en oppdatering
 // av årsplanen (én kilde, aldri sync).

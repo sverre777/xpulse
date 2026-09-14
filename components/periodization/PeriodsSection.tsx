@@ -6,6 +6,8 @@ import { PeriodModal } from './PeriodModal'
 import { MarkingModal } from './MarkingModal'
 import { KeyDateModal } from './KeyDateModal'
 import { SeasonCanvas } from './SeasonCanvas'
+import { Ikon } from '@/components/ui/ikoner'
+import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
 
 const INTENSITY_COLOR: Record<Intensity, string> = {
   rolig: '#28A86E',
@@ -31,16 +33,16 @@ export function PeriodsSection({
 }) {
   const [newOpen, setNewOpen] = useState(false)
   const [editing, setEditing] = useState<SeasonPeriod | null>(null)
-  // Del B: markeringslag — nytt spenn tegnet i lerretet / rediger via ✋.
+  // Del B: markeringslag — nytt spenn tegnet i lerretet / rediger ved klikk.
   const [newMarkingRange, setNewMarkingRange] = useState<{ start: string; end: string } | null>(null)
   const [editingMarking, setEditingMarking] = useState<SeasonMarking | null>(null)
-  // G2: stemple-verktøyet → KeyDateModal forhåndsutfylt / ✋ på stempel.
+  // G2: stemple-verktøyet → KeyDateModal forhåndsutfylt / klikk på stempel.
   const [stampInit, setStampInit] = useState<{ date: string; type: KeyEventType; peak: boolean } | null>(null)
   const [editingKeyDate, setEditingKeyDate] = useState<SeasonKeyDate | null>(null)
 
   return (
     <section className="mb-8">
-      {/* «Mal sesongen»-lerretet (kø #39 fase 1). ✋ Velg åpner samme
+      {/* «Mal sesongen»-lerretet (kø #39 fase 1). «Velg» åpner samme
           PeriodModal som liste-radene - full feltparitet. */}
       <SeasonCanvas
         season={season}
@@ -178,7 +180,9 @@ export function PeriodsSection({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>
-                      {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔️ ' : ''}{m.name}
+                      {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ marginRight: 5 }} />}
+                      {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ marginRight: 5 }} />}
+                      {m.name}
                     </span>
                     {m.is_training_camp && m.location && (
                       <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E' }}>
@@ -260,7 +264,7 @@ export function PeriodsSection({
             />
           )}
           {/* G2: stempel → ny nøkkeldato forhåndsutfylt (dato/type/peak);
-              ✋ på stempel → rediger. Samme flyt/kilde som KeyDatesSection -
+              Klikk på stempel -> rediger. Samme flyt/kilde som KeyDatesSection -
               kalendere og nedtelling plukker den opp automatisk. */}
           {stampInit && (
             <KeyDateModal

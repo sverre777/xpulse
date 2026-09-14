@@ -5,6 +5,7 @@ import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
 import { addMonths, formatNorskMaaned } from '@/lib/template-dates'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -232,7 +233,7 @@ function MalVolumeBreakdown({
                 <button type="button" aria-label="Fjern"
                   onClick={() => setMov(movEntries.filter((_, xi) => xi !== i))}
                   style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
-                  ✕
+                  <Ikon navn="lukk" variant="strek" storrelse={14} />
                 </button>
               </div>
             ))}

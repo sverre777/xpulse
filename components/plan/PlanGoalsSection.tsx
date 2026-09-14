@@ -4,15 +4,18 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { Season, SeasonKeyDate, KeyEventType } from '@/app/actions/seasons'
 import { KeyDateModal } from '@/components/periodization/KeyDateModal'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
-const EVENT_STYLE: Record<KeyEventType, { label: string; color: string; icon: string }> = {
-  competition_a: { label: 'A-konkurranse', color: '#D4A017', icon: '🏆' },
-  competition_b: { label: 'B-konkurranse', color: '#D4A017', icon: '🏅' },
-  competition_c: { label: 'C-konkurranse', color: '#1A6FD4', icon: '📊' },
-  testlop:       { label: 'Testløp',       color: '#1A6FD4', icon: '⏱' },
-  test:          { label: 'Test',          color: '#28A86E', icon: '🧪' },
-  camp:          { label: 'Samling',       color: 'var(--tekst-5-app)', icon: '📍' },
-  other:         { label: 'Annet',         color: 'var(--tekst-5-app)', icon: '⚑' },
+// Ikonet per type: NOKKELDATO_IKON (delt), tegnet med fyll i typens farge.
+const EVENT_STYLE: Record<KeyEventType, { label: string; color: string }> = {
+  competition_a: { label: 'A-konkurranse', color: '#D4A017' },
+  competition_b: { label: 'B-konkurranse', color: '#D4A017' },
+  competition_c: { label: 'C-konkurranse', color: '#1A6FD4' },
+  testlop:       { label: 'Testløp',       color: '#1A6FD4' },
+  test:          { label: 'Test',          color: '#28A86E' },
+  camp:          { label: 'Samling',       color: 'var(--tekst-5-app)' },
+  other:         { label: 'Annet',         color: 'var(--tekst-5-app)' },
 }
 
 function SectionHeader() {
@@ -106,7 +109,7 @@ export function PlanGoalsSection({
                   cursor: 'pointer',
                 }}
               >
-                <span style={{ fontSize: '18px' }} aria-hidden>{style.icon}</span>
+                <Ikon navn={NOKKELDATO_IKON[k.event_type]} variant="fyll" storrelse={18} style={{ color: style.color }} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>

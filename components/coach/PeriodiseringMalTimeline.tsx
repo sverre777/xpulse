@@ -6,6 +6,8 @@ import type {
 import { INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS } from '@/lib/periodization-overlay'
 import type { Intensity, KeyEventType } from '@/app/actions/seasons'
 import { addDays, formatNorskKortDato } from '@/lib/template-dates'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 const GOLD = '#D4A017'
 
@@ -172,7 +174,7 @@ function KeyDateChip({
         border: `${visual.borderWidth}px solid ${visual.color}`,
         boxShadow: isPeak ? `0 0 6px ${GOLD}AA` : undefined,
       }}>
-      <span aria-hidden>{visual.icon}</span>
+      <Ikon navn={NOKKELDATO_IKON[keyDate.date_type as KeyEventType] ?? NOKKELDATO_IKON.other} variant="fyll" storrelse={14} style={{ color: visual.color }} />
       <span>{keyDate.title}</span>
       <span style={{ color: 'var(--tekst-5-app)' }}>· {dayLabel}</span>
     </span>
@@ -190,16 +192,16 @@ function Legend() {
         </span>
       ))}
       <span className="flex items-center gap-1">
-        <span aria-hidden>{KEY_EVENT_VISUALS.competition_a.icon}</span> A-konk
+        <Ikon navn={NOKKELDATO_IKON.competition_a} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.competition_a.color }} /> A-konk
       </span>
       <span className="flex items-center gap-1">
-        <span aria-hidden>{KEY_EVENT_VISUALS.competition_b.icon}</span> B-konk
+        <Ikon navn={NOKKELDATO_IKON.competition_b} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.competition_b.color }} /> B-konk
       </span>
       <span className="flex items-center gap-1">
-        <span aria-hidden>{KEY_EVENT_VISUALS.competition_c.icon}</span> C/test
+        <Ikon navn={NOKKELDATO_IKON.competition_c} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.competition_c.color }} /> C/test
       </span>
       <span className="flex items-center gap-1">
-        <span aria-hidden>{KEY_EVENT_VISUALS.camp.icon}</span> Samling
+        <Ikon navn={NOKKELDATO_IKON.camp} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.camp.color }} /> Samling
       </span>
       <span className="flex items-center gap-1">
         <span style={{

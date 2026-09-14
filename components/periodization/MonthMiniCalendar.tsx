@@ -8,6 +8,8 @@ import {
   MONTHS_NO, DAYS_NO_SHORT, buildMonthGrid, toISO,
   isoWeekNum, findPeriod, PEAK_GLOW,
 } from '@/lib/season-calendar'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 export function MonthMiniCalendar({
   year, month0, periods, keyDatesByDate, workoutsByDate,
@@ -27,7 +29,7 @@ export function MonthMiniCalendar({
   onSelectWeek?: (mondayISO: string) => void
   onSelectDay?: (dateISO: string) => void
   compact?: boolean
-  // Kø #39 punkt 8: markeringslaget (📍 samling / 🏔 høyde) som gull-bånd
+  // Kø #39 punkt 8: markeringslaget (samling / høyde) som gull-bånd
   // i bunnen av dagcellene — dag-presist, kapsel-innrykk ved start/slutt.
   markings?: SeasonMarking[]
 }) {
@@ -110,9 +112,9 @@ export function MonthMiniCalendar({
               const titleParts: string[] = [iso]
               if (period) titleParts.push(period.name)
               for (const m of dayMarkings) {
-                titleParts.push(`${m.is_training_camp ? '📍 ' : ''}${m.is_altitude ? '🏔 ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}`)
+                titleParts.push(`${m.is_training_camp ? 'Samling: ' : ''}${m.is_altitude ? 'Høyde: ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}`)
               }
-              for (const e of events) titleParts.push(`${KEY_EVENT_VISUALS[e.event_type].icon} ${e.name}${e.is_peak_target ? ' ★' : ''}`)
+              for (const e of events) titleParts.push(`${KEY_EVENT_VISUALS[e.event_type].label}: ${e.name}${e.is_peak_target ? ' (peak)' : ''}`)
               if (workouts.length) titleParts.push(`${workouts.length} planlagt økt${workouts.length === 1 ? '' : 'er'}`)
 
               return (
@@ -156,10 +158,8 @@ export function MonthMiniCalendar({
                     )
                   })()}
                   {topEvent && (
-                    <span aria-hidden
-                      style={{ position: 'absolute', bottom: 0, right: 1, fontSize: '8px', lineHeight: 1 }}>
-                      {KEY_EVENT_VISUALS[topEvent.event_type].icon}
-                    </span>
+                    <Ikon navn={NOKKELDATO_IKON[topEvent.event_type]} variant="fyll" storrelse={14}
+                      style={{ position: 'absolute', bottom: 0, right: 1, color: KEY_EVENT_VISUALS[topEvent.event_type].color }} />
                   )}
                   {!topEvent && workouts.length > 0 && (
                     <span aria-hidden

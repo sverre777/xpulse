@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSeason, updateSeason, deleteSeason, type Season } from '@/app/actions/seasons'
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
+import { Ikon } from '@/components/ui/ikoner'
 
 export function SeasonModal({
   open, onClose, editing, targetUserId, basePath = '/app/periodisering',
@@ -92,7 +93,7 @@ export function SeasonModal({
           <textarea value={kpiNotes} onChange={e => setKpiNotes(e.target.value)} rows={3} style={{ ...INPUT_STYLE, resize: 'vertical' }} placeholder="VO2max 72, 100 km/uke i base, …" />
         </div>
         <div className="mb-1">
-          <FieldLabel>🎯 Årsskuddmål (valgfritt)</FieldLabel>
+          <FieldLabel><Ikon navn="skyting" variant="strek" storrelse={14} style={{ marginRight: 5 }} />Årsskuddmål (valgfritt)</FieldLabel>
           <input type="number" inputMode="numeric" min={1} step={100}
             value={shotGoal} onChange={e => setShotGoal(e.target.value)}
             style={INPUT_STYLE} placeholder="f.eks. 12000" />

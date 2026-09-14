@@ -980,7 +980,7 @@ export async function pushPeriodizationTemplateToAthlete(
     }
   }
 
-  // Del F2 (kø #39): markeringslaget (📍 samling / 🏔 høyde) følger med —
+  // Del F2 (kø #39): markeringslaget (samling / høyde) følger med —
   // relative offsets → reelle datoer fra utøverens sesongstart (dag-presis;
   // delvise uker/start midt i uka påvirker ikke offset-aritmetikken).
   // RLS («Coach writes athlete markings») krever can_edit_periodization.

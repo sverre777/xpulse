@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { savePeriodNote, type NoteScope, type NoteContext } from '@/app/actions/period-notes'
+import { Ikon } from '@/components/ui/ikoner'
 
 export function PeriodNote({
   scope, periodKey, context, initialNote, label, targetUserId, readOnly = false,
@@ -130,7 +131,7 @@ export function PeriodNote({
           {label}
         </p>
         <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          {isPending || saved === 'saving' ? '…lagrer' : saved === 'ok' ? '✓ lagret' : saved === 'error' ? '✕ feil' : ''}
+          {isPending || saved === 'saving' ? '…lagrer' : saved === 'ok' ? <><Ikon navn="fullfort" variant="strek" storrelse={14} /> lagret</> : saved === 'error' ? <><Ikon navn="advarsel" variant="strek" storrelse={14} /> feil</> : ''}
         </span>
       </div>
       <textarea

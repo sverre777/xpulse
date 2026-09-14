@@ -1,8 +1,8 @@
 'use client'
 
-// Kø #39 del B: detaljpanel for markeringsperioder (📍 samling / 🏔 høyde).
+// Kø #39 del B: detaljpanel for markeringsperioder (samling / høyde).
 // Dag-presise datovelgere. Åpnes fra lerretets Samling-verktøy (dra grovt
-// spenn → forhåndsutfylt via initialStart/initialEnd), ✋ på et bånd, eller
+// spenn → forhåndsutfylt via initialStart/initialEnd), klikk på et bånd, eller
 // markerings-listen under Perioder. Markeringer ligger som eget lag over
 // belastningsperiodene — fri overlapp, ingen trim/splitt på tvers.
 
@@ -13,6 +13,8 @@ import {
   type SeasonMarking,
 } from '@/app/actions/seasons'
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
+import { Ikon } from '@/components/ui/ikoner'
+import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
 
 export function MarkingModal({
   open, onClose, seasonId, seasonStart, seasonEnd, editing, initialStart, initialEnd, targetUserId,
@@ -117,7 +119,7 @@ export function MarkingModal({
         <div className="mb-3" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
           <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             <input type="checkbox" checked={isAltitude} onChange={e => setIsAltitude(e.target.checked)} />
-            <span>🏔️ Høydeopphold</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={18} />Høydeopphold</span>
           </label>
           {isAltitude && (
             <div className="mt-2">

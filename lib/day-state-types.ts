@@ -1,6 +1,17 @@
+import type { IkonNavn } from '@/components/ui/ikoner'
+
 // Reisedag (fase 96): markering med timer reise + notat. Kan planlegges frem
 // i tid som hviledag, og sameksisterer med trening og alt annet ført samme dag.
 export type DayStateType = 'hviledag' | 'sykdom' | 'skade' | 'reisedag'
+
+/** Dagstatus-ikonene, definert ÉN gang (ikonjobben 13. sep 2026): seng, medisinsk kors
+    (rød i kontekst - ikke termometer), plaster, fly. Fargen settes av konteksten. */
+export const DAGSTATUS_IKON: Record<DayStateType, IkonNavn> = {
+  hviledag: 'hviledag',
+  sykdom: 'sykdom',
+  skade: 'skade',
+  reisedag: 'reisedag',
+}
 
 export const REST_SUBTYPES = [
   'aktiv_hvile', 'passiv_hvile', 'restitusjonstrening',

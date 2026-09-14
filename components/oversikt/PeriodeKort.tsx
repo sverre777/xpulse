@@ -3,13 +3,15 @@
 // framdriftslinje (blå) + «Dag x av y · volum snitt hittil», sesong-tidslinje
 // (alle faser som farget stripe, aktiv markert m/ hvit ramme) + navnelinje,
 // liste: neste 3 faser (fargeprikk, navn · type, datoer · uker, dager til) +
-// neste 2 samlinger (⛺, navn, datoer, dager til) i datorekkefølge. Ingen
+// neste 2 samlinger (telt-ikon, navn, datoer, dager til) i datorekkefølge. Ingen
 // aktiv fase men kommende finnes → «Ingen aktiv fase» + lista. Ingenting →
 // «Ingen aktiv periode» + «Åpne årsplan →» (blå). Fot «Åpne periodisering →».
 // «mål t/uke» per fase finnes ikke som kolonne (season_periods) — utelatt.
 
 import Link from 'next/link'
 import type { OversiktPhase, OversiktPhaseStatus, OversiktPeriodeRad, OversiktSamling } from '@/app/actions/oversikt'
+import { Ikon } from '@/components/ui/ikoner'
+import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const BLAA = '#1A6FD4'
@@ -118,7 +120,7 @@ export function PeriodeKort({ phase, phaseStatus, periods, camps, todayISO, snit
             </div>
           ) : (
             <div key={`s${r.c.id}`} className="flex items-center gap-3" data-periode-rad="samling" style={{ padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
-              <span style={{ fontSize: 13, flexShrink: 0 }}>⛺</span>
+              <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ flexShrink: 0 }} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ fontFamily: FONT, fontSize: 13.5, fontWeight: 700, color: 'var(--tekst-1-app)', margin: 0 }}>{r.c.name}{r.c.location ? <span style={{ fontWeight: 500, color: 'var(--tekst-5-app)' }}> · {r.c.location}</span> : null}</p>
                 <p style={{ fontFamily: FONT, fontSize: 11.5, color: 'var(--tekst-8-alt)', margin: 0 }}>{r.c.is_altitude ? 'høydesamling' : 'samling'} · {spenn(r.c.start_date, r.c.end_date)} · {dager(r.c.start_date, r.c.end_date) + 1} dager</p>

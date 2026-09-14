@@ -222,7 +222,7 @@ export async function buildPeriodizationTemplateFromSeason(
     .eq('season_id', seasonId)
   if (kErr) return { error: `season_key_dates: ${kErr.message}` }
 
-  // Del F2 (kø #39): markeringslaget (📍/🏔) fanges også — relative offsets.
+  // Del F2 (kø #39): markeringslaget (samling/høyde) fanges også — relative offsets.
   const { data: markings, error: mErr } = await supabase
     .from('season_markings')
     .select('name, is_training_camp, is_altitude, location, altitude_meters, notes, start_date, end_date')

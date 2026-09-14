@@ -19,6 +19,7 @@ import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
 import { SeasonCanvas, type CanvasPeriodMutators } from '@/components/periodization/SeasonCanvas'
 import type { Season, SeasonPeriod, SeasonMarking, Intensity, PeriodInput } from '@/app/actions/seasons'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Del F: malens lerret tegner på en SYNTETISK tidslinje forankret i en
 // mandag — U1 = anker-uka; offsets ⇄ datoer er ren aritmetikk. Anvendelse
@@ -187,7 +188,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
     bump()
   }
 
-  // ── Del F: markeringslag (📍/🏔) i malen. ──
+  // ── Del F: markeringslag (samling/høyde) i malen. ──
   const addMarking = (startOff = 0, endOff = 6) => {
     const uid = nextUid('m')
     markingsBox.list = [...markingsBox.list, {
@@ -528,7 +529,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
             <SectionTitle>Mal sesongen - relative uker (U1-U{totalWeeks})</SectionTitle>
             {/* Del F: SAMME lerret som utøverens årsplan (dag-presis maling,
                 trim/splitt/merge, kant-dra, samlingslag) - i relativ modus.
-                ✋ på periode/bånd hopper til raden under for detaljer. */}
+                Klikk på periode/bånd hopper til raden under for detaljer. */}
             <SeasonCanvas
               season={malSeason}
               periods={canvasPeriods}
@@ -721,7 +722,7 @@ function PeriodRow({
   )
 }
 
-// Del F: rediger-rad for en markering (📍 samling / 🏔 høyde) i malen —
+// Del F: rediger-rad for en markering (samling / høyde) i malen —
 // relative dag-offsets, fri overlapp med periodene (ingen trim/splitt).
 function MarkingRow({
   marking, durationDays, startDate, onChange, onRemove,
@@ -754,7 +755,7 @@ function MarkingRow({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14 }}>
             <input type="checkbox" checked={marking.is_altitude}
               onChange={e => onChange({ is_altitude: e.target.checked })} />
-            <span>🏔️ Høyde</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn="hoydesamling" variant="fyll" storrelse={14} />Høyde</span>
           </label>
         </div>
         <DateOrDayField

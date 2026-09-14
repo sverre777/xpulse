@@ -106,7 +106,7 @@ export function PeriodModal({
             📍-verktøy i lerretet og «+ Samling/høyde»-knappen, med dag-presise
             datoer uavhengig av belastningsperiodene. */}
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', lineHeight: 1.5, borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
-          📍 Samling og 🏔️ høyde markeres nå som eget lag over periodene - bruk
+          Samling og høyde markeres nå som eget lag over periodene - bruk
           Samling/høyde-verktøyet i lerretet eller «+ Samling/høyde»-knappen.
         </p>
         <div className="mb-1">

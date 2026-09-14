@@ -12,6 +12,8 @@ import {
   isoWeekNum, findPeriod, indexByDate, PEAK_GLOW,
 } from '@/lib/season-calendar'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 function parseMonthParam(m: string | null, fallback: { year: number; month0: number }): { year: number; month0: number } {
   if (!m) return fallback
@@ -153,9 +155,8 @@ export function MonthFullCalendar({
                     </span>
                     <div className="flex items-center gap-1">
                       {events.slice(0, 2).map(e => (
-                        <span key={e.id} aria-hidden style={{ fontSize: '12px', lineHeight: 1 }}>
-                          {KEY_EVENT_VISUALS[e.event_type].icon}
-                        </span>
+                        <Ikon key={e.id} navn={NOKKELDATO_IKON[e.event_type]} variant="fyll" storrelse={14}
+                          style={{ color: KEY_EVENT_VISUALS[e.event_type].color }} />
                       ))}
                     </div>
                   </div>

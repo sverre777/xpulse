@@ -3,15 +3,18 @@
 import { useState } from 'react'
 import type { Season, SeasonKeyDate, KeyEventType } from '@/app/actions/seasons'
 import { KeyDateModal } from './KeyDateModal'
+import { Ikon } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
-const EVENT_STYLE: Record<KeyEventType, { label: string; color: string; icon: string }> = {
-  competition_a: { label: 'A-konkurranse', color: '#D4A017', icon: '🏆' },
-  competition_b: { label: 'B-konkurranse', color: '#D4A017', icon: '🏅' },
-  competition_c: { label: 'C-konkurranse', color: '#1A6FD4', icon: '📊' },
-  testlop:       { label: 'Testløp',       color: '#1A6FD4', icon: '⏱' },
-  test:          { label: 'Test',          color: '#28A86E', icon: '🧪' },
-  camp:          { label: 'Samling',       color: 'var(--tekst-5-app)', icon: '📍' },
-  other:         { label: 'Annet',         color: 'var(--tekst-5-app)', icon: '⚑' },
+// Ikonet per type: NOKKELDATO_IKON (delt), tegnet med fyll i typens farge.
+const EVENT_STYLE: Record<KeyEventType, { label: string; color: string }> = {
+  competition_a: { label: 'A-konkurranse', color: '#D4A017' },
+  competition_b: { label: 'B-konkurranse', color: '#D4A017' },
+  competition_c: { label: 'C-konkurranse', color: '#1A6FD4' },
+  testlop:       { label: 'Testløp',       color: '#1A6FD4' },
+  test:          { label: 'Test',          color: '#28A86E' },
+  camp:          { label: 'Samling',       color: 'var(--tekst-5-app)' },
+  other:         { label: 'Annet',         color: 'var(--tekst-5-app)' },
 }
 
 export function KeyDatesSection({
@@ -76,7 +79,7 @@ export function KeyDatesSection({
                   cursor: canEdit ? 'pointer' : 'default',
                 }}
               >
-                <span style={{ fontSize: '20px' }} aria-hidden>{style.icon}</span>
+                <Ikon navn={NOKKELDATO_IKON[k.event_type]} variant="fyll" storrelse={22} style={{ color: style.color }} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.04em' }}>
@@ -87,9 +90,9 @@ export function KeyDatesSection({
                       {style.label}
                     </span>
                     {k.linked_workout_id && (
-                      <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                      <span className="px-2 py-0.5 text-xs tracking-widest uppercase inline-flex items-center gap-1"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', border: '1px solid var(--kant-3)' }}>
-                        ⇄ workout
+                        <Ikon navn="koble-flett" storrelse={14} /> workout
                       </span>
                     )}
                   </div>

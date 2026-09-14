@@ -9,6 +9,7 @@ import { OktmalEditModal } from '@/components/coach/OktmalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
 const COACH_BLUE = 'var(--accent)'
@@ -187,7 +188,7 @@ function Row({
             fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '20px', letterSpacing: '0.05em',
           }}>
-            {template.is_test ? '🧪 ' : ''}{template.name}
+            {template.is_test && <Ikon navn="test" variant="fyll" storrelse={14} style={{ marginRight: 5 }} />}{template.name}
           </div>
           {template.description && (
             <p className="mt-1 text-sm"

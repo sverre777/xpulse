@@ -106,7 +106,7 @@ export interface PeriodizationTemplateVolumePlan {
   movement_hours?: Record<string, number> | null
 }
 
-// Kø #39 del F: markeringslag (📍 samling / 🏔 høyde) i malen — relative
+// Kø #39 del F: markeringslag (samling / høyde) i malen — relative
 // dag-offsets, materialiseres til season_markings ved push. Fri overlapp
 // med periodene, som i det virkelige laget.
 export interface PeriodizationTemplateMarking {

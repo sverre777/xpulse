@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { setSeatQuantity, previewSeatQuantity, type SeatStatus, type SeatQuantityPreview } from '@/app/actions/seats'
 import { regenerateSeatInviteLink, releaseSeat } from '@/app/actions/seat-invite'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -134,7 +135,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
           {inviteUrl}
         </code>
         <button type="button" onClick={kopier} style={knappPrimar}>
-          {kopiert ? '✓ Kopiert' : 'Kopier lenke'}
+          {kopiert ? <><Ikon navn="fullfort" variant="strek" storrelse={14} /> Kopiert</> : 'Kopier lenke'}
         </button>
         <button type="button" onClick={regenerer} disabled={pending} style={knappSekundar}>
           ⟳ Ny lenke

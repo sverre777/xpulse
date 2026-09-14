@@ -6,6 +6,7 @@ import { WorkoutForm } from '@/components/workout/WorkoutForm'
 import { updateTemplate } from '@/app/actions/templates'
 import type { Sport, WorkoutTemplate, WorkoutFormData } from '@/lib/types'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Props {
   primarySport: Sport
@@ -111,7 +112,7 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
                 background: isTest ? '#D4A01722' : 'transparent',
                 border: `1px solid ${isTest ? '#D4A017' : 'var(--kant-4)'}`,
               }}>
-              🧪 Test-mal
+              <Ikon navn="test" variant="strek" storrelse={14} style={{ marginRight: 5 }} />Test-mal
             </button>
           )}
           <button type="button" onClick={onClose} aria-label="Lukk"

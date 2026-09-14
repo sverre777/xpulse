@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { CoachUpcomingEvent } from '@/app/actions/coach-dashboard'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -23,11 +24,13 @@ function formatAbsoluteDate(iso: string): string {
   })
 }
 
-function kindIcon(kind: CoachUpcomingEvent['kind']): string {
+/** Ikon per hendelsestype: konkurranse = rutete flagg (aldri trofé utenfor årsplanen),
+    fellestrening = gruppe, notat = dokument med blyant. */
+function kindIkon(kind: CoachUpcomingEvent['kind']): IkonNavn {
   switch (kind) {
-    case 'competition': return '🏁'
-    case 'attendance':  return '👥'
-    case 'note':        return '📝'
+    case 'competition': return 'konkurranse'
+    case 'attendance':  return 'fellestrening'
+    case 'note':        return 'for-okt'
   }
 }
 
@@ -54,7 +57,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
           style={{ ...PILLE_BASIS, color: COACH_BLUE,
             textDecoration: 'none',
           }}>
-          Se kalender →
+          Se kalender<Ikon navn="neste" storrelse={14} />
         </Link>
       </div>
 
@@ -72,9 +75,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
                 className="block px-5 py-3 transition-colors hover:bg-[var(--card2)]"
                 style={{ textDecoration: 'none' }}>
                 <div className="flex items-start gap-3">
-                  <span aria-hidden style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0 }}>
-                    {kindIcon(e.kind)}
-                  </span>
+                  <Ikon navn={kindIkon(e.kind)} variant="fyll" storrelse={18} style={{ marginTop: 1 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="flex items-baseline flex-wrap gap-2">
                       <span style={{

@@ -14,6 +14,7 @@ import {
   claimSeatAsNewUser,
   type SeatInvitePageInfo,
 } from '@/app/actions/seat-invite'
+import { Ikon } from '@/components/ui/ikoner'
 
 const ORANGE = '#FF4500'
 
@@ -160,7 +161,7 @@ function Punkt({ children, varsel = false }: { children: React.ReactNode; varsel
       fontFamily: "'Barlow Condensed', sans-serif",
       color: varsel ? '#E8B93C' : 'var(--tekst-3-app)',
     }}>
-      <span aria-hidden style={{ color: varsel ? '#E8B93C' : ORANGE }}>{varsel ? '⚠' : '✓'}</span>
+      <Ikon navn={varsel ? 'advarsel' : 'fullfort'} storrelse={14} style={{ color: varsel ? '#E8B93C' : ORANGE, marginTop: 3 }} />
       <span>{children}</span>
     </li>
   )

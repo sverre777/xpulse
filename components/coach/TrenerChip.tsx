@@ -1,12 +1,14 @@
 'use client'
 
 // TRENER-MARKERING (Øktbygger bolk 9) — ÉN chip for «denne økta kom fra
-// treneren»: «👤 Trener · <fornavn>» i trenerblått (#1A6FD4). Kompakt
+// treneren»: trener-ikonet + «Trener · <fornavn>» i trenerblått (#1A6FD4). Kompakt
 // (kalender-chips): en blå prikk med samme tekst som title. Kilden er
 // workouts.created_by_coach_id (settes bare i trener-stiene: push av økt/
 // konkurranse/mal/hel plan og trener som lagrer i utøverens dagbok) —
 // ingen rettigheter endres, og markeringen forsvinner ikke når utøveren
 // redigerer (saveWorkout rører ikke feltet for utøveren).
+
+import { Ikon } from '@/components/ui/ikoner'
 
 export const TRENER_BLAA = '#1A6FD4'
 
@@ -29,7 +31,7 @@ export function TrenerChip({ navn, style }: { navn: string | null | undefined; s
         border: `1px solid ${TRENER_BLAA}`, borderRadius: 999, lineHeight: '18px', whiteSpace: 'nowrap',
         ...style,
       }}>
-      <span aria-hidden="true">👤</span> {trenerTekst(navn)}
+      <Ikon navn="trener" variant="strek" storrelse={14} />{trenerTekst(navn)}
     </span>
   )
 }

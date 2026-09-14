@@ -12,6 +12,7 @@ import {
   iterMonthDates, isSameDay, timeToMinutes,
 } from './date-utils'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 const COMP_RED = '#E11D48'
@@ -141,7 +142,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
 
   return (
     <div>
-      {/* Header: view-switcher + nav + Today + "+ Legg til notat" */}
+      {/* Header: view-switcher + nav + Today + "Notat"-knapp */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
         <div className="flex items-center gap-0">
           {(['måned', 'uke', 'år'] as View[]).map(v => (
@@ -159,7 +160,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
 
         <div className="flex items-center gap-2 xp-kal-verktoy">
           <button type="button" onClick={prev} aria-label="Forrige periode"
-            style={navBtnStyle}>←</button>
+            style={navBtnStyle}><Ikon navn="forrige" storrelse={18} /></button>
           <span style={{
             fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '18px', letterSpacing: '0.06em',
@@ -168,7 +169,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
             {titleLabel}
           </span>
           <button type="button" onClick={next} aria-label="Neste periode"
-            style={navBtnStyle}>→</button>
+            style={navBtnStyle}><Ikon navn="neste" storrelse={18} /></button>
           <button type="button" onClick={goToday}
             className="ml-2 px-3 py-2 text-xs tracking-widest uppercase"
             style={{ ...PILLE_BASIS, color: 'var(--tekst-5-app)',
@@ -183,7 +184,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
               background: 'none', border: `1px solid ${COACH_BLUE}`,
               cursor: 'pointer', minHeight: '44px',
             }}>
-            + Notat
+            <Ikon navn="legg-til" storrelse={14} />Notat
           </button>
         </div>
       </div>
@@ -250,6 +251,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
 }
 
 const navBtnStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--kant-4)',
   cursor: 'pointer', padding: '8px 14px', minHeight: '44px', minWidth: '44px',
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px',
@@ -482,7 +484,7 @@ function WeekView({
                       letterSpacing: '0.04em',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>
-                      {kindIcon(e.kind)} {e.title}
+                      <Ikon navn={kindIkon(e.kind)} variant="fyll" storrelse={14} style={{ color: eventColor(e.kind), marginRight: 4 }} />{e.title}
                     </div>
                     {e.context && (
                       <div className="text-xs" style={{
@@ -632,9 +634,7 @@ function DayEventsModal({
               const inner = (
                 <div className="flex items-start gap-3 p-3 transition-colors hover:bg-[var(--card2)] cursor-pointer"
                   style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)' }}>
-                  <span aria-hidden style={{ fontSize: '18px', flexShrink: 0 }}>
-                    {kindIcon(e.kind)}
-                  </span>
+                  <Ikon navn={kindIkon(e.kind)} variant="fyll" storrelse={18} style={{ color: eventColor(e.kind) }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <span style={{
@@ -684,11 +684,12 @@ function DayEventsModal({
         <button type="button" onClick={onAddNote}
           className="w-full px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE,
             background: 'none', border: `1px solid ${COACH_BLUE}`,
             cursor: 'pointer',
           }}>
-          + Legg til notat på denne datoen
+          <Ikon navn="legg-til" storrelse={14} />Legg til notat på denne datoen
         </button>
       </div>
     </div>
@@ -717,9 +718,7 @@ function EventBadge({
         textTransform: 'uppercase',
         letterSpacing: '0.04em',
       }}>
-      <span aria-hidden style={{ fontSize: compact ? '10px' : '12px', lineHeight: 1 }}>
-        {kindIcon(event.kind)}
-      </span>
+      <Ikon navn={kindIkon(event.kind)} variant="fyll" storrelse={14} style={{ color }} />
       <span className="truncate">
         {event.startTime ? `${event.startTime} ` : ''}{event.title}
       </span>
@@ -743,10 +742,12 @@ function eventBg(kind: CoachUpcomingEvent['kind']): string {
   }
 }
 
-function kindIcon(kind: CoachUpcomingEvent['kind']): string {
+/** Ikon per hendelsestype: konkurranse = rutete flagg (aldri trofé utenfor årsplanen),
+    fellestrening = gruppe, notat = dokument med blyant. Fargen arves fra eventColor. */
+function kindIkon(kind: CoachUpcomingEvent['kind']): IkonNavn {
   switch (kind) {
-    case 'competition': return '🏁'
-    case 'attendance':  return '👥'
-    case 'note':        return '📝'
+    case 'competition': return 'konkurranse'
+    case 'attendance':  return 'fellestrening'
+    case 'note':        return 'for-okt'
   }
 }

@@ -4,6 +4,7 @@ import {
   getNextGroupSessionForCoach,
   type CoachOverviewAthlete,
 } from '@/app/actions/coach-dashboard'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
@@ -192,7 +193,7 @@ export async function CoachUpcomingCards() {
             >
               Neste fellestrening
             </span>
-            <span aria-hidden="true" style={{ color: COACH_BLUE, fontSize: '18px' }}>👥</span>
+            <Ikon navn="fellestrening" variant="fyll" storrelse={18} style={{ color: COACH_BLUE }} />
           </div>
           <div className="flex items-baseline gap-3 mb-2">
             <span

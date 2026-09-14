@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { updateTemplate } from '@/app/actions/templates'
 import { SPORTS, TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
 const COACH_BLUE = 'var(--accent)'
@@ -126,9 +127,9 @@ export function OktmalEditModal({ template, onClose }: Props) {
               background: isTest ? '#D4A01722' : 'transparent',
               border: `1px solid ${isTest ? '#D4A017' : 'var(--kant-4)'}`,
             }}>
-            🧪 Marker som test
+            <Ikon navn="test" variant="strek" storrelse={14} style={{ marginRight: 5 }} />Marker som test
             <span style={{ color: 'var(--tekst-8-app)', fontSize: 12 }}>
-              {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
+              {isTest ? 'økter fra malen merkes som test' : 'valgfritt'}
             </span>
           </button>
           <p className="text-xs mt-1"

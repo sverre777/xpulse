@@ -8,6 +8,7 @@ import {
 } from '@/app/actions/periodization-templates'
 import { PERIOD_SPORT_CATEGORIES, sportToCategory, type Sport } from '@/lib/types'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -102,7 +103,7 @@ export function SaveSeasonAsTemplate({
               {done ? (
                 <>
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                    ✓ Mal lagret i ditt mal-bibliotek.
+                    <><Ikon navn="fullfort" variant="strek" storrelse={14} /> Mal lagret i ditt mal-bibliotek.</>
                   </p>
                   <div className="flex gap-2 justify-end">
                     <button type="button" onClick={() => setOpen(false)}

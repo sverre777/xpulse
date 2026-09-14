@@ -1,7 +1,7 @@
 'use client'
 
 // Trenerens test-maler — SAMME måte som utøveren (Sverre 22. aug):
-// test-mal = øktmal m/ 🧪-flagg, bygget i OktmalBuilder (struktur-byggeren)
+// test-mal = øktmal m/ test-flagg, bygget i OktmalBuilder (struktur-byggeren)
 // med workout_type forhåndsvalgt til test — identisk med utøverens
 // «+ Ny test-mal» i /app/maler og i konkurransepanelet. Klikk på en mal
 // åpner samme bygger i rediger-modus.
@@ -20,6 +20,7 @@ import { SPORTS, TEST_TYPES_BY_SPORT, type Sport, type WorkoutTemplate } from '@
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 const iSt: React.CSSProperties = {
@@ -62,7 +63,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
         <div className="p-8 text-center" style={{ border: '1px dashed var(--line)' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen test-maler ennå. «+ Ny test-mal» åpner struktur-byggeren -
-            test-mal er en øktmal med 🧪-flagg, akkurat som hos utøverne.
+            test-mal er en øktmal med test-flagg, akkurat som hos utøverne.
           </p>
         </div>
       ) : (
@@ -75,7 +76,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
               <div>
                 <p className="text-sm"
                   style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
-                  🧪 {t.name}
+                  <Ikon navn="test" variant="fyll" storrelse={14} style={{ marginRight: 5 }} />{t.name}
                 </p>
                 <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>

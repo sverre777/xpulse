@@ -16,6 +16,7 @@ import {
 } from '@/app/actions/standard-sessions'
 import { useEffect } from 'react'
 import { iDagISO } from '@/lib/local-date'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 // Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
 // materialisert i egen periodiserings-side, ikke som mal-objekter.
@@ -47,7 +48,7 @@ export function MalerClient({
   const [sport, setSport] = useState<string>('')
   const [movement, setMovement] = useState<string>('')
   const [sortBy, setSortBy] = useState<'sist' | 'nyest' | 'navn' | 'mest'>('sist')
-  // Kø #49: hurtigfilter-chips (Alle / 🧪 Test / Skyting / Styrke) — i tillegg
+  // Kø #49: hurtigfilter-chips (Alle / Test / Skyting / Styrke) — i tillegg
   // til de eksisterende select-filtrene (full paritet).
   const [quick, setQuick] = useState<'alle' | 'test' | 'skyting' | 'styrke'>('alle')
 
@@ -70,7 +71,7 @@ export function MalerClient({
   // visibility-flag trengs; treners RLS leser bare egne).
   const [showOktmalBuilder, setShowOktmalBuilder] = useState(false)
   // #50 bolk 2: «Ny test-mal» — samme bygger, workout_type forhåndsvalgt til
-  // test så 🧪-flagget er forhåndsvalgt i lagre-modalen (#49-mønsteret).
+  // test så test-flagget er forhåndsvalgt i lagre-modalen (#49-mønsteret).
   const [nyTestMal, setNyTestMal] = useState(false)
   const [showPlanmalBuilder, setShowPlanmalBuilder] = useState(false)
   // Edit-modus: når satt åpnes builder med eksisterende mal-data og lagring
@@ -97,31 +98,31 @@ export function MalerClient({
       {tab !== 'standard' && (
       <div className="flex flex-wrap gap-2 mb-4">
         <button type="button" onClick={() => setShowOktmalBuilder(true)}
-          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
             backgroundColor: '#FF4500', border: 'none', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer',
           }}>
-          + Ny øktmal
+          <Ikon navn="legg-til" storrelse={18} />Ny øktmal
         </button>
         <button type="button" onClick={() => setNyTestMal(true)}
-          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017',
             background: 'none', border: '1px solid #D4A017', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer',
           }}>
-          🧪 + Ny test-mal
+          <Ikon navn="laktat" storrelse={18} />Ny test-mal
         </button>
         <button type="button" onClick={() => setShowPlanmalBuilder(true)}
-          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
             background: 'none', border: '1px solid #FF4500', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer',
           }}>
-          + Ny planmal
+          <Ikon navn="legg-til" storrelse={18} />Ny planmal
         </button>
       </div>
       )}
@@ -163,12 +164,12 @@ export function MalerClient({
         <div className="flex flex-wrap gap-2 mb-3">
           {([
             { key: 'alle', label: 'Alle' },
-            { key: 'test', label: '🧪 Test' },
+            { key: 'test', label: 'Test', ikon: 'laktat' },
             ...(harSkiskyting ? [{ key: 'skyting' as const, label: 'Skyting' }] : []),
             { key: 'styrke', label: 'Styrke' },
           ] as const).map(c => (
             <button key={c.key} type="button" onClick={() => setQuick(c.key)}
-              className="text-xs tracking-widest uppercase"
+              className="inline-flex items-center gap-1 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '7px 14px', minHeight: 36, cursor: 'pointer',
@@ -181,7 +182,7 @@ export function MalerClient({
                   ? (c.key === 'test' ? '#D4A017' : '#FF4500')
                   : 'var(--kant-4)'}`,
               }}>
-              {c.label}
+              {'ikon' in c && c.ikon ? <Ikon navn={c.ikon} storrelse={14} /> : null}{c.label}
             </button>
           ))}
         </div>
@@ -317,10 +318,10 @@ sortBy={sortBy}           templates={initialPlanTemplates}
 }
 
 function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
-  const tabs: { key: Tab; label: string }[] = [
+  const tabs: { key: Tab; label: string; ikon?: IkonNavn }[] = [
     { key: 'okt', label: 'Økt-maler' },
     { key: 'plan', label: 'Plan-maler' },
-    { key: 'standard', label: '⟳ Standardøkter' },
+    { key: 'standard', label: 'Standardøkter', ikon: 'standardokt-serie' },
   ]
   return (
     <div className="flex gap-2 mb-6">
@@ -328,7 +329,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         const active = t.key === tab
         return (
           <button key={t.key} type="button" onClick={() => setTab(t.key)}
-            className="px-4 py-2 text-xs tracking-widest uppercase"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: active ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
@@ -337,7 +338,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
               borderRadius: 999,
               cursor: 'pointer',
             }}>
-            {t.label}
+            {t.ikon && <Ikon navn={t.ikon} storrelse={18} />}{t.label}
           </button>
         )
       })}
@@ -411,7 +412,8 @@ function WorkoutList({
           : 'Aldri brukt'
         return (
           <TemplateRow key={t.id}
-            name={`${t.is_test ? '🧪 ' : ''}${t.standard_session_series_id ? '⟳ ' : ''}${t.name}`} description={t.description} category={t.category}
+            name={t.name} description={t.description} category={t.category}
+            ikoner={[...(t.is_test ? ['laktat' as const] : []), ...(t.standard_session_series_id ? ['standardokt-serie' as const] : [])]}
             meta={t.is_test
               ? ['Test-mal', sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]
               : [sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}
@@ -499,9 +501,11 @@ function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
 }
 
 function TemplateRow({
-  name, description, category, meta, disabled, onEdit, onUseDate, onDelete, onDuplicate,
+  name, ikoner, description, category, meta, disabled, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   name: string
+  /** Ikoner foran navnet: test-mal (laktat-dråpen) og/eller standardøkt-serie. */
+  ikoner?: IkonNavn[]
   description: string | null
   category: string | null
   meta: string[]
@@ -521,10 +525,11 @@ function TemplateRow({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div style={{
+            display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
             fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '20px', letterSpacing: '0.05em',
           }}>
-            {name}
+            {ikoner?.map(n => <Ikon key={n} navn={n} storrelse={18} />)}{name}
           </div>
           {description && (
             <p className="mt-1 text-sm"
@@ -844,16 +849,16 @@ function StandardSerierPanel() {
     <div>
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <button type="button" onClick={startNy}
-          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)',
             backgroundColor: '#FF8A5C', border: 'none', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer', fontWeight: 700,
           }}>
-          + Ny standardøkt-serie
+          <Ikon navn="legg-til" storrelse={18} />Ny standardøkt-serie
         </button>
         <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-          Samme økt over tid - koble økter til serien fra øktskjemaet (⟳), og
+          Samme økt over tid - koble økter til serien fra øktskjemaet (<Ikon navn="standardokt-serie" storrelse={14} />), og
           sammenlign gjennomføringene i analysen.
         </p>
       </div>
@@ -889,7 +894,7 @@ function StandardSerierPanel() {
       ) : serier.length === 0 ? (
         <EmptyState
           title="Ingen standardøkt-serier ennå"
-          body="Opprett en serie her, eller direkte fra øktskjemaet (⟳ Standardøkt). Øktene du kobler til samles og kan sammenlignes over tid i analysen." />
+          body={<>Opprett en serie her, eller direkte fra øktskjemaet (<Ikon navn="standardokt-serie" storrelse={14} /> Standardøkt). Øktene du kobler til samles og kan sammenlignes over tid i analysen.</>} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {serier.map(s => {
@@ -898,7 +903,7 @@ function StandardSerierPanel() {
               <div key={s.id} className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, letterSpacing: '0.04em', color: 'var(--tekst-1-app)' }}>
-                    <span style={{ color: '#FF8A5C' }}>⟳</span> {s.name}
+                    <Ikon navn="standardokt-serie" storrelse={18} style={{ color: '#FF8A5C', marginRight: 6 }} />{s.name}
                   </span>
                 </div>
                 <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
@@ -911,9 +916,9 @@ function StandardSerierPanel() {
                 )}
                 <div className="flex flex-wrap gap-2 mt-3">
                   <a href={`/app/analyse?tab=standardokter&serie=${s.id}`}
-                    className="text-xs tracking-widest uppercase"
+                    className="inline-flex items-center gap-1 text-xs tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'none', border: '1px solid #1A6FD444', borderRadius: 999, padding: '6px 12px' }}>
-                    Se utvikling →
+                    Se utvikling<Ikon navn="neste" storrelse={14} />
                   </a>
                   <button type="button" onClick={() => startRediger(s)}
                     className="text-xs tracking-widest uppercase"

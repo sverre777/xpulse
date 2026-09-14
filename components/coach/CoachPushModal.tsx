@@ -11,6 +11,7 @@ import {
   type PeriodizationOverlapInfo,
 } from '@/app/actions/coach-push'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = '#1A6FD4'
@@ -380,7 +381,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       color: o.ok ? '#7DD87D' : '#E11D48',
                       backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
                     }}>
-                    <span>{o.ok ? '✓' : '✕'}</span>
+                    <Ikon navn={o.ok ? 'fullfort' : 'lukk'} storrelse={14} />
                     <span className="flex-1" style={{ color: 'var(--tekst-1-app)' }}>{o.athleteName}</span>
                     <span>{o.message}</span>
                   </div>

@@ -263,7 +263,7 @@ export async function materializeOktmalAtDate(
       user_id: user.id,
       title: template.name,
       sport,
-      // Kø #49: økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt.
+      // Kø #49: økt fra test-mal får test-flagget (workout_type 'test') forhåndsvalgt.
       // Fase 97: malens faktiske økttype kobles gjennom (OKT_TYPE_TIL_
       // WORKOUT_TYPE). 'long_run'-fallbacken er FJERNET — den stemplet alt
       // uten type som langtur. Uten kjent type: 'other' («Vanlig økt»),

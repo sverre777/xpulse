@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import type { PlanTemplateWorkout, PlanTemplateDayState } from '@/lib/template-types'
 import { addDays, formatNorskKortDato } from '@/lib/template-dates'
 import { TYPE_COLORS } from '@/lib/types'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { DAGSTATUS_IKON } from '@/lib/day-state-types'
 
 // Relativ kalender for plan-mal-bygging — samme visuelle språk som hoved-
 // kalenderen (kø #45): chip-koding m/ typefarge på venstre kant, stiplet
 // «planlagt»-ramme (maler er per definisjon plan), hviledag/sykdom-tint,
-// og ▦ Kalender / ☰ Liste-toggle (mobil er alltid liste). Rolle-accent
+// og Kalender/Liste-toggle (mobil er alltid liste). Rolle-accent
 // arves via var(--accent): oransje for utøver, blå i .xp-coach-kontekst.
 // KUN visning — dag-klikk åpner samme editor som før (onDayClick(day)).
 
@@ -34,9 +36,11 @@ function stateTint(state: PlanTemplateDayState | null): string | undefined {
   return state.state_type === 'sykdom' ? 'rgba(226,58,90,0.12)' : 'rgba(40,168,110,0.12)'
 }
 
-function stateLabel(state: PlanTemplateDayState | null): string | null {
+function stateLabel(state: PlanTemplateDayState | null): { icon: IkonNavn; text: string } | null {
   if (!state) return null
-  return state.state_type === 'sykdom' ? '🤒 Sykdom' : '🛌 Hviledag'
+  return state.state_type === 'sykdom'
+    ? { icon: DAGSTATUS_IKON.sykdom, text: 'Sykdom' }
+    : { icon: DAGSTATUS_IKON.hviledag, text: 'Hviledag' }
 }
 
 // Økt-chip i mal-kalenderen: typefarge kun på venstre kant, nøytral stiplet
@@ -128,11 +132,15 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
           <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
             onClick={() => setLayoutPersist('grid')}
             className={layout === 'grid' ? 'on' : undefined}
-            style={{ minHeight: '36px', fontSize: '14px' }}>▦</button>
+            style={{ minHeight: '36px', display: 'inline-flex', alignItems: 'center' }}>
+            <Ikon navn="arsplan" variant="strek" storrelse={18} />
+          </button>
           <button type="button" aria-label="Liste (stablet)" title="Liste"
             onClick={() => setLayoutPersist('list')}
             className={layout === 'list' ? 'on' : undefined}
-            style={{ minHeight: '36px', fontSize: '14px' }}>☰</button>
+            style={{ minHeight: '36px', display: 'inline-flex', alignItems: 'center' }}>
+            <Ikon navn="hamburgermeny" variant="strek" storrelse={18} />
+          </button>
         </div>
       </div>
 
@@ -184,8 +192,9 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                       )}
                     </div>
                     {stateLabel(state) && (
-                      <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                        {stateLabel(state)}
+                      <span className="inline-flex items-center gap-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+                        <Ikon navn={stateLabel(state)!.icon} variant="fyll" storrelse={14} />
+                        {stateLabel(state)!.text}
                       </span>
                     )}
                     {dayWorkouts.slice(0, 2).map((w, i) => (
@@ -248,8 +257,10 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                   ) : (
                     <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
                       {stateLabel(state) && (
-                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 13, paddingTop: 4 }}>
-                          {stateLabel(state)}
+                        <span className="inline-flex items-center gap-1"
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 13, paddingTop: 4 }}>
+                          <Ikon navn={stateLabel(state)!.icon} variant="fyll" storrelse={14} />
+                          {stateLabel(state)!.text}
                         </span>
                       )}
                       {dayWorkouts.map((w, i) => (
@@ -257,7 +268,9 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                       ))}
                     </div>
                   )}
-                  <span aria-hidden style={{ flexShrink: 0, color: 'var(--tekst-8-alt)', fontSize: 13, paddingTop: 8 }}>›</span>
+                  <span style={{ flexShrink: 0, color: 'var(--tekst-8-alt)', paddingTop: 8 }}>
+                    <Ikon navn="neste" variant="strek" storrelse={14} />
+                  </span>
                 </div>
               )
             })}

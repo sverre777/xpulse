@@ -11,6 +11,7 @@ import {
   type CoachTargetGroup,
 } from '@/app/actions/coach-push'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 import { iDagISO } from '@/lib/local-date'
 
 const COACH_BLUE = '#1A6FD4'
@@ -142,9 +143,9 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
       >
         <div className="flex items-center justify-between px-5 py-3"
           style={{ borderBottom: '1px solid var(--line)' }}>
-          <span className="text-xs tracking-widest uppercase"
+          <span className="inline-flex items-center gap-2 text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
-            👥 Ny fellestrening
+            <Ikon navn="fellestrening" storrelse={18} />Ny fellestrening
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{ ...PILLE_BASIS, background: 'none', border: 'none', cursor: 'pointer',
@@ -206,9 +207,9 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
             </Field>
             <label className="flex items-center gap-2 mt-7">
               <input type="checkbox" checked={important} onChange={e => setImportant(e.target.checked)} />
-              <span className="text-xs tracking-widest uppercase"
+              <span className="inline-flex items-center gap-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                ★ Viktig økt
+                <Ikon navn="favoritt" variant="fyll" storrelse={14} />Viktig økt
               </span>
             </label>
           </section>

@@ -2,6 +2,8 @@
 // Egne maler lagres i user_ski_conditions_templates og slås sammen med disse
 // i UI-en (standard først, så user-templates).
 
+import type { IkonNavn } from '@/components/ui/ikoner'
+
 export const STANDARD_SNOW_TYPES = [
   'Nysnø (kald)',
   'Nysnø (varm)',
@@ -40,10 +42,19 @@ export const SKI_TEST_TYPES = ['tidtaker', 'lengde', 'parallell', 'egen'] as con
 export type SkiTestType = typeof SKI_TEST_TYPES[number]
 
 export const SKI_TEST_TYPE_LABELS: Record<SkiTestType, string> = {
-  tidtaker: '⏱ Tidtaker-glid',
-  lengde: '📏 Lengde-glid',
-  parallell: '⚔ Parallelltest',
-  egen: '✎ Egen test',
+  tidtaker: 'Tidtaker-glid',
+  lengde: 'Lengde-glid',
+  parallell: 'Parallelltest',
+  egen: 'Egen test',
+}
+
+// Ikonene til testtypene - vis sammen med SKI_TEST_TYPE_LABELS der JSX tillater
+// det (ikke i <option>, der teksten er alt som vises).
+export const SKI_TEST_TYPE_IKON: Record<SkiTestType, IkonNavn> = {
+  tidtaker: 'testlop',
+  lengde: 'lengdetest',
+  parallell: 'parallelltest',
+  egen: 'for-okt',
 }
 
 export const SKI_TEST_TYPE_DESCRIPTIONS: Record<SkiTestType, string> = {

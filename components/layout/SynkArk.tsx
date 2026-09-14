@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import { KortPopup } from '@/components/oversikt/KortPopup'
 import { hentSynkStatus, type SynkStatus } from '@/app/actions/synk-status'
 import { syncConnectedWatches } from '@/app/actions/klokkesync-sync'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const GRONN = '#28A86E'
@@ -52,7 +53,7 @@ export function SynkArk({ onClose }: { onClose: () => void }) {
                 {k.feil ? 'Synk feilet - re-koble' : k.tilkoblet ? `Tilkoblet${k.autoSynk ? ' · synk automatisk' : ''}${k.lastSyncAt ? ` · ${relativ(k.lastSyncAt)}` : ''}` : 'Ikke tilkoblet'}
               </p>
             </div>
-            {k.tilkoblet && !k.feil ? <span aria-hidden style={{ color: GRONN, fontSize: 18 }}>✓</span> : (
+            {k.tilkoblet && !k.feil ? <Ikon navn="fullfort" storrelse={18} style={{ color: GRONN }} /> : (
               <Link href={k.feil ? `/app/innstillinger/klokkesync/${k.slug}` : (k.connectPath ?? '/app/innstillinger/klokkesync')} data-synk-koble={k.slug} onClick={onClose}
                 style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: k.feil ? '#E23A5A' : ORANSJE, textDecoration: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}>{k.feil ? 'Re-koble' : 'Koble til'}</Link>
             )}
@@ -67,7 +68,7 @@ export function SynkArk({ onClose }: { onClose: () => void }) {
         </div>
         {status && (
           <p data-synk-nye style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-5-app)', margin: '8px 0 0' }}>
-            {status.nyeIDag} ny{status.nyeIDag === 1 ? '' : 'e'} økt{status.nyeIDag === 1 ? '' : 'er'} hentet i dag{status.nyeIDag > 0 ? <> → <Link href="/app/innboks" onClick={onClose} style={{ color: ORANSJE }}>Se innboks</Link></> : null}
+            {status.nyeIDag} ny{status.nyeIDag === 1 ? '' : 'e'} økt{status.nyeIDag === 1 ? '' : 'er'} hentet i dag{status.nyeIDag > 0 ? <> <Ikon navn="neste" storrelse={14} style={{ verticalAlign: 'middle' }} /> <Link href="/app/innboks" onClick={onClose} style={{ color: ORANSJE }}>Se innboks</Link></> : null}
           </p>
         )}
         <button type="button" data-synk-naa onClick={synkNaa} disabled={synker || tilkoblede.length === 0} className="xp-btn"

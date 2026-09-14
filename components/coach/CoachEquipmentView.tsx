@@ -19,6 +19,7 @@ import {
 } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from '@/components/equipment/NewSkiTestModal'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -85,12 +86,13 @@ export function CoachEquipmentView({
         <div className="flex justify-end">
           <button type="button"
             onClick={() => setSkiTestModalOpen(true)}
-            className="xp-pill"
+            className="xp-pill inline-flex items-center gap-1.5"
             style={{
               fontWeight: 700, fontSize: 12, letterSpacing: '0.18em',
               background: COACH_BLUE, color: 'var(--tekst-1-app)', borderColor: COACH_BLUE,
             }}>
-            + Legg til ski-test
+            <Ikon navn="legg-til" storrelse={18} />
+            Legg til ski-test
           </button>
         </div>
       )}
@@ -104,7 +106,7 @@ export function CoachEquipmentView({
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
             backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
           }}>
-          Ingen ski-tester registrert enda - trykk "+ Legg til ski-test" for å logge dagens forhold.
+          Ingen ski-tester registrert enda - trykk «Legg til ski-test» for å logge dagens forhold.
         </p>
       ) : null}
 
@@ -184,16 +186,18 @@ function SkiTestsBlock({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {winnerSki && (
-                    <span className="text-xs tracking-widest uppercase"
+                    <span className="text-xs tracking-widest uppercase inline-flex items-center gap-1"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                      🏆 {winnerSki.name}
+                      <Ikon navn="favoritt" storrelse={14} />
+                      {winnerSki.name}
                     </span>
                   )}
                   {onEdit && (
                     <button type="button" onClick={() => onEdit(test)}
-                      className="xp-pill xp-pill-ghost xp-pill-sm"
+                      className="xp-pill xp-pill-ghost xp-pill-sm inline-flex items-center gap-1.5"
                       style={{ borderColor: 'var(--line)' }}>
-                      ✎ Rediger
+                      <Ikon navn="for-okt" storrelse={14} />
+                      Rediger
                     </button>
                   )}
                 </div>

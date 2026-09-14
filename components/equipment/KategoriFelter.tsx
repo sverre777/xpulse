@@ -28,6 +28,7 @@ import {
   type SkiType,
   type SkiUsageType,
 } from '@/lib/equipment-types'
+import { Ikon } from '@/components/ui/ikoner'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -114,6 +115,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
             <div className="flex flex-wrap gap-2">
               {SKI_USAGE_TYPES.map(u => (
                 <FormChip key={u} active={v.ski_usage === u} onClick={() => set({ ski_usage: v.ski_usage === u ? '' : u })}>
+                  {u === 'konkurranse' && <Ikon navn="konkurranse" storrelse={14} style={{ marginRight: 4 }} />}
                   {SKI_USAGE_LABELS[u]}
                 </FormChip>
               ))}
@@ -132,8 +134,9 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
           <p className="text-xs" style={{ color: 'var(--tekst-5-app)' }}>
             Ny slip legges senere <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> - historikken beholdes.
           </p>
-          <p className="text-xs px-3 py-2" style={{ color: 'var(--tekst-1-app)', border: '1px solid rgba(40,168,110,0.4)', backgroundColor: 'rgba(40,168,110,0.07)', borderRadius: 8 }}>
-            ✓ Skia legges automatisk i skiparken når du lagrer - med type, bruk og slip som filtre der.
+          <p className="text-xs px-3 py-2 flex items-start gap-1.5" style={{ color: 'var(--tekst-1-app)', border: '1px solid rgba(40,168,110,0.4)', backgroundColor: 'rgba(40,168,110,0.07)', borderRadius: 8 }}>
+            <Ikon navn="fullfort" storrelse={14} style={{ marginTop: 1, flexShrink: 0 }} />
+            <span>Skia legges automatisk i skiparken når du lagrer - med type, bruk og slip som filtre der.</span>
           </p>
         </DetailSection>
       )}

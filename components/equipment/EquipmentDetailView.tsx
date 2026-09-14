@@ -35,6 +35,7 @@ import { testResultatDeler } from '@/lib/ski-test-types'
 import type { EquipmentGrind, SkiEquipment } from '@/lib/equipment-types'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { Ikon } from '@/components/ui/ikoner'
 import { KategoriFelter, kategoriVerdierFraEquipment } from './KategoriFelter'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -158,12 +159,13 @@ export function EquipmentDetailView({
     <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <Link href="/app/utstyr"
-          className="text-xs tracking-widest uppercase inline-block mb-4"
+          className="text-xs tracking-widest uppercase inline-flex items-center gap-1 mb-4"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: 'var(--tekst-5-app)', textDecoration: 'none',
           }}>
-          ‹ Tilbake til utstyr
+          <Ikon navn="forrige" storrelse={14} />
+          Tilbake til utstyr
         </Link>
 
         <div className="flex items-start gap-4 mb-8 flex-wrap">
@@ -551,8 +553,9 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Sliphistorikk
         </p>
-        <button type="button" onClick={() => setAdding(a => !a)} className="xp-pill xp-pill-primary">
-          + Ny slip
+        <button type="button" onClick={() => setAdding(a => !a)} className="xp-pill xp-pill-primary inline-flex items-center gap-1.5">
+          <Ikon navn="legg-til" storrelse={18} />
+          Ny slip
         </button>
       </div>
 
@@ -670,8 +673,9 @@ function SkiTestHistorySection({
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Ski-tester ({myEntries.length})
       </p>
-      <button type="button" onClick={() => setShowModal(true)} className="xp-pill xp-pill-primary">
-        + Ny test
+      <button type="button" onClick={() => setShowModal(true)} className="xp-pill xp-pill-primary inline-flex items-center gap-1.5">
+        <Ikon navn="legg-til" storrelse={18} />
+        Ny test
       </button>
     </div>
   )
@@ -754,7 +758,7 @@ function SkiTestHistorySection({
                   <button type="button" onClick={() => setEditTest(test)}
                     className="xp-pill xp-pill-ghost xp-pill-sm"
                     title="Åpne hele testen for redigering">
-                    ✎
+                    <Ikon navn="for-okt" storrelse={14} tittel="Åpne hele testen for redigering" />
                   </button>
                 </div>
               </div>

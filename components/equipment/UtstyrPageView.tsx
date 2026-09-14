@@ -11,6 +11,7 @@ import { XpTooltip, CHART_LEGEND_STYLE } from '@/components/analysis/chart-theme
 import { saveEquipment, saveSkiData } from '@/app/actions/equipment'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import {
   EQUIPMENT_CATEGORIES,
   EQUIPMENT_CATEGORY_ICONS,
@@ -94,8 +95,9 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
               Min skipark
             </Link>
             <button type="button" onClick={() => setShowNew(true)}
-              className="xp-pill xp-pill-primary flex-1 md:flex-none">
-              + Nytt utstyr
+              className="xp-pill xp-pill-primary flex-1 md:flex-none inline-flex items-center justify-center gap-1.5">
+              <Ikon navn="legg-til" storrelse={18} />
+              Nytt utstyr
             </button>
           </div>
         </div>
@@ -232,10 +234,10 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
   const skiData = skiInfo?.ski_data ?? null
 
   // Badges: bruk (gull konk / grønn trening) + type (blå).
-  const badges: Array<{ text: string; color: string }> = []
+  const badges: Array<{ text: string; color: string; ikon?: IkonNavn }> = []
   const brukBadge = (bruk: string | null | undefined) => {
     if (!bruk) return
-    if (bruk === 'konkurranse') badges.push({ text: '🏁 KONK', color: '#D4A017' })
+    if (bruk === 'konkurranse') badges.push({ text: 'KONK', color: '#D4A017', ikon: 'konkurranse' })
     else if (bruk === 'trening') badges.push({ text: 'TRENING', color: '#28A86E' })
     else badges.push({ text: bruk.toUpperCase(), color: '#1A6FD4' })
   }
@@ -288,7 +290,7 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}>
         {!equipment.image_url && (
-          <span aria-hidden style={{ fontSize: '19px', opacity: 0.75 }}>{EQUIPMENT_CATEGORY_ICONS[cat]}</span>
+          <Ikon navn={EQUIPMENT_CATEGORY_ICONS[cat]} storrelse={22} style={{ opacity: 0.75 }} />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -297,7 +299,7 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
             className="truncate">
             {equipment.name}
           </p>
-          {badges.map(b => <Badge key={b.text} text={b.text} color={b.color} />)}
+          {badges.map(b => <Badge key={b.text} text={b.text} color={b.color} ikon={b.ikon} />)}
         </div>
         {(subtitle || metaDeler.length > 0) && (
           <p className="truncate"
@@ -322,20 +324,21 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
           </p>
         )}
       </div>
-      <span style={{ color: 'var(--tekst-8-app)', fontSize: '18px' }}>›</span>
+      <Ikon navn="neste" storrelse={18} style={{ color: 'var(--tekst-8-app)' }} />
     </Link>
   )
 }
 
-function Badge({ text, color }: { text: string; color: string }) {
+function Badge({ text, color, ikon }: { text: string; color: string; ikon?: IkonNavn }) {
   return (
-    <span className="shrink-0"
+    <span className="shrink-0 inline-flex items-center gap-1"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         fontWeight: 700, fontSize: '10px', letterSpacing: '0.12em',
         color, border: `1px solid ${color}80`, borderRadius: 5,
         padding: '1px 7px',
       }}>
+      {ikon && <Ikon navn={ikon} storrelse={14} />}
       {text}
     </span>
   )
@@ -446,8 +449,8 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
             Nytt utstyr
           </h2>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '22px' }}>
-            ×
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer' }}>
+            <Ikon navn="lukk" storrelse={18} />
           </button>
         </div>
 

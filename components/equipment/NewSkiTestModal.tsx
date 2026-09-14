@@ -1,10 +1,10 @@
 'use client'
 
 // Ny skitest (fasit: design/xpulse-utstyr-design.html seksjon 3 + 4).
-// Testmaler: ⏱ tidtaker-glid · 📏 lengde-glid · ⚔ parallelltest · ✎ egen test
+// Testmaler: tidtaker-glid, lengde-glid, parallelltest, egen test
 // (+ egne lagrede test-maler). Forhold registreres på alle tester. «Under
-// skiene» er per ski — samme ski kan stille flere ganger m/ ulik smøring.
-// Alt lagres gjennom eksisterende saveSkiTest/rank_in_test — utvidet, ikke erstattet.
+// skiene» er per ski - samme ski kan stille flere ganger m/ ulik smøring.
+// Alt lagres gjennom eksisterende saveSkiTest/rank_in_test - utvidet, ikke erstattet.
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -16,6 +16,7 @@ import {
   SKI_TEST_TYPES,
   SKI_TEST_TYPE_LABELS,
   SKI_TEST_TYPE_DESCRIPTIONS,
+  SKI_TEST_TYPE_IKON,
   sorterteEntries,
   type SkiTestType,
   type SkiTestTemplate,
@@ -24,6 +25,7 @@ import {
 } from '@/lib/ski-test-types'
 import Link from 'next/link'
 import { visSlipDato, type SkiEquipment } from '@/lib/equipment-types'
+import { Ikon } from '@/components/ui/ikoner'
 import { parseDecimal } from '@/lib/parse-decimal'
 import {
   lagRunde,
@@ -316,8 +318,8 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
             {redigerer ? 'Rediger skitest' : 'Ny skitest'}
           </h2>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '22px' }}>
-            ×
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer' }}>
+            <Ikon navn="lukk" storrelse={18} />
           </button>
         </div>
 
@@ -338,7 +340,8 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     border: `1px solid ${testType === t && !egenMal ? ATHLETE_ORANGE : 'var(--line2, var(--line2))'}`,
                     borderRadius: 12, cursor: 'pointer',
                   }}>
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
+                  <p className="flex items-center gap-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
+                    <Ikon navn={SKI_TEST_TYPE_IKON[t]} storrelse={14} />
                     {SKI_TEST_TYPE_LABELS[t]}
                   </p>
                   <p className="text-xs mt-1" style={{ color: 'var(--tekst-8-app)' }}>
@@ -352,7 +355,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                 {testTemplates.map(m => (
                   <button key={m.id} type="button"
                     onClick={() => { setTestType('egen'); setEgenMal(m); setRunder(null) }}
-                    className="px-3 py-2 text-xs"
+                    className="px-3 py-2 text-xs inline-flex items-center gap-1.5"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: egenMal?.id === m.id ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
@@ -360,7 +363,8 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                       border: `1px solid ${egenMal?.id === m.id ? ATHLETE_ORANGE : 'var(--line)'}`,
                       borderRadius: 999, cursor: 'pointer',
                     }}>
-                    ✎ {m.name}
+                    <Ikon navn="for-okt" storrelse={14} />
+                    {m.name}
                   </button>
                 ))}
               </div>
@@ -455,8 +459,9 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     {entryNavn(idx)}
                   </span>
                   <button type="button" onClick={() => removeEntry(idx)}
-                    className="xp-pill xp-pill-sm xp-pill-danger">
-                    ✕ Fjern
+                    className="xp-pill xp-pill-sm xp-pill-danger inline-flex items-center gap-1">
+                    <Ikon navn="lukk" storrelse={14} />
+                    Fjern
                   </button>
                 </div>
                 {/* Slip og lengde LESES fra utstyret - ingen input her, og
@@ -541,8 +546,9 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                   Parallelltesten - to og to · vinneren videre
                 </p>
                 <button type="button" onClick={startBracket}
-                  className={`xp-pill xp-pill-sm ${runder ? 'xp-pill-ghost' : 'xp-pill-primary'}`}>
-                  {runder ? '⟳ Start på nytt' : 'Sett opp paringene'}
+                  className={`xp-pill xp-pill-sm inline-flex items-center gap-1.5 ${runder ? 'xp-pill-ghost' : 'xp-pill-primary'}`}>
+                  {runder && <Ikon navn="gjenta-forrige" storrelse={14} />}
+                  {runder ? 'Start på nytt' : 'Sett opp paringene'}
                 </button>
               </div>
               {!runder && (
@@ -587,7 +593,10 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                                     borderBottom: deltaker === p.a && p.b !== null ? '1px solid var(--line)' : 'none',
                                     cursor: p.b === null ? 'default' : 'pointer',
                                   }}>
-                                  <span>{entryNavn(parseInt(deltaker))}{vant ? ' ✓' : ''}</span>
+                                  <span className="inline-flex items-center gap-1">
+                                    {entryNavn(parseInt(deltaker))}
+                                    {vant && <Ikon navn="fullfort" storrelse={14} />}
+                                  </span>
                                   {entries[parseInt(deltaker)]?.wax_used && (
                                     <span className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
                                       {entries[parseInt(deltaker)].wax_used}
@@ -615,8 +624,9 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                             <div key={key} className="flex items-center justify-between py-1"
                               style={{ borderBottom: '1px solid var(--line)', fontSize: '13px' }}>
                               <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#D4A017', width: 26 }}>{plass}</span>
-                              <span className="flex-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-                                {entryNavn(parseInt(key))}{plass === 1 ? ' 🏆' : ''}
+                              <span className="flex-1 flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
+                                {entryNavn(parseInt(key))}
+                                {plass === 1 && <Ikon navn="favoritt" storrelse={14} />}
                               </span>
                             </div>
                           ))}
@@ -649,8 +659,9 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           <div className="flex items-center justify-end gap-3 pt-2">
             {redigerer && (
               <button type="button" onClick={handleDelete} disabled={pending}
-                className="xp-pill xp-pill-danger mr-auto">
-                🗑 Slett test
+                className="xp-pill xp-pill-danger mr-auto inline-flex items-center gap-1.5">
+                <Ikon navn="slett" storrelse={18} />
+                Slett test
               </button>
             )}
             <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">

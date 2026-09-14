@@ -1,6 +1,8 @@
 // Utstyr-system typer. Holdes adskilt fra lib/types.ts for å unngå at den filen
 // blir for stor. Dekker generisk utstyr (Fase 36) og ski-spesifikk data (Fase 37).
 
+import type { IkonNavn } from '@/components/ui/ikoner'
+
 // Fase 99 utvidet fra ['sko','sykkel','ski','klokke','annet'] til ni kategorier.
 // Rekkefølgen følger designfasitens chip-rad (klokke/annet sist).
 // Padling pkt 6 (Sverre 6. sep): baattype er UTSTYR, ikke bevegelsesform -
@@ -23,11 +25,12 @@ export const EQUIPMENT_CATEGORY_LABELS: Record<EquipmentCategory, string> = {
   annet: 'Annet',
 }
 
-// Kategoriikon — ÉN kilde, brukes både av utstyrslista og av velgeren i økta.
-// Nøkler = normalizeCategory-verdier.
-export const EQUIPMENT_CATEGORY_ICONS: Record<EquipmentCategory, string> = {
-  ski: '🎿', rulleski: '🛼', skisko: '🥾', lopesko: '👟', skistaver: '🦯',
-  sykkel: '🚴', sykkelsko: '👟', baat: '🛶', klokke: '⌚', annet: '🎒',
+// Kategoriikon - ÉN kilde, brukes både av utstyrslista og av velgeren i økta.
+// Nøkler = normalizeCategory-verdier. Sykkel som utstyr har ikke eget ikon i
+// settet - 'sykling' er valgt (sykkelsko er reservert for skoen).
+export const EQUIPMENT_CATEGORY_ICONS: Record<EquipmentCategory, IkonNavn> = {
+  ski: 'ski', rulleski: 'rulleski', skisko: 'skisko', lopesko: 'lopesko', skistaver: 'skistaver',
+  sykkel: 'sykling', sykkelsko: 'sykkelsko', baat: 'bat', klokke: 'klokke', annet: 'annet',
 }
 
 // Rader lagret før fase 99-migreringen kan fortsatt ha 'sko'. All lesing av
@@ -45,7 +48,7 @@ export function normalizeCategory(category: string): EquipmentCategory {
 export const SKI_USAGE_TYPES = ['konkurranse', 'trening'] as const
 export type SkiUsageType = typeof SKI_USAGE_TYPES[number]
 export const SKI_USAGE_LABELS: Record<SkiUsageType, string> = {
-  konkurranse: '🏁 Konkurranseski',
+  konkurranse: 'Konkurranseski',
   trening: 'Treningsski',
 }
 

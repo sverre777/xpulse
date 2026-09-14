@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { StravaLogo } from '@/components/strava/StravaBrand'
+import { Ikon } from '@/components/ui/ikoner'
 import { KLOKKESYNC_BRANDS, type KlokkesyncBrand } from '@/lib/klokkesync-brands'
 
 // Merkevelgeren. SAMME komponent brukes tre steder:
@@ -118,12 +119,16 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
         </div>
         </div>
       </div>
-      <span className="shrink-0" style={{
+      <span className="shrink-0 inline-flex items-center gap-1" style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
         letterSpacing: '0.14em', textTransform: 'uppercase',
         color: connected ? '#28A86E' : live ? brand.accent : 'var(--tekst-8-app)',
       }}>
-        {connected ? '✓ Tilkoblet' : live ? 'Koble til →' : 'Kommer'}
+        {connected ? (
+          <><Ikon navn="fullfort" storrelse={14} /> Tilkoblet</>
+        ) : live ? (
+          <>Koble til <Ikon navn="neste" storrelse={14} /></>
+        ) : 'Kommer'}
       </span>
     </div>
   )

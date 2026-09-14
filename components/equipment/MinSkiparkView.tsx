@@ -22,6 +22,7 @@ import {
 } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from './NewSkiTestModal'
 import { FilterChip as TabButton } from '@/components/ui/FilterChip'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -36,7 +37,7 @@ type Tab = SkiType | 'all'
 type BrukFilter = SkiUsageType | 'all'
 
 const BRUK_FILTER_LABELS: Record<SkiUsageType, string> = {
-  konkurranse: '🏁 Konkurranse',
+  konkurranse: 'Konkurranse',
   trening: 'Trening',
 }
 
@@ -70,9 +71,10 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
     <div style={{ minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         <Link href="/app/utstyr"
-          className="text-xs tracking-widest uppercase inline-block mb-4"
+          className="text-xs tracking-widest uppercase inline-flex items-center gap-1 mb-4"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', textDecoration: 'none' }}>
-          ‹ Tilbake til utstyr
+          <Ikon navn="forrige" storrelse={14} />
+          Tilbake til utstyr
         </Link>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-3 md:gap-4">
@@ -84,8 +86,9 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
           </div>
           {ski.length >= 1 && (
             <button type="button" onClick={() => setShowModal(true)}
-              className="xp-pill xp-pill-primary">
-              + Ny test
+              className="xp-pill xp-pill-primary inline-flex items-center gap-1.5">
+              <Ikon navn="legg-til" storrelse={18} />
+              Ny test
             </button>
           )}
         </div>
@@ -172,7 +175,7 @@ function SkiCard({ ski, maxKm }: { ski: SkiEquipment; maxKm: number }) {
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '17px' }}>
           {ski.name}
         </p>
-        {skiData?.usage_type === 'konkurranse' && <SkiBadge text="🏁 KONK" color="#D4A017" />}
+        {skiData?.usage_type === 'konkurranse' && <SkiBadge text="KONK" color="#D4A017" ikon="konkurranse" />}
         {skiData?.usage_type === 'trening' && <SkiBadge text="TRENING" color="#28A86E" />}
         {skiData?.ski_type && <SkiBadge text={SKI_TYPE_LABELS[skiData.ski_type].toUpperCase()} color="#1A6FD4" />}
       </div>
@@ -212,15 +215,16 @@ function SkiCard({ ski, maxKm }: { ski: SkiEquipment; maxKm: number }) {
   )
 }
 
-function SkiBadge({ text, color }: { text: string; color: string }) {
+function SkiBadge({ text, color, ikon }: { text: string; color: string; ikon?: IkonNavn }) {
   return (
-    <span className="shrink-0"
+    <span className="shrink-0 inline-flex items-center gap-1"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         fontWeight: 700, fontSize: '10px', letterSpacing: '0.12em',
         color, border: `1px solid ${color}80`, borderRadius: 5,
         padding: '1px 7px',
       }}>
+      {ikon && <Ikon navn={ikon} storrelse={14} />}
       {text}
     </span>
   )
@@ -290,15 +294,15 @@ function TestsSection({ tests, ski, onEdit }: {
                 </span>
                 <span className="flex items-center gap-2 shrink-0 text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                  <span>
+                  <span className="inline-flex items-center gap-1">
                     {t.entries.length} ski
-                    {vinnerSki && <> · 🏆 {vinnerSki.name}</>}
+                    {vinnerSki && <> · <Ikon navn="favoritt" storrelse={14} /> {vinnerSki.name}</>}
                   </span>
-                  <span style={{
-                    color: 'var(--tekst-8-app)', fontSize: '12px',
+                  <Ikon navn="neste" storrelse={14} style={{
+                    color: 'var(--tekst-8-app)',
                     transform: eråpen ? 'rotate(90deg)' : 'none',
                     transition: 'transform 150ms',
-                  }}>▶</span>
+                  }} />
                 </span>
               </button>
 
@@ -317,9 +321,10 @@ function TestsSection({ tests, ski, onEdit }: {
                         <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
                           style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--line)', borderRadius: 9 }}>
                           <span className="min-w-0">
-                            <span className="block truncate"
+                            <span className="flex items-center gap-1 min-w-0"
                               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
-                              {en.rank_in_test === 1 ? '🏆 ' : ''}{s?.name ?? 'Slettet ski'}
+                              {en.rank_in_test === 1 && <Ikon navn="favoritt" storrelse={14} />}
+                              <span className="truncate">{s?.name ?? 'Slettet ski'}</span>
                             </span>
                             {under && (
                               <span className="block text-xs"
@@ -346,8 +351,9 @@ function TestsSection({ tests, ski, onEdit }: {
 
                   <div className="flex items-center gap-2 mt-3">
                     <button type="button" onClick={() => onEdit(t)}
-                      className="xp-pill xp-pill-ghost xp-pill-sm">
-                      ✎ Rediger test
+                      className="xp-pill xp-pill-ghost xp-pill-sm inline-flex items-center gap-1.5">
+                      <Ikon navn="for-okt" storrelse={14} />
+                      Rediger test
                     </button>
                   </div>
                 </div>

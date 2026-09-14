@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Bekreftelse-modal før Polar-frakobling. Samme to-trinns mønster som
 // StravaDisconnectModal:
@@ -211,15 +212,24 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', fontWeight: 600 }}>
           Dette røres IKKE
         </p>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
-          → Økter du har lastet opp selv som .fit-filer
-          <br />
-          → Økter du har ført manuelt
-          <br />
-          → <strong>Helse- og søvnverdier du har ført selv</strong> - de slettes aldri
-          <br />
-          → Strava-tilkoblingen og Strava-importerte økter
-        </p>
+        <ul className="list-none p-0 m-0 space-y-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span>Økter du har lastet opp selv som .fit-filer</span>
+          </li>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span>Økter du har ført manuelt</span>
+          </li>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span><strong>Helse- og søvnverdier du har ført selv</strong> - de slettes aldri</span>
+          </li>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span>Strava-tilkoblingen og Strava-importerte økter</span>
+          </li>
+        </ul>
       </div>
 
       <div className="mb-4 p-3"
@@ -230,18 +240,27 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--gold)', fontSize: '13px', fontWeight: 600 }}>
           Vil du beholde øktene først?
         </p>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
-          → Eksporter dem som .fit fra{' '}
-          <a href="https://flow.polar.com" target="_blank" rel="noopener noreferrer"
-            style={{ color: 'var(--gold)', textDecoration: 'underline' }}>
-            Polar Flow
-          </a>
-          {' '}(økt → … → «Export session»)
-          <br />
-          → Last dem opp i X-PULSE som .fit-filer
-          <br />
-          → Da er de dine egne data og blir liggende permanent
-        </p>
+        <ul className="list-none p-0 m-0 space-y-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span>
+              Eksporter dem som .fit fra{' '}
+              <a href="https://flow.polar.com" target="_blank" rel="noopener noreferrer"
+                style={{ color: 'var(--gold)', textDecoration: 'underline' }}>
+                Polar Flow
+              </a>
+              {' '}(økt → … → «Export session»)
+            </span>
+          </li>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span>Last dem opp i X-PULSE som .fit-filer</span>
+          </li>
+          <li className="flex items-start gap-1.5">
+            <Ikon navn="neste" storrelse={14} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span>Da er de dine egne data og blir liggende permanent</span>
+          </li>
+        </ul>
       </div>
 
       {error && (
@@ -343,12 +362,13 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
             <li>3. Fjern tilgangen</li>
           </ol>
           <a href={manualUrl} target="_blank" rel="noopener noreferrer"
-            className="block mb-4 px-4 py-3 text-xs tracking-widest uppercase text-center transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-1.5 mb-4 px-4 py-3 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-ren)',
               backgroundColor: '#FF4500', textDecoration: 'none',
             }}>
-            Åpne Polar Flow-innstillinger →
+            Åpne Polar Flow-innstillinger
+            <Ikon navn="neste" storrelse={18} />
           </a>
           {message && (
             <p className="mb-4 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>

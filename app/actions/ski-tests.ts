@@ -352,7 +352,7 @@ export async function deleteConditionsTemplate(id: string): Promise<{ error?: st
 
 // ── Egne test-maler (Fase 100) ───────────────────────────────
 //
-// «✎ Egen test — ditt eget oppsett, lagres som mal»: navn + beskrivelse +
+// «Egen test - ditt eget oppsett, lagres som mal»: navn + beskrivelse +
 // målemåte (tid/lengde/score). Kun egne maler (RLS own-only).
 
 export async function listSkiTestTemplates(): Promise<SkiTestTemplate[]> {

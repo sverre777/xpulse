@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 /**
  * Klokkesynk gjennom en tredjeparts-leverandør (Garmin, COROS, Wahoo, Zepp).
@@ -63,13 +64,14 @@ export function StrideeReauthVarsel({ connections }: { connections: StrideeConne
       }}
     >
       <p
-        className="mb-1"
+        className="mb-1 flex items-center gap-1.5"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: VARSEL, fontSize: 15, fontWeight: 700, letterSpacing: '0.04em',
         }}
       >
-        ⚠ {hvem} synker ikke lenger
+        <Ikon navn="advarsel" storrelse={14} />
+        {hvem} synker ikke lenger
       </p>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: 14, lineHeight: 1.6 }}>
         Tilgangen ble trukket tilbake{navn.length > 0 ? '' : ' for en av klokkene dine'} - det skjer
@@ -143,9 +145,10 @@ export function StrideeConnectionListe({ connections }: { connections: StrideeCo
       {/* Leverandørens egen administrasjonsside (manage-link, mintes fersk
           per besøk). Vanlig lenke-navigasjon - regel 20. */}
       <a href="/api/klokkesync/stridee/manage"
-        className="inline-block mt-2 text-xs tracking-widest uppercase"
+        className="inline-flex items-center gap-1 mt-2 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', textDecoration: 'underline' }}>
-        Administrer klokkene hos leverandøren →
+        Administrer klokkene hos leverandøren
+        <Ikon navn="neste" storrelse={14} />
       </a>
       {frakoble && (
         <StrideeFrakoblingsDialog connection={frakoble} onClose={() => setFrakoble(null)} />
@@ -272,10 +275,10 @@ function StrideeFrakoblingsDialog({ connection, onClose }: {
  */
 export function StrideeCallbackBanner({ status }: { status: string | null }) {
   if (!status) return null
-  const [farge, tekst] = ((): [string, string] => {
+  const [farge, tekst, ikon] = ((): [string, string, IkonNavn?] => {
     switch (status) {
       case 'success':
-        return [GRONN, '✓ Klokka er koblet til. Nye økter kommer inn automatisk - den første synken kan ta noen minutter.']
+        return [GRONN, 'Klokka er koblet til. Nye økter kommer inn automatisk - den første synken kan ta noen minutter.', 'fullfort']
       case 'denied':
         return [VARSEL, 'Tilkoblingen ble avbrutt hos klokkeleverandøren. Ingenting er endret - prøv igjen når du vil.']
       case 'error':
@@ -296,8 +299,9 @@ export function StrideeCallbackBanner({ status }: { status: string | null }) {
         backgroundColor: `${farge}14`, border: `1px solid ${farge}66`,
         borderLeft: `3px solid ${farge}`, borderRadius: 10,
       }}>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: farge, fontSize: 14 }}>
-        {tekst}
+      <p className="flex items-start gap-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: farge, fontSize: 14 }}>
+        {ikon && <Ikon navn={ikon} storrelse={14} style={{ marginTop: 2, flexShrink: 0 }} />}
+        <span>{tekst}</span>
       </p>
     </div>
   )

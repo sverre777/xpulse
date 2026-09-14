@@ -17,6 +17,7 @@ import {
   type EquipmentCategory,
   type EquipmentWithUsage,
 } from '@/lib/equipment-types'
+import { Ikon } from '@/components/ui/ikoner'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -76,8 +77,8 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
             )}
           </div>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '22px' }}>
-            ×
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer' }}>
+            <Ikon navn="lukk" storrelse={18} />
           </button>
         </div>
 
@@ -123,8 +124,9 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
                               width: 16, height: 16, borderRadius: 4, flexShrink: 0,
                               border: `1px solid ${valgt ? ATHLETE_ORANGE : 'var(--line2)'}`,
                               backgroundColor: valgt ? ATHLETE_ORANGE : 'transparent',
-                              color: 'var(--tekst-1-app)', fontSize: 11, lineHeight: '15px', textAlign: 'center',
-                            }}>{valgt ? '✓' : ''}</span>
+                              color: 'var(--tekst-1-app)',
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            }}>{valgt && <Ikon navn="fullfort" storrelse={14} />}</span>
                             <span className="flex-1 min-w-0">
                               <span className="block truncate"
                                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>

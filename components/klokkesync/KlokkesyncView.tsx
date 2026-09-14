@@ -17,6 +17,7 @@ import {
 } from '@/app/actions/strava-sync'
 import { uploadFitFile } from '@/app/actions/fit-upload'
 import { FIT_MAX_BYTES, formatMB } from '@/lib/fit-limits'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { ConflictModal } from './ConflictModal'
 import { KlokkesyncBrandPicker } from './KlokkesyncBrandPicker'
 import { PolarStatusBanner, PolarConnectionBlock, type PolarConn } from './PolarStatus'
@@ -45,8 +46,8 @@ interface Props {
   polarStatus?: string | null
 }
 
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  koblet:           { label: '✓ Strava er koblet til',                      color: '#28A86E' },
+const STATUS_LABEL: Record<string, { label: string; color: string; ikon?: IkonNavn }> = {
+  koblet:           { label: 'Strava er koblet til',                      color: '#28A86E', ikon: 'fullfort' },
   avbrutt:          { label: 'Du avbrøt Strava-tilkoblingen',              color: 'var(--tekst-5-app)' },
   'feil-state':     { label: 'Sikkerhetsfeil - prøv igjen',                color: '#E11D48' },
   'ikke-innlogget': { label: 'Logg inn først, så prøv igjen',              color: '#E11D48' },
@@ -84,7 +85,10 @@ export function KlokkesyncView({
             color: STATUS_LABEL[status].color,
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           }}>
-          <div>{STATUS_LABEL[status].label}</div>
+          <div className="flex items-center gap-1.5">
+            {STATUS_LABEL[status].ikon && <Ikon navn={STATUS_LABEL[status].ikon!} storrelse={14} />}
+            {STATUS_LABEL[status].label}
+          </div>
           {detail && (
             <div style={{ marginTop: 6, fontSize: 11, opacity: 0.8 }}>
               Detaljer: <code>{detail}</code>
@@ -135,18 +139,22 @@ function StravaRolloutNote() {
         borderLeft: '3px solid var(--gold)',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
-      <div style={{ color: 'var(--tekst-1-app)', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
-        📡 Strava-sync er i gradvis utrulling
+      <div className="flex items-center gap-1.5"
+        style={{ color: 'var(--tekst-1-app)', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
+        <Ikon navn="synk" storrelse={14} />
+        Strava-sync er i gradvis utrulling
       </div>
       <p style={{ color: 'rgb(var(--tekst-land-rgb) / 0.62)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
         Direkte Strava-tilkobling er for øyeblikket tilgjengelig for et begrenset
         antall brukere mens vi utvider kapasiteten. Får du ikke koblet til ennå?
         Det kommer snart.
       </p>
-      <p style={{ color: 'rgb(var(--tekst-land-rgb) / 0.82)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 0' }}>
-        <span style={{ color: '#28A86E' }}>✓</span>{' '}
-        Du kan alltid laste opp <strong style={{ color: '#FF4500' }}>.fit-filer</strong> manuelt
-        - fungerer for alle, fra alle klokkemerker, med full data.
+      <p className="flex items-start gap-1.5" style={{ color: 'rgb(var(--tekst-land-rgb) / 0.82)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 0' }}>
+        <Ikon navn="fullfort" storrelse={14} style={{ color: '#28A86E', marginTop: 2, flexShrink: 0 }} />
+        <span>
+          Du kan alltid laste opp <strong style={{ color: '#FF4500' }}>.fit-filer</strong> manuelt
+          - fungerer for alle, fra alle klokkemerker, med full data.
+        </span>
       </p>
     </div>
   )
@@ -267,16 +275,19 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
   return (
     <>
       {missingScope && (
-        <div className="p-3 mb-3"
+        <div className="p-3 mb-3 flex items-start gap-1.5"
           style={{
             background: 'rgba(225,29,72,0.1)',
             border: '1px solid rgba(225,29,72,0.5)', borderRadius: 10,
             color: '#E11D48',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           }}>
-          ⚠️ Eksisterende kobling mangler aktivitets-tilgang
-          (scope: <code>{conn.scope ?? '-'}</code>). Frakoble og koble til på nytt
-          for å gi tilgang til økter.
+          <Ikon navn="advarsel" storrelse={14} style={{ marginTop: 2, flexShrink: 0 }} />
+          <span>
+            Eksisterende kobling mangler aktivitets-tilgang
+            (scope: <code>{conn.scope ?? '-'}</code>). Frakoble og koble til på nytt
+            for å gi tilgang til økter.
+          </span>
         </div>
       )}
       {!missingScope && onlyPublic && (
@@ -457,8 +468,9 @@ function ActivityRow({
         </div>
       </div>
       {imported ? (
-        <span style={{ fontSize: 11, color: '#28A86E', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
-          ✓ Importert
+        <span className="flex items-center gap-1" style={{ fontSize: 11, color: '#28A86E', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+          <Ikon navn="fullfort" storrelse={14} />
+          Importert
         </span>
       ) : conflict ? (
         <button type="button" onClick={onResolveConflict}
@@ -499,13 +511,15 @@ interface FileEntry {
 // overbelaste (et helt år = 200-400 filer prosesseres i bolker på 3).
 const UPLOAD_BATCH = 3
 
-const STATUS_VISUAL: Record<FileStatus, { label: string; color: string }> = {
+// ⊘ (allerede importert / hoppet over) har ingen tilsvarende ikon i settet -
+// beholdt som fargekodet tekst uten symbol, som «Klar»/«Importerer …».
+const STATUS_VISUAL: Record<FileStatus, { label: string; color: string; ikon?: IkonNavn }> = {
   pending:   { label: 'Klar',                color: 'var(--tekst-5-app)' },
   importing: { label: 'Importerer …',        color: 'var(--gold)' },
-  imported:  { label: '✓ Importert',         color: '#28A86E' },
-  duplicate: { label: '⊘ Allerede importert', color: 'var(--tekst-5-app)' },
-  skipped:   { label: '⊘ Duplikat - hoppet over', color: 'var(--tekst-5-app)' },
-  failed:    { label: '✗ Feilet',            color: '#E11D48' },
+  imported:  { label: 'Importert',           color: '#28A86E', ikon: 'fullfort' },
+  duplicate: { label: 'Allerede importert',  color: 'var(--tekst-5-app)' },
+  skipped:   { label: 'Duplikat - hoppet over', color: 'var(--tekst-5-app)' },
+  failed:    { label: 'Feilet',              color: '#E11D48', ikon: 'lukk' },
 }
 
 function FitUploadSection() {
@@ -710,7 +724,10 @@ function FitUploadSection() {
                     )}
                   </span>
                   <span className="flex items-center gap-2 shrink-0">
-                    <span style={{ color: v.color }}>{v.label}</span>
+                    <span className="flex items-center gap-1" style={{ color: v.color }}>
+                      {v.ikon && <Ikon navn={v.ikon} storrelse={14} />}
+                      {v.label}
+                    </span>
                     {!importing && e.status === 'pending' && (
                       <button type="button" onClick={() => removeEntry(i)}
                         aria-label={`Fjern ${e.name}`}
@@ -742,8 +759,8 @@ function FitUploadSection() {
           {summary.failed > 0 && (
             <ul className="list-none p-0 mt-2 space-y-1">
               {entries.filter(e => e.status === 'failed').map((e, i) => (
-                <li key={`feil:${e.name}:${i}`} style={{ fontSize: 12, color: 'var(--tekst-1-app)' }}>
-                  <span style={{ color: '#E11D48' }}>✗</span>{' '}
+                <li key={`feil:${e.name}:${i}`} className="flex items-center gap-1" style={{ fontSize: 12, color: 'var(--tekst-1-app)' }}>
+                  <Ikon navn="lukk" storrelse={14} style={{ color: '#E11D48' }} />
                   <strong>{e.name}</strong>
                   {e.detail ? <> - {e.detail}</> : null}
                 </li>
@@ -796,12 +813,14 @@ function FitHelpAccordion() {
     <details className="mb-4"
       style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)' }}>
       <summary
+        className="flex items-center gap-1.5"
         style={{
           cursor: 'pointer', padding: '12px 14px', listStyle: 'none',
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           color: 'var(--tekst-1-app)', letterSpacing: '0.04em',
         }}>
-        ▸ Hvordan finne .fit-fil fra klokken din
+        <Ikon navn="neste" storrelse={14} />
+        Hvordan finne .fit-fil fra klokken din
       </summary>
       <div style={{ padding: '0 14px 12px', borderTop: '1px solid var(--line)' }}>
         {BRAND_GUIDES.map(g => (

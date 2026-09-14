@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { setPolarAutoSync } from '@/app/actions/polar-sync'
 import { getKlokkesyncBrand } from '@/lib/klokkesync-brands'
 import { BrandMark } from './KlokkesyncBrandPicker'
@@ -39,20 +40,22 @@ const WEBHOOK_WARN_DAYS = 5
 // velgeren aldri kan komme i utakt.
 const polarBrand = getKlokkesyncBrand('polar')
 
-const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 'feil' | 'nøytral' }> = {
+const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 'feil' | 'nøytral'; ikon?: IkonNavn }> = {
   koblet: {
-    label: '✓ Polar er koblet til',
+    label: 'Polar er koblet til',
     hint: 'Polar gir kun økter fra de siste 30 dagene, og kun økter som lastes opp til Polar Flow etter at du koblet til. Eldre økter må lastes opp som .fit-filer.',
     tone: 'ok',
+    ikon: 'fullfort',
   },
   avbrutt: {
     label: 'Du avbrøt Polar-tilkoblingen',
     tone: 'nøytral',
   },
   frakoblet: {
-    label: '✓ Polar er frakoblet',
+    label: 'Polar er frakoblet',
     hint: 'Alle Polar-importerte økter, aktiviteter og rå-data er slettet, og X-PULSE er avregistrert hos Polar. Økter du har lastet opp som .fit-filer eller ført manuelt er ikke rørt.',
     tone: 'ok',
+    ikon: 'fullfort',
   },
   'feil-state': {
     label: 'Sikkerhetsfeil - prøv igjen',
@@ -120,7 +123,11 @@ export function PolarStatusBanner({ status, detail }: { status: string | null; d
         color,
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
       }}>
-      <div style={{ fontWeight: 600 }}>Polar: {s.label}</div>
+      <div className="flex items-center gap-1.5" style={{ fontWeight: 600 }}>
+        <span>Polar:</span>
+        {s.ikon && <Ikon navn={s.ikon} storrelse={14} />}
+        <span>{s.label}</span>
+      </div>
       {s.hint && (
         <div style={{ marginTop: 6, fontSize: 12, color: 'rgb(var(--tekst-land-rgb) / 0.72)', lineHeight: 1.6 }}>
           {s.hint}
@@ -282,8 +289,9 @@ function WebhookStatus({ lastWebhookAt }: { lastWebhookAt: string | null }) {
 
   if (!stale) {
     return (
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#28A86E', marginTop: 4 }}>
-        ✓ Direkte-varsling fra Polar er aktiv
+      <div className="flex items-center gap-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#28A86E', marginTop: 4 }}>
+        <Ikon navn="fullfort" storrelse={14} />
+        Direkte-varsling fra Polar er aktiv
         {lastWebhookAt && <span style={{ color: 'var(--tekst-8-app)' }}> · sist {new Date(lastWebhookAt).toLocaleString('nb-NO')}</span>}
       </div>
     )

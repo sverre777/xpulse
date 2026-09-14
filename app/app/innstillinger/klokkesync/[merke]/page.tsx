@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { KlokkesyncBrandPicker, BrandMark } from '@/components/klokkesync/KlokkesyncBrandPicker'
+import { Ikon } from '@/components/ui/ikoner'
 import { StravaConnectPanel } from '@/components/strava/StravaConnectPanel'
 import { PoweredByStravaBadge } from '@/components/strava/StravaBrand'
 import { getKlokkesyncBrand, KLOKKESYNC_BRANDS, type KlokkesyncBrand } from '@/lib/klokkesync-brands'
@@ -69,12 +70,13 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
         <div className="space-y-8">
           <Link href="/app/innstillinger/klokkesync"
             style={{
-              display: 'inline-flex', alignItems: 'center', minHeight: 44,
+              display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44,
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'var(--tekst-5-app)', textDecoration: 'none',
             }}>
-            ← Klokkesync
+            <Ikon navn="forrige" storrelse={14} />
+            Klokkesync
           </Link>
 
           <section className="p-5"
@@ -116,19 +118,22 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
             )}
 
             {isConnected ? (
-              <div className="p-4"
+              <div className="p-4 flex items-start gap-2"
                 style={{
                   background: 'rgba(40,168,110,0.08)',
                   border: '1px solid rgba(40,168,110,0.4)', borderRadius: 10,
                   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                   color: 'rgb(var(--tekst-land-rgb) / 0.85)', lineHeight: 1.6,
                 }}>
-                <strong style={{ color: '#28A86E' }}>✓ {brand.name} er koblet til.</strong>
-                <br />
-                Synk-status, auto-synk og frakobling ligger på{' '}
-                <Link href="/app/innstillinger/klokkesync" style={{ color: '#FF4500' }}>
-                  klokkesync-siden
-                </Link>.
+                <Ikon navn="fullfort" storrelse={14} style={{ color: '#28A86E', marginTop: 3, flexShrink: 0 }} />
+                <span>
+                  <strong style={{ color: '#28A86E' }}>{brand.name} er koblet til.</strong>
+                  <br />
+                  Synk-status, auto-synk og frakobling ligger på{' '}
+                  <Link href="/app/innstillinger/klokkesync" style={{ color: '#FF4500' }}>
+                    klokkesync-siden
+                  </Link>.
+                </span>
               </div>
             ) : brand.branding === 'strava' ? (
               <StravaConnectPanel />

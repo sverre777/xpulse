@@ -55,14 +55,20 @@ export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag
         const f = farge(b)
         const v = `calc(${pct(b.sluttSek)} - ${pct(b.startSek)})`
         const stablet = slag !== 'omriss' && f.andeler.length >= 2
+        // Sverre 14. sep: pause/veksling tegnes lavt (18 % av flata). Med
+        // bakgrunnens dempning (0.10) ble de usynlige, og planen så ut som om
+        // den manglet pausene. Lave blokker får derfor en bunn i synligheten.
+        const lav = f.hoyde <= 0.2
+        const gjennomsikt = slag === 'omriss' ? 0.9 : lav ? Math.max(dempet, 0.35) : dempet
         const tittel = f.andeler.length >= 2
           ? `${b.navn ?? b.type} · ${f.andeler[0].sone}-${f.andeler[f.andeler.length - 1].sone}: ${f.andeler.map(a => `${a.sone} ${Math.round(a.andel * 100)} %`).join(' · ')}`
           : (b.navn ?? b.type)
         return (
-          <div key={b.id} title={tittel} data-stablet={stablet ? f.andeler.map(a => a.sone).join(',') : undefined} style={{
+          <div key={b.id} title={tittel} data-plan-blokk={b.type}
+            data-stablet={stablet ? f.andeler.map(a => a.sone).join(',') : undefined} style={{
             position: 'absolute', left: pct(b.startSek), width: v,
             bottom: 0, height: `${Math.round(f.hoyde * 100)}%`,
-            background: slag === 'omriss' || stablet ? 'transparent' : f.farge, opacity: slag === 'omriss' ? 0.9 : dempet,
+            background: slag === 'omriss' || stablet ? 'transparent' : f.farge, opacity: gjennomsikt,
             borderLeft: `1px ${kant} ${f.farge}`, borderRight: `1px ${kant} ${f.farge}`,
             borderTop: `1px ${kant} ${f.farge}`,
             borderRadius: '3px 3px 0 0',

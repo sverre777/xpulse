@@ -61,7 +61,6 @@ export function DateRangePicker({
             backgroundColor: 'var(--flate-3)',
             border: '1px solid var(--kant-3)',
             color: 'var(--tekst-1-app)',
-            colorScheme: 'dark',
           }}
         />
         <span style={{ color: 'var(--tekst-8-app)' }}>-</span>
@@ -76,7 +75,6 @@ export function DateRangePicker({
             backgroundColor: 'var(--flate-3)',
             border: '1px solid var(--kant-3)',
             color: 'var(--tekst-1-app)',
-            colorScheme: 'dark',
           }}
         />
       </div>

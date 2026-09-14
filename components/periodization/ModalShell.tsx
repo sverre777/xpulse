@@ -86,7 +86,6 @@ export const INPUT_STYLE: React.CSSProperties = {
   padding: '10px 12px',
   fontSize: '15px',
   width: '100%',
-  colorScheme: 'dark',
 }
 
 export function ErrorText({ message }: { message: string }) {

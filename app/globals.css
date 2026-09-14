@@ -365,6 +365,30 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-grid2 > *, .sf17-meta > *, .grid > * { min-width: 0; }
 input[type="date"], input[type="time"], input[type="datetime-local"] {
   width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+  /* Sverre 14. sep: dato- og klokkefeltene så ikke ut som feltene under.
+     Safari/iOS tegner sin EGEN kontroll for disse typene og hopper over
+     ramme, bunnfarge og hjørner - appearance none gir dem tilbake samme boks
+     som tekstfeltene. Høyden settes av feltklassen (.sf17-in, .xp-input), så
+     her styres bare linjehøyden så teksten står midt i boksen. */
+  -webkit-appearance: none; appearance: none;
+  line-height: normal;
+  border-radius: var(--r-field);
+  /* Kalenderpanelet følger temaet (var hardkodet mørkt noen steder). */
+  color-scheme: dark;
+}
+:root[data-tema="lys"] input[type="date"],
+:root[data-tema="lys"] input[type="time"],
+:root[data-tema="lys"] input[type="datetime-local"] { color-scheme: light; }
+/* Kalender-/klokkeikonet inni feltet: dempet, i tekstfargen. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6); opacity: 0.7; cursor: pointer;
+}
+:root[data-tema="lys"] input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-tema="lys"] input[type="time"]::-webkit-calendar-picker-indicator,
+:root[data-tema="lys"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: none;
 }
 .xp-grid2 .xp-full { grid-column: 1 / -1; }
 

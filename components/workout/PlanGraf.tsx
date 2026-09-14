@@ -190,8 +190,10 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         return (
           <g key={`s-${p.id}`}>
             {andeler.map(a => { const ah = h * a.andel; y -= ah; return <rect key={a.sone} x={x(p.startSek) + 0.75} y={y} width={bw} height={ah} fill={ZONE_COLORS_V2[a.sone]} fillOpacity={0.14} pointerEvents="none" /> })}
-            <rect data-plan-spokelse-blokk x={x(p.startSek) + 0.75} y={gulv - h} width={bw} height={h}
-              rx={kompakt ? 1 : 3} fill={f.farge} fillOpacity={andeler.length >= 2 ? 0 : 0.14} stroke={f.farge} strokeOpacity={0.55} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
+            <rect data-plan-spokelse-blokk data-plan-type={p.type} x={x(p.startSek) + 0.75} y={gulv - h} width={bw} height={h}
+              rx={kompakt ? 1 : 3} fill={f.farge}
+              fillOpacity={andeler.length >= 2 ? 0 : f.hoyde <= 0.2 ? 0.3 : 0.14}
+              stroke={f.farge} strokeOpacity={f.hoyde <= 0.2 ? 0.75 : 0.55} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
               <title>{`Plan: ${p.navn ?? p.type} · ${fmtMin(p.sluttSek - p.startSek)}${andeler.length >= 2 ? ` · ${andeler[0].sone}-${andeler[andeler.length - 1].sone}` : p.sone ? ` · ${p.sone}` : ''}`}</title>
             </rect>
           </g>

@@ -398,7 +398,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
    i stedet for aa skrive inline-stiler per knapp; det var slik utstyr-siden
    endte med bade firkantede og runde knapper om hverandre.
    NB: heter .xp-pill, IKKE .xp-btn - .xp-btn er allerede tatt av savebar-
-   knappene lenger nede (border-radius 12, egne stoerrelser). */
+   knappene lenger nede (border-radius 12, egne stoerrelser). Oektpilla i
+   kalenderdagen heter .xp-oktpille (lenger nede) - de to het begge .xp-pill
+   fram til 14. sep 2026, og oektpilla vant i kaskaden. Ikke dop dem likt. */
 .xp-pill {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border-radius: 999px;
@@ -558,19 +560,23 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .xp-day.xp-today { border-color: var(--accent); }
 .xp-daynum { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--mut); letter-spacing: .05em; line-height: 1; }
 .xp-today .xp-daynum { color: var(--tekst-1-ren); background: var(--accent); border-radius: 6px; padding: 2px 6px 0; }
-.xp-pill { border-radius: 7px; padding: 5px 7px 6px; font-size: 13px; line-height: 1.25; cursor: pointer; border: 1px solid var(--line); border-left: 3px solid var(--green); background: var(--card2); transition: .12s; overflow: hidden; }
-.xp-pill:hover { border-color: var(--line2); }
-.xp-pill.xp-planned { border-left-color: var(--blue); background: var(--blue-soft); }
-.xp-pill.xp-race { border-left-color: var(--gold); }
-.xp-pill-name { color: var(--ink); font-weight: 600; letter-spacing: .01em; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-family: 'Barlow Condensed', sans-serif; }
-.xp-pill-dur { color: var(--accent); font-weight: 700; font-size: 12.5px; font-family: 'Barlow Condensed', sans-serif; }
+/* ØKTPILLA i kalenderdagen - IKKE knappen. Knappen heter .xp-pill og bor
+   lenger opp (border-radius 999, versaler). Denne het .xp-pill fram til
+   14. sep 2026 og overstyrte knappen i kaskaden, slik at alle knappene ble
+   firkantede med gronn venstrekant. Hold navnene atskilt. */
+.xp-oktpille { border-radius: 7px; padding: 5px 7px 6px; font-size: 13px; line-height: 1.25; cursor: pointer; border: 1px solid var(--line); border-left: 3px solid var(--green); background: var(--card2); transition: .12s; overflow: hidden; }
+.xp-oktpille:hover { border-color: var(--line2); }
+.xp-oktpille.xp-planned { border-left-color: var(--blue); background: var(--blue-soft); }
+.xp-oktpille.xp-race { border-left-color: var(--gold); }
+.xp-oktpille-navn { color: var(--ink); font-weight: 600; letter-spacing: .01em; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-family: 'Barlow Condensed', sans-serif; }
+.xp-oktpille-tid { color: var(--accent); font-weight: 700; font-size: 12.5px; font-family: 'Barlow Condensed', sans-serif; }
 .xp-wsum { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); }
 .xp-wsum-big { font-family: 'Bebas Neue', sans-serif; font-size: 21px; color: var(--accent); letter-spacing: .04em; }
 .xp-wbar { flex: 1; min-width: 90px; display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--line); }
 .xp-mini-card { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 16px 18px; }
 .xp-ghostbtn { border: 1.5px dashed var(--line2); border-radius: 9px; background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 10px; width: 100%; cursor: pointer; transition: .15s; }
 .xp-ghostbtn:hover { color: var(--accent); border-color: var(--accent-50); }
-@media (prefers-reduced-motion: reduce) { .xp-seg-pill button, .xp-mnav-btn, .xp-day, .xp-pill, .xp-ghostbtn { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .xp-seg-pill button, .xp-mnav-btn, .xp-day, .xp-pill, .xp-oktpille, .xp-ghostbtn { transition: none; } }
 
 /* ═══ FASE 3a: HJEM-MØNSTRE (design/xpulse-hjem-design.html) ═══ */
 .xp-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }

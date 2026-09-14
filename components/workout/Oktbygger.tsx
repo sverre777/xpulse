@@ -80,6 +80,18 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
   )
 }
 
+/** Tom økt: ingen rader, eller bare urørte rader. En ny økt opprettes med én
+    default-rad (bev.form fylt), så «ingen rader» er ikke nok - vi ser etter
+    innhold: tid, distanse, soner, øvelser eller skyteserier. */
+function erTomOkt(rader: ActivityRow[]): boolean {
+  return rader.every(r =>
+    !(parseActivityDuration(r.duration) ?? 0)
+    && !String(r.distance_km ?? '').trim()
+    && !Object.values(r.zones ?? {}).some(v => (parseActivityDuration(String(v ?? '')) ?? 0) > 0)
+    && (r.exercises ?? []).length === 0
+    && (r.shooting_series ?? []).length === 0)
+}
+
 export function OktbyggerPopup({
   workoutId, sport, rader, onRader, klokke, erPlanlagt, heartZones, rpe, timeOfDay,
   laktat, onLaktat, ernaering, onErnaering, punkter, onPunkter, onRaderFraBasen,
@@ -161,8 +173,10 @@ export function OktbyggerPopup({
   // Sverre 14. sep: ÅPENT i både plan og dagbok. Det lukkes KUN når det alt
   // står noe der - økta er planlagt eller ført - eller når den kommer fra
   // klokkesynk. Tom plan og tom dagbok: alltid åpent.
+  // FELLE: en ny økt opprettes med ÉN urørt default-rad, så rader.length === 0
+  // var aldri sant i dagboka. erTomOkt ser på INNHOLDET i radene i stedet.
   // Avgjøres ved åpning — etter «Opprett» skal ferdig-linja bli stående.
-  const [hurtigAapent, setHurtigAapent] = useState(() => rader.length === 0 && !klokke?.samples)
+  const [hurtigAapent, setHurtigAapent] = useState(() => erTomOkt(rader) && !klokke?.samples)
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt' | 'kadens'>(() =>
     klokke?.samples?.hr_samples?.length ? 'puls' : (klokke?.samples?.pace_samples ?? klokke?.samples?.speed_samples)?.length ? 'fart' : 'watt')
   // Sverre 5. sep (skjermbilde): seriene kan ligge OPPÅ hverandre i byggeren

@@ -315,6 +315,33 @@ export function ikonStier(navn: IkonNavn, variant: IkonVariant = 'strek', storre
   return { stier: par[variant], mini: !!m }
 }
 
+/** Fargene på øktbygger-ikonets deler (Sverre 14. sep): søylene leses som
+    soner - blå, rød, grønn - og plusset er X-PULSE-oransje. */
+export const OKTBYGGER_FARGER = ['#1A6FD4', '#E23A5A', '#28A86E', 'var(--accent)'] as const
+
+/** Øktbygger-ikonet med farge per del. Pathen er ÉN streng med fire delbaner
+    (tre søyler + plusset); de deles på M og tegnes hver for seg. Alt annet er
+    som <Ikon>: samme viewBox, samme strektykkelse. */
+export function OktbyggerIkon({ variant = 'strek', storrelse = 18, className, style, tittel }: Omit<IkonProps, 'navn'>) {
+  const { stier } = ikonStier('oktbygger', variant, storrelse, 'standard')
+  const deler = stier.join(' ').split(/(?=M)/).map(d => d.trim()).filter(Boolean)
+  const tegn = variant === 'strek'
+    ? { fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+    : { fillRule: 'nonzero' as const }
+  return (
+    <svg viewBox="0 0 24 24" width={storrelse} height={storrelse}
+      aria-hidden={tittel ? undefined : true} role={tittel ? 'img' : undefined}
+      className={className} data-ikon="oktbygger" data-variant={variant} data-farget="ja"
+      style={{ display: 'inline-block', flexShrink: 0, verticalAlign: 'middle', ...style }}>
+      {tittel && <title>{tittel}</title>}
+      {deler.map((d, i) => {
+        const farge = OKTBYGGER_FARGER[Math.min(i, OKTBYGGER_FARGER.length - 1)]
+        return <path key={i} d={d} {...tegn} {...(variant === 'strek' ? { stroke: farge } : { fill: farge })} />
+      })}
+    </svg>
+  )
+}
+
 export function Ikon({ navn, variant = 'strek', storrelse = 18, optisk = 'auto', className, style, tittel }: IkonProps) {
   const { stier, mini } = ikonStier(navn, variant, storrelse, optisk)
   const tegn = variant === 'strek'

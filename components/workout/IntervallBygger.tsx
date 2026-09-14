@@ -508,17 +508,18 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
       </div></>}
 
       <div style={{ ...CAP, marginTop: kompakt ? 0 : 16 }}>Drag</div>
-      <div className="grid gap-2 mt-1" style={{ gridTemplateColumns: kompakt ? '44px 10px 1fr 64px 10px 1fr' : '52px 12px 1fr 74px 12px 1fr 32px', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
+      <div className={`xp-ib-hode mt-1${kompakt ? ' xp-ib-kompakt' : ''}`} style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
         <span>Antall</span><span /><span>Dragtid / km</span><span>Sone</span><span /><span>Pause</span>{!kompakt && <span />}
       </div>
       {rader.map((r, i) => (
-        <div key={i} className="grid gap-2 items-center mt-1.5" style={{ gridTemplateColumns: kompakt ? '44px 10px 1fr 64px 10px 1fr' : '52px 12px 1fr 74px 12px 1fr 32px' }}>
+        <div key={i} className={`xp-ib-rad items-center mt-1.5${kompakt ? ' xp-ib-kompakt' : ''}`}>
           <input value={r.antall} onChange={e => oppdater(i, 'antall', e.target.value)} inputMode="numeric" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>×</span>
           <div className="flex items-center gap-1" style={{ minWidth: 0 }}>
             {/* Synlig TID | KM-bryter (Sverre 5. sep) - den aktive er fylt. */}
             <span role="group" aria-label="Dragtid eller kilometer" data-drag-bryter={r.modus}
-              style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden', flex: '0 0 auto' }}>
+              className="xp-ib-modus"
+              style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden', flex: '0 1 auto', minWidth: 0 }}>
               {(['tid', 'km'] as const).map(m => (
                 <button key={m} type="button" data-drag-modus={m} aria-pressed={r.modus === m} onClick={() => oppdater(i, 'modus', m)}
                   style={{ fontFamily: FONT, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', padding: '5px 8px', minHeight: 30, cursor: 'pointer', border: 'none',
@@ -529,13 +530,13 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             </span>
             {r.modus === 'km' ? (
               <input value={r.km} onChange={e => oppdater(i, 'km', e.target.value)} inputMode="decimal" placeholder="km" aria-label="Drag i km" data-drag-km
-                style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 0 }} />
+                style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 44, flex: '1 1 44px' }} />
             ) : (
               <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 0 }} />
             )}
           </div>
           <select value={r.sone} onChange={e => oppdater(i, 'sone', e.target.value)}
-            style={{ ...FELT, fontWeight: 700, color: ZONE_COLORS_V2[r.sone], padding: '8px 2px', fontSize: 14 }}>
+            style={{ ...FELT, fontWeight: 700, color: ZONE_COLORS_V2[r.sone], padding: '8px 0 8px 4px', fontSize: 14, minWidth: 0, textAlign: 'center' }}>
             {foringsSoner(utvidetSkala === true).map(z => <option key={z} value={z}>{z}</option>)}
             {/* Radens egen sone beholdes i lista selv om språket ikke
                 tilbyr den (eldre Hurtighet-rad m/ utvidet skala). */}

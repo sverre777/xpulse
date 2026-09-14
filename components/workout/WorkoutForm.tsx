@@ -57,7 +57,7 @@ import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER, finnOktMal, erTestMal, type OktMalDef
 import { oktMalTilWorkoutTemplate, normaliserMalSok, oktMalTilIntervallOppsett, oktTypeToWorkoutType } from '@/lib/okt-mal-kopi'
 import { showCompletionCheck } from '@/lib/interactions'
 import { iDagISO } from '@/lib/local-date'
-import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { Ikon, OktbyggerIkon, type IkonNavn } from '@/components/ui/ikoner'
 import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
@@ -1657,13 +1657,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         />
       )}
 
-      <Section label="Aktiviteter">
+      <Section label="Aktiviteter" handling={<OktbyggerKnapp onClick={() => setVisOktbygger(true)} />}>
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
         </p>
         <ActivitiesSection
           targetUserId={targetUserId}
-          onOktbygger={() => setVisOktbygger(true)}
           onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}
           onChange={settAktiviteter}
@@ -2315,18 +2314,22 @@ const iSt: React.CSSProperties = {
   color: 'var(--ink)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px', outline: 'none',
 }
 
-function Section({ label, children, collapsible = false, defaultCollapsed = false, summary }: {
+function Section({ label, children, collapsible = false, defaultCollapsed = false, summary, handling }: {
   label: string
   children: React.ReactNode
   collapsible?: boolean
   defaultCollapsed?: boolean
   summary?: string | null
+  /** Knapp til høyre i overskriften (Sverre 14. sep: Øktbyggeren hører hjemme
+      på overskriftsraden, ikke nede blant «legg til»-knappene). */
+  handling?: React.ReactNode
 }) {
   const [open, setOpen] = useState(!defaultCollapsed)
   const header = (
     <div className="xp-card-h">
       <span className="xp-num xp-num-auto" aria-hidden="true" />
       <h3 className="xp-card-title" style={{ flexShrink: 0 }}>{label}</h3>
+      {handling && <span style={{ marginLeft: 'auto', flexShrink: 0 }}>{handling}</span>}
       {collapsible && (
         <>
           <span className="xp-card-hint" style={{
@@ -2356,6 +2359,24 @@ function Section({ label, children, collapsible = false, defaultCollapsed = fals
       </button>
       {open && <div className="xp-card-b">{children}</div>}
     </div>
+  )
+}
+
+/** Øktbygger-knappen: står i overskriftsraden over aktivitetene. Ikonet bærer
+    sine egne farger (søyler blå/rød/grønn, pluss oransje). */
+function OktbyggerKnapp({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} data-apne-oktbygger
+      className="inline-flex items-center gap-2"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 12.5,
+        letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999,
+        padding: '7px 14px', minHeight: 36, cursor: 'pointer', whiteSpace: 'nowrap',
+        background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)',
+      }}>
+      <OktbyggerIkon variant="fyll" storrelse={18} />
+      Øktbygger
+    </button>
   )
 }
 

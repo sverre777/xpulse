@@ -502,8 +502,17 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
    (Sverre 14. sep: «50» ble klippet). */
 .xp-settrad { grid-template-columns: 36px 1fr 1fr 1fr 60px 22px; }
 
+/* Intervallbyggerens drag-rad: antall × dragtid × sone / pause. Sone-velgeren
+   trenger bare plass til «I3», og antall til to siffer - resten går til
+   dragtida, som ble klemt til 6 px på mobil (Sverre 14. sep). */
+.xp-ib-hode, .xp-ib-rad { display: grid; gap: 8px; grid-template-columns: 52px 12px minmax(0,1.6fr) 50px 10px minmax(0,1fr) 32px; }
+.xp-ib-hode.xp-ib-kompakt, .xp-ib-rad.xp-ib-kompakt { grid-template-columns: 38px 8px minmax(0,1.6fr) 44px 8px minmax(0,1fr); }
+
 /* ── Mobil + reduced motion ── */
 @media (max-width: 560px) {
+  .xp-ib-hode, .xp-ib-rad { gap: 6px; grid-template-columns: 40px 8px minmax(0,1.9fr) 42px 6px minmax(0,0.95fr) 26px; }
+  .xp-ib-hode.xp-ib-kompakt, .xp-ib-rad.xp-ib-kompakt { grid-template-columns: 36px 6px minmax(0,1.9fr) 40px 6px minmax(0,0.95fr); }
+  .xp-ib-rad .xp-ib-modus button { padding: 4px 5px !important; font-size: 9.5px !important; }
   .xp-settrad { grid-template-columns: 22px 1fr 1fr 1fr 44px 20px; gap: 5px; }
   /* Live styrke: settraden pakker om i stedet for å presse knappene ut
      (Sverre 14. sep). Feltene krymper, «Start/logg» får egen linje ved behov. */

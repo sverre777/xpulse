@@ -611,6 +611,12 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
   const fordeling = fmtSoneFordeling(gruppe)
   const alt = gruppe.nokkel === 'alt'
   const skudd = alt ? skuddSum(gruppe) : { skudd: 0, treff: 0 }
+  // Etter 14. sep samler SAMLET på underkategori, så én gruppe kan romme
+  // flere aktivitetstyper (oppvarming + drag + nedjogg med samme underlag).
+  // Da navngis gruppa etter underlaget, ikke etter typen til første rad.
+  const enType = gruppe.rader.every(r => r.activity_type === forste.activity_type)
+  const typeNavn = [...new Set(gruppe.rader.map(r => ACTIVITY_TYPES.find(t => t.value === r.activity_type)?.label ?? r.activity_type))]
+  const gruppeNavn = forste.movement_subcategory || forste.movement_name || (meta?.label ?? forste.activity_type)
   // PKT 28: feltene gruppe-raden viser (unionen over radene) og verdien de viser.
   const samleFelter = samleFelterFor(gruppe, isPlanMode)
   const aktive = gruppe.rader.filter(erAktivRad)
@@ -638,7 +644,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
           ? <span style={{ fontSize: '14px' }}>∑</span>
           : <Ikon navn={isStrength ? 'live-styrke' : (ikonForAktivitetstype(forste.activity_type) ?? 'annet')} variant="strek" storrelse={14} />}
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
-          {alt ? 'Hele økta' : monster ? 'Intervaller' : (meta?.label ?? forste.activity_type)}
+          {alt ? 'Hele økta' : monster ? 'Intervaller' : enType ? (meta?.label ?? forste.activity_type) : gruppeNavn}
         </span>
         {alt && skudd.skudd > 0 && (
           <span data-skudd-sum className="inline-flex items-center gap-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
@@ -705,7 +711,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
                 {alt ? `∑ ${n} rader · soner som fordeling` : (
                   <>
                     <Ikon navn={isStrength ? 'live-styrke' : (ikonForAktivitetstype(forste.activity_type) ?? 'annet')} variant="strek" storrelse={14} />
-                    {meta?.label ?? forste.activity_type}
+                    {enType ? (meta?.label ?? forste.activity_type) : typeNavn.join(' · ')}
                   </>
                 )}
               </div>

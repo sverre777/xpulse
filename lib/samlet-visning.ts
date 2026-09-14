@@ -4,15 +4,17 @@
 // idempotent. Det eneste i appen som slår sammen rader er «slå sammen med
 // neste» i Øktbyggeren (bolk 3): én rad om gangen, angrbar.
 //
-// GRUPPE (rettelse 2, tilbakestilt 5. sep — 6902104 «uansett rekkefølge»
-// var ikke bestilt): rader ETTER HVERANDRE med samme aktivitetstype +
-// bev.form + underkategori. Skyting bryter alltid (samles bare med skyting
-// av samme skytetype rett ved siden av, aldri med aktivitet); ulik bev.form
-// bryter alltid. INTERVALLSETT fra hurtigoppsettet (drag + pause med samme
-// gruppe_id, fase 117) er én gruppe og leses som MØNSTER — «8 × 4 min I3 ·
-// 2 min pause» — ikke som sum. Gruppe-raden viser sonene som FORDELING
+// GRUPPE (Sverre 14. sep 2026): SAMLET samler alt med samme UNDERKATEGORI
+// av bev.form - eller bev.form når underlag ikke er valgt - uansett hvor i
+// lista radene står. Skyting samles per markering (hard komb, rolig komb,
+// basis ...); skytinger uten markering havner i samme bolk. Alle pauser
+// samles i én. Rekkefølgen på gruppene følger første rad i hver.
+// «Samle alt» (hele økta som én rad) og «Splittet» er uendret.
+// INTERVALLSETT fra hurtigoppsettet (drag + pause med samme gruppe_id, fase
+// 117) leses som MØNSTER - «8 × 4 min I3 · 2 min pause» - når hele gruppa er
+// ett sett; ellers viser gruppa sum. Gruppe-raden viser sonene som FORDELING
 // («I1 40 · I3 20»), aldri én sone; sone endres per rad i splittet.
-// Bev.form/underkategori settes på gruppa og skrives til alle radene —
+// Bev.form/underkategori settes på gruppa og skrives til alle radene -
 // type endres ikke på gruppa.
 //
 // Valget huskes PER ØKT — i localStorage som de andre visningsvalgene i
@@ -32,16 +34,20 @@ const erSkyting = (t: string) => t.startsWith('skyting')
 const erPause = (a: ActivityRow) => segmentTypeFor(a.activity_type, a.movement_name ?? '') === 'pause'
 const SONE_REKKEFOLGE = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
 
-/** Nøkkelen som avgjør om to naborader hører sammen. Skyting får en
-    nøkkel ingen annen rad kan dele. */
+/** Nøkkelen som avgjør hvilken bolk raden havner i (Sverre 14. sep 2026).
+    Skyting og pause får nøkler ingen aktivitetsrad kan dele. */
 export function samleNokkel(a: ActivityRow): string {
-  // Skyting samles PER SKYTETYPE (Sverre 4. sep): hard komb-seriene i én
-  // bolk, rolig komb i én, basis i én — ikke all skyting i én gruppe.
+  // Skyting samles PER MARKERING (Sverre 4. sep): hard komb-seriene i én
+  // bolk, rolig komb i én, basis i én. Umarkerte skytinger deler nøkkelen
+  // '' og havner dermed i samme bolk.
   if (erSkyting(a.activity_type)) return `skyting|${a.shooting_type ?? ''}`
-  // Et intervallsett fra hurtigoppsettet (drag + pauser med samme gruppe_id)
-  // er ÉN gruppe og leses som mønster — det går foran type-nøkkelen.
-  if (a.gruppe_id) return `gruppe|${a.gruppe_id}`
-  return `${a.activity_type}|${a.movement_name ?? ''}|${a.movement_subcategory ?? ''}`
+  // Alle pauser i én bolk - pause og aktiv pause hører sammen.
+  if (erPause(a)) return 'pause'
+  // Ellers: underkategorien av bev.form, eller bev.form når underlag ikke
+  // er valgt. Uten bev.form (styrke uten øvelse, veksling ...) faller vi
+  // tilbake på aktivitetstypen, så radene ikke smelter sammen med alt annet.
+  const bev = (a.movement_subcategory ?? '').trim() || (a.movement_name ?? '').trim()
+  return bev ? `bev|${bev}` : `type|${a.activity_type}`
 }
 
 /** Intervallmønsteret i et sett med gruppe_id. */
@@ -92,13 +98,15 @@ function dominantSone(rader: ActivityRow[]): string | null {
 }
 
 /** Mønsteret leses bare når dragene er like (±15 %) — ellers er settet
-    ikke et mønster, og gruppa viser sum som en vanlig gruppe. */
-function lesMonster(rader: ActivityRow[]): Monster | null {
+    ikke et mønster, og gruppa viser sum som en vanlig gruppe.
+    Pausene i settet ligger i pause-bolken etter 14. sep, så de hentes fra
+    hele radlista på gruppe_id - ikke fra gruppa. */
+function lesMonster(rader: ActivityRow[], alle: ActivityRow[]): Monster | null {
   // Mønster bare når alle radene hører til SAMME sett (gruppe_id).
   const gid = rader[0]?.gruppe_id
   if (!gid || rader.some(a => a.gruppe_id !== gid)) return null
   const drag = rader.filter(a => !erPause(a))
-  const pauser = rader.filter(erPause)
+  const pauser = alle.filter(a => a.gruppe_id === gid && erPause(a))
   if (drag.length < 2) return null
   const sek = drag.map(radSek)
   const ref = sek[0]
@@ -107,18 +115,21 @@ function lesMonster(rader: ActivityRow[]): Monster | null {
   return { antall: drag.length, dragSek: Math.round(sek.reduce((a, b) => a + b, 0) / sek.length), sone: dominantSone(drag), pauseSek }
 }
 
-/** Rader ETTER HVERANDRE med samme nøkkel → én gruppe. Enkeltrader er
-    grupper på én. Rein lesing — radene røres ikke. */
+/** Alle rader med samme nøkkel → én gruppe, uansett hvor i lista de står
+    (Sverre 14. sep). Gruppene kommer i rekkefølgen første rad har.
+    Enkeltrader er grupper på én. Rein lesing — radene røres ikke. */
 export function grupperRaderSamlet(rows: ActivityRow[]): RadGruppe[] {
   const ut: RadGruppe[] = []
+  const etter = new Map<string, RadGruppe>()
   for (let i = 0; i < rows.length; i++) {
     const a = rows[i]
     const nokkel = samleNokkel(a)
-    const siste = ut[ut.length - 1]
-    if (siste && siste.nokkel === nokkel && siste.til === i - 1) {
-      siste.rader.push(a); siste.til = i
+    const g = etter.get(nokkel)
+    if (g) {
+      g.rader.push(a); g.til = i
     } else {
-      ut.push({ id: a.id, nokkel, rader: [a], fra: i, til: i, sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null })
+      const ny: RadGruppe = { id: a.id, nokkel, rader: [a], fra: i, til: i, sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null }
+      etter.set(nokkel, ny); ut.push(ny)
     }
   }
   for (const g of ut) {
@@ -136,7 +147,7 @@ export function grupperRaderSamlet(rows: ActivityRow[]): RadGruppe[] {
     g.sumSek = sek; g.sumKm = km
     g.snittpuls = hrSek > 0 ? Math.round(hrVekt / hrSek) : null
     g.makspuls = maks
-    g.monster = g.rader.length > 1 ? lesMonster(g.rader) : null
+    g.monster = g.rader.length > 1 ? lesMonster(g.rader, rows) : null
   }
   return ut
 }

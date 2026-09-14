@@ -216,20 +216,36 @@ export function skuddSum(g: RadGruppe): { skudd: number; treff: number } {
 
 /** Feltene en gruppe-rad kan endre — skrives til HVER rad i gruppa.
     Type og sone endres per rad (splittet). */
-export const GRUPPE_FELTER = ['movement_name', 'movement_subcategory', 'shooting_type'] as const
+export const GRUPPE_FELTER = ['movement_name', 'movement_subcategory', 'shooting_type', 'pack_weight_kg'] as const
 export type GruppeFelt = (typeof GRUPPE_FELTER)[number]
 
 export function skrivTilGruppe(rows: ActivityRow[], gruppe: RadGruppe, patch: Partial<Pick<ActivityRow, GruppeFelt>>): ActivityRow[] {
   const ider = new Set(gruppe.rader.map(r => r.id))
   // Skytetype gjelder bare skyterader (Sverre 5. sep) — i «Samle alt» står
   // det både skyting og aktivitet i gruppa; aktivitetene får ikke feltet.
-  const { shooting_type, ...resten } = patch
+  // Vekt (vektvest / børsa på ryggen, Sverre 14. sep) gjelder motsatt vei:
+  // den bæres under bevegelsen, ikke i pausene eller på standplass.
+  const { shooting_type, pack_weight_kg, ...resten } = patch
   return rows.map(r => {
     if (!ider.has(r.id)) return r
     const ny = { ...r, ...resten }
     if (shooting_type !== undefined && erSkyting(r.activity_type)) ny.shooting_type = shooting_type
+    if (pack_weight_kg !== undefined && erAktivRad(r)) ny.pack_weight_kg = pack_weight_kg
     return ny
   })
+}
+
+/** Vekta radene i gruppa deler — '' når de spriker eller ingen har noen.
+    Bare aktive rader teller (vekt bæres ikke i pausen). */
+export function gruppeVekt(g: RadGruppe): string {
+  let felles: string | null = null
+  for (const a of g.rader) {
+    if (!erAktivRad(a)) continue
+    const v = String(a.pack_weight_kg ?? '').trim()
+    if (felles == null) felles = v
+    else if (felles !== v) return ''
+  }
+  return felles ?? ''
 }
 
 // ── PKT 28 (Sverre 5. sep kveld): FELTENE PÅ SAMLET / SAMLE ALT ──────

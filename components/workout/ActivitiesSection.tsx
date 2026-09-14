@@ -11,7 +11,7 @@ import { SamletBryter } from './SamletBryter'
 import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { sikreKlokkerundeBackup } from '@/app/actions/runder'
 import {
-  grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, erSkytingGruppe, skytingGruppeType, skuddSum, heleOkta, fmtSoneFordeling,
+  grupperRaderSamlet, skrivTilGruppe, gruppeVekt, lesVisning, huskVisning, standardVisning, monsterTekst, erSkytingGruppe, skytingGruppeType, skuddSum, heleOkta, fmtSoneFordeling,
   samleFelterFor, samleVerdi, skrivSamleFelt, erAktivRad,
   type Visning, type RadGruppe, type GruppeFelt, type SamleFelt,
 } from '@/lib/samlet-visning'
@@ -388,6 +388,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             onSplitt={() => velgVisning('splittet')}
             isPlanMode={isPlanMode}
             workoutType={workoutType}
+            biathlon={sport === 'biathlon'}
             equipment={availableEquipment}
             activityEquipment={activityEquipment}
             onActivityEquipmentChange={onActivityEquipmentChange}
@@ -430,6 +431,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             onSplitt={() => velgVisning('splittet')}
             isPlanMode={isPlanMode}
             workoutType={workoutType}
+            biathlon={sport === 'biathlon'}
             equipment={availableEquipment}
             activityEquipment={activityEquipment}
             onActivityEquipmentChange={onActivityEquipmentChange}
@@ -509,7 +511,7 @@ function SorterbarRad({ id, children }: { id: string; children: (grip: RadGrip) 
 // endres per rad i splittet. Sonene vises som FORDELING, aldri én sone.
 // Et intervallsett (gruppe_id) leses som mønster: «8 × 4 min I3 · 2 min
 // pause». Ingen datamutasjon ved visning.
-function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSamleFelt, userMovementTypes, onSplitt, isPlanMode, workoutType, equipment, activityEquipment, onActivityEquipmentChange }: {
+function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSamleFelt, userMovementTypes, onSplitt, isPlanMode, workoutType, biathlon, equipment, activityEquipment, onActivityEquipmentChange }: {
   gruppe: RadGruppe
   expanded: boolean
   onToggle: () => void
@@ -520,6 +522,8 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
   onSamleFelt: (felt: SamleFelt, verdi: string) => void
   userMovementTypes: UserMovementType[]
   onSplitt: () => void
+  /** Børsa på ryggen vises kun for skiskyting; vektvest gjelder alle idretter. */
+  biathlon: boolean
   isPlanMode: boolean
   workoutType?: string
   equipment?: Equipment[]
@@ -781,6 +785,14 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
               )}
               {samleFelter.has('incline_percent') && samle('incline_percent', 'Stigning (%, alle rader)', { inputMode: 'decimal', placeholder: '0.0' })}
             </div>
+          )}
+          {/* Sverre 14. sep: vektvest (alle idretter) og børsa på ryggen (kun
+              skiskyting) settes for HELE gruppa/økta, så man slipper å gå
+              inn i hver aktivitet. Skrives kun til de aktive radene. */}
+          {aktive.length > 0 && (
+            <VektTillegg verdi={gruppeVekt(gruppe)} biathlon={biathlon}
+              hale={alt ? 'hele økta' : 'hele gruppa'}
+              onUpdate={patch => onUpdate({ pack_weight_kg: patch.pack_weight_kg ?? '' })} />
           )}
           <p className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
             {n} rader · bev.form, underkategori og feltene over skrives til {alt ? 'alle radene i økta' : 'hver av dem'}: km fordelt etter varighet, snitt likt på rader uten egen verdi (klokkerader beholder det målte), motstand og stigning på alle. Type, sone, tid, km og puls per rad:{' '}
@@ -1331,7 +1343,7 @@ function ActivityRowItem({
               en liten ghost-knapp til verdien finnes. Skiskyttere får børsa-
               chip (3,5 kg) rett i raden. Lagres i pack_weight_kg (Tur-mønsteret). */}
           {isEndurance && !isTur && !meta?.isShooting && !isAnnet && (
-            <VektTillegg row={row} onUpdate={onUpdate} biathlon={sport === 'biathlon'} />
+            <VektTillegg verdi={row.pack_weight_kg} onUpdate={onUpdate} biathlon={sport === 'biathlon'} />
           )}
 
           {/* Sonefordeling - kun utholdenhet (ikke skyting/pause/styrke) */}
@@ -1988,13 +2000,15 @@ function LactateMeasurementsEditor({
 // Pakkevekt, pulkvekt, total (read-only sum), værforhold og temperatur.
 // Pulkvekt vises kun når underkategori tilsier det (f.eks. "Fjellski med pulk").
 
-function VektTillegg({ row, onUpdate, biathlon }: {
-  row: ActivityRow
+function VektTillegg({ verdi, onUpdate, biathlon, hale }: {
+  verdi: string
   onUpdate: (patch: Partial<ActivityRow>) => void
   biathlon: boolean
+  /** Tillegg til etiketten når vekta gjelder flere rader («alle radene»). */
+  hale?: string
 }) {
   const [open, setOpen] = useState(false)
-  const val = row.pack_weight_kg
+  const val = verdi
   const erBorsa = val === '3.5'
   const ghost: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
@@ -2006,11 +2020,11 @@ function VektTillegg({ row, onUpdate, biathlon }: {
     return (
       <div className="flex items-center gap-2 mt-2">
         <button type="button" onClick={() => setOpen(true)} style={{ ...ghost, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-          <Ikon navn="legg-til" variant="strek" storrelse={14} /> Vekt (vest/våpen)
+          <Ikon navn="vektvest" variant="strek" storrelse={14} /> Vektvest{hale ? ` - ${hale}` : ''}
         </button>
         {biathlon && (
           <button type="button" onClick={() => onUpdate({ pack_weight_kg: '3.5' })} style={{ ...ghost, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <Ikon navn="borse-pa-ryggen" variant="strek" storrelse={14} /> Børsa 3,5 kg
+            <Ikon navn="borse-pa-ryggen" variant="strek" storrelse={14} /> Børsa 3,5 kg{hale ? ` - ${hale}` : ''}
           </button>
         )}
       </div>

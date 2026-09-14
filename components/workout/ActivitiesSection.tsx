@@ -538,8 +538,8 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
     const n = gruppe.rader.length
     return (
       <div className="xp-act" data-gruppe-rad data-skyting={typeNokkel || 'uten-type'} data-antall={n}>
-        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
-          onClick={onToggle} style={{ userSelect: 'none' }}>
+        <div className="flex items-center gap-x-2 px-3 py-2 cursor-pointer"
+          onClick={onToggle} style={{ userSelect: 'none', flexWrap: 'nowrap', minWidth: 0 }}>
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
             letterSpacing: '0.1em', color: typeInfo?.color ?? 'var(--accent)', border: `1px solid ${typeInfo?.color ?? 'var(--accent)'}`,
@@ -625,8 +625,8 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
   const kadensEnhet = bevFelterFor(forste.movement_name, forste.movement_subcategory).kadens || 'rpm'
   return (
     <div className="xp-act" data-gruppe-rad data-antall={n} data-monster={monster ?? undefined} data-alt={alt || undefined}>
-      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
-        onClick={onToggle} style={{ userSelect: 'none' }}>
+      <div className="flex items-center gap-x-2 px-3 py-2 cursor-pointer"
+        onClick={onToggle} style={{ userSelect: 'none', flexWrap: 'nowrap', minWidth: 0 }}>
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
           letterSpacing: '0.1em', color: 'var(--accent)', border: '1px solid var(--accent)',
@@ -678,7 +678,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
             style={{
               background: 'none', border: fellesUtstyr.length > 0 ? '1px solid #FF4500' : '1px solid var(--line2)',
               borderRadius: 6, cursor: 'pointer', color: fellesUtstyr.length > 0 ? '#FF4500' : 'var(--tekst-8-app)',
-              fontSize: '12px', lineHeight: 1, padding: '4px 6px', display: 'inline-flex', alignItems: 'center', gap: 2,
+              fontSize: '12px', lineHeight: 1, padding: '4px 6px', display: 'inline-flex', alignItems: 'center', gap: 2, flexShrink: 0,
             }}>
             <Ikon navn="synk" variant="strek" storrelse={14} />{fellesUtstyr.length > 0 ? fellesUtstyr.length : ''}
           </button>
@@ -925,16 +925,17 @@ function ActivityRowItem({
 
   return (
     <div className="xp-act">
-      {/* Compact row - flex-wrap så label/bevegelsesform kan gå på linje 2 på smal skjerm,
-          mens ikon+type, varighet og kontroller forblir på topp-raden. */}
+      {/* Compact row - ÉN linje (Sverre 14. sep: «søppelkassene må få plass på
+          samme rad»). Lang bevegelsesform/underkategori krympes med ellipsis
+          i stedet for å dytte chevron og slett ned på en egen linje. */}
       <div
-        className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
+        className="flex items-center gap-x-2 px-3 py-2 cursor-pointer"
         onClick={onToggle}
-        style={{ userSelect: 'none' }}
+        style={{ userSelect: 'none', flexWrap: 'nowrap', minWidth: 0 }}
       >
         {/* Gripepanel ⋮⋮ (pkt 18): dra raden opp/ned - mus, langt trykk på
             mobil, eller fokus + piltast (tilgjengelighet). Erstatter pilene. */}
-        <div className="flex items-center justify-center" style={{ width: '24px', minHeight: 36 }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-center" style={{ width: '24px', minHeight: 36, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           {dragRef ? (
             <button type="button" ref={dragRef as React.Ref<HTMLButtonElement>} {...dragAttributes} {...dragListeners}
               data-grip aria-label="Flytt raden - dra, eller bruk piltastene"
@@ -951,12 +952,13 @@ function ActivityRowItem({
         </div>
 
         {/* Type icon + label */}
-        <Ikon navn={displayIkon} variant="strek" storrelse={14} />
+        <Ikon navn={displayIkon} variant="strek" storrelse={14} style={{ flexShrink: 0 }} />
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: 'var(--tekst-1-app)',
           fontSize: '14px',
           fontWeight: 600,
+          whiteSpace: 'nowrap', flexShrink: 0,
         }}>
           {meta?.label ?? row.activity_type}
         </span>
@@ -967,17 +969,17 @@ function ActivityRowItem({
             className="truncate"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
-              fontSize: '13px', minWidth: 0,
+              fontSize: '13px', minWidth: 0, flex: '1 1 auto',
             }}>
             · {row.movement_name}
             {row.movement_subcategory ? ` - ${row.movement_subcategory}` : ''}
           </span>
         )}
 
-        <div className="flex-1" style={{ minWidth: '4px' }} />
+        <div style={{ flex: '0 1 4px', minWidth: 0 }} />
 
         {/* Duration */}
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '15px', letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '15px', letterSpacing: '0.05em', whiteSpace: 'nowrap', flexShrink: 0 }}>
           {durDisplay}
         </span>
 
@@ -1012,7 +1014,7 @@ function ActivityRowItem({
           color: 'var(--tekst-8-app)', fontSize: '12px',
           transform: expanded ? 'rotate(90deg)' : 'none',
           transition: 'transform 150ms',
-          marginLeft: '4px',
+          marginLeft: '4px', flexShrink: 0, display: 'inline-flex',
         }}>
           <Ikon navn="neste" variant="strek" storrelse={14} />
         </span>
@@ -1022,7 +1024,7 @@ function ActivityRowItem({
           aria-label="Slett aktivitet"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--tekst-8-app)', lineHeight: 1,
+            color: 'var(--tekst-8-app)', lineHeight: 1, flexShrink: 0,
             padding: '6px 8px', marginRight: '-6px',
           }}><Ikon navn="slett" variant="strek" storrelse={18} /></button>
       </div>

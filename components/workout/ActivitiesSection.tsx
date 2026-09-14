@@ -40,7 +40,7 @@ import { shootingSummary, SHOOTING_TYPES_V2 } from '@/lib/shooting'
 import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
 import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
-import type { ShootingSeriesRow, ActivityTypeOption } from '@/lib/types'
+import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import type { UserExercise } from '@/lib/user-exercise-types'
@@ -180,28 +180,6 @@ function fargeForAktivitetstype(t: string): string | undefined {
   return undefined
 }
 
-
-/** Bolk 24: posisjonene en gammel «Skyting»-rad (kombinert) faktisk bærer. */
-function skytingPosisjoner(row: ActivityRow): { L: boolean; S: boolean } {
-  const serier = row.shooting_series ?? []
-  const L = serier.some(x => x.position === 'L') || !!String(row.prone_shots ?? '').trim()
-  const S = serier.some(x => x.position === 'S') || !!String(row.standing_shots ?? '').trim()
-  return { L, S }
-}
-/** Kombinert uten L/S noe sted = «velg L/S» (oransje) til valgt. */
-function manglerLS(row: ActivityRow): boolean {
-  if (row.activity_type !== 'skyting_kombinert') return false
-  const p = skytingPosisjoner(row)
-  return !p.L && !p.S
-}
-function legacySkytingLabel(row: ActivityRow, meta: ActivityTypeOption): string {
-  if (row.activity_type !== 'skyting_kombinert') return meta.label
-  const p = skytingPosisjoner(row)
-  if (p.L && p.S) return 'Skyting L+S'
-  if (p.L) return 'Skyting L'
-  if (p.S) return 'Skyting S'
-  return 'Skyting · velg L/S'
-}
 
 export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
   // Skyting kun for skiskyttere: brukerens (eller utøverens) sporter — aldri øktas sport i stedet.
@@ -1073,7 +1051,6 @@ function ActivityRowItem({
               <IkonVelger<ActivityType>
                 ariaLabel="Aktivitetstype"
                 verdi={row.activity_type}
-                uthevet={manglerLS(row)}
                 stil={iSt}
                 valg={[
                   ...(showFavoritesGroup
@@ -1089,7 +1066,7 @@ function ActivityRowItem({
                   })),
                   // Gamle rader m/ legacy skyting-variant: behold verdien synlig.
                   ...(meta?.legacy && !typeOptions.some(t => t.value === meta.value)
-                    ? [{ verdi: meta.value, etikett: legacySkytingLabel(row, meta), ikon: meta.icon, farge: fargeForAktivitetstype(meta.value) }]
+                    ? [{ verdi: meta.value, etikett: meta.label, ikon: meta.icon, farge: fargeForAktivitetstype(meta.value) }]
                     : []),
                 ]}
                 onVelg={nyType => {

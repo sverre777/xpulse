@@ -503,11 +503,12 @@ export interface ActivityTypeOption {
 
 // ── SKYTETYPENE: L og S er typer igjen (bolk 24, Sverre 5. sep 2026) ────
 //
-// Typelista på radene viser «Skyting L» (`skyting_liggende`) og «Skyting S»
-// (`skyting_staaende`). Skyting UTEN L/S kan ikke velges for nye rader:
-// `skyting_kombinert` (etikett «Skyting») er `legacy` og vises bare på rader
-// som allerede bærer verdien — der som «Skyting · velg L/S» (oransje) til
-// utøveren velger L eller S. Ingen migrering: gamle rader beholder verdien.
+// Typelista på radene viser «Skyting L» (`skyting_liggende`), «Skyting S»
+// (`skyting_staaende`) og - fra 14. sep 2026 - «Skyting L+S»
+// (`skyting_kombinert`). L+S er et REELT valg: én rad med både liggende og
+// stående serier. Den var `legacy` og skjult, og ble derfor bedt om som
+// «velg L/S»; nå velges den med vilje. Ingen migrering: gamle rader med
+// verdien peker på samme type som før.
 //
 // Posisjonen på SERIENE (`ShootingSeriesRow.position`, kø #47) består. En
 // gammel kombinert-rad med serier viser derfor L/S/L+S utledet av seriene i
@@ -532,7 +533,7 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'veksling',          label: 'Veksling',           icon: 'veksling', usesMovement: false, isShooting: false, biathlonOnly: false },
   { value: 'skyting_liggende',  label: 'Skyting L',          icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_staaende',  label: 'Skyting S',          icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_kombinert', label: 'Skyting',            icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_kombinert', label: 'Skyting L+S',        icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_innskyting',label: 'Skyting - Innskyting',icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'skyting_basis',     label: 'Skyting - Basisskyting',icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'nedjogg',           label: 'Nedjogg',            icon: 'nedjogg', usesMovement: true,  isShooting: false, biathlonOnly: false },

@@ -2801,11 +2801,32 @@ export function Calendar({
   }, [router, searchParams])
 
   // Auto-åpne modal fra URL (?edit=<id> eller ?new=<date>&time=<hh:mm>)
+  //
+  // FELLE (Sverre 14. sep 2026): ved KALD sidelasting kunne modalen bli borte.
+  // `useSearchParams` er tom i første render mens siden strømmes, og
+  // cv/cd-speilingen lenger nede leser `window.location.search` direkte og
+  // stripper ?edit/?new fra URL-en med en gang - så da parameterne endelig
+  // kom fram til denne effekten, var de allerede fjernet. En delt lenke rett
+  // til en økt åpnet dermed ingenting; klikket man seg dit inne i appen (samme
+  // URL, klient-navigasjon) virket det.
+  //
+  // Derfor leses modal-parameterne ÉN gang fra URL-en slik den faktisk var da
+  // kalenderen ble montert, og brukes bare hvis searchParams ikke har dem.
+  // Ref-en tømmes ved første kjøring, ellers ville modalen åpnet seg igjen
+  // etter at man lukket den.
+  const urlModalRef = useRef<{ edit: string | null; ny: string | null; tid: string | null; styrke: boolean } | null>(
+    typeof window === 'undefined' ? null : (() => {
+      const q = new URLSearchParams(window.location.search)
+      return { edit: q.get('edit'), ny: q.get('new'), tid: q.get('time'), styrke: q.get('styrke') === '1' }
+    })(),
+  )
   useEffect(() => {
-    const editId = searchParams.get('edit')
-    const newDate = searchParams.get('new')
-    const newTime = searchParams.get('time') ?? undefined
-    const styrke = searchParams.get('styrke') === '1'
+    const forste = urlModalRef.current
+    urlModalRef.current = null
+    const editId = searchParams.get('edit') ?? forste?.edit ?? null
+    const newDate = searchParams.get('new') ?? forste?.ny ?? null
+    const newTime = searchParams.get('time') ?? forste?.tid ?? undefined
+    const styrke = searchParams.get('styrke') === '1' || (!searchParams.get('new') && !!forste?.styrke)
     if (editId) {
       setModalState({ kind: 'edit', workoutId: editId, formMode: mode === 'plan' ? 'plan' : 'dagbok' })
     } else if (newDate) {

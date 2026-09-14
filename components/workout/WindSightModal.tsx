@@ -155,6 +155,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
         }}>
         {/* Header */}
         <div className="flex items-center gap-2.5" style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
+          <VimpelIcon retning={sel?.d ?? null} styrke={sel?.l ?? 0} size={22} />
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.1em', color: 'var(--tekst-1-app)' }}>
             VIND &amp; SIKT
           </span>

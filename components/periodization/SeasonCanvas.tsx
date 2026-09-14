@@ -631,8 +631,8 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14.5px', color: 'var(--tekst-8-alt)', marginTop: 2 }}>
             {canEdit
               ? granularity === 'uke'
-                ? 'Velg pensel → dra over ukene (snapper man-søn). 📍 tegner samling/høyde-bånd over lagene. Velg åpner detaljer (også på bånd). Bytt til Dag for enkeltdager.'
-                : 'Dag-modus: mal enkeltdager. 📍 tegner samling/høyde-bånd. på en periodekant = dra start/slutt dag for dag; klikk = detaljer (også på bånd).'
+                ? 'Velg pensel, dra over ukene (snapper man-søn). Samling-verktøyet tegner samling/høyde-bånd over lagene. Velg åpner detaljer (også på bånd). Bytt til Dag for enkeltdager.'
+                : 'Dag-modus: mal enkeltdager. Samling-verktøyet tegner samling/høyde-bånd. Dra en periodekant for å flytte start/slutt dag for dag; klikk gir detaljer (også på bånd).'
               : 'Sesongens belastningsprofil uke for uke.'}
           </p>
         </div>
@@ -653,7 +653,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           </div>
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase' }}>Markering</span>
-            {toolBtn('samling', '📍 Samling/høyde', '#D4A017')}
+            {toolBtn('samling', 'Samling/høyde', 'var(--gold)', MARKERING_IKON.samling)}
           </div>
           {onStampDay && (
             <div className="flex gap-2 items-center p-2 flex-wrap" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>

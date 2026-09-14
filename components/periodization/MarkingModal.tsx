@@ -106,7 +106,7 @@ export function MarkingModal({
         <div className="mb-3" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
           <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             <input type="checkbox" checked={isCamp} onChange={e => setIsCamp(e.target.checked)} />
-            <span>📍 Treningssamling</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ikon navn="samling" variant="fyll" storrelse={14} />Treningssamling</span>
           </label>
           {isCamp && (
             <div className="mt-2">

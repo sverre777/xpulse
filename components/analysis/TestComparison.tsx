@@ -21,6 +21,7 @@ import { ChartWrapper } from './ChartWrapper'
 import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from './chart-theme'
 import { shootingSummary, windShort, sightLabel, POSITION_COLORS } from '@/lib/shooting'
 import { Ikon } from '@/components/ui/ikoner'
+import { VimpelIcon } from '@/components/workout/WindSightModal'
 
 const GOLD = '#D4A017'
 
@@ -274,10 +275,21 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                       if (s.avg_heart_rate != null) parts.push(`ø${s.avg_heart_rate}`)
                       if (s.points != null) parts.push(`${s.points} p`)
                       const wind = windShort(s.vind_retning, s.vind_styrke)
-                      if (wind) parts.push(wind)
                       const sikt = sightLabel(s.sikt)
                       if (sikt) parts.push(sikt.replace(' sikt', ''))
-                      return <td key={keyOf(e)} style={{ ...cellStyle, fontSize: 12.5 }}>{parts.join(' · ')}</td>
+                      return (
+                        <td key={keyOf(e)} style={{ ...cellStyle, fontSize: 12.5 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            {parts.join(' · ')}
+                            {wind && (
+                              <>
+                                <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke ?? 0} size={18} />
+                                {wind}
+                              </>
+                            )}
+                          </span>
+                        </td>
+                      )
                     })}
                   </tr>
                 )

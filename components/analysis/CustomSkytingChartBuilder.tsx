@@ -18,6 +18,8 @@ import {
 import { windShort, sightLabel, SHOT_TYPE_ORDER, SHOT_SERIES_COLORS } from '@/lib/shooting'
 import { findStandardTest } from '@/lib/shooting-test-templates'
 import { COLOR_PRONE, COLOR_STANDING, COLOR_TOTAL } from './SkytingSummaryCards'
+import { VimpelIcon } from '@/components/workout/WindSightModal'
+import type { WindDirection } from '@/lib/shooting'
 
 // Custom skyting-graf-bygger — filtrer skyting-data og velg akser fritt.
 // Kjører helt klient-side på `series`-arrayet som allerede er lastet av
@@ -666,6 +668,8 @@ interface ChartPoint {
     sort_order: number
     avg_hr: number | null
     wind: string | null
+    vindRetning: WindDirection | null
+    vindStyrke: number | null
     /** Skytetype-nøkkel fra SHOT_TYPE_ORDER — grupperingen leser denne. */
     type: string
   }
@@ -737,8 +741,8 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
       if (arr.length < 2) { workoutIdx++; continue }
       arr.sort((a, b) => a.sort_order - b.sort_order)
       const first = arr[0], last = arr[arr.length - 1]
-      points.push({ x: xOf(first, workoutIdx), y: yOf(first), series: 'first', meta: { date: first.date, sort_order: first.sort_order, avg_hr: first.avg_heart_rate, wind: windContext(first), type: rowShotType(first) } })
-      points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate, wind: windContext(last), type: rowShotType(last) } })
+      points.push({ x: xOf(first, workoutIdx), y: yOf(first), series: 'first', meta: { date: first.date, sort_order: first.sort_order, avg_hr: first.avg_heart_rate, wind: windContext(first), vindRetning: first.vind_retning, vindStyrke: first.vind_styrke, type: rowShotType(first) } })
+      points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate, wind: windContext(last), vindRetning: last.vind_retning, vindStyrke: last.vind_styrke, type: rowShotType(last) } })
       workoutIdx++
     }
     return { points, hasCompare: true, xType, groups: null, aggregert: null }
@@ -758,7 +762,7 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
     x: xOf(r, workoutIndexById.get(r.workout_id) ?? 0),
     y: yOf(r),
     series: 'main' as const,
-    meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate, wind: windContext(r), type: rowShotType(r) },
+    meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate, wind: windContext(r), vindRetning: r.vind_retning, vindStyrke: r.vind_styrke, type: rowShotType(r) },
   })).filter(p => p.y !== null)
 
   // SORTERING PÅ X for numeriske akser. Radene kommer sortert på DATO, og en
@@ -971,7 +975,8 @@ function BuilderTip({ active, payload, yLabel, aggregert = false }: {
         </div>
       )}
       {p.meta.wind && (
-        <div style={{ color: 'var(--mut)', marginTop: 4 }}>
+        <div style={{ color: 'var(--mut)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+          {p.meta.vindStyrke != null && <VimpelIcon retning={p.meta.vindRetning} styrke={p.meta.vindStyrke} size={20} />}
           <span style={{ color: '#E23A5A' }}>{p.meta.wind}</span>
         </div>
       )}

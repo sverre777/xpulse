@@ -189,8 +189,8 @@ function BrandFacts({ brand }: { brand: KlokkesyncBrand }) {
       {blocks.map(block => (
         <div key={block.title} className="p-4"
           style={{
-            background: block.tone === 'advarsel' ? 'rgba(245,197,66,0.05)' : 'var(--card)',
-            border: `1px solid ${block.tone === 'advarsel' ? 'rgba(245,197,66,0.3)' : 'var(--line)'}`,
+            background: block.tone === 'advarsel' ? 'rgba(212,160,23,0.05)' : 'var(--card)',
+            border: `1px solid ${block.tone === 'advarsel' ? 'rgba(212,160,23,0.3)' : 'var(--line)'}`,
             borderRadius: 12,
           }}>
           <p className="mb-2" style={{

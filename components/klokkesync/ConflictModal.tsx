@@ -28,13 +28,13 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
         className="w-full"
         style={{
           maxWidth: 480, background: 'var(--flate-8-c)',
-          border: '1px solid var(--line)', borderTop: '2px solid #F5C542',
+          border: '1px solid var(--line)', borderTop: '2px solid var(--gold)',
         }}>
         <div className="p-5">
           <div style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase',
-            color: '#F5C542', marginBottom: 8,
+            color: 'var(--gold)', marginBottom: 8,
           }}>
             Konflikt funnet
           </div>

@@ -440,7 +440,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         {(data.is_important || data.is_altitude_training || data.is_heat_training || data.is_group_session || gearNames.length > 0) && (
           <div className="flex flex-wrap gap-2 mt-3.5">
             {data.is_important && (
-              <span style={{ ...chipStyle, color: '#F5C542', borderColor: 'rgba(245,197,66,.4)' }}>★ Viktig økt</span>
+              <span style={{ ...chipStyle, color: 'var(--gold)', borderColor: 'rgba(212,160,23,.4)' }}>★ Viktig økt</span>
             )}
             {data.is_altitude_training && (
               <span style={chipStyle}>🏔 Høydetrening{data.altitude_meters ? ` · ${data.altitude_meters} moh` : ''}</span>
@@ -1035,7 +1035,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
 
       {/* ── DAGSFORM OG BELASTNING (fase 2 - hvis ført) ── */}
       {(data.day_form_physical != null || data.day_form_mental != null || data.rpe != null) && (
-        <Card title="DAGSFORM OG BELASTNING" beamColor="#F5C542">
+        <Card title="DAGSFORM OG BELASTNING" beamColor="var(--gold)">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             {data.day_form_physical != null && (
               <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>

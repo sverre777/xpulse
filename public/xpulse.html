@@ -226,12 +226,12 @@ h2 .o{color:var(--orange)} h2 .b{color:var(--blue)} h2 .g{color:var(--gold)}
 .lead{color:var(--dim);font-size:16px;max-width:60ch}
 section{padding:88px 0}
 .badge-new{font:700 10.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.14em;color:var(--bg);background:var(--gold);border-radius:4px;padding:4px 7px;vertical-align:middle;margin-left:8px}
-.badge-soon{font:700 10.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.14em;color:var(--gold);border:1px solid rgba(232,185,60,.45);border-radius:4px;padding:3px 7px;vertical-align:middle;margin-left:8px}
+.badge-soon{font:700 10.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.14em;color:var(--gold);border:1px solid rgba(212,160,23,.45);border-radius:4px;padding:3px 7px;vertical-align:middle;margin-left:8px}
 .badge-live{font:700 10.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.14em;color:var(--green);border:1px solid rgba(40,168,110,.45);border-radius:4px;padding:3px 7px;vertical-align:middle;margin-left:8px}
 
 /* utkast-banner */
 .draft{background:#1A1206;border-bottom:1px solid #3A2A0C;color:#D9B45B;font-size:13px;padding:10px 20px;text-align:center}
-.draft b{color:#F5C542}
+.draft b{color:var(--gold)}
 
 /* ── NAV ── */
 
@@ -280,7 +280,7 @@ section{padding:88px 0}
 .hquote{margin:10px auto 0;max-width:min(720px,100%);font:italic 400 clamp(15px,1.35vw,17px)/1.55 'Inter';color:rgba(255,255,255,.92);text-shadow:0 2px 18px rgba(0,0,0,.6)}
 .hero .hacts{margin-top:38px}
 .htag{font:600 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}
-.hver{font:700 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.16em;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:999px;padding:8px 13px}
+.hver{font:700 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.16em;color:var(--gold);border:1px solid rgba(212,160,23,.4);border-radius:999px;padding:8px 13px}
 h1{font:400 clamp(40px,11vw,104px)/0.98 'Bebas Neue','Arial Narrow',system-ui,sans-serif;letter-spacing:.012em}
 h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .hacts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
@@ -391,7 +391,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .synkrad .beta{font:800 9px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.15em;text-transform:uppercase;
   color:rgba(242,242,240,.55);border:1px solid rgba(255,255,255,.18);border-radius:5px;
   padding:3px 6px 2px;margin-left:1px}
-.synkrad .beta.gull{color:rgba(232,185,60,.8);border-color:rgba(232,185,60,.4)}
+.synkrad .beta.gull{color:var(--gold);border-color:rgba(212,160,23,.4)}
 .synkrad .sdot.gull{background:var(--gold);color:var(--gold)}
 /* Strava: offisiell lockup, hvit variant - aldri omfarget/strukket/animert. */
 .synkrad .slogo{display:flex;align-items:center}
@@ -504,7 +504,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .chiprow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
 .chip{font:700 11.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);color:var(--dim);border-radius:999px;padding:6px 11px}
 .chip.on{color:var(--orange);border-color:rgba(255,69,0,.5);background:rgba(255,69,0,.08)}
-.chip.gold{color:var(--gold);border-color:rgba(232,185,60,.45);background:rgba(232,185,60,.07)}
+.chip.gold{color:var(--gold);border-color:rgba(212,160,23,.45);background:rgba(212,160,23,.07)}
 
 /* live styrke - speiler appens faktiske design */
 .lstimer{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
@@ -820,7 +820,7 @@ footer a:hover{color:var(--paper)}
 .dropdown-chev { transition:transform 0.2s; }
 .has-dropdown:hover .dropdown-chev,
   .has-dropdown:focus-within .dropdown-chev { transform:rotate(180deg); }
-.dropdown-soon { display:inline-block; margin-left:6px; padding:1px 6px; background:rgba(245,197,66,0.15); border:1px solid rgba(245,197,66,0.4); color:#F5C542; font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
+.dropdown-soon { display:inline-block; margin-left:6px; padding:1px 6px; background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.4); color:var(--gold); font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
 /* Hamburger + slide-in-panel (mobil) */
   .nav-hamburger {
     display:none; background:none; border:none; padding:6px; cursor:pointer;
@@ -957,7 +957,7 @@ body.nav-locked { overflow:hidden; }
     background:var(--orange); color:var(--white);
     text-align:center; padding:5px 0;
   }
-.price-badge-coming { background:rgba(245,197,66,0.18); color:#F5C542; border:1px solid rgba(245,197,66,0.4); }
+.price-badge-coming { background:rgba(212,160,23,0.18); color:var(--gold); border:1px solid rgba(212,160,23,0.4); }
 .pricing-grid-trainer .price-badge-recommended { background:var(--blue); }
 .price-compare { border-radius:var(--r-card); overflow:hidden; background:var(--surface); border:1px solid var(--border); margin:20px 0 40px; }
 .price-compare > summary {
@@ -1139,7 +1139,7 @@ nav {
   }
 .dropdown-panel a:hover { background:var(--surface); color:var(--white); }
 .dropdown-divider { height:1px; background:var(--border); margin:6px 12px; }
-.dropdown-soon { display:inline-block; margin-left:6px; padding:1px 6px; background:rgba(245,197,66,0.15); border:1px solid rgba(245,197,66,0.4); color:#F5C542; font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
+.dropdown-soon { display:inline-block; margin-left:6px; padding:1px 6px; background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.4); color:var(--gold); font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
 @media (max-width:900px) {
   nav { padding:max(20px, calc(env(safe-area-inset-top) + 12px)) 24px 20px; }
   .nav-links { display:none; }
@@ -1314,7 +1314,7 @@ html.js .istep.vis{opacity:1}
 .au em{position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:13px;font-style:normal;line-height:1}
 .aars-hend{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .aars-hend span{font:700 9.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase;border:1px solid;border-radius:5px;padding:4px 7px;background:var(--bg8)}
-.aars-hend .konk.a{color:#E8B93C;border-color:rgba(232,185,60,.6)} .aars-hend .konk.b{color:var(--dim);border-color:var(--line2)} .aars-hend .samling{color:var(--blue);border-color:rgba(26,111,212,.5)} .aars-hend .samling.varme{color:var(--orange);border-color:rgba(255,69,0,.5)}
+.aars-hend .konk.a{color:var(--gold);border-color:rgba(212,160,23,.6)} .aars-hend .konk.b{color:var(--dim);border-color:var(--line2)} .aars-hend .samling{color:var(--blue);border-color:rgba(26,111,212,.5)} .aars-hend .samling.varme{color:var(--orange);border-color:rgba(255,69,0,.5)}
 .aars-vol{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;height:34px;align-items:end;margin-top:4px}
 .aars-vol i{background:var(--dim);opacity:.35;border-radius:2px 2px 0 0}
 .aars-foot{display:flex;gap:8px;align-items:center;margin-top:8px;font:600 10px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
@@ -2832,7 +2832,7 @@ section[id],header[id]{scroll-margin-top:108px}
                 <h3>58 økter ferdig rigget - og dine egne, fulgt over tid</h3>
                 <p>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart. Lag egne økt-, uke- og planmaler. Merk en økt som <b style="color:var(--paper)">standardøkt</b>, så følger appen den for deg - samme økt, åtte ganger, én graf.</p>
                 <div class="chiprow" style="margin-top:14px"><span class="chip on">Terskel</span><span class="chip">I4-intervall</span><span class="chip">Motbakke</span><span class="chip">Komb hard</span><span class="chip">Test</span><span class="chip gold">Mine maler</span></div>
-                <div class="malrad"><b>3 × 20 min / 3 min</b> · 60 min I3 · terskeltest <span class="chip" style="margin-left:auto;color:var(--gold);border-color:rgba(232,185,60,.45)">★ Standardøkt</span></div>
+                <div class="malrad"><b>3 × 20 min / 3 min</b> · 60 min I3 · terskeltest <span class="chip" style="margin-left:auto;color:var(--gold);border-color:rgba(212,160,23,.45)">★ Standardøkt</span></div>
                 <div class="pgwrap"><div class="eks" data-eks="standardokt-stripe" style="--eks-h:44px"></div></div>
                 <div class="sglab"><span style="color:#E23A5A">● Snittpuls på draget</span><span style="color:#28A86E">◌ Laktat</span><span style="margin-left:auto;color:var(--mute)">8 gjennomføringer · mai-sep</span></div>
                 <svg class="sg" viewBox="0 0 520 150" width="100%" preserveAspectRatio="none" aria-hidden="true">

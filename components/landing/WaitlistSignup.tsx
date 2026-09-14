@@ -97,7 +97,7 @@ export function WaitlistSignup({
         <p role="alert" style={{
           marginTop: 14, fontSize: 13,
           color: result && 'reason' in result && result.reason === 'already_signed_up'
-            ? 'rgba(245,197,66,0.85)' : 'rgba(225,29,72,0.85)',
+            ? 'rgba(212,160,23,0.85)' : 'rgba(225,29,72,0.85)',
         }}>
           {errorText}
         </p>

@@ -201,13 +201,13 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
       ) : (
         <div className="p-3 mt-3"
           style={{
-            background: 'rgba(245,197,66,0.08)',
-            border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
-            borderLeft: '3px solid #F5C542',
+            background: 'rgba(212,160,23,0.08)',
+            border: '1px solid rgba(212,160,23,0.4)', borderRadius: 10,
+            borderLeft: '3px solid var(--gold)',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
             color: 'var(--tekst-1-app)', lineHeight: 1.6,
           }}>
-          <div style={{ color: '#F5C542', fontWeight: 600, marginBottom: 4 }}>
+          <div style={{ color: 'var(--gold)', fontWeight: 600, marginBottom: 4 }}>
             Registreringen hos Polar er ikke fullført
           </div>
           Polar krever at kontoen din registreres hos oss før data kan hentes, og at
@@ -292,13 +292,13 @@ function WebhookStatus({ lastWebhookAt }: { lastWebhookAt: string | null }) {
   return (
     <div className="p-3 mt-3"
       style={{
-        background: 'rgba(245,197,66,0.08)',
-        border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
-        borderLeft: '3px solid #F5C542',
+        background: 'rgba(212,160,23,0.08)',
+        border: '1px solid rgba(212,160,23,0.4)', borderRadius: 10,
+        borderLeft: '3px solid var(--gold)',
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
         color: 'rgb(var(--tekst-land-rgb) / 0.8)', lineHeight: 1.6,
       }}>
-      <span style={{ color: '#F5C542', fontWeight: 600 }}>
+      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>
         {days == null
           ? 'Venter på første direkte-varsling fra Polar'
           : `Ingen direkte-varsling fra Polar på ${days} dager`}

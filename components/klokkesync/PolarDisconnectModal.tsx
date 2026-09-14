@@ -224,16 +224,16 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
 
       <div className="mb-4 p-3"
         style={{
-          backgroundColor: 'rgba(245,197,66,0.06)',
-          border: '1px solid rgba(245,197,66,0.3)',
+          backgroundColor: 'rgba(212,160,23,0.06)',
+          border: '1px solid rgba(212,160,23,0.3)',
         }}>
-        <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F5C542', fontSize: '13px', fontWeight: 600 }}>
+        <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--gold)', fontSize: '13px', fontWeight: 600 }}>
           Vil du beholde øktene først?
         </p>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
           → Eksporter dem som .fit fra{' '}
           <a href="https://flow.polar.com" target="_blank" rel="noopener noreferrer"
-            style={{ color: '#F5C542', textDecoration: 'underline' }}>
+            style={{ color: 'var(--gold)', textDecoration: 'underline' }}>
             Polar Flow
           </a>
           {' '}(økt → … → «Export session»)

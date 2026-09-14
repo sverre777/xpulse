@@ -303,7 +303,7 @@ function WorkoutTable({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
               <td style={{ ...td, color: 'var(--tekst-1-app)' }}>{w.title}</td>
               <td style={tdNum}>{w.duration_minutes ? `${Math.round(w.duration_minutes)} min` : '-'}</td>
               <td style={tdNum}>{w.total_carbs_g} g</td>
-              <td style={{ ...tdNum, color: w.carbs_per_hour !== null && w.carbs_per_hour < REF_MID ? '#F5C542' : 'var(--tekst-1-app)' }}>
+              <td style={{ ...tdNum, color: w.carbs_per_hour !== null && w.carbs_per_hour < REF_MID ? 'var(--gold)' : 'var(--tekst-1-app)' }}>
                 {w.carbs_per_hour !== null ? `${w.carbs_per_hour} g/t` : '-'}
               </td>
               <td style={tdNum}>{w.total_protein_g > 0 ? `${w.total_protein_g} g` : '-'}</td>

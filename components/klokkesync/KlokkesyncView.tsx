@@ -130,9 +130,9 @@ function StravaRolloutNote() {
   return (
     <div className="p-4"
       style={{
-        background: 'rgba(245,197,66,0.06)',
-        border: '1px solid rgba(245,197,66,0.35)', borderRadius: 10,
-        borderLeft: '3px solid #F5C542',
+        background: 'rgba(212,160,23,0.06)',
+        border: '1px solid rgba(212,160,23,0.35)', borderRadius: 10,
+        borderLeft: '3px solid var(--gold)',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
       <div style={{ color: 'var(--tekst-1-app)', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
@@ -282,9 +282,9 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       {!missingScope && onlyPublic && (
         <div className="p-3 mb-3"
           style={{
-            background: 'rgba(245,197,66,0.08)',
-            border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
-            color: '#F5C542',
+            background: 'rgba(212,160,23,0.08)',
+            border: '1px solid rgba(212,160,23,0.4)', borderRadius: 10,
+            color: 'var(--gold)',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
           }}>
             Bare offentlige Strava-aktiviteter er gitt tilgang. Private aktiviteter
@@ -463,8 +463,8 @@ function ActivityRow({
       ) : conflict ? (
         <button type="button" onClick={onResolveConflict}
           style={{
-            background: 'rgba(245,197,66,0.15)', border: '1px solid rgba(245,197,66,0.5)', borderRadius: 999,
-            color: '#F5C542', padding: '6px 12px', cursor: 'pointer',
+            background: 'rgba(212,160,23,0.15)', border: '1px solid rgba(212,160,23,0.5)', borderRadius: 999,
+            color: 'var(--gold)', padding: '6px 12px', cursor: 'pointer',
             fontWeight: 700, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
           }}>
           Konflikt - løs
@@ -501,7 +501,7 @@ const UPLOAD_BATCH = 3
 
 const STATUS_VISUAL: Record<FileStatus, { label: string; color: string }> = {
   pending:   { label: 'Klar',                color: 'var(--tekst-5-app)' },
-  importing: { label: 'Importerer …',        color: '#F5C542' },
+  importing: { label: 'Importerer …',        color: 'var(--gold)' },
   imported:  { label: '✓ Importert',         color: '#28A86E' },
   duplicate: { label: '⊘ Allerede importert', color: 'var(--tekst-5-app)' },
   skipped:   { label: '⊘ Duplikat - hoppet over', color: 'var(--tekst-5-app)' },
@@ -729,9 +729,9 @@ function FitUploadSection() {
       {summary && (
         <div className="mt-4 p-3"
           style={{
-            background: summary.failed > 0 ? 'rgba(245,197,66,0.08)' : 'rgba(40,168,110,0.08)',
-            border: `1px solid ${summary.failed > 0 ? 'rgba(245,197,66,0.4)' : 'rgba(40,168,110,0.4)'}`,
-            borderLeft: `3px solid ${summary.failed > 0 ? '#F5C542' : '#28A86E'}`,
+            background: summary.failed > 0 ? 'rgba(212,160,23,0.08)' : 'rgba(40,168,110,0.08)',
+            border: `1px solid ${summary.failed > 0 ? 'rgba(212,160,23,0.4)' : 'rgba(40,168,110,0.4)'}`,
+            borderLeft: `3px solid ${summary.failed > 0 ? 'var(--gold)' : '#28A86E'}`,
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
             color: 'var(--tekst-1-app)', lineHeight: 1.6,
           }}>

@@ -148,7 +148,7 @@ function oversiktPunkter(
   return ut.sort((a, b) => a.sek - b.sek)
 }
 
-export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId, onDataEndret }: {
+export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, onSeFullfort, onSePlan, targetUserId, onDataEndret }: {
   data: Partial<WorkoutFormData>
   onEdit: () => void
   /** Øktbyggeren arbeider på skjemaets rader (bolk 3): knappen åpner skjemaet med byggeren oppe. */
@@ -161,9 +161,17 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   targetUserId?: string
   // 'planned': samme oversikt for planlagt økt — handlingsknappene
   // (Marker som gjennomført / Start live / Rediger) ligger øverst.
+  // Sverre 14. sep: dette er VISNINGEN, ikke tilstanden i basen. Åpner man en
+  // plan som alt er gjennomført eller flettet, står den fortsatt som 'planned'
+  // og viser KUN planen - veien til det som faktisk ble gjort går via
+  // «Se fullført økt».
   status?: 'completed' | 'planned'
   onMarkCompleted?: () => void
   onStartLive?: () => void
+  /** Satt når planen er gjennomført/flettet: bytter visningen til dagbok-økta. */
+  onSeFullfort?: () => void
+  /** Satt når man står i den gjennomførte økta og kom fra planen. */
+  onSePlan?: () => void
   // Pop-upene her skriver rett til basen — modalen må hente øktdataene på
   // nytt, ellers åpner «Rediger økt» skjemaet med foreldet draft og neste
   // lagring skriver tilbake de gamle radene/seriene.
@@ -342,8 +350,43 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
 
   return (
     <div className="px-4 py-4 max-w-3xl mx-auto">
+      {/* ── «SE FULLFØRT ØKT» (Sverre 14. sep) ── En plan som er gjennomført
+          eller flettet med klokkesynk viser fortsatt bare planen; knappen her
+          er veien til det som faktisk ble gjort. Står også for treneren
+          (utenfor canEdit) - den leser bare. ── */}
+      {isPlannedView && onSeFullfort && (
+        <button type="button" onClick={onSeFullfort} data-se-fullfort
+          className="w-full mb-4 transition-opacity hover:opacity-90"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+            fontSize: 15, letterSpacing: '0.13em', textTransform: 'uppercase',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            backgroundColor: '#28A86E', color: 'var(--tekst-1-ren)', border: '1px solid #28A86E',
+            borderRadius: 999, padding: '13px 10px', cursor: 'pointer',
+            boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
+          }}>
+          <Ikon navn="fullfort" variant="strek" storrelse={18} /> Se fullført økt
+        </button>
+      )}
+      {/* Veien tilbake fra den gjennomførte økta til planen. */}
+      {onSePlan && (
+        <div className="mb-4">
+          <button type="button" onClick={onSePlan} data-se-plan
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+              fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase',
+              display: 'inline-flex', alignItems: 'center', gap: 7,
+              background: 'transparent', color: 'var(--tekst-5-app)',
+              border: '1.5px solid var(--line2)', borderRadius: 999,
+              padding: '8px 16px', minHeight: 36, cursor: 'pointer',
+            }}>
+            <Ikon navn="forrige" variant="strek" storrelse={14} /> Se planen
+          </button>
+        </div>
+      )}
+
       {/* ── HANDLINGSRAD (planlagt økt): marker/live/rediger øverst ── */}
-      {isPlannedView && canEdit && (onMarkCompleted || onStartLive) && (
+      {isPlannedView && !onSeFullfort && canEdit && (onMarkCompleted || onStartLive) && (
         <div className="flex gap-2 mb-4 items-stretch flex-wrap">
           {/* Kobling til synket økt - alternativet til manuell markering,
               rett ved siden av CTA-en (Sverre 27. aug). Rendres kun når
@@ -488,7 +531,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── PLAN-GRAFEN (bolk 5) - øktkartet er det første man ser på en
           planlagt økt, og på en gjennomført økt uten klokke. Klokkeøkter
           har klokke-grafen i seksjonen under. ── */}
-      {!harKlokkeRader && activities.length > 0 && (
+      {(isPlannedView || !harKlokkeRader) && activities.length > 0 && (
         <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
           <div data-plan-graf-hovedside>
             {/* Sverre 5. sep: «plan i bakgrunn» også på oversikten for en dagbok-økt uten
@@ -558,7 +601,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── KLOKKEDATA - HØYT og synlig (pulskurve/høyde/watt + laps).
           Gjenbruker WorkoutKlokkesyncSection 1:1 (WorkoutDetailChart er på
           graf-temaet); egen data-finnes-sjekk, kun importerte økter. ── */}
-      {workoutId && (data.imported_from || data.merged_source) && (
+      {!isPlannedView && workoutId && (data.imported_from || data.merged_source) && (
         <div className="mb-3.5">
           {kanLeggeTilDetaljer && (
             <div className="mb-2 flex justify-end">
@@ -578,7 +621,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {/* ── FRA KLOKKA (fase 109, fasit seksjon 3): flettet klokkedata +
           angre-raden. Angre er uten frist; dialogen varsler når målet er
           endret ETTER fletten (krav 3) - aldri stille gjenoppretting. ── */}
-      {data.merged_source && flett && (
+      {!isPlannedView && data.merged_source && flett && (
         <div className="mb-3.5 p-4" style={{ border: '1px solid rgba(26,111,212,.35)', borderRadius: 14, background: 'rgba(26,111,212,.05)' }}>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#1A6FD4', textTransform: 'uppercase' }}>
             <Ikon navn="klokke" variant="strek" storrelse={14} /> Fra klokka - {flett.modus === 'legg_bak' ? 'lagt bak' : 'aktivitetene byttet'}
@@ -622,7 +665,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         </div>
       )}
 
-      {visAngre && flett && (
+      {!isPlannedView && visAngre && flett && (
         <div onClick={angrer ? undefined : () => setVisAngre(false)}
           style={{ position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)', zIndex: 210, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={e => e.stopPropagation()} className="p-5"
@@ -691,7 +734,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           stemmer. Det som mangler er RUNDE-inndelingen. Målt i prod: økter uten
           aktivitetsrader har km, tid og høyde utfylt på selve økta i 100 % av
           tilfellene, så «ingen detaljdata» var feil om nettopp de øktene. */}
-      {activities.length === 0 && data.imported_from && (
+      {!isPlannedView && activities.length === 0 && data.imported_from && (
         <Card title="AKTIVITETER">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--mut)', lineHeight: 1.55 }}>
             Denne økta kom uten runder fra {fitSourceLabel(data.imported_from) || 'kilden'}.

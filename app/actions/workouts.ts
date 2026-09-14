@@ -567,6 +567,19 @@ function normalizeShootingSeries(a: {
   return out
 }
 
+/** Sonene i et snapshot: MM:SS-strenger som de er, tall tolket som sekunder. */
+function normaliserSnapshotSoner(z: unknown): ActivityZoneMinutes {
+  const base = emptyActivityZones()
+  if (!z || typeof z !== 'object') return base
+  const inn = z as Record<string, unknown>
+  for (const k of ZONE_KEYS_ALL) {
+    const v = inn[k]
+    if (typeof v === 'number' && v > 0) base[k] = formatActivityDuration(v)
+    else if (typeof v === 'string') base[k] = v
+  }
+  return base
+}
+
 // Normaliser ActivityRow-snapshot fra planned_snapshot.activities (jsonb) tilbake til ActivityRow.
 // Gjenoppretter klient-id-er (fresh uuid så de ikke kolliderer med evt. aktive rader),
 // sikrer at alle array/objekt-felter finnes selv om snapshot er eldre.
@@ -615,7 +628,10 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       weather: a.weather ?? '',
       temperature_c: a.temperature_c ?? '',
       notes: a.notes ?? '',
-      zones: a.zones ?? emptyActivityZones(),
+      // Snapshotet er ActivityRow-er (MM:SS-strenger), men et eldre eller
+      // importert snapshot kan bære sekunder som tall - normaliser begge deler
+      // her, som deserializeZones gjør for workout_activities.
+      zones: normaliserSnapshotSoner(a.zones),
       exercises: Array.isArray(a.exercises) ? a.exercises.map(ex => ({
         id: crypto.randomUUID(),
         exercise_name: ex.exercise_name ?? '',

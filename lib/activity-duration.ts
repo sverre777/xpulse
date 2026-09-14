@@ -1,7 +1,12 @@
 // Parse "MM:SS", "HH:MM:SS", or a bare number ("45") → seconds.
 // Returns null for empty/invalid input.
-export function parseActivityDuration(input: string): number | null {
-  const s = input.trim()
+//
+// Tåler også verdier som IKKE er strenger (14. sep 2026): et jsonb-felt kan
+// bære et tall fra en eldre skriver eller en import, og en kastende parser her
+// tok ned hele siden («This page couldn't load»). Vi gjetter ikke på enheten -
+// ikke-strenger gir null, og normaliseringen skjer der jsonb leses.
+export function parseActivityDuration(input: string | null | undefined): number | null {
+  const s = typeof input === 'string' ? input.trim() : ''
   if (!s) return null
   if (/^\d+$/.test(s)) {
     const mins = parseInt(s, 10)

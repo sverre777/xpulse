@@ -64,7 +64,17 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   // skjemaet med de GAMLE radene — og neste lagring skrevet dem tilbake
   // (skjemaets draft lastes bare når modalen åpnes). Bumpes ved skriving.
   const [reloadTick, setReloadTick] = useState(0)
+  // Sverre 14. sep: en PLAN som er gjennomført eller flettet viser fortsatt
+  // bare planen; «Se fullført økt» bytter visningen til dagbok-utgaven av
+  // SAMME økt. Vi husker hvilken økt valget gjaldt, så det nullstiller seg
+  // selv når modalen åpner en annen økt (ingen effekt, ingen setState i
+  // render - jf. react-hooks/set-state-in-effect).
+  const [seFullfortFor, setSeFullfortFor] = useState<string | null>(null)
   const forrigeWorkoutId = useRef<string | null>(null)
+
+  const seFullfort = state?.kind === 'edit' && state.formMode === 'plan' && seFullfortFor === state.workoutId
+  // Modusen ALT under leses med: pakka, skjemaet og oversikten.
+  const visningsMode: 'plan' | 'dagbok' = state ? (seFullfort ? 'dagbok' : state.formMode) : 'dagbok'
 
   useEffect(() => {
     setShowEditForm(false)
@@ -76,6 +86,9 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       // av samme økt et vindu fra en annen tilstand — derfor ryddes det her.
       if (forrigeWorkoutId.current) glemVindu(forrigeWorkoutId.current)
       forrigeWorkoutId.current = null
+      // «Se fullført økt» gjelder én åpning: neste gang planen åpnes skal den
+      // stå som plan igjen.
+      setSeFullfortFor(null)
       setDefaults(null); setEquipment([]); setEquipmentIds([]); setActivityEquipment({}); setEquipLoading(false); return
     }
     if (state.kind === 'edit') forrigeWorkoutId.current = state.workoutId
@@ -98,7 +111,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       // YTELSE bolk 4: ÉN pakke — økt + utstyrsliste + utstyrsvalg i ett svar
       // (Promise.all på serveren), husket 60 s i okt-lager.
       if (!targetUserId) setEquipLoading(true)
-      hentPakke(state.workoutId, state.formMode, targetUserId).then(p => {
+      hentPakke(state.workoutId, visningsMode, targetUserId).then(p => {
         setDefaults(p.okt)
         setLoading(false)
         if (p.utstyr) setEquipment(p.utstyr)
@@ -117,7 +130,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       if (!targetUserId) hentUtstyrListe().then(setEquipment).catch(() => {})
       setEquipLoading(false)
     }
-  }, [state, targetUserId, reloadTick])
+  }, [state, targetUserId, reloadTick, visningsMode])
 
   useEffect(() => {
     if (!state) return
@@ -149,6 +162,9 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   const overviewIsStrength = (defaults?.activities ?? []).some(
     a => (a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke',
   )
+  // Sverre 14. sep: «Se fullført økt» vises på en plan som er markert
+  // gjennomført ELLER flettet med klokkesynk.
+  const planErGjennomfort = !!(defaults?.is_completed || defaults?.merged_source || defaults?.imported_from)
 
   const handleDelete = () => {
     if (state.kind !== 'edit') return
@@ -193,7 +209,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             <span className="text-sm tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {state.kind === 'edit'
-                ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
+                ? (seFullfort ? 'Gjennomført økt' : state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
                 : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
             </span>
             {(defaults?.imported_from ?? defaults?.merged_source) && (
@@ -254,9 +270,13 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               heartZones={heartZones}
               workoutId={state.workoutId}
               targetUserId={targetUserId}
-              status={overviewStatus}
+              status={visningsMode === 'plan' ? 'planned' : overviewStatus}
+              onSeFullfort={visningsMode === 'plan' && planErGjennomfort && state.kind === 'edit'
+                ? () => setSeFullfortFor(state.workoutId)
+                : undefined}
+              onSePlan={seFullfort ? () => setSeFullfortFor(null) : undefined}
               onMarkCompleted={overviewStatus === 'planned' && !overviewIsFuture && !readOnly
-                ? () => { setAutoMark(state.formMode === 'dagbok'); setShowEditForm(true) }
+                ? () => { setAutoMark(visningsMode === 'dagbok'); setShowEditForm(true) }
                 : undefined}
               onStartLive={overviewStatus === 'planned' && overviewIsStrength && !readOnly && !targetUserId
                 ? () => router.push(`/app/okt/${state.workoutId}`)
@@ -266,7 +286,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               <div className="px-4 pb-4">
                 <CommentSection
                   athleteId={athleteId}
-                  context={state.formMode}
+                  context={visningsMode}
                   scope="workout"
                   periodKey={state.workoutId}
                   viewerRole={readOnly ? 'coach' : 'athlete'}
@@ -286,7 +306,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               autoMarkCompleted={autoMark}
               apneOktbygger={apneBygger}
               defaultValues={defaults}
-              formMode={state.formMode}
+              formMode={visningsMode}
               templates={templates}
               heartZones={heartZones}
               initialSport={primarySport}
@@ -318,7 +338,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               <div className="px-4 pb-4">
                 <CommentSection
                   athleteId={athleteId}
-                  context={state.formMode}
+                  context={visningsMode}
                   scope="workout"
                   periodKey={state.workoutId}
                   viewerRole={readOnly ? 'coach' : 'athlete'}

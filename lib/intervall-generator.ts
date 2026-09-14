@@ -29,6 +29,7 @@ import {
   type ActivityType,
   type ShootingSeriesRow,
 } from './types.ts'
+import type { ShootingActivityTypeV2 } from './shooting.ts'
 
 /** Skyteposisjonene fordelt utover pausene. Null = ingen skyting. */
 export type SkyteMonster = 'LS' | 'LLSS' | 'PAR' | 'L' | 'S'
@@ -98,6 +99,8 @@ export interface GenerertBlokk extends Blokk {
   type: ActivityType
   /** Kun satt på skyteblokker. */
   posisjon: 'L' | 'S' | null
+  /** Kun satt på skyteblokker: markeringa skytinga arver fra draget foran. */
+  skytetype?: ShootingActivityTypeV2 | null
   /** Drag i km: distansen som følger raden. */
   km?: number | null
   /** Kortintervall inni draget. */
@@ -186,7 +189,7 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
       // pausen ligger som pause etter skytinga. Totaltida er uendret —
       // 3 min pause → 45 s skyting + 2:15 pause.
       const skytetid = Math.min(rad.pauseSek, Math.max(1, Math.min(SKYTETID_MAKS_SEK, konfig.skytetidSek ?? SKYTETID_STANDARD_SEK)))
-      blokker.push({ sek: skytetid, sone: 'I1', rolle: 'pause', type: 'skyting_kombinert', posisjon })
+      blokker.push({ sek: skytetid, sone: 'I1', rolle: 'pause', type: 'skyting_kombinert', posisjon, skytetype: skytetypeForDrag(rad.sone) })
       if (rad.pauseSek - skytetid > 0) {
         blokker.push({ sek: rad.pauseSek - skytetid, sone: 'I1', rolle: 'pause', type: 'aktiv_pause', posisjon: null })
       }
@@ -200,6 +203,14 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
 }
 
 const erSkyting = (b: GenerertBlokk) => b.posisjon !== null
+
+/** Sverre 14. sep: skyting i pausene på et drag i I3 eller hardere ER hard
+    komb - da trenger ingen å sette markeringa etterpå. Roligere drag får
+    ingen markering, som før. */
+const HARD_SONE: ReadonlySet<BlokkSone> = new Set<BlokkSone>(['I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet'])
+export function skytetypeForDrag(sone: BlokkSone): ShootingActivityTypeV2 | null {
+  return HARD_SONE.has(sone) ? 'hard_komb' : null
+}
 
 /** Bevegelsesform settes kun der aktivitetstypen faktisk bruker den. */
 function bevegelseFor(type: ActivityType, konfig: IntervallKonfig) {
@@ -230,11 +241,13 @@ function serie(posisjon: 'L' | 'S'): ShootingSeriesRow {
 }
 
 /**
- * Skyterad. `shooting_type` står tom med vilje: konfigurasjonen sier hvilket
- * MØNSTER posisjonene følger, ikke hva slags skyting det er. Utøveren setter
- * det selv — å gjette «hard_komb» ville vært å finne på innhold.
+ * Skyterad. `shooting_type` settes bare der draget foran sier det selv:
+ * skyting i pausene på I3 eller hardere er hard komb (Sverre 14. sep).
+ * Ellers står feltet tomt - mønsteret sier hvilke POSISJONER som følger,
+ * ikke hva slags skyting det er, og å gjette ville vært å finne på innhold.
  */
 function skyterad(blokker: GenerertBlokk[]): ActivityRow {
+  const skytetype = blokker.find(b => b.skytetype)?.skytetype ?? null
   return {
     ...makeActivity({
       // Bolk 24: L eller S er typen. Én blokk = én posisjon; skulle
@@ -242,6 +255,7 @@ function skyterad(blokker: GenerertBlokk[]): ActivityRow {
       activity_type: blokker.every(b => b.posisjon === 'L') ? 'skyting_liggende'
         : blokker.every(b => b.posisjon === 'S') ? 'skyting_staaende' : 'skyting_kombinert',
       shooting_series: blokker.map(b => serie(b.posisjon as 'L' | 'S')),
+      ...(skytetype ? { shooting_type: skytetype } : {}),
     }),
     duration: sekTilKlokke(totalSekunder(blokker)),
     zones: { ...emptyActivityZones(), ...blokkerTilSoner(blokker) },

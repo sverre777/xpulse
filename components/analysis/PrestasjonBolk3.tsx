@@ -18,6 +18,7 @@ import {
 } from 'recharts'
 import type { PrestasjonAnalyse } from '@/app/actions/prestasjon-analyse'
 import { EF_OKTTYPER } from '@/lib/prestasjon'
+import { Ikon } from '@/components/ui/ikoner'
 import { ChartWrapper } from './ChartWrapper'
 import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE } from './chart-theme'
 import { formatPace } from '@/lib/pace-utils'
@@ -118,7 +119,7 @@ export function KurveOverTidSeksjon({ data, initialConfig }: { data: PrestasjonA
           {harWatt && <Chip farge="#E8B93C" etikett="Watt" paa={metrikk === 'watt'} fokus={false} onClick={() => setMetrikk('watt')} />}
           {harTempo && <Chip farge="#28A86E" etikett="Tempo" paa={metrikk === 'tempo'} fokus={false} onClick={() => setMetrikk('tempo')} />}
         </Gruppe>
-        <Link href="/app/analyse?tab=klokkedata" style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', marginLeft: 'auto' }}>Periodens power curve ↗</Link>
+        <Link href="/app/analyse?tab=klokkedata" style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Periodens power curve <Ikon navn="apne-fane" variant="strek" storrelse={14} /></Link>
       </div>
       {rader.length === 0 ? tom('Ingen økter med klokkekurve for denne metrikken i perioden.') : (
         <div style={{ height: 280 }}>
@@ -172,7 +173,7 @@ export function KonkurranseVsFormSeksjon({ data }: { data: PrestasjonAnalyse }) 
     <ChartWrapper chartKey="prestasjon_konkurranse_vs_form" title="Konkurranse vs form" height="auto"
       subtitle="Plassering i prosent av feltet (0 = vinner) mot formen (TSB) på renndagen - EF og treff i tabellen. Rennetid per distanse med skytetid og bom står under Konkurranser.">
       <div className="flex justify-end mb-2">
-        <Link href="/app/analyse?tab=konkurranser" style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none' }}>Konkurranser ↗</Link>
+        <Link href="/app/analyse?tab=konkurranser" style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Konkurranser <Ikon navn="apne-fane" variant="strek" storrelse={14} /></Link>
       </div>
       {k.length === 0 ? tom('Ingen konkurranser eller testløp i perioden.') : (
         <>

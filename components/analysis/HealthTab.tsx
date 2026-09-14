@@ -120,7 +120,7 @@ export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
 
   return (
     <ChartWrapper chartKey="helse_sickness_vs_load"
-      title="Sykdom 🤒 vs månedlig belastning"
+      title="Sykdom vs månedlig belastning"
       subtitle="Stolper = sykdomsdager i måneden · linje = snitt treningstimer per treningsdag"
       height={280}>
       {!hasAny ? (

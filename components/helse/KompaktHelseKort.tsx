@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getHelseOversikt, type HelseOversiktData } from '@/app/actions/helse-oversikt'
 import { HelseOversikt } from './HelseOversikt'
 import { FallbackStripe, formatTimer } from './SovnGrafikk'
+import { Ikon } from '@/components/ui/ikoner'
 
 // KOMPAKT HELSEKORT (visning C fra design/xpulse-helse-oversikt-design.html):
 // fire minifliser + natta i miniatyr. Hele kortet er klikkbart — klikk åpner
@@ -77,7 +78,7 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
         title="Åpne hele helseoversikten">
         <div className="flex items-center justify-between" style={{ padding: '14px 18px', borderBottom: '1px solid var(--line)' }}>
           <Tittel kilde={data.kilde.navn} />
-          <span style={{ color: 'var(--tekst-8-app)', fontSize: 12 }}>åpne →</span>
+          <span style={{ color: 'var(--tekst-8-app)', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 3 }}>åpne <Ikon navn="apne-fane" variant="strek" storrelse={14} /></span>
         </div>
         <div className="grid grid-cols-2" style={{ gap: 1, background: 'var(--line)' }}>
           <MiniFlis navn="HVILEPULS" verdi={siste('resting_hr') != null ? String(siste('resting_hr')) : '-'}
@@ -110,9 +111,10 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
               <button type="button" onClick={() => setApen(false)} aria-label="Lukk"
                 style={{
                   background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 999,
-                  color: 'var(--tekst-1-app)', width: 34, height: 34, cursor: 'pointer', fontSize: 18,
+                  color: 'var(--tekst-1-app)', width: 34, height: 34, cursor: 'pointer',
+                  display: 'grid', placeItems: 'center',
                 }}>
-                ×
+                <Ikon navn="lukk" variant="strek" storrelse={18} />
               </button>
             </div>
             {/* forhandsdata = flisenes 30-dagers henting - ingen dobbelthenting */}
@@ -131,8 +133,8 @@ function Tittel({ kilde }: { kilde: string | null }) {
       <span style={{ display: 'inline-block', width: 22, height: 4, borderRadius: 2, background: '#FF4500', marginRight: 9, verticalAlign: 'middle' }} />
       HELSE
       {kilde && kilde !== 'manual' && (
-        <span style={{ color: 'var(--tekst-8-app)', fontWeight: 500, letterSpacing: '0.06em', marginLeft: 8, fontSize: 12, textTransform: 'none' }}>
-          ⌚ i natt
+        <span style={{ color: 'var(--tekst-8-app)', fontWeight: 500, letterSpacing: '0.06em', marginLeft: 8, fontSize: 12, textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Ikon navn="klokke" variant="strek" storrelse={14} /> i natt
         </span>
       )}
     </div>

@@ -73,8 +73,8 @@ export const GRAFER: Record<string, GrafDef> = {
   overview_km_per_movement: G('oversikt', 'Kilometer per bevegelsesform'),
   overview_intensive_sessions: G('oversikt', 'Intensive økter per uke'),
   overview_training_vs_rest_vs_sickness: G('oversikt', 'Trening vs hvile vs sykdom per uke'),
-  overview_rest_days: G('oversikt', 'Hviledager 🛌'),
-  overview_sickness_days: G('oversikt', 'Sykdomsdager 🤒'),
+  overview_rest_days: G('oversikt', 'Hviledager'),
+  overview_sickness_days: G('oversikt', 'Sykdomsdager'),
   overview_average_energy: G('oversikt', 'Snitt overskudd 🙂'),
   overview_average_stress: G('oversikt', 'Snitt stress 😰'),
   overview_custom_breakdown: G('oversikt', 'Custom graf - fleksibel nedbryting', { data: 'selv', config: true }),
@@ -253,7 +253,7 @@ export const GRAFER: Record<string, GrafDef> = {
   helse_hrv_lang: G('helse', 'Lang trend - HRV'),
   helse_reflections_trend: G('helse', 'Overskudd, stress og opplevd belastning over tid', { data: 'helse_korrelasjon' }),
   helse_injuries_timeline: G('helse', 'Skade-tidslinje', { data: 'helse_korrelasjon' }),
-  helse_sickness_vs_load: G('helse', 'Sykdom 🤒 vs månedlig belastning', { data: 'helse_korrelasjon' }),
+  helse_sickness_vs_load: G('helse', 'Sykdom vs månedlig belastning', { data: 'helse_korrelasjon' }),
   // Korrelasjonskortene kommer i bolk 4 — nøklene beholdes så gamle stjerner
   // ikke blir «ukjent graf» (viser «Åpne Helse» til grafen finnes).
   health_recovery_distribution: G('helse', 'Recovery-fordeling'),

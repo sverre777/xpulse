@@ -412,9 +412,9 @@ export function oversiktKortListe(overview: AnalysisOverview, canSeeHealthData: 
   if (sp.elevation_meters != null) ut.push({ key: 'oversikt_hoydemeter', gruppe: 'sport', node: <MetricCard chartKey="oversikt_hoydemeter"
     label="Høydemeter" value={`${sp.elevation_meters.toLocaleString('nb-NO')} m`} accent="#D4A017" /> })
   ut.push(
-    { key: 'overview_rest_days', gruppe: 'tilstand', node: <MetricCard chartKey="overview_rest_days" label="Hviledager 🛌" value={String(overview.current.rest_days)}
+    { key: 'overview_rest_days', gruppe: 'tilstand', node: <MetricCard chartKey="overview_rest_days" label="Hviledager" value={String(overview.current.rest_days)}
       sublabel={prev ? `Forrige periode: ${prev.rest_days}` : null} deltaPercent={overview.percent_changes.rest_days} positiveIsGood={true} accent="#28A86E" /> },
-    { key: 'overview_sickness_days', gruppe: 'tilstand', node: <MetricCard chartKey="overview_sickness_days" label="Sykdomsdager 🤒" value={String(overview.current.sickness_days)}
+    { key: 'overview_sickness_days', gruppe: 'tilstand', node: <MetricCard chartKey="overview_sickness_days" label="Sykdomsdager" value={String(overview.current.sickness_days)}
       sublabel={prev ? `Forrige periode: ${prev.sickness_days}` : null} deltaPercent={overview.percent_changes.sickness_days} positiveIsGood={false} accent="#E11D48" /> },
     { key: 'overview_average_energy', gruppe: 'tilstand', node: <MetricCard chartKey="overview_average_energy" label="Snitt overskudd 🙂"
       value={overview.current.avg_energy != null ? `${overview.current.avg_energy}` : '-'}

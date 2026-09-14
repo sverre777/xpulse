@@ -1,6 +1,7 @@
 'use client'
 
 import { useFavorites } from './FavoritesContext'
+import { Ikon, type IkonStorrelse } from '@/components/ui/ikoner'
 
 // Stjerne-knapp som plasseres øverst til høyre i hver graf. Fylt #FF4500 når
 // aktiv, dempet omriss når inaktiv. Klikk toggler via FavoritesContext.
@@ -12,6 +13,16 @@ interface StarButtonProps {
   title?: string
   /** Grafens gjeldende oppsett — lagres med favoritten (fase 122). */
   config?: Record<string, unknown> | null
+}
+
+// size er et fritt pixel-tall fra kallerne (historisk) - Ikon tar bare 14/18/22/26,
+// så vi runder til nærmeste tillatte størrelse (likt avstand -> størst).
+const IKON_STORRELSER: readonly IkonStorrelse[] = [14, 18, 22, 26]
+function narmesteStorrelse(n: number): IkonStorrelse {
+  return IKON_STORRELSER.reduce((best, cur) => {
+    const diff = Math.abs(cur - n), bestDiff = Math.abs(best - n)
+    return diff < bestDiff || (diff === bestDiff && cur > best) ? cur : best
+  })
 }
 
 export function StarButton({ chartKey, size = 20, className, title, config }: StarButtonProps) {
@@ -48,19 +59,8 @@ export function StarButton({ chartKey, size = 20, className, title, config }: St
         justifyContent: 'center',
       }}
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill={active ? '#FF4500' : 'none'}
-        stroke={active ? '#FF4500' : 'var(--tekst-8-app)'}
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        aria-hidden="true"
-      >
-        <polygon points="12 2.5 15 9.3 22.2 10.1 16.8 15 18.4 22 12 18.3 5.6 22 7.2 15 1.8 10.1 9 9.3 12 2.5" />
-      </svg>
+      <Ikon navn="favoritt" variant={active ? 'fyll' : 'strek'} storrelse={narmesteStorrelse(size)}
+        style={{ color: active ? '#FF4500' : 'var(--tekst-8-app)' }} />
     </button>
   )
 }

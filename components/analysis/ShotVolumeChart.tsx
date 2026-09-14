@@ -6,7 +6,7 @@
 // (mørk stroke mellom segmentene), totaltall over, tema-akser, tooltip m/
 // antall + treff % per type der ført. Treff %-rad UNDER grafen med samme
 // x-akse — ALDRI dobbel y-akse. Ghost-buckets etter G4-mønsteret.
-// Type + markeringer (🧪/innskyting/🏁/⏱) er filtre.
+// Type + markeringer (test/innskyting/konkurranse/testløp) er filtre.
 
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -23,10 +23,10 @@ import { shotVolumeGrouping, type DateRange } from './date-range'
 
 const MARKING_OPTIONS: { value: ShotMarkingFilter; label: string }[] = [
   { value: 'alle',        label: 'Alle markeringer' },
-  { value: 'test',        label: '🧪 Skytetest' },
+  { value: 'test',        label: 'Skytetest' },
   { value: 'innskyting',  label: 'Innskyting' },
-  { value: 'konkurranse', label: '🏁 Konkurranse' },
-  { value: 'testlop',     label: '⏱ Testløp' },
+  { value: 'konkurranse', label: 'Konkurranse' },
+  { value: 'testlop',     label: 'Testløp' },
 ]
 
 const Y_AXIS_WIDTH = 40

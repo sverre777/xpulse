@@ -20,6 +20,7 @@ import {
 import { ChartWrapper } from './ChartWrapper'
 import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from './chart-theme'
 import { shootingSummary, windShort, sightLabel, POSITION_COLORS } from '@/lib/shooting'
+import { Ikon } from '@/components/ui/ikoner'
 
 const GOLD = '#D4A017'
 
@@ -118,9 +119,9 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
     <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: 16, height: 2, backgroundColor: GOLD, display: 'inline-block' }} />
-        <span className="text-xs tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase inline-flex items-center gap-1.5"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
-          🧪 Tester - sammenligning
+          <Ikon navn="test" variant="strek" storrelse={14} /> Tester - sammenligning
         </span>
       </div>
 
@@ -273,7 +274,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                       if (s.avg_heart_rate != null) parts.push(`ø${s.avg_heart_rate}`)
                       if (s.points != null) parts.push(`${s.points} p`)
                       const wind = windShort(s.vind_retning, s.vind_styrke)
-                      if (wind) parts.push(`⚑${wind}`)
+                      if (wind) parts.push(wind)
                       const sikt = sightLabel(s.sikt)
                       if (sikt) parts.push(sikt.replace(' sikt', ''))
                       return <td key={keyOf(e)} style={{ ...cellStyle, fontSize: 12.5 }}>{parts.join(' · ')}</td>

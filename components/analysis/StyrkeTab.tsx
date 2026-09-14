@@ -18,6 +18,7 @@ import {
 import { STANDARD_EXERCISE_CATEGORIES } from '@/lib/standard-exercises'
 import { ChartWrapper } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
+import { Ikon, ikonStier } from '@/components/ui/ikoner'
 import { KortGruppe } from './KortGruppe'
 import { Chip, Gruppe } from '@/components/workout/WorkoutDetailChart'
 import type { DateRange } from './date-range'
@@ -120,12 +121,12 @@ function PrListe({ pr, manuelle, tittel }: { pr: PrHendelse[]; manuelle: StyrkeA
             <tbody>
               {rader.map((h, i) => (
                 <tr key={`${h.workout_id}-${h.type}-${h.vekt ?? ''}-${i}`} style={{ color: 'var(--tekst-1-app)' }}>
-                  <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}><span style={{ color: GULL }}>★</span> {h.ovelse}{fortManuelt(h.ovelse) && <span style={{ marginLeft: 6, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', border: '1px solid var(--kant-3)', padding: '1px 5px' }}>Ført i Tester &amp; PR</span>}</td>
+                  <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}><Ikon navn="peak" variant="fyll" storrelse={14} style={{ color: GULL }} tittel="Personlig rekord" /> {h.ovelse}{fortManuelt(h.ovelse) && <span style={{ marginLeft: 6, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', border: '1px solid var(--kant-3)', padding: '1px 5px' }}>Ført i Tester &amp; PR</span>}</td>
                   <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}>{PR_TYPE_NAVN[h.type]}{h.type === 'maks_reps' && h.vekt != null ? ` @ ${h.vekt} kg` : ''}</td>
                   <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', fontWeight: 700 }}>{h.verdi}{h.type === 'maks_reps' ? ' reps' : ' kg'}</td>
                   <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }}>{h.forrige}{h.type === 'maks_reps' ? ' reps' : ' kg'}</td>
                   <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}>{fmtDato(h.date)}</td>
-                  <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}><Link href={`/app/dagbok?edit=${h.workout_id}`} style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Åpne økt →</Link></td>
+                  <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--kant-3)' }}><Link href={`/app/dagbok?edit=${h.workout_id}`} style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Åpne økt <Ikon navn="apne-fane" variant="strek" storrelse={14} /></Link></td>
                 </tr>
               ))}
             </tbody>
@@ -140,7 +141,15 @@ function PrPrikk(props: { cx?: number; cy?: number; payload?: OvelseOktPunkt; fa
   const { cx, cy, payload, farge, prType } = props
   if (cx == null || cy == null) return null
   const erPr = payload?.pr.length ? (prType ? payload.pr.includes(prType) : true) : false
-  if (erPr) return <text x={cx} y={cy + 5} textAnchor="middle" fontSize={15} fill={GULL} aria-label="PR">★</text>
+  if (erPr) {
+    // Punkt på grafen = fyll (peak-ikonet, samme paths som favoritt, men rett navn for «rekord»).
+    const { stier } = ikonStier('peak', 'fyll', 14)
+    return (
+      <svg x={cx - 7} y={cy - 7} width={14} height={14} viewBox="0 0 24 24" fill={GULL} aria-label="PR">
+        {stier.map((d, i) => <path key={i} d={d} />)}
+      </svg>
+    )
+  }
   return <circle cx={cx} cy={cy} r={3} fill={farge} />
 }
 
@@ -154,7 +163,7 @@ export function OvelseGraf({ data, range, initialConfig }: { data: StyrkeAnalyse
   const treff = data.ovelser.filter(o => !sok.trim() || normOvelse(o.ovelse).includes(normOvelse(sok)))
   const harVerdi = punkter.some(p => p.y != null)
   return (
-    <ChartWrapper chartKey="styrke_ovelse" title="Øvelse over tid" subtitle="Velg øvelse og variabel · ★ = personlig rekord i den økta · est. 1RM med Epley (vekt × (1 + reps/30))" height="auto" config={{ ovelse, variabel }}>
+    <ChartWrapper chartKey="styrke_ovelse" title="Øvelse over tid" subtitle="Velg øvelse og variabel · gult ikon = personlig rekord i den økta · est. 1RM med Epley (vekt × (1 + reps/30))" height="auto" config={{ ovelse, variabel }}>
       <div className="flex flex-wrap items-end gap-3 mb-2">
         <label className="flex flex-col gap-1">
           <span style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)' }}>Søk øvelse</span>

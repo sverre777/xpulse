@@ -15,6 +15,7 @@ import { CSS as DndCSS } from '@dnd-kit/utilities'
 import { FANE_NAVN, grafInfo, losGrafNokkel, dataForGraf, erSkyteGraf, type FaneKey, type DataKey } from '@/lib/graf-register'
 import { useFavorites } from './FavoritesContext'
 import { hentRenderer, type FavorittKontekst, type RenderFavoritt } from './favoritt-rendere'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 
@@ -43,9 +44,11 @@ export function FavoritterTab({ dataFor, ctx, harSkiskyting, onOpenTab }: {
     return (
       <div className="p-10 flex flex-col items-center text-center gap-2" data-favoritter-tom
         style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px dashed var(--kant-3)' }}>
-        <span aria-hidden="true" style={{ fontSize: 28, color: '#FF4500', lineHeight: 1 }}>★</span>
+        <Ikon navn="favoritt" variant="fyll" storrelse={26} style={{ color: '#FF4500' }} />
         <p style={{ fontFamily: FONT, color: 'var(--tekst-1-app)', fontSize: 15 }}>
-          {readOnly ? 'Utøveren har ingen favoritter ennå.' : 'Marker grafer med ★ i fanene - de samles her.'}
+          {readOnly ? 'Utøveren har ingen favoritter ennå.' : (
+            <>Marker grafer med <Ikon navn="favoritt" variant="fyll" storrelse={14} style={{ color: '#FF4500' }} /> i fanene - de samles her.</>
+          )}
         </p>
       </div>
     )
@@ -112,8 +115,8 @@ function FavorittKort({ chartKey, dataFor, ctx, readOnly, onOpenTab, onFjern }: 
       <div className="flex items-center gap-2 mb-1.5 flex-wrap" style={{ fontFamily: FONT }}>
         {!readOnly && (
           <button type="button" ref={setActivatorNodeRef} {...listeners} {...attributes} aria-label={`Flytt «${tittel}»`} data-favoritt-grip
-            style={{ background: 'none', border: '1px solid var(--line2)', borderRadius: 6, color: 'var(--tekst-8-app)', cursor: 'grab', padding: '2px 5px', fontSize: 13, lineHeight: 1, touchAction: 'none' }}>
-            ⋮⋮
+            style={{ background: 'none', border: '1px solid var(--line2)', borderRadius: 6, color: 'var(--tekst-8-app)', cursor: 'grab', padding: '2px 5px', lineHeight: 1, touchAction: 'none', display: 'inline-flex' }}>
+            <Ikon navn="flytt" variant="strek" storrelse={14} />
           </button>
         )}
         <span data-favoritt-fane style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: '#FF4500', border: '1px solid #FF450066', borderRadius: 999, padding: '1px 8px' }}>
@@ -124,7 +127,7 @@ function FavorittKort({ chartKey, dataFor, ctx, readOnly, onOpenTab, onFjern }: 
         {fane && fane !== 'favoritter' && (
           <button type="button" onClick={() => onOpenTab(fane)} data-favoritt-aapne
             style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 4px' }}>
-            Åpne i fane ↗
+            Åpne i fane <Ikon navn="apne-fane" variant="strek" storrelse={14} />
           </button>
         )}
         {!readOnly && (

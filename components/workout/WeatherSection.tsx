@@ -15,11 +15,12 @@ const iSt: React.CSSProperties = {
   padding: '6px 10px', outline: 'none', width: '100%', boxSizing: 'border-box', minWidth: 0,
 }
 
-// Kompakt visnings-linje fra satt vær/føre, f.eks. "🌡️ -4°C · Snø · Nysnø + Hardpakket · Lett bris".
+// Kompakt visnings-linje fra satt vær/føre, f.eks. "-4°C · Snø · Nysnø + Hardpakket · Lett bris".
+// Ren tekst (string | null) - brukes av WorkoutForm som en summary-streng, kan ikke bære <Ikon>.
 export function weatherSummaryLine(w: WeatherData | undefined | null): string | null {
   if (!w) return null
   const parts: string[] = []
-  if (w.temperature.trim() !== '') parts.push(`🌡️ ${w.temperature}°C`)
+  if (w.temperature.trim() !== '') parts.push(`${w.temperature}°C`)
   if (w.weather_type) parts.push(WEATHER_LABELS[w.weather_type] ?? w.weather_type)
   if (w.surface_conditions.length > 0) {
     parts.push(w.surface_conditions.map(s => WEATHER_LABELS[s] ?? s).join(' + '))

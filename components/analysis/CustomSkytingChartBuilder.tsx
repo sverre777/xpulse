@@ -10,6 +10,7 @@ import { getHelseBelastning } from '@/app/actions/helse-belastning'
 import type { DateRange } from './date-range'
 import { ChartWrapper } from './ChartWrapper'
 import { ChipSelector } from './ChartControls'
+import { Ikon } from '@/components/ui/ikoner'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
   CHART_TOOLTIP_BOX,
@@ -634,7 +635,7 @@ export function CustomSkytingChartBuilder({ data, initialConfig, range, targetUs
               <div className="h-full flex items-center justify-center"
                 style={{ border: '1px dashed var(--kant-3)' }}>
                 <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-                  Ingen skytetester i perioden. Marker en skyting som 🧪 test for å følge den over tid.
+                  Ingen skytetester i perioden. Marker en skyting som <Ikon navn="test" variant="strek" storrelse={14} /> test for å følge den over tid.
                 </p>
               </div>
             ) : (
@@ -971,7 +972,7 @@ function BuilderTip({ active, payload, yLabel, aggregert = false }: {
       )}
       {p.meta.wind && (
         <div style={{ color: 'var(--mut)', marginTop: 4 }}>
-          <span aria-hidden style={{ color: '#E23A5A' }}>⚑</span> {p.meta.wind}
+          <span style={{ color: '#E23A5A' }}>{p.meta.wind}</span>
         </div>
       )}
     </div>

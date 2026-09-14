@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   SIGHT_LEVELS, windText, type SightKey, type WindDirection,
 } from '@/lib/shooting'
+import { Ikon } from '@/components/ui/ikoner'
 
 export interface WindSightValue {
   vind_retning: WindDirection | null
@@ -154,7 +155,6 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
         }}>
         {/* Header */}
         <div className="flex items-center gap-2.5" style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-          <span aria-hidden style={{ color: '#E23A5A', fontSize: 16 }}>⚑</span>
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.1em', color: 'var(--tekst-1-app)' }}>
             VIND &amp; SIKT
           </span>
@@ -167,7 +167,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
               width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer',
               color: 'var(--mut)', background: 'none', border: '1px solid var(--line2)', borderRadius: 8,
             }}>
-            ✕
+            <Ikon navn="lukk" variant="strek" storrelse={18} />
           </button>
         </div>
 
@@ -243,8 +243,8 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
             }}>
               <span aria-hidden style={{
                 width: 18, height: 18, border: '1.5px solid var(--line2)', borderRadius: 5,
-                display: 'grid', placeItems: 'center', color: '#28A86E', fontWeight: 800, fontSize: 12,
-              }}>✓</span>
+                display: 'grid', placeItems: 'center', color: '#28A86E',
+              }}><Ikon navn="fullfort" variant="strek" storrelse={14} /></span>
               Forslag fra forrige serie - lagres først når du trykker Lagre.
             </p>
           )}

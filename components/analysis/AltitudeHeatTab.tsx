@@ -2,6 +2,7 @@
 
 import type { AltitudeHeatAnalysis, AltitudePeriodStat } from '@/app/actions/analysis'
 import { ChartWrapper } from './ChartWrapper'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Høyde & varme — egen analyse-flate med fokus på FORM rundt høyde-/varmeopphold.
 // Nøytral overflate: vis data, ingen tolkning (tolkning kommer i AI Coach senere).
@@ -25,7 +26,7 @@ export function AltitudeHeatTab({ data }: { data: AltitudeHeatAnalysis | null })
       <div className="p-6 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
           Ingen høyde- eller varmetrening registrert i perioden ennå.
-          Marker økter som 🏔️ Høydetrening / 🌡️ Varmetrening, eller en årsplan-periode
+          Marker økter som <Ikon navn="hoydesamling" variant="fyll" storrelse={14} /> Høydetrening / <Ikon navn="termometer" variant="strek" storrelse={14} /> Varmetrening, eller en årsplan-periode
           som høydeperiode, for å følge formen rundt oppholdene her.
         </p>
       </div>
@@ -72,7 +73,7 @@ function PeriodCard({ p }: { p: AltitudePeriodStat }) {
   return (
     <div style={{ background: 'var(--flate-7-alt)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #5B8DEF', padding: '12px 14px' }}>
       <div className="flex items-center gap-2 flex-wrap mb-1">
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 17, letterSpacing: '0.04em' }}>🏔️ {p.name}</span>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 17, letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ikon navn="hoydesamling" variant="fyll" storrelse={14} /> {p.name}</span>
         {p.altitude_meters != null && (
           <span className="px-2 py-0.5 text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', border: '1px solid #2A3A55' }}>{p.altitude_meters} moh</span>
         )}

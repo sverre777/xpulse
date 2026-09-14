@@ -13,6 +13,7 @@ import type { ShootingSeriesRow } from '@/lib/types'
 import {
   SHOT_DISC_R, SHOT_INNER_R_DRAWN, SHOT_SERIES_COLORS, type ShotPoint,
 } from '@/lib/shooting'
+import { Ikon } from '@/components/ui/ikoner'
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
 
@@ -98,12 +99,12 @@ export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
           maxWidth: 560, width: '100%', maxHeight: '92vh', overflowY: 'auto', padding: '18px 16px',
         }}>
         <div className="flex items-center justify-between mb-2">
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 20, letterSpacing: '0.08em' }}>
-            🎯 Skuddplott
+          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 20, letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Ikon navn="skyting" variant="strek" storrelse={18} /> Skuddplott
           </h3>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, minWidth: 40, minHeight: 40 }}>
-            ×
+            style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', minWidth: 40, minHeight: 40 }}>
+            <Ikon navn="lukk" variant="strek" storrelse={18} />
           </button>
         </div>
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>

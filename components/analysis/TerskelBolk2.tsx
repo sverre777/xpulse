@@ -24,6 +24,7 @@ import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_S
 import { WATT_SONER, WATT_SONE_NAVN, type WattSone } from '@/lib/watt-soner'
 import { formatPace } from '@/lib/pace-utils'
 import { Chip, Gruppe } from '@/components/workout/WorkoutDetailChart'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const FARGER = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#A855F7', '#0EA5E9', '#F97316']
@@ -75,8 +76,8 @@ export function TerskelHistorikk({ data, initialConfig }: { data: TerskelAnalysi
           </Gruppe>
         )}
         <Link href="/app/innstillinger/profil/terskler" data-oppdater-terskel
-          style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', marginLeft: 'auto' }}>
-          Oppdater terskel ↗
+          style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          Oppdater terskel <Ikon navn="apne-fane" variant="strek" storrelse={14} />
         </Link>
       </div>
       {!harNoe ? (

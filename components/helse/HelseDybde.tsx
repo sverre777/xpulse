@@ -7,6 +7,7 @@ import { HELSE_TREND_FARGER } from '@/lib/helse-farger'
 import { Hypnogram, FallbackStripe, formatTimer } from './SovnGrafikk'
 import { TrendPanel } from './HelseOversikt'
 import { SeksjonsTittel } from './HelseOversikt'
+import { Ikon } from '@/components/ui/ikoner'
 
 // HELSE — DETALJER (visning B fra design/xpulse-helse-oversikt-design.html).
 // Rendres INNE i HelseOversikt-kortet når «VIS MER» er valgt — samme kort,
@@ -158,8 +159,8 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
       </div>
 
       <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
-        <button type="button" onClick={onTilbake} style={btnGhost}>← TILBAKE</button>
-        <Link href={`/app/health/${idagIso}`} style={btnGhost}>✎ FØR MANUELT</Link>
+        <button type="button" onClick={onTilbake} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="forrige" variant="strek" storrelse={14} /> TILBAKE</button>
+        <Link href={`/app/health/${idagIso}`} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="for-okt" variant="strek" storrelse={14} /> FØR MANUELT</Link>
       </div>
     </>
   )

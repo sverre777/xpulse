@@ -44,7 +44,9 @@ export function hendelseLag({ dager, xKey = 'label', yAxisId }: { dager: HelseBe
   }
   const x = (iso: string) => xKey === 'label' ? fmtDato(iso) : iso
   // yAxisId MÅ settes når grafen har flere y-akser — ellers forkaster Recharts laget stille.
-  return baand.map((b, i) => <ReferenceArea key={`${b.type}-${i}`} yAxisId={yAxisId} x1={x(b.fra)} x2={x(b.til)} fill={F[b.type]} stroke="none" label={{ value: b.type === 'sykdom' ? '🤒' : '🩹', position: 'insideTop', fontSize: 11 }} />)
+  // Ingen emoji-etikett på feltet - fargen (sykdom/skade) og subtitle forklarer det,
+  // samme mønster som HelseOversikt sin tilsvarende ReferenceArea.
+  return baand.map((b, i) => <ReferenceArea key={`${b.type}-${i}`} yAxisId={yAxisId} x1={x(b.fra)} x2={x(b.til)} fill={F[b.type]} stroke="none" />)
 }
 
 /** HRV og hvilepuls med belastningen bak og hardøkter markert. */

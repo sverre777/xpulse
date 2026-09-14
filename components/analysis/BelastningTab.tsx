@@ -17,6 +17,7 @@ import {
   CHART_LEGEND_STYLE, CHART_CURSOR,
 } from './chart-theme'
 import { REST_SUBTYPE_LABELS } from '@/lib/day-state-types'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Farger for CTL / ATL / TSB-linjene.
 const COLOR_CTL = '#38BDF8'  // Fitness (blå)
@@ -152,7 +153,7 @@ export function FitnessFatigueChart({ data, hendelser = [] }: { data: Belastning
           <label className="flex items-center gap-1.5 ml-auto cursor-pointer text-xs"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF' }}>
             <input type="checkbox" checked={showAlt} onChange={e => setShowAlt(e.target.checked)} />
-            🏔️ Vis høyde-perioder
+            <Ikon navn="hoydesamling" variant="strek" storrelse={14} /> Vis høyde-perioder
           </label>
         )}
       </div>
@@ -174,7 +175,7 @@ export function FitnessFatigueChart({ data, hendelser = [] }: { data: Belastning
             {showAlt && altBands.map((b, i) => (
               <ReferenceArea key={`alt-${i}`} yAxisId="ctl" x1={b.x1} x2={b.x2}
                 fill="rgba(91, 141, 239, 0.14)" stroke="#5B8DEF" strokeOpacity={0.4} strokeDasharray="3 3"
-                label={{ value: `🏔️ ${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
+                label={{ value: `${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
             ))}
             {/* Bolk 4: sykdom/skade som lag - samme på alle belastnings-/helsegrafer. */}
             {hendelser.filter(h => rows.some(r => r.date === h.date)).map((h, i) => (
@@ -349,7 +350,7 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
           <div className="p-3 flex flex-col gap-1"
             style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #28A86E', minWidth: '140px' }}>
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Totalt hviledager 🛌</p>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Totalt hviledager <Ikon navn="hviledag" variant="strek" storrelse={14} /></p>
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', lineHeight: 1 }}>
               {r.total_rest_days}
             </span>

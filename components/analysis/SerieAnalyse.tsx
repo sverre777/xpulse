@@ -18,6 +18,7 @@ import { Chip, Gruppe } from '@/components/workout/WorkoutDetailChart'
 import { SammenligningVisning, type SammenligningVisningValg } from './SammenligningVisning'
 import { formatPace } from '@/lib/pace-utils'
 import { WEATHER_LABELS } from '@/lib/types'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const FARGER = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#A855F7', '#0EA5E9', '#F97316', '#E23A5A']
@@ -152,7 +153,7 @@ export function SerieAnalyse({ serie, harSki, targetUserId, initialConfig, chart
                   ? Array.from({ length: maksDrag }, (_, i) => <Line key={i} dataKey={`d${i + 1}`} name={`Drag ${i + 1}`} stroke={FARGER[i % FARGER.length]} strokeWidth={2} dot={{ r: 3 }} connectNulls isAnimationActive={false} />)
                   : <Line dataKey="hel" name={v.navn} stroke="#FF4500" strokeWidth={2.5} dot={{ r: 4 }} connectNulls isAnimationActive={false} />}
                 {!visPerDrag && beste >= 0 && valgte.includes(rader[beste].workout_id) && v.hel(rader[beste]) != null && (
-                  <ReferenceDot x={fmtDato(rader[beste].date)} y={v.hel(rader[beste])!} r={7} fill="#E8B93C" stroke="var(--tekst-1-app)" label={{ value: '★ beste', position: 'top', fill: '#E8B93C', fontSize: 11 }} />
+                  <ReferenceDot x={fmtDato(rader[beste].date)} y={v.hel(rader[beste])!} r={7} fill="#E8B93C" stroke="var(--tekst-1-app)" label={{ value: 'beste', position: 'top', fill: '#E8B93C', fontSize: 11 }} />
                 )}
               </LineChart>
             </ResponsiveContainer>
@@ -161,7 +162,7 @@ export function SerieAnalyse({ serie, harSki, targetUserId, initialConfig, chart
       </ChartWrapper>
 
       <ChartWrapper chartKey="standardokter_tabell" title="Alle gjennomføringer × alle variabler" height="auto" config={{ serieId: serie.id, sort: sort.id, opp: sort.opp }}
-        subtitle="Klikk en kolonne for å sortere · parentes = mot forrige · mot beste · ★ = beste for valgt variabel · kryss av for grafene">
+        subtitle="Klikk en kolonne for å sortere · parentes = mot forrige · mot beste · ikon ved dato = beste for valgt variabel · kryss av for grafene">
         {!data ? null : (
           <div className="overflow-x-auto xp-hscroll">
             <table style={{ borderCollapse: 'collapse', minWidth: 900 }} data-serie-tabell>
@@ -179,7 +180,12 @@ export function SerieAnalyse({ serie, harSki, targetUserId, initialConfig, chart
                   return (
                     <tr key={r.workout_id} data-serie-rad={r.workout_id} style={{ background: erBeste ? 'rgba(232,185,60,.10)' : undefined }}>
                       <td style={td}><input type="checkbox" checked={valgte.includes(r.workout_id)} onChange={() => toggle(r.workout_id)} aria-label={`Vis ${fmtDato(r.date)} i grafene`} /></td>
-                      <td style={td}>{erBeste ? '★ ' : ''}{fmtDato(r.date)}{r.erKonkurranse ? ' 🏁' : ''}<span style={{ color: 'var(--tekst-8-app)', marginLeft: 6 }}>{r.title}</span></td>
+                      <td style={td}>
+                        {erBeste && <Ikon navn="peak" variant="fyll" storrelse={14} style={{ color: '#E8B93C', marginRight: 4 }} tittel="Beste" />}
+                        {fmtDato(r.date)}
+                        {r.erKonkurranse && <Ikon navn="konkurranse" variant="strek" storrelse={14} style={{ marginLeft: 4 }} tittel="Konkurranse" />}
+                        <span style={{ color: 'var(--tekst-8-app)', marginLeft: 6 }}>{r.title}</span>
+                      </td>
                       {variabler.map(x => { const val = x.hel(r); return <td key={x.id} style={td}>{val == null ? '-' : x.fmt(val)}{val != null ? delta(r, i, x) : null}</td> })}
                       <td style={{ ...td, color: 'var(--tekst-5-app)' }}>{r.vaer ? [r.vaer.temperatur != null ? `${r.vaer.temperatur}°` : null, r.vaer.type ? (WEATHER_LABELS[r.vaer.type as keyof typeof WEATHER_LABELS] ?? r.vaer.type) : null, ...r.vaer.fore].filter(Boolean).join(' · ') || '-' : '-'}</td>
                     </tr>

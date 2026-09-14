@@ -19,6 +19,7 @@ import { SammenligneCompetitionsTab } from './sammenligne/SammenligneCompetition
 import { SammenligneTestTab } from './sammenligne/SammenligneTestTab'
 import { SammenlignePeriodiseringTab } from './sammenligne/SammenlignePeriodiseringTab'
 import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
+import { Ikon } from '@/components/ui/ikoner'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -200,7 +201,12 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
               border: `1px solid ${lagret === 'ja' ? '#D4A017' : COACH_BLUE}`,
               minHeight: '44px', cursor: 'pointer',
             }}>
-            {lagret === 'lagrer' ? 'Lagrer…' : lagret === 'ja' ? '★ Oppsett lagret' : '☆ Lagre oppsett'}
+            {lagret === 'lagrer' ? 'Lagrer…' : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Ikon navn="favoritt" variant={lagret === 'ja' ? 'fyll' : 'strek'} storrelse={14} />
+                {lagret === 'ja' ? 'Oppsett lagret' : 'Lagre oppsett'}
+              </span>
+            )}
           </button>
         </div>
 

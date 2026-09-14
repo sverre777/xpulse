@@ -14,6 +14,7 @@ import { StarButton } from '@/components/analysis/StarButton'
 import { sjekkGrafNokkel } from '@/components/analysis/graf-nokkel'
 import { StadieStabler, formatTimer } from './SovnGrafikk'
 import { HelseDybde } from './HelseDybde'
+import { Ikon } from '@/components/ui/ikoner'
 
 // HELSE FRA KLOKKA — visning A fra design/xpulse-helse-oversikt-design.html.
 // ETT kort, montert flere steder (Helse-fanen i Analyse, nederst i Dagbok,
@@ -153,8 +154,8 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
           {visDybde ? 'HELSE - DETALJER' : 'HELSE'}
           {chartKey && !forside && <span style={{ marginLeft: 8, verticalAlign: 'middle', display: 'inline-flex' }} data-chart-key={chartKey}><StarButton chartKey={chartKey} size={16} title="Hele helsekortet som favoritt" /></span>}
           {kildeNavn && (
-            <span style={{ color: 'var(--tekst-8-app)', fontWeight: 500, letterSpacing: '0.06em', marginLeft: 10, fontSize: 12.5, textTransform: 'none' }}>
-              ⌚ {kildeNavn}{kildeTid ? ` · synket ${kildeTid}` : ''}
+            <span style={{ color: 'var(--tekst-8-app)', fontWeight: 500, letterSpacing: '0.06em', marginLeft: 10, fontSize: 12.5, textTransform: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Ikon navn="klokke" variant="strek" storrelse={14} /> {kildeNavn}{kildeTid ? ` · synket ${kildeTid}` : ''}
             </span>
           )}
         </div>
@@ -226,7 +227,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
           {/* ── Handlingsrad (ikke på forsiden - knappene er døde der) ── */}
           {!forside && <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
             <button type="button" onClick={() => setVisDybde(true)} style={btnPrimar}>VIS MER</button>
-            <Link href={`/app/health/${foring}`} style={btnGhost}>✎ FØR MANUELT</Link>
+            <Link href={`/app/health/${foring}`} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="for-okt" variant="strek" storrelse={14} /> FØR MANUELT</Link>
           </div>}
         </>
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { ChartWrapper } from './ChartWrapper'
+import { Ikon } from '@/components/ui/ikoner'
 import { useState, useMemo, useEffect, useTransition } from 'react'
 import {
   getWorkoutsForComparison,
@@ -201,7 +202,7 @@ export function CompareWorkoutsTab({
               fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
               backgroundColor: 'transparent', border: '1px solid var(--kant-3)',
             }}>
-            ← Tilbake til valg
+            <Ikon navn="forrige" variant="strek" storrelse={14} /> Tilbake til valg
           </button>
           {showSaveInput ? (
             <div className="flex items-center gap-2">
@@ -243,7 +244,7 @@ export function CompareWorkoutsTab({
                 background: 'none', border: '1px solid #1A6FD4',
                 cursor: 'pointer',
               }}>
-              ★ Lagre sammenligning
+              <Ikon navn="favoritt" variant="strek" storrelse={14} /> Lagre sammenligning
             </button>
           )}
         </div>
@@ -295,7 +296,7 @@ export function CompareWorkoutsTab({
             onChange={v => setTemplateFilter(v === '' ? null : v)}
             options={[
               { value: '', label: 'Alle' },
-              ...templateOptions.map(t => ({ value: t.id, label: `${t.is_test ? '🧪 ' : ''}${t.name} (${t.count})` })),
+              ...templateOptions.map(t => ({ value: t.id, label: `${t.is_test ? 'Test: ' : ''}${t.name} (${t.count})` })),
             ]} />
         </div>
       </div>
@@ -330,7 +331,7 @@ export function CompareWorkoutsTab({
                   color: 'var(--tekst-8-app)', background: 'none', border: 'none',
                   cursor: 'pointer', padding: '0 4px',
                 }}>
-                ×
+                <Ikon navn="lukk" variant="strek" storrelse={14} />
               </button>
             </span>
           ))}
@@ -562,7 +563,7 @@ function rawWeatherSummary(w: {
 } | null): string | null {
   if (!w) return null
   const parts: string[] = []
-  if (w.temperature != null) parts.push(`🌡️ ${w.temperature}°C`)
+  if (w.temperature != null) parts.push(`${w.temperature}°C`)
   if (w.weather_type) parts.push(WEATHER_LABELS[w.weather_type] ?? w.weather_type)
   if (w.surface_conditions.length > 0) parts.push(w.surface_conditions.map(s => WEATHER_LABELS[s] ?? s).join(' + '))
   if (w.wind_strength) parts.push(WEATHER_LABELS[w.wind_strength] ?? w.wind_strength)
@@ -648,7 +649,7 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
                           : `${r.shooting.shots} skudd`}
                         {r.shooting.time_sum != null ? ` · ${r.shooting.time_sum}s` : ''}
                         {r.shooting.avg_hr != null ? ` · ø${r.shooting.avg_hr}` : ''}
-                        {r.shooting.wind ? ` · ⚑${r.shooting.wind}` : ''}
+                        {r.shooting.wind ? ` · ${r.shooting.wind}` : ''}
                         {r.shooting.sikt ? ` · ${r.shooting.sikt}` : ''}
                       </>
                     ) : '-'}

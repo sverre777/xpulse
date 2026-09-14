@@ -55,6 +55,9 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
   const isoWeekStart = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`
 
   const isCoachView = viewContext.mode === 'coach-view'
+  // Perioder kan bare redigeres av den som eier årsplanen, eller av en trener
+  // med can_edit_periodization - ellers står stripen som ren lesing (regel 20).
+  const kanRedigerePerioder = !isCoachView || viewContext.permissions.can_edit_periodization
   const targetId = isCoachView ? userId : undefined
   const [
     rawWorkouts, prevRawWorkouts, { data: profile }, templates, heartZones,
@@ -150,6 +153,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
               seasonMarkings={seasonMarkings}
+              season={kanRedigerePerioder ? activeSeason : null}
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}

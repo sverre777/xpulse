@@ -68,6 +68,7 @@ import {
 import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
 import type { ShotStats } from '@/lib/types'
 import { PeriodeStripe } from '@/components/calendar/PeriodeStripe'
+import { PeriodeRedigeringProvider, usePeriodeRedigering } from '@/components/calendar/PeriodeRedigering'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import {
   NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE, KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON,
@@ -123,6 +124,9 @@ export interface CalendarProps {
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
   // B2 (kø #39): markeringslaget (📍 samling / høyde) — dag-presist.
   seasonMarkings?: import('@/app/actions/seasons').SeasonMarking[]
+  /** Sesongen periodene hører til - trengs for å opprette/redigere dem her
+      (Sverre 14. sep). Uten sesong er stripen bare lesing, som før. */
+  season?: import('@/app/actions/seasons').Season | null
   // Dag-tilstander (hviledag/sykdom) indeksert etter dato.
   initialDayStates?: Record<string, DayState[]>
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
@@ -1308,6 +1312,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 }) {
   const router = useRouter()
   const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditHealth, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo, onPlanSamling, onEditMarking } = useCalendarActions()
+  // Periodestripen er en inngang til årsplanens popup (Sverre 14. sep).
+  const periodeRed = usePeriodeRedigering()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
   // Mobil-listen (bolk 2, kun dagbok): utvidede tomrom — sesjonslokal,
@@ -1580,7 +1586,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 ukevisningen, over uka, delt på dagene når uka har flere
                 perioder. Samme kolonner og gap som dagcellene under. */}
             <div style={{ padding: '4px 11px 0' }}>
-              <PeriodeStripe ukeISO={week.map(toISO)} perioder={seasonPeriods} gap={5} />
+              <PeriodeStripe ukeISO={week.map(toISO)} perioder={seasonPeriods} gap={5}
+                onPeriode={periodeRed.kanRedigere ? periodeRed.apnePeriode : undefined}
+                onLeggTil={periodeRed.kanRedigere ? periodeRed.apneNy : undefined} />
             </div>
             {/* Uke-raden VOKSER med innholdet (Sverre 4. sep): ingen intern
                 scroll - alle øktene vises, kalenderen blir heller litt
@@ -1787,7 +1795,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       if (id) {
                         ut.push(
                           <div key={`stripe-${k}`} style={{ gridColumn: 1, gridRow: `span ${n}`, display: 'flex' }}>
-                            <PeriodeStripe retning="loddrett" kunPeriode={id} ukeISO={week.map(toISO)} perioder={seasonPeriods} />
+                            <PeriodeStripe retning="loddrett" kunPeriode={id} ukeISO={week.map(toISO)} perioder={seasonPeriods}
+                              onPeriode={periodeRed.kanRedigere ? periodeRed.apnePeriode : undefined} />
                           </div>,
                         )
                       }
@@ -2649,6 +2658,7 @@ export function Calendar({
   seasonPeriods = [],
   seasonKeyDates = [],
   seasonMarkings = [],
+  season = null,
   initialDayStates = {},
   readOnly = false,
   targetUserId,
@@ -3002,6 +3012,7 @@ export function Calendar({
     : `${MONTHS_NO[month - 1]} ${year}`
 
   return (
+    <PeriodeRedigeringProvider season={season} readOnly={readOnly} targetUserId={targetUserId}>
     <KompaktKurverProvider byDate={byDate}>
     <CalendarActionsContext.Provider value={{
       onEditWorkout: handleEditWorkout,
@@ -3269,5 +3280,6 @@ export function Calendar({
     )}
     </CalendarActionsContext.Provider>
     </KompaktKurverProvider>
+    </PeriodeRedigeringProvider>
   )
 }

@@ -55,6 +55,9 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
   const monthKey = maanedNokkel(posisjon.refDate)
 
   const isCoachView = viewContext.mode === 'coach-view'
+  // Perioder kan bare redigeres av den som eier årsplanen, eller av en trener
+  // med can_edit_periodization - ellers står stripen som ren lesing (regel 20).
+  const kanRedigerePerioder = !isCoachView || viewContext.permissions.can_edit_periodization
   const targetId = isCoachView ? userId : undefined
   // Profil + favorittene har lavest avhengighet — parallelliser med resten
   // av Promise.all så vi ikke serialiserer på dem etter at de andre er ferdige.
@@ -84,6 +87,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
     getPeriodNotes('month', [monthKey], 'plan', targetId),
   ])
   const profile = profileRes.data
+  const activeSeason = !('error' in periodization) ? periodization.season : null
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
   const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
   const seasonMarkings = !('error' in periodization) ? periodization.markings : []
@@ -197,6 +201,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
               seasonMarkings={seasonMarkings}
+              season={kanRedigerePerioder ? activeSeason : null}
             />
           </BrukerSporterProvider>
           </Suspense>

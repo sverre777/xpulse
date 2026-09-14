@@ -15,7 +15,7 @@ const INTENSITIES: { value: Intensity; label: string }[] = [
 ]
 
 export function PeriodModal({
-  open, onClose, seasonId, seasonStart, seasonEnd, editing, targetUserId,
+  open, onClose, seasonId, seasonStart, seasonEnd, editing, initialStart, initialEnd, targetUserId,
 }: {
   open: boolean
   onClose: () => void
@@ -23,13 +23,18 @@ export function PeriodModal({
   seasonStart: string
   seasonEnd: string
   editing?: SeasonPeriod | null
+  /** Forhåndsutfylte datoer for en NY periode (samme mønster som MarkingModal):
+      klikker man «+ legg til periode» i plan/dagbok, står dagene hullet dekker
+      alt i feltene. Sesongens grenser er fortsatt min/max. */
+  initialStart?: string
+  initialEnd?: string
   targetUserId?: string
 }) {
   const router = useRouter()
   const [name, setName] = useState(editing?.name ?? '')
   const [focus, setFocus] = useState(editing?.focus ?? '')
-  const [startDate, setStartDate] = useState(editing?.start_date ?? seasonStart)
-  const [endDate, setEndDate] = useState(editing?.end_date ?? seasonStart)
+  const [startDate, setStartDate] = useState(editing?.start_date ?? initialStart ?? seasonStart)
+  const [endDate, setEndDate] = useState(editing?.end_date ?? initialEnd ?? initialStart ?? seasonStart)
   const [intensity, setIntensity] = useState<Intensity>(editing?.intensity ?? 'medium')
   const [notes, setNotes] = useState(editing?.notes ?? '')
   const [busy, setBusy] = useState(false)

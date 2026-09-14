@@ -43,6 +43,7 @@ import {
   competitionChipStyle, intensityAccent, type CalendarMode,
 } from './Calendar'
 import { PeriodeStripe } from '@/components/calendar/PeriodeStripe'
+import { usePeriodeRedigering } from '@/components/calendar/PeriodeRedigering'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const BEBAS = "'Bebas Neue', sans-serif"
@@ -427,6 +428,9 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
 function PeriodeRad({ ukeISO, perioder, keyDates, markeringer }: {
   ukeISO: string[]; perioder: SeasonPeriod[]; keyDates: SeasonKeyDate[]; markeringer: SeasonMarking[]
 }) {
+  // Samme inngang som i månedsvisningen: klikk på perioden for å redigere,
+  // på det stiplede hullet for å legge til (Sverre 14. sep).
+  const periodeRed = usePeriodeRedigering()
   // Stripen er den delte PeriodeStripe (samme som måned og liste). Ikon-raden
   // under (nøkkeldatoer og samlinger per dag) er ukevisningens egen.
   const ikonPerDag = ukeISO.map(ds => {
@@ -441,10 +445,12 @@ function PeriodeRad({ ukeISO, perioder, keyDates, markeringer }: {
     return ut
   })
   const harPeriode = perioder.some(p => p.start_date <= ukeISO[6] && p.end_date >= ukeISO[0])
-  if (!harPeriode && ikonPerDag.every(e => e.length === 0)) return null
+  if (!harPeriode && !periodeRed.kanRedigere && ikonPerDag.every(e => e.length === 0)) return null
   return (
     <div className="px-3 md:px-6 pt-3" data-uke-perioder>
-      <PeriodeStripe ukeISO={ukeISO} perioder={perioder} />
+      <PeriodeStripe ukeISO={ukeISO} perioder={perioder}
+        onPeriode={periodeRed.kanRedigere ? periodeRed.apnePeriode : undefined}
+        onLeggTil={periodeRed.kanRedigere ? periodeRed.apneNy : undefined} />
       {ikonPerDag.some(e => e.length > 0) && (
         <div className="uke-kolonner" data-uke-emoji style={{ marginTop: 4, marginBottom: 2 }}>
           {ikonPerDag.map((e, i) => (

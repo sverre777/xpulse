@@ -75,7 +75,7 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
         padding: '6px 14px', cursor: 'pointer', minHeight: 32,
         display: 'inline-flex', alignItems: 'center', gap: 6,
       }}>
-      <Ikon navn="aktivitet" variant="fyll" storrelse={14} style={{ color: 'var(--gold)' }} />Øktbygger
+      <Ikon navn="oktbygger" variant="fyll" storrelse={14} style={{ color: 'var(--accent)' }} />Øktbygger
     </button>
   )
 }
@@ -434,7 +434,7 @@ export function OktbyggerPopup({
                   color: 'var(--tekst-5-app)', background: 'none', border: 'none',
                   padding: '4px 0', cursor: 'pointer', minHeight: 36,
                 }}>
-                <Ikon navn="aktivitet" variant="fyll" storrelse={14} style={{ color: 'var(--gold)' }} /> Hurtigoppsett - antall × dragtid × sone / pause
+                <Ikon navn="intervallbygger" variant="fyll" storrelse={14} style={{ color: 'var(--accent)' }} /> Hurtigoppsett - antall × dragtid × sone / pause
                 <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)' }}>{hurtigAapent ? '▴' : '▾'}</span>
               </button>
               {hurtigAapent && (

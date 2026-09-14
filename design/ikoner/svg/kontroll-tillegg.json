@@ -1,0 +1,76 @@
+{
+  "svgFiles": 6,
+  "names": [
+    "oktbygger",
+    "intervallbygger",
+    "recovery"
+  ],
+  "checks": [
+    {
+      "icon": "oktbygger",
+      "variant": "strek",
+      "bounds": [
+        2.05,
+        2.85,
+        21.95,
+        21.95
+      ],
+      "paths": 1
+    },
+    {
+      "icon": "oktbygger",
+      "variant": "fyll",
+      "bounds": [
+        2.3,
+        2.75,
+        22.0,
+        21.6
+      ],
+      "paths": 1
+    },
+    {
+      "icon": "intervallbygger",
+      "variant": "strek",
+      "bounds": [
+        2.35,
+        2.25,
+        21.85,
+        21.75
+      ],
+      "paths": 1
+    },
+    {
+      "icon": "intervallbygger",
+      "variant": "fyll",
+      "bounds": [
+        2.974,
+        2.6,
+        22.0,
+        21.125
+      ],
+      "paths": 1
+    },
+    {
+      "icon": "recovery",
+      "variant": "strek",
+      "bounds": [
+        2.35,
+        2.95,
+        21.75,
+        21.276
+      ],
+      "paths": 1
+    },
+    {
+      "icon": "recovery",
+      "variant": "fyll",
+      "bounds": [
+        2.202,
+        3.0,
+        21.5,
+        21.531
+      ],
+      "paths": 1
+    }
+  ]
+}

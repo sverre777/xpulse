@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { RECOVERY_GROUPS } from '@/lib/recovery-types'
 import { saveRecoveryEntry } from '@/app/actions/recovery'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface RecoveryModalProps {
   date: string
@@ -71,7 +72,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+            <Ikon navn="recovery" variant="fyll" storrelse={22} style={{ color: '#28A86E' }} />
             <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
               Legg til recovery
             </h2>

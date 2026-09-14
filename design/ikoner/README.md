@@ -7,7 +7,7 @@ Kilde: `design/ikoner/svg` (GPT-eksporten, 14. sep 2026): `ikoner.json` (standar
 Bruk: `<Ikon navn="plan" variant="strek" storrelse={18} />`. Farge = currentColor (arves fra konteksten),
 strek 1.7 med runde ender, fyll med nonzero. Størrelser 14 / 18 / 22 / 26; ved 14 velges mini automatisk.
 
-106 definerte paths + 3 alias = 109 navn.
+109 definerte paths + 3 alias = 112 navn.
 
 | navn | mini (14 px) | alias for |
 |---|---|---|
@@ -48,6 +48,7 @@ strek 1.7 med runde ender, fyll med nonzero. Størrelser 14 / 18 / 22 / 26; ved 
 | hviledag | - | - |
 | innboks | - | - |
 | innstillinger | - | - |
+| intervallbygger | - | - |
 | kadens | ja | - |
 | klokke | ja | - |
 | koble-flett | - | - |
@@ -75,6 +76,7 @@ strek 1.7 med runde ender, fyll med nonzero. Størrelser 14 / 18 / 22 / 26; ved 
 | multisport | - | - |
 | nedjogg | ja | - |
 | neste | - | - |
+| oktbygger | - | - |
 | oppvarming | - | - |
 | parallelltest | ja | - |
 | pause | - | - |
@@ -85,6 +87,7 @@ strek 1.7 med runde ender, fyll med nonzero. Størrelser 14 / 18 / 22 / 26; ved 
 | play | - | - |
 | profil | - | - |
 | puls | - | - |
+| recovery | - | - |
 | reisedag | - | - |
 | rulleski | ja | - |
 | samling | - | - |

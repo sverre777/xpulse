@@ -109,7 +109,10 @@
     "tips",
     "aktivitet",
     "sykdom",
-    "watt"
+    "watt",
+    "oktbygger",
+    "intervallbygger",
+    "recovery"
   ],
   "iconCount": 109,
   "standardSvgCount": 218,

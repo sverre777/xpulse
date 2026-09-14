@@ -72,7 +72,7 @@ export function AktivitetKnapperad({
       {visBygger && (
         <button type="button" onClick={onOktbygger} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
-          <Ikon navn="aktivitet" variant="fyll" storrelse={18} style={{ color: 'var(--gold)' }} /> Øktbygger
+          <Ikon navn="oktbygger" variant="fyll" storrelse={18} /> Øktbygger
         </button>
       )}
       {visPlottTreff && (

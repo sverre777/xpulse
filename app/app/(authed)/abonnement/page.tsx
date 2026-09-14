@@ -5,6 +5,7 @@ import { getActiveSubscription, hasActiveAccess, hasCoachTier, tierLabel, tierPr
 import { getMySeatInfo } from '@/app/actions/seat-invite'
 import { getSeatStatus } from '@/app/actions/seats'
 import { ManageBillingButton } from './ManageBillingButton'
+import { Ikon } from '@/components/ui/ikoner'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,7 +71,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
         </div>
 
         {justCompleted && (
-          <Toast color="#28A86E" text="✓ Abonnementet er aktivert. Detaljene under oppdateres når Stripe-webhook ankommer." />
+          <Toast color="#28A86E" text="Abonnementet er aktivert. Detaljene under oppdateres når Stripe-webhook ankommer." />
         )}
 
         {isExpired && (
@@ -218,7 +219,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                   borderLeft: '3px solid #28A86E',
                 }}>
                 <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', lineHeight: 1.6 }}>
-                  ✓ Trener-abonnementet ditt inkluderer egen utøver-profil - du har også full tilgang til utøver-funksjonene (dagbok, plan, klokkesync og analyse). Bytt til utøver-modus øverst til høyre.
+                  <Ikon navn="fullfort" variant="strek" storrelse={14} /> Trener-abonnementet ditt inkluderer egen utøver-profil - du har også full tilgang til utøver-funksjonene (dagbok, plan, klokkesync og analyse). Bytt til utøver-modus øverst til høyre.
                 </p>
               </div>
             )}

@@ -491,7 +491,8 @@ export type ActivityType =
 export interface ActivityTypeOption {
   value: ActivityType
   label: string
-  icon: string
+  /** Navn i ikonsettet (components/ui/ikoner) - ikke emoji. */
+  icon: IkonNavn
   usesMovement: boolean      // om bevegelsesform-dropdown skal vises
   isShooting: boolean
   biathlonOnly: boolean
@@ -520,22 +521,22 @@ export interface ActivityTypeOption {
 // `activities.activity_type` i prod. Bevisst ikke gjort.
 
 export const ACTIVITY_TYPES: ActivityTypeOption[] = [
-  { value: 'oppvarming',        label: 'Oppvarming',         icon: '🔥', usesMovement: true,  isShooting: false, biathlonOnly: false },
-  { value: 'aktivitet',         label: 'Aktivitet',          icon: '⚡', usesMovement: true,  isShooting: false, biathlonOnly: false },
-  { value: 'pause',             label: 'Pause',              icon: '⏸',  usesMovement: false, isShooting: false, biathlonOnly: false },
-  { value: 'aktiv_pause',       label: 'Aktiv pause',        icon: '🚶', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'oppvarming',        label: 'Oppvarming',         icon: 'oppvarming', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'aktivitet',         label: 'Aktivitet',          icon: 'aktivitet', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'pause',             label: 'Pause',              icon: 'pause',  usesMovement: false, isShooting: false, biathlonOnly: false },
+  { value: 'aktiv_pause',       label: 'Aktiv pause',        icon: 'aktiv-pause', usesMovement: true,  isShooting: false, biathlonOnly: false },
   // Veksling/bytt-tid (triatlon, multisport). Var en SKJULT KONVENSJON —
   // aktiv_pause med navnet «T1»/«T2» i triatlon-malen — nå en egen type.
   // EGEN TIDSKATEGORI: verken treningstid eller pause (se
   // IKKE_TRENINGSTID_TYPER). Radnavnet (T1/T2) føres i movement_name som før.
-  { value: 'veksling',          label: 'Veksling',           icon: '🔄', usesMovement: false, isShooting: false, biathlonOnly: false },
-  { value: 'skyting_liggende',  label: 'Skyting L',          icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_staaende',  label: 'Skyting S',          icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_kombinert', label: 'Skyting',            icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
-  { value: 'skyting_innskyting',label: 'Skyting - Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
-  { value: 'skyting_basis',     label: 'Skyting - Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
-  { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
-  { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
+  { value: 'veksling',          label: 'Veksling',           icon: 'veksling', usesMovement: false, isShooting: false, biathlonOnly: false },
+  { value: 'skyting_liggende',  label: 'Skyting L',          icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_staaende',  label: 'Skyting S',          icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_kombinert', label: 'Skyting',            icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_innskyting',label: 'Skyting - Innskyting',icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_basis',     label: 'Skyting - Basisskyting',icon: 'skyting', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'nedjogg',           label: 'Nedjogg',            icon: 'nedjogg', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'annet',             label: 'Annet',              icon: 'annet',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]
 
 // Typer som IKKE er treningstid. Pause-familien og veksling deler denne
@@ -1102,7 +1103,7 @@ export interface WorkoutTemplate {
   // Legacy — inneholder sport/workout_type/movements/notes/tags for bakoverkomp.
   template_data: WorkoutFormData
   // Kø #49 (fase 87): test-mal = vanlig øktmal m/ flagg (alle idretter).
-  // Økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt.
+  // Økt fra test-mal får (workout_type 'test') forhåndsvalgt.
   is_test: boolean
   // Fase 97 (mal-fiksen): malens økttype. Verdiene er OKT_MAL_TYPER i
   // lib/okt-template-library.ts — fasiten importeres, aldri kopieres.
@@ -1150,6 +1151,7 @@ export interface ShotStats {
 }
 
 import type { PlanBlokkInn } from './plan-graf'
+import type { IkonNavn } from '@/components/ui/ikoner'
 
 /** Et punkt i kompakt visning (bolk 8): sekund, slag og om det er planlagt. */
 export interface KompaktPunkt { sek: number; slag: 'laktat' | 'ernaering' | 'notat' | 'skyting'; planlagt: boolean }
@@ -1161,7 +1163,7 @@ export interface CalendarWorkoutSummary {
   is_completed: boolean
   /** Planlagt økt som er gjennomført VIA KOBLING til en synket økt.
    * Koblingen setter bevisst is_completed=false på plan-raden (mot dublett i
-   * Dagbok) — visningen skal likevel vise ✓. Kun visning: filtre og
+   * Dagbok) — visningen skal likevel vise haken. Kun visning: filtre og
    * aggregering skal fortsatt lese is_completed. */
   /** Live-økt startet men aldri fullført — telles IKKE som gjennomført. */
   is_live_draft?: boolean
@@ -1426,7 +1428,7 @@ function generateBiathlonActivities(format: string): ActivityRow[] {
   // nøytral «Skyting»-rad m/ én serie i riktig posisjon (L/S utledes av
   // serien). Stafett/mix: skudd-feltet er justerbart 5–8 (inntil 3
   // ekstraskudd) — genereres med 5 + serie-notat som minner om det.
-  // 🏁 Konkurranse-markeringen er AUTOMATISK (utledes av øktas
+  // Konkurranse-markeringen er AUTOMATISK (utledes av øktas
   // workout_type='competition' — lagres ikke). Samme struktur/rekkefølge
   // som før modell-byttet (full paritet): Oppvarming → Runde 1 → Skyting →
   // … → siste runde inn.

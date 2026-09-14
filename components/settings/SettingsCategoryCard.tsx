@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 interface Props {
   href: string
-  glyph: string
+  /** Navn i ikonsettet (ikonjobben 14. sep) - ikke et tegn. */
+  glyph: IkonNavn
   title: string
   description: string
   accent?: string
@@ -25,7 +27,7 @@ export function SettingsCategoryCard({ href, glyph, title, description, accent =
         color: accent, fontSize: '18px',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
-        {glyph}
+        <Ikon navn={glyph} variant="strek" storrelse={22} />
       </div>
       <div className="flex-1 min-w-0">
         <p style={{

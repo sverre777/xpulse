@@ -97,7 +97,7 @@ export function bevValgForBygger(sport: Sport): string[] {
   return [...egne, ...alle.filter(n => !egne.includes(n))].filter(n => !isStrengthMovement(n))
 }
 
-// ── Tall ↔ tekst ──
+// ── Tall  mot  tekst ──
 
 /** «220» → 220 · «220–240» / «220-240» → { fra: 220, til: 240 }. */
 export function parseWattSpenn(tekst: string): { fra: number; til: number | null } | null {

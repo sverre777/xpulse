@@ -150,7 +150,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
   /** MINIATYREN (forsiden, regel 11 — samme komponent, samme data):
       periodebånd én rad · 8 uker i én rad (ukenummer + stempel) ·
       timer/uke-søyler · nøkkeldatoene som én rullende chip-rad · fot med
-      bare 🖌 Pensel. `timer` = planlagte timer for de 8 ukene. */
+      bare Pensel. `timer` = planlagte timer for de 8 ukene. */
   miniatyr?: { timer?: number[]; fraUke?: number }
   periods: SeasonPeriod[]
   markings: SeasonMarking[]
@@ -614,7 +614,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em',
             borderRadius: 9, padding: '5px 10px', border: '1px solid var(--line2)', color: 'var(--tekst-1-app)', background: 'var(--card2)',
-          }}>🖌 Pensel <span style={{ width: 9, height: 9, borderRadius: 2, background: INTENSITY_COLOR.hard }} /></span>
+          }}>Pensel <span style={{ width: 9, height: 9, borderRadius: 2, background: INTENSITY_COLOR.hard }} /></span>
         </div>
       </div>
     )

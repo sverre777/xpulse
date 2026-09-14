@@ -7,8 +7,9 @@ import { saveDailyHealth } from '@/app/actions/health'
 import { saveDailySleep, type DailySleepRecord } from '@/app/actions/sleep'
 import { saveDailyHealthMetrics, type DailyHealthMetrics } from '@/app/actions/health-metrics'
 import { DailyHealth } from '@/lib/types'
+import { Ikon } from '@/components/ui/ikoner'
 
-// ── Søvn: tid ↔ tidspunkt ────────────────────────────────────
+// ── Søvn: tid mot tidspunkt ────────────────────────────────────
 // sleep_records.date er datoen du VÅKNET. Leggetid klokka 23 hører derfor til
 // kvelden før; leggetid klokka 01 hører til samme dato. Grensa settes ved
 // klokka 12, som er den eneste tolkningen som ikke gir rare døgn.
@@ -317,7 +318,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
                     fontSize: '24px', color: (form.sleep_quality ?? 0) >= n ? '#28A86E' : 'var(--kant-6)',
                     background: 'none', border: 'none', cursor: 'pointer',
                     minWidth: 44, minHeight: 44, lineHeight: 1, padding: 0,
-                  }}>★</button>
+                  }}><Ikon navn="favoritt" variant="fyll" storrelse={14} /></button>
               ))}
             </div>
           </Field>

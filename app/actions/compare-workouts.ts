@@ -14,7 +14,7 @@ export interface TemplateOption {
   id: string
   name: string
   count: number
-  // Kø #49: test-mal (workout_templates.is_test) — vises m/ 🧪 i filteret.
+  // Kø #49: test-mal (workout_templates.is_test) — vises m/ i filteret.
   // Sammenligning av test-økter (alle idretter) GJENBRUKER denne flaten.
   is_test: boolean
 }

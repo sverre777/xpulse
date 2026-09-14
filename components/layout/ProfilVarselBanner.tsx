@@ -11,6 +11,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { lukkProfilvarsel } from '@/app/actions/settings'
+import { Ikon } from '@/components/ui/ikoner'
 
 export function ProfilVarselBanner() {
   const [skjult, setSkjult] = useState(false)
@@ -58,7 +59,7 @@ export function ProfilVarselBanner() {
           color: 'var(--tekst-5-app)', fontSize: 18, lineHeight: 1,
           padding: '6px 8px',
         }}>
-        ✕
+        <Ikon navn="lukk" variant="strek" storrelse={14} />
       </button>
     </div>
   )

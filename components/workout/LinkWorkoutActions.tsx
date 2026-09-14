@@ -13,7 +13,7 @@ import {
 import { Ikon } from '@/components/ui/ikoner'
 
 // Knappebar høyt oppe i WorkoutForm. Kontekst-avhengige knapper:
-//   - «✓ Marker som fullført» — planlagte rader uten flett, dato i dag/
+//   - «Marker som fullført» — planlagte rader uten flett, dato i dag/
 //     passert, kun i Plan-modus (Dagbok har egen CTA lenger ned).
 //   - Koble/flett-pillen (fasit: flett-designet seksjon 1) — åpner picker,
 //     deretter ÉN flett-dialog med modus A/B (seksjon 2). Kobling ER flett.

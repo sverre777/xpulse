@@ -7,7 +7,7 @@ import { Ikon } from '@/components/ui/ikoner'
 // Øktbygger-omleggingen v6.
 //
 // Rekkefølge (Øktbygger-fasiten): + Legg til aktivitet ·
-// 🎯 + Legg til skyting · ⚡ Øktbygger · 🎯 Plott treff.
+// 🎯 + Legg til skyting · Øktbygger · 🎯 Plott treff.
 // Under 560 px kortes de to første til «+ AKTIVITET» / «🎯 + SKYTING» (Sverre 6. sep).
 //
 // Betingelser — knapper SKJULES (aldri deaktiveres) når de ikke gjelder:
@@ -16,7 +16,7 @@ import { Ikon } from '@/components/ui/ikoner'
 //                           styrer skyting ellers: userHasBiathlon)
 //   🎯 Plott treff        — dagbok + økta har minst én skyting-rad,
 //                           uavhengig av klokkesynk. Aldri i plan.
-//   ⚡ Øktbygger          — ALLTID: plan og dagbok, med og uten klokke, med
+//   Øktbygger          — ALLTID: plan og dagbok, med og uten klokke, med
 //                           og uten lagret økt. Inni ligger hurtigoppsettet
 //                           og, når økta har kurve, verktøyene på kurven.
 //                           Navnet er låst til «Øktbygger».

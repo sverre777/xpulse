@@ -2,10 +2,10 @@
 
 // HJEM v2 bolk 3 — SISTE HARDØKT. Fasit design/xpulse-hjem-kort-v2-design.html
 // (kort 5): tittel + klokkemerke-chip, metalinje, hele ØktGraf ~190 px
-// (kurve + blokker + 🩸🍌🎯-piller m/ pekelinje + segmentbånd + klammer),
+// (kurve + blokker + laktat-/ernærings-/skytepiller m/ pekelinje + segmentbånd + klammer),
 // 6 nøkkeltall (varighet · snittpuls · makspuls · hovedsone-tid · belastning ·
 // laktat maks — byttes med opplevd når laktat ikke er ført), piller, fot
-// «Se detaljer» · «Vis mer ↗» (popup, bolk 4). Uten klokke: blokkgraf
+// «Se detaljer» · «Vis mer » (popup, bolk 4). Uten klokke: blokkgraf
 // ~110 px + 4 nøkkeltall + «— puls ikke ført» dempet.
 // Samme regel for «hardøkt» som før (server: HARD_WORKOUT_TYPES / ≥ 15 min I3+).
 

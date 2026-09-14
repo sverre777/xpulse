@@ -1,6 +1,6 @@
 // YTELSE bolk 0 (Sverre 5. sep 2026): en liten måleflate uten data — svarer
 // med regionen serverfunksjonen kjører i (AWS_REGION i Netlify-funksjonen)
-// og tidsstempel, så avstanden Netlify ↔ Supabase kan leses utenfra med
+// og tidsstempel, så avstanden Netlify  mot  Supabase kan leses utenfra med
 // curl. Ingen auth, ingen databasekall, ingen personopplysninger.
 import { NextResponse } from 'next/server'
 

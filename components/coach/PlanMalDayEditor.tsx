@@ -234,7 +234,7 @@ function MenuView({
           + Fra øktmal
         </BtnSecondary>
         <BtnSecondary onClick={onToggleRest}>
-          {isRest ? 'Fjern hviledag' : '🚫 Hviledag'}
+          {isRest ? 'Fjern hviledag' : 'Hviledag'}
         </BtnSecondary>
       </div>
 

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { generateInviteCode, type ActiveInviteCode } from '@/app/actions/coach-invite'
+import { Ikon } from '@/components/ui/ikoner'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -88,7 +89,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
                 cursor: 'pointer',
               }}
             >
-              {copied ? 'Kopiert ✓' : 'Kopier'}
+              {copied ? <>Kopiert <Ikon navn="fullfort" variant="strek" storrelse={14} /></> : 'Kopier'}
             </button>
             <button
               type="button"

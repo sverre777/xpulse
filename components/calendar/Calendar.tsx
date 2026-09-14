@@ -121,7 +121,7 @@ export interface CalendarProps {
   // Periodiseringsoverlay (valgfritt — tom array = ingen overlay).
   seasonPeriods?: import('@/app/actions/seasons').SeasonPeriod[]
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
-  // B2 (kø #39): markeringslaget (📍 samling / 🏔 høyde) — dag-presist.
+  // B2 (kø #39): markeringslaget (📍 samling / høyde) — dag-presist.
   seasonMarkings?: import('@/app/actions/seasons').SeasonMarking[]
   // Dag-tilstander (hviledag/sykdom) indeksert etter dato.
   initialDayStates?: Record<string, DayState[]>
@@ -240,7 +240,7 @@ export function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarM
   if (mode === 'plan') return workouts.filter(w => w.is_planned)
   // Dagbok: en planlagt økt gjennomført VIA KOBLING representeres av den
   // synkede raden — plan-raden skjules her, ellers vises økta dobbelt.
-  // (I Plan-modus vises den fortsatt, med ✓ og plan-tallene.)
+  // (I Plan-modus vises den fortsatt, med hake og plan-tallene.)
   return workouts
 }
 
@@ -400,7 +400,7 @@ function WeekAnalysisStripe({
   // Del D: dagbok — ukens PLANLAGTE tid, vist som «15t / 18t plan».
   // null/undefined = ikke i dagbok eller ingenting planlagt.
   plannedSeconds?: number | null
-  // Kø #47 bolk 5: ukens skudd-statistikk (🎯-chip + typefordelings-bar).
+  // Kø #47 bolk 5: ukens skudd-statistikk (skudd-chip + typefordelings-bar).
   shotStats?: ShotStats | null
   plannedShotsTotal?: number | null
 }) {
@@ -431,7 +431,7 @@ function WeekAnalysisStripe({
       >
         Uke {weekNumber}
       </span>
-      {/* Kø #47 bolk 5: 🎯 skudd-chip (aldri borte på mobil - baren
+      {/* Kø #47 bolk 5: skudd-chip (aldri borte på mobil - baren
           bryter til egen linje) - kun uker m/ skyting. */}
       {shotStats && (
         <ShotWeekChip stats={shotStats}
@@ -773,7 +773,7 @@ function ChipKurve({ w, hoyde = 26 }: { w: CalendarWorkoutSummary; hoyde?: numbe
 
 // ── Mobil månedsliste: økt-pille (design/xpulse-mobil-mnd-design.html) ──
 // Gjenbruker chip-fargekodingen 1:1: typefarge på venstre kant (konkurranse/
-// styrke/intensitet), stiplet ramme for planlagt, ✓ grønn, ▲ for import.
+// styrke/intensitet), stiplet ramme for planlagt, grønn hake, trekant for import.
 function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttributes, dragging }: {
   w: CalendarWorkoutSummary
   mode: CalendarMode
@@ -1555,7 +1555,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const expandedDate = week.find(d => toISO(d) === expandedDay)
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
         const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : 'var(--data-nopris)'
-        // B2: markeringer (📍/🏔) som overlapper uka — badges i wsum + mobil.
+        // B2: markeringer (samling/høyde) som overlapper uka — badges i wsum + mobil.
         const weekMarkings = seasonMarkings.filter(m => m.start_date <= toISO(week[6]) && m.end_date >= toISO(week[0]))
         // Del D: dagbok viser gjennomført MOT planlagt («15/18») i wsum.
         const weekPlannedSeconds = mode === 'dagbok'

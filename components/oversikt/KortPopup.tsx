@@ -6,7 +6,7 @@
 // kortet allerede har lastet, og nederst står én lenke videre til der man
 // faktisk kan gjøre noe. Ingenting hentes for popupen.
 //
-// Lukkes med ✕, klikk utenfor og Escape — alle tre, ikke bare én av dem.
+// Lukkes med lukk-knappen, klikk utenfor og Escape — alle tre, ikke bare én av dem.
 //
 // MOBIL (Sverre 5. sep, Hjem v2-fasiten): ≤ 620 px er popupen et FULLSKJERM-
 // ARK — fixed inset 0, full bredde, ingen vannrett scroll, safe-area, lukk-

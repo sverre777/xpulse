@@ -6,6 +6,7 @@ import type { FocusPoint, FocusScope, FocusContext } from '@/lib/focus-point-typ
 import {
   getFocusPointsBoth, addFocusPoint, updateFocusPoint, deleteFocusPoint,
 } from '@/app/actions/focus-points'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Props {
   scope: FocusScope
@@ -199,7 +200,7 @@ export function FocusSection({
                         onKeyDown={e => { if (e.key === 'Enter') handleUpdate(p.id); if (e.key === 'Escape') setEditingId(null) }}
                       />
                       <button type="button" onClick={() => handleUpdate(p.id)} disabled={pending}
-                        style={{ background: 'none', border: 'none', color: '#28A86E', fontSize: '14px', cursor: 'pointer', padding: 0 }}>✓</button>
+                        style={{ background: 'none', border: 'none', color: '#28A86E', fontSize: '14px', cursor: 'pointer', padding: 0 }}><Ikon navn="fullfort" variant="strek" storrelse={14} /></button>
                       <button type="button" onClick={() => setEditingId(null)}
                         style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '14px', cursor: 'pointer', padding: 0 }}>×</button>
                     </>
@@ -211,7 +212,7 @@ export function FocusSection({
                       <button type="button"
                         onClick={() => { setEditingId(p.id); setEditContent(p.content) }}
                         style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '13px', cursor: 'pointer', padding: 0 }}
-                        title="Rediger">✎</button>
+                        title="Rediger"><Ikon navn="for-okt" variant="strek" storrelse={14} /></button>
                       <button type="button"
                         onClick={() => handleDelete(p.id)}
                         disabled={pending}
@@ -239,7 +240,7 @@ export function FocusSection({
                     background: 'none', border: 'none',
                     color: draftContent.trim() ? '#28A86E' : 'var(--tekst-8-app)',
                     fontSize: '14px', cursor: 'pointer', padding: 0,
-                  }}>✓</button>
+                  }}><Ikon navn="fullfort" variant="strek" storrelse={14} /></button>
                 <button type="button" onClick={() => { setDrafting(false); setDraftContent('') }}
                   style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '14px', cursor: 'pointer', padding: 0 }}>×</button>
               </div>

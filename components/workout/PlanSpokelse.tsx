@@ -99,7 +99,7 @@ export function VisPlanBryter({ paa, antall, onEndre }: {
         color: paa ? 'var(--accent)' : 'var(--tekst-5-app)',
         whiteSpace: 'nowrap',
       }}>
-      👁 Vis plan {paa ? '· på' : ''}
+      Vis plan {paa ? '· på' : ''}
     </button>
   )
 }

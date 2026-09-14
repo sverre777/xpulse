@@ -72,7 +72,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
 
   return (
     <>
-      {/* Serie-rader: nr · L/S · skudd · treff · tid · puls · 📝 · ✕.
+      {/* Serie-rader: nr · L/S · skudd · treff · tid · puls · notat · lukk.
           Under 680px bryter puls-gruppen til egen linje (w-full). */}
       {series.map((s, i) => (
         <div key={s.id} style={{ borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>

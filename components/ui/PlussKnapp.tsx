@@ -12,15 +12,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { iDagISO } from '@/lib/local-date'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 
-const Ikon = ({ d }: { d: string }) => (
-  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={d} /></svg>
-)
-const IKON_DAGBOK = 'M5 4h11l3 3v13H5zM8 12h8M8 16h5M9 4v4h6'
-const IKON_PLAN = 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15h2M13 15h2'
-const IKON_LIVE = 'M6 5l12 7-12 7z'
+// Ikonene kommer fra settet (ikonjobben 14. sep) - ingen egne paths her.
+const IKON_DAGBOK: IkonNavn = 'dagbok'
+const IKON_PLAN: IkonNavn = 'plan'
+const IKON_LIVE: IkonNavn = 'live-styrke'
 
 export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbok = true, kanPlanlegge = true }: {
   side: 'hjem' | 'dagbok' | 'plan'
@@ -65,7 +64,7 @@ export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbo
     router.push(url)
   }, [router])
 
-  const valg: { id: string; navn: string; ikon: string; onClick: () => void }[] = []
+  const valg: { id: string; navn: string; ikon: IkonNavn; onClick: () => void }[] = []
   if (kanForeDagbok) valg.push({ id: 'dagbok', navn: 'Før i dagbok', ikon: IKON_DAGBOK, onClick: () => gaa(`${basePath}/dagbok?new=${dato}`) })
   if (kanPlanlegge) valg.push({ id: 'plan', navn: 'Planlegg', ikon: IKON_PLAN, onClick: () => gaa(`${basePath}/plan?new=${dato}`) })
   if (kanLive) valg.push({ id: 'live', navn: 'Live styrke', ikon: IKON_LIVE, onClick: () => gaa(`/app/dagbok?new=${iDagISO()}&styrke=1`) })
@@ -82,7 +81,7 @@ export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbo
               className="flex items-center gap-3 text-left"
               style={{ fontFamily: FONT, fontSize: 15, fontWeight: 600, color: 'var(--tekst-1-app)', background: 'none', border: 'none', borderRadius: 10, padding: '10px 12px', cursor: 'pointer', minHeight: 44 }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--card2)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>
-              <span style={{ color: v.id === 'live' ? '#28A86E' : 'var(--accent)', display: 'inline-flex' }}><Ikon d={v.ikon} /></span>
+              <span style={{ color: v.id === 'live' ? '#28A86E' : 'var(--accent)', display: 'inline-flex' }}><Ikon navn={v.ikon} variant="strek" storrelse={22} /></span>
               {v.navn}
             </button>
           ))}
@@ -122,7 +121,7 @@ export function PlussKnappTrener({ variant = 'hjem' }: { variant?: 'hjem' | 'kal
           {valg.map(v => (
             <button key={v.id} type="button" role="menuitem" data-pluss-valg={v.id} onClick={() => { setAapen(false); router.push(v.href) }} className="flex items-center gap-3 text-left"
               style={{ fontFamily: FONT, fontSize: 15, fontWeight: 600, color: 'var(--tekst-1-app)', background: 'none', border: 'none', borderRadius: 10, padding: '10px 12px', cursor: 'pointer', minHeight: 44 }}>
-              <span style={{ color: '#1A6FD4', display: 'inline-flex' }}><Ikon d={v.ikon} /></span>{v.navn}
+              <span style={{ color: '#1A6FD4', display: 'inline-flex' }}><Ikon navn={v.ikon} variant="strek" storrelse={22} /></span>{v.navn}
             </button>
           ))}
         </div>

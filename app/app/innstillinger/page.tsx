@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { SettingsCategoryCard } from '@/components/settings/SettingsCategoryCard'
 import type { Role } from '@/lib/types'
+import { Ikon } from '@/components/ui/ikoner'
 
 const ATHLETE_ORANGE = '#FF4500'
 const COACH_BLUE = '#1A6FD4'
@@ -56,7 +57,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
               borderLeft: '3px solid #28A86E',
             }}>
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px' }}>
-              ✓ {stravaToast}
+              <Ikon navn="fullfort" variant="strek" storrelse={14} /> {stravaToast}
             </p>
           </div>
         )}
@@ -64,35 +65,35 @@ export default async function InnstillingerPage({ searchParams }: Props) {
         <div className="space-y-3">
           <SettingsCategoryCard
             href="/app/innstillinger/profil"
-            glyph="◉"
+            glyph="profil"
             title="Profil"
             description="Navn, fødselsår, sport, bilde og land"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/innstillinger/sikkerhet"
-            glyph="✱"
+            glyph="soner"
             title="Sikkerhet"
             description="E-post og passord"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/innstillinger/maleenheter"
-            glyph="≡"
+            glyph="maler"
             title="Måleenheter"
             description="Pace, distanse, vekt og temperatur"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/abonnement"
-            glyph="◯"
+            glyph="abonnement"
             title="Abonnement"
             description="Tier, status, betalingsmetode og faktura"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/innstillinger/data-eksport"
-            glyph="↓"
+            glyph="last-ned"
             title="Data-eksport (GDPR)"
             description="Last ned alle dine data i JSON-format"
             accent={accent}
@@ -101,7 +102,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
           {!isCoachMode && (
             <SettingsCategoryCard
               href="/app/innstillinger/profil/terskler"
-              glyph="♥"
+              glyph="helse"
               title="Terskler, soner & helse"
               description="Terskler per bevegelsesform, pulssoner og helseprofil - under Profil"
               accent={accent}
@@ -110,7 +111,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
           {!isCoachMode && (
             <SettingsCategoryCard
               href="/app/innstillinger/trener"
-              glyph="◆"
+              glyph="trener"
               title="Trener"
               description="Generer kobling-kode og administrer trenere"
               accent={accent}
@@ -120,7 +121,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
           {!isCoachMode && (
             <SettingsCategoryCard
               href="/app/innstillinger/klokkesync"
-              glyph="⌚"
+              glyph="klokke"
               title="Klokkesync"
               description="Strava OAuth + .fit-fil-opplasting"
               accent={accent}
@@ -129,28 +130,28 @@ export default async function InnstillingerPage({ searchParams }: Props) {
 
           <SettingsCategoryCard
             href="/app/innstillinger/varsler"
-            glyph="✉"
+            glyph="innboks"
             title="Varsler"
             description="E-post-varsler for kommentarer, meldinger og plan"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/innstillinger/bevegelsesformer"
-            glyph="↯"
+            glyph="aktivitet"
             title="Bevegelsesformer"
             description="Egne bevegelsesformer i tillegg til standardlisten"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/innstillinger/styrkeoevelser"
-            glyph="⚒"
+            glyph="live-styrke"
             title="Styrkeøvelser"
             description="Eget bibliotek av styrkeøvelser med default reps og vekt"
             accent={accent}
           />
           <SettingsCategoryCard
             href="/app/innstillinger/personvern"
-            glyph="⊘"
+            glyph="personvern"
             title="Personvern og data"
             description="Eksporter data eller slett kontoen"
             accent={accent}
@@ -167,42 +168,42 @@ export default async function InnstillingerPage({ searchParams }: Props) {
               </div>
               <SettingsCategoryCard
                 href="/app/innstillinger/utovere"
-                glyph="◐"
+                glyph="fellestrening"
                 title="Mine utøvere"
                 description="Administrer koblinger, rettigheter og status"
                 accent={COACH_BLUE}
               />
               <SettingsCategoryCard
                 href="/app/innstillinger/grupper"
-                glyph="◇"
+                glyph="fellestrening"
                 title="Grupper"
                 description="Opprett og administrer treningsgrupper"
                 accent={COACH_BLUE}
               />
               <SettingsCategoryCard
                 href="/app/innstillinger/trener-profil"
-                glyph="◈"
+                glyph="profil"
                 title="Trener-profil"
                 description="Bio, sertifiseringer, spesialiteter og synlighet"
                 accent={COACH_BLUE}
               />
               <SettingsCategoryCard
                 href="/app/innstillinger/default-permissions"
-                glyph="⚙"
+                glyph="innstillinger"
                 title="Standard rettigheter"
                 description="Forhåndsvalg for nye utøver-koblinger"
                 accent={COACH_BLUE}
               />
               <SettingsCategoryCard
                 href="/app/innstillinger/paminnelser"
-                glyph="⏱"
+                glyph="klokke"
                 title="Påminnelser"
                 description="Varsler om utøvere som ikke har logget på X dager"
                 accent={COACH_BLUE}
               />
               <SettingsCategoryCard
                 href="/app/innstillinger/eksport-utovere"
-                glyph="⇩"
+                glyph="last-ned"
                 title="Eksport av utøver-data"
                 description="Last ned aggregert CSV med trening, tester og konkurranser"
                 accent={COACH_BLUE}

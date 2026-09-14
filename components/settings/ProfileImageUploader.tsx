@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { uploadProfileImage } from '@/app/actions/settings'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface Props {
   initialUrl: string | null
@@ -46,7 +47,7 @@ export function ProfileImageUploader({ initialUrl }: Props) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="Profilbilde" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <span style={{ color: 'var(--tekst-8-app)', fontSize: '24px' }}>👤</span>
+          <Ikon navn="profil" variant="strek" storrelse={26} style={{ color: 'var(--tekst-8-app)' }} />
         )}
       </div>
       <div className="flex flex-col gap-1">

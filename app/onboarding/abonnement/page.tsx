@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
+import { Ikon } from '@/components/ui/ikoner'
 
 export const metadata: Metadata = {
   title: 'Velg ditt abonnement - X-PULSE',
@@ -200,7 +201,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
       <ul className="space-y-1.5 flex-1 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', lineHeight: 1.5 }}>
         {tier.features.map((f, i) => (
           <li key={i} className="flex items-start gap-2">
-            <span style={{ color: accent, marginTop: '1px' }}>✓</span>
+            <Ikon navn="fullfort" variant="strek" storrelse={14} style={{ color: accent, marginTop: 1 }} />
             <span>{f}</span>
           </li>
         ))}

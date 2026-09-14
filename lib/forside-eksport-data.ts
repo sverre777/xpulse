@@ -131,7 +131,7 @@ function kalenderUkeRaa(): Array<{ dato: string; dag: string; okter: CalendarWor
     { dato: '2026-08-20', dag: 'TORSDAG 20.', okter: [kort('to1', { title: '2 × 10 min I3 / 3 min + 3 × 5 min I4', sport: 'biathlon', primary_movement: 'Skøyting', duration_minutes: 78, blokker: oktaPlanBlokker() })] },
     { dato: '2026-08-21', dag: 'FREDAG 21.', okter: [kort('f1', { title: 'Rolig 90 min', is_planned: true, is_completed: false, primary_movement: 'Løping', duration_minutes: 90, blokker: enkel('aktivitet', 5400, 'I1') })] },
     { dato: '2026-08-22', dag: 'LØRDAG 22.', okter: [kort('l1', { title: 'Lett + 4 spurter', is_planned: true, is_completed: false, duration_minutes: 50, blokker: (() => { const ut: ActivityRow[] = []; const legg = (type: string, sek: number, sone?: string) => { const r = nyAktivitetsrad(type as ActivityRow['activity_type'], 'Løping'); r.duration = mmss(sek); if (sone) r.zones = { ...r.zones, [sone]: mmss(sek) } as ActivityRow['zones']; ut.push(r) }; legg('oppvarming', 1800, 'I1'); for (let i = 0; i < 4; i++) { legg('aktivitet', 60, 'I5'); if (i < 3) legg('aktiv_pause', 180) } legg('nedjogg', 600, 'I1'); return fraActivityRows(ut) })() })] },
-    { dato: '2026-08-23', dag: 'SØNDAG 23.', okter: [kort('s1', { title: '🏁 NC Simostranda', workout_type: 'competition', competition_type: 'jaktstart', is_planned: true, is_completed: false, duration_minutes: 45, blokker: [] } as unknown as Partial<CalendarWorkoutSummary>)] },
+    { dato: '2026-08-23', dag: 'SØNDAG 23.', okter: [kort('s1', { title: 'NC Simostranda', workout_type: 'competition', competition_type: 'jaktstart', is_planned: true, is_completed: false, duration_minutes: 45, blokker: [] } as unknown as Partial<CalendarWorkoutSummary>)] },
   ]
 }
 

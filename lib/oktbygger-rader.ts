@@ -359,7 +359,7 @@ export function etikettFor(u: Utkast, alle: Utkast[]): string {
   return meta?.label ?? u.type
 }
 
-// ── Klokkeslett ↔ sekunder (laktatpunkter bor som TIME på økta) ──
+// ── Klokkeslett  mot  sekunder (laktatpunkter bor som TIME på økta) ──
 export function klokkeslettTilSek(hhmm: string | null | undefined): number {
   if (!hhmm) return 0
   const d = hhmm.split(':').map(Number)

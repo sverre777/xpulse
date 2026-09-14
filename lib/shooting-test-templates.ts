@@ -6,7 +6,7 @@
 // skyting-analysens «Tester»-visning (bolk 6/9).
 //
 // NSSF Test 2 (testløp normalprogram) tas bevisst IKKE inn her — det er en
-// hel økt-struktur, notert som fremtidig ØKT-mal-kandidat med 🧪.
+// hel økt-struktur, notert som fremtidig ØKT-mal-kandidat med .
 
 export interface ShootingTestTemplateDef {
   ref: string

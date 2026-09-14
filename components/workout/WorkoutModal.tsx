@@ -54,13 +54,13 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   // Bolk 4: ⇄-overstyringer per aktivitet (keyet på sort_order/radindeks).
   const [activityEquipment, setActivityEquipment] = useState<Record<number, string[]>>({})
   // Øktoversikt (kø #40): eksisterende økter (gjennomført OG planlagt) åpnes
-  // som oversikt; «✎ Rediger» bytter til skjemaet. For planlagt økt kan
+  // som oversikt; «Rediger» bytter til skjemaet. For planlagt økt kan
   // «Marker som gjennomført» auto-starte markeringsflyten i skjemaet.
   const [showEditForm, setShowEditForm] = useState(false)
   const [apneBygger, setApneBygger] = useState(false)
   const [autoMark, setAutoMark] = useState(false)
   // Pop-upene i øktvisningen (Øktbyggeren, «Plott treff») skriver
-  // rett til basen. Uten en re-henting ville «✎ Rediger» etterpå åpnet
+  // rett til basen. Uten en re-henting ville «Rediger» etterpå åpnet
   // skjemaet med de GAMLE radene — og neste lagring skrevet dem tilbake
   // (skjemaets draft lastes bare når modalen åpnes). Bumpes ved skriving.
   const [reloadTick, setReloadTick] = useState(0)

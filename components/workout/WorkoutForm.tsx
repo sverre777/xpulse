@@ -1067,9 +1067,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           {/* Kategorisering av mal-lista (bev.form + kategori) ved >4 maler. */}
           {/* Hurtigfilter (#50): samme sett som /app/maler + ⟳ Standardøkt.
               SF-16: toppen skal ta MAKS 3 rader på mobil -
-              rad 1 = chips (scroller) + 🔧 til høyre · rad 2 = de tre
+              rad 1 = chips (scroller) + til høyre · rad 2 = de tre
               nedtrekkene · rad 3 = søk + FRA MAL-chipsene (scroller).
-              🔧-knappen bor nå her i stedet for på filterlinja: den linja
+              -knappen bor nå her i stedet for på filterlinja: den linja
               finnes bare når man har mer enn fire maler, så knappen var
               usynlig for alle andre - den skal alltid være der. */}
           <div className="flex items-center gap-1.5 mb-1.5">

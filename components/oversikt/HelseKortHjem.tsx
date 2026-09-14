@@ -2,7 +2,7 @@
 
 // HJEM v2 bolk 8 — helse-kortet på Hjem: KompaktHelseKort (4 tall + søvn-
 // stripe, som i dag) + «HRV og hvilepuls · 30 dager» + fot med «Logg helse»
-// (dagens HelseLoggKnapp) og «Vis mer ↗». «Vis mer» åpner SAMME helseoversikt
+// (dagens HelseLoggKnapp) og «Vis mer ». «Vis mer» åpner SAMME helseoversikt
 // som klikk på kortet (Sverre 5. sep) — ikke en egen popup. Dataene er Hjems
 // ene henting (bolk 0) — ingen egen henting her.
 

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { DataExportButton } from './DataExportButton'
+import { Ikon } from '@/components/ui/ikoner'
 
 // GDPR Article 20 — Right to Data Portability. Alltid tilgjengelig, også
 // etter abonnement-utløp (innstillinger er unntatt middleware-mur).
@@ -26,14 +27,14 @@ export default async function DataEksportPage() {
             Inkluderes
           </h2>
           <ul className="space-y-1 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', lineHeight: 1.6 }}>
-            <li>✓ Alle treningsøkter med metadata og notater</li>
-            <li>✓ Alle laps med soner, watt, puls, kadens, høydemeter</li>
-            <li>✓ Per-sekund-data (puls, watt, GPS) - unntatt Strava-samples eldre enn 7 dager</li>
-            <li>✓ Planlagte økter, perioder og nøkkeldatoer</li>
-            <li>✓ Maler (økt + plan)</li>
-            <li>✓ Profil-data (sport, max_heart_rate - IKKE passord)</li>
-            <li>✓ Tilkoblings-tracking (imported_activities) - kilde per økt: Strava, Polar, .fit-opplasting</li>
-            <li>✓ Polar-importerte økter med rå sekund-data (ingen 7-dagers-grense som for Strava)</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Alle treningsøkter med metadata og notater</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Alle laps med soner, watt, puls, kadens, høydemeter</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Per-sekund-data (puls, watt, GPS) - unntatt Strava-samples eldre enn 7 dager</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Planlagte økter, perioder og nøkkeldatoer</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Maler (økt + plan)</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Profil-data (sport, max_heart_rate - IKKE passord)</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Tilkoblings-tracking (imported_activities) - kilde per økt: Strava, Polar, .fit-opplasting</li>
+            <li><Ikon navn="fullfort" variant="strek" storrelse={14} /> Polar-importerte økter med rå sekund-data (ingen 7-dagers-grense som for Strava)</li>
           </ul>
         </section>
 

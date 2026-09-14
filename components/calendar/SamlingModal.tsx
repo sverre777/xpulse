@@ -1,6 +1,6 @@
 'use client'
 
-// Planlegg/rediger 📍 treningssamling og 🏔 høydeperiode rett fra kalenderen
+// Planlegg/rediger 📍 treningssamling og høydeperiode rett fra kalenderen
 // (plan + dagbok) — ved siden av reisedagen. Skriver til season_markings,
 // SAMME rader som årsplanen viser: redigering her ER en oppdatering av
 // årsplanen (én kilde, aldri sync). Sesongen resolves server-side fra datoene.

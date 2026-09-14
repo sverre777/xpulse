@@ -6,7 +6,7 @@
 
 // ── Manufacturer ────────────────────────────────────────────
 //
-// ⚠ ID-ENE SKAL ALDRI SKRIVES FRA HUKOMMELSEN. De kommer fra FIT SDK
+// ID-ENE SKAL ALDRI SKRIVES FRA HUKOMMELSEN. De kommer fra FIT SDK
 // Profile (Types-fanen, `manufacturer`) og er lette å huske feil — denne
 // tabellen hadde fire feil ID-er fram til 2026-08-18, med det resultatet at
 // Suunto-filer ble merket Polar og Polar-filer ikke ble merket i det hele

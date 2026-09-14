@@ -12,6 +12,7 @@ import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBr
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { hapticTap, showCompletionCheck } from '@/lib/interactions'
+import { Ikon } from '@/components/ui/ikoner'
 
 // Live styrkeøkt-modus (Fase 80). Tynt lag oppå WorkoutFormData: redigerer
 // styrke-aktivitetens øvelser/sett live, autosaver via saveWorkout, og Fullfør =
@@ -268,7 +269,7 @@ export function LiveSessionView({
         <div className="flex items-center justify-between">
           <button type="button" onClick={cancel}
             style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, cursor: 'pointer' }}>
-            ◀ Avbryt
+            <Ikon navn="forrige" variant="strek" storrelse={14} /> Avbryt
           </button>
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
             Styrke-økt
@@ -277,7 +278,7 @@ export function LiveSessionView({
         </div>
         <div className="flex items-center justify-center gap-4 mt-1">
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 30, letterSpacing: '0.04em' }}>
-            ⏱ {fmtClock(elapsedSec)}
+            <Ikon navn="testlop" variant="strek" storrelse={14} /> {fmtClock(elapsedSec)}
           </span>
           {restSec != null && (
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', fontSize: 14 }}>
@@ -321,25 +322,25 @@ export function LiveSessionView({
               <div className="flex items-center justify-between gap-2 mb-1">
                 <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
                   {ssLetter && (
-                    <span style={{ color: '#5B8DEF', fontSize: 14, marginRight: 6 }}>⛓ SS {ssLetter}</span>
+                    <span style={{ color: '#5B8DEF', fontSize: 14, marginRight: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ikon navn="koble-flett" variant="strek" storrelse={14} />SS {ssLetter}</span>
                   )}
                   {idx + 1}. {ex.exercise_name || 'Øvelse'}
                 </span>
                 <div className="flex items-center gap-1">
                   {idx > 0 && ssLetter == null && (
                     <button type="button" onClick={() => linkWithPrevious(ex.id)} title="Supersett med forrige"
-                      style={btnIcon}>⛓</button>
+                      style={btnIcon}><Ikon navn="koble-flett" variant="strek" storrelse={14} /></button>
                   )}
                   {ssLetter != null && (
                     <button type="button" onClick={() => unlinkExercise(ex.id)} title="Løs opp supersett"
-                      style={{ ...btnIcon, color: '#5B8DEF' }}>⛓✕</button>
+                      style={{ ...btnIcon, color: '#5B8DEF' }}><Ikon navn="koble-flett" variant="strek" storrelse={14} /><Ikon navn="lukk" variant="strek" storrelse={14} /></button>
                   )}
                   <button type="button" onClick={() => moveExercise(ex.id, -1)} title="Flytt opp"
                     style={btnIcon}>▲</button>
                   <button type="button" onClick={() => moveExercise(ex.id, 1)} title="Flytt ned"
                     style={btnIcon}>▼</button>
                   <button type="button" onClick={() => removeExercise(ex.id)} title="Fjern øvelse"
-                    style={{ ...btnIcon, color: '#7A3030' }}>✕</button>
+                    style={{ ...btnIcon, color: '#7A3030' }}><Ikon navn="lukk" variant="strek" storrelse={14} /></button>
                 </div>
               </div>
 
@@ -370,7 +371,7 @@ export function LiveSessionView({
                 return (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid var(--kant-1-app)' }}>
                     <span style={{ width: 22, color: done ? '#28A86E' : active ? ORANGE : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
-                      {done ? '✓' : si + 1}
+                      {done ? <Ikon navn="fullfort" variant="strek" storrelse={14} /> : si + 1}
                     </span>
                     <Stepper label="reps" value={s.reps} step={1}
                       onChange={v => updateSet(ex.id, s.id, { reps: v })} />
@@ -384,13 +385,13 @@ export function LiveSessionView({
                         </span>
                         <button type="button" onClick={() => logSet(s.id)}
                           style={{ background: '#28A86E', color: 'var(--flate-3)', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                          ✓ logg
+                          <Ikon navn="fullfort" variant="strek" storrelse={14} /> logg
                         </button>
                       </div>
                     ) : (
                       <button type="button" onClick={() => startSet(s.id)}
                         style={{ marginLeft: 'auto', background: done ? '#14241A' : ORANGE, color: done ? '#28A86E' : 'var(--flate-3)', border: done ? '1px solid #1E4A38' : 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                        {done ? '✓ logget' : 'Start'}
+                        {done ? <><Ikon navn="fullfort" variant="strek" storrelse={14} /> logget</> : 'Start'}
                       </button>
                     )}
                     <button type="button" onClick={() => removeSet(ex.id, s.id)} title="Fjern sett" style={btnIcon}>×</button>
@@ -422,7 +423,7 @@ export function LiveSessionView({
         </div>
         <button type="button" onClick={finish} disabled={busy}
           style={{ width: '100%', background: '#28A86E', color: 'var(--flate-3)', border: 'none', borderRadius: 12, boxShadow: '0 6px 24px rgba(40,168,110,.3)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em', padding: '12px', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
-          Fullfør økt ✓
+          Fullfør økt <Ikon navn="fullfort" variant="strek" storrelse={14} />
         </button>
       </div>
     </div>

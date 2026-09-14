@@ -160,22 +160,12 @@ import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 
-// Ikonjobben: ikon per aktivitetstype - egen tabell her (ikke ACTIVITY_TYPES.icon,
-// som fortsatt bærer emoji og ligger utenfor ikonjobbens filliste).
-const AKTIVITET_TYPE_IKON: Record<ActivityType, IkonNavn> = {
-  oppvarming: 'oppvarming',
-  aktivitet: 'aktivitet',
-  pause: 'pause',
-  aktiv_pause: 'aktiv-pause',
-  veksling: 'veksling',
-  skyting_liggende: 'skyting',
-  skyting_staaende: 'skyting',
-  skyting_kombinert: 'skyting',
-  skyting_innskyting: 'skyting',
-  skyting_basis: 'skyting',
-  nedjogg: 'nedjogg',
-  annet: 'annet',
+/** Ikonet for en aktivitetstype - slås opp i ACTIVITY_TYPES (lib/types), som er
+ *  ÉN kilde for etikett og ikon. Ukjent type faller til «annet». */
+function ikonForAktivitetstype(t: string): IkonNavn {
+  return ACTIVITY_TYPES.find(a => a.value === t)?.icon ?? 'annet'
 }
+
 
 /** Bolk 24: posisjonene en gammel «Skyting»-rad (kombinert) faktisk bærer. */
 function skytingPosisjoner(row: ActivityRow): { L: boolean; S: boolean } {
@@ -632,7 +622,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
         </span>
         {alt
           ? <span style={{ fontSize: '14px' }}>∑</span>
-          : <Ikon navn={isStrength ? 'live-styrke' : (AKTIVITET_TYPE_IKON[forste.activity_type] ?? 'annet')} variant="strek" storrelse={14} />}
+          : <Ikon navn={isStrength ? 'live-styrke' : (ikonForAktivitetstype(forste.activity_type) ?? 'annet')} variant="strek" storrelse={14} />}
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
           {alt ? 'Hele økta' : monster ? 'Intervaller' : (meta?.label ?? forste.activity_type)}
         </span>
@@ -700,7 +690,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
               <div style={{ ...iSt, display: 'flex', alignItems: 'center', gap: 6, opacity: 0.8 }} title={alt ? 'Sonene er en fordeling - ikke redigerbare her' : 'Type endres per rad i splittet visning'}>
                 {alt ? `∑ ${n} rader · soner som fordeling` : (
                   <>
-                    <Ikon navn={isStrength ? 'live-styrke' : (AKTIVITET_TYPE_IKON[forste.activity_type] ?? 'annet')} variant="strek" storrelse={14} />
+                    <Ikon navn={isStrength ? 'live-styrke' : (ikonForAktivitetstype(forste.activity_type) ?? 'annet')} variant="strek" storrelse={14} />
                     {meta?.label ?? forste.activity_type}
                   </>
                 )}
@@ -917,7 +907,7 @@ function ActivityRowItem({
     onUpdate(patch)
   }
 
-  const displayIkon: IkonNavn = isStrength ? 'live-styrke' : (AKTIVITET_TYPE_IKON[row.activity_type] ?? 'annet')
+  const displayIkon: IkonNavn = isStrength ? 'live-styrke' : (ikonForAktivitetstype(row.activity_type) ?? 'annet')
 
   return (
     <div className="xp-act">
@@ -1062,7 +1052,7 @@ function ActivityRowItem({
                       const opt = typeOptions.find(t => t.value === v)
                       if (!opt) return null
                       return (
-                        <option key={`fav-${v}`} value={v}>{opt.icon}  {opt.label}</option>
+                        <option key={`fav-${v}`} value={v}>{opt.label}</option>
                       )
                     })}
                   </optgroup>

@@ -379,11 +379,15 @@ export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]>
   const ut: PlanBlokk[] = []
   rader.forEach((r, i) => {
     const type = r.activity_type ?? 'aktivitet'
-    if (SKYTING(type)) return
     const varighet = Math.max(1, Number(r.window_duration_seconds ?? r.duration_seconds ?? 0) || varighetSek(r.duration))
     // Har planen egne vinduer, er de sannheten; ellers legges blokkene
     // etter hverandre slik de sto i rekkefølgen.
     const start = r.window_start_seconds != null ? Number(r.window_start_seconds) : t
+    // Klokka går for ALLE radene. Sverre 14. sep: skyting VISES ikke i
+    // spøkelset, men tida den tar må telle - ellers krymper planen med
+    // skytetida, og alle blokkene etter den legger seg for tidlig.
+    t = start + varighet
+    if (SKYTING(type)) return
     ut.push({
       id: r.id ?? `plan-${i}`,
       type,
@@ -393,7 +397,6 @@ export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]>
       sone: dominantSone(r.zones) ?? (type === 'oppvarming' || type === 'nedjogg' ? 'I1' : null),
       soner: sonerAv(r.zones),
     })
-    t = start + varighet
   })
   return ut
 }

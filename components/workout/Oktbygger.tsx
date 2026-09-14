@@ -214,10 +214,14 @@ export function OktbyggerPopup({
   const [leggSkyting, setLeggSkyting] = useState<{ aapen: boolean; radId: string | null; tid: string }>({ aapen: false, radId: null, tid: '' })
   // Sverre 5. sep («finner ikke knapp for å legge eksisterende skyting inn i
   // pulskurven»): kjeden gir ALLE rader vindu etter første endring, så
-  // «uplassert» fantes nesten aldri. Lista viser nå alle skyterader — med
-  // tida de står på — og plassering flytter raden dit man klikker/skriver.
+  // «uplassert» fantes nesten aldri.
+  // Sverre 14. sep: lista skal BARE tilby skytinger som ikke alt ligger på
+  // kurven. De som ligger der flyttes ved å dra/klikke på selve markøren -
+  // ikke herfra. Nummeret følger rekkefølgen blant alle skytingene, så navnet
+  // er det samme enten raden er plassert eller ikke.
   const uplasserteSkytinger = skytingRader
-    .map((rad, i) => ({ rad, navn: `Skyting ${i + 1} ${skytePosisjonKort(rad)}${rad.window_start_seconds != null ? ` · ${fmtKlokkeSek(rad.window_start_seconds)}` : ''}` }))
+    .map((rad, i) => ({ rad, navn: `Skyting ${i + 1} ${skytePosisjonKort(rad)}` }))
+    .filter(({ rad }) => rad.window_start_seconds == null)
   const settPulsIVindu = (r: ActivityRow, start: number, sek: number) => {
     // Sverre 4. sep: snitt- og makspuls for vinduet legges inn på skytingen
     // automatisk (pulsen i vinduet — samme tall som båndet viser).
@@ -244,6 +248,13 @@ export function OktbyggerPopup({
     setValgtPunkt({ slag: 'skyting', id: rad.id })
     setLeggSkyting({ aapen: false, radId: null, tid: '' })
   }
+  /** Navnet på raden som plasseres nå. Den forsvinner fra lista i det den får
+      et vindu, så navnet huskes her. */
+  const valgtSkytingNavn = leggSkyting.radId
+    ? (skytingRader.findIndex(r => r.id === leggSkyting.radId) >= 0
+        ? `Skyting ${skytingRader.findIndex(r => r.id === leggSkyting.radId) + 1} ${skytePosisjonKort(skytingRader[skytingRader.findIndex(r => r.id === leggSkyting.radId)])}`
+        : null)
+    : null
   const velgSkytingForPlassering = (rad: ActivityRow) => {
     setLeggSkyting({ aapen: false, radId: rad.id, tid: '' })
     setPunktType(rad.activity_type === 'skyting_staaende' ? 'skyting_staa' : 'skyting_ligg')
@@ -515,12 +526,15 @@ export function OktbyggerPopup({
                     ))}
                   </span>
                 )}
-                {userHasBiathlon && uplasserteSkytinger.length > 0 && (
+                {/* Blokka står så lenge det FINNES noe uplassert - eller mens en plassering
+                    pågår, så kontrollene ikke forsvinner i det raden får vindu. */}
+                {userHasBiathlon && (uplasserteSkytinger.length > 0 || leggSkyting.radId) && (
                   <span data-legg-skyting={leggSkyting.radId ? 'valgt' : 'liste'} className="flex items-center gap-1 flex-wrap" style={{ position: 'relative' }}>
                     <button type="button" data-legg-skyting-knapp aria-expanded={leggSkyting.aapen}
+                      disabled={uplasserteSkytinger.length === 0 && !leggSkyting.radId}
                       onClick={() => setLeggSkyting(v => ({ ...v, aapen: !v.aapen }))}
                       style={pille(leggSkyting.radId ? PUNKT_SLAG.skyting.farge : undefined, !!leggSkyting.radId)}>
-                      <Ikon navn="skyting" variant="strek" storrelse={14} />Legg skyting på puls{leggSkyting.radId ? ` · ${uplasserteSkytinger.find(x => x.rad.id === leggSkyting.radId)?.navn ?? ''}` : ` (${uplasserteSkytinger.length})`}
+                      <Ikon navn="skyting" variant="strek" storrelse={14} />Legg skyting på puls{leggSkyting.radId ? ` · ${valgtSkytingNavn ?? ''}` : ` (${uplasserteSkytinger.length})`}
                     </button>
                     {leggSkyting.aapen && (
                       <span data-legg-skyting-liste role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 30, marginTop: 4, background: 'var(--flate-3)', border: '1px solid var(--kant-3)', borderRadius: 10, padding: 6, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 190, boxShadow: '0 8px 24px rgba(0,0,0,.25)' }}>

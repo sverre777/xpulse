@@ -68,6 +68,11 @@ import {
 import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
 import type { ShotStats } from '@/lib/types'
 import { PeriodeStripe } from '@/components/calendar/PeriodeStripe'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import {
+  NOKKELDATO_IKON, MARKERING_IKON, KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON,
+} from '@/lib/nokkeldato-ikoner'
+import { DAGSTATUS_IKON } from '@/lib/day-state-types'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -432,11 +437,12 @@ function WeekAnalysisStripe({
         <ShotWeekChip stats={shotStats}
           plannedShots={plannedShotsTotal && plannedShotsTotal > 0 ? plannedShotsTotal : null} />
       )}
-      {/* Samling/høyde-badges fra markeringslaget - emoji + sted/moh. */}
+      {/* Samling/høyde-badges fra markeringslaget - ikon + sted/moh. */}
       {markings?.map(m => (
-        <span key={m.id} className="text-xs" title={`${m.name} (${m.start_date} → ${m.end_date})`}
+        <span key={m.id} className="inline-flex items-center gap-1 text-xs" title={`${m.name} (${m.start_date} - ${m.end_date})`}
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: m.is_training_camp ? '#D4A017' : '#5B8DEF' }}>
-          {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔️ ' : ''}
+          {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+          {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
           {m.is_training_camp ? (m.location || m.name) : m.name}
           {m.is_altitude && m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
         </span>
@@ -566,13 +572,13 @@ function ZoneLegend({
 }
 
 // Konkurranse/testløp får egen visuell markering:
-//  - Konkurranse: gull-ramme + 🏆. Gjennomført → solid gull-fyll.
-//  - Testløp:    blå-ramme + 📊. Gjennomført → solid blå-fyll.
+//  - Konkurranse: gull-ramme + rutete flagg. Gjennomført - solid gull-fyll.
+//  - Testløp:    blå-ramme + stoppeklokke. Gjennomført - solid blå-fyll.
 // Plasseringen vises direkte på chip-en når tilgjengelig.
 export function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
-  { color: string; icon: string; thickBorder: boolean } | null {
-  if (w.workout_type === 'competition') return { color: '#D4A017', icon: '🏆', thickBorder: true }
-  if (w.workout_type === 'testlop')     return { color: '#1A6FD4', icon: '📊', thickBorder: false }
+  { color: string; icon: IkonNavn; thickBorder: boolean } | null {
+  if (w.workout_type === 'competition') return { color: '#D4A017', icon: KONKURRANSE_CHIP_IKON, thickBorder: true }
+  if (w.workout_type === 'testlop')     return { color: '#1A6FD4', icon: TESTLOP_CHIP_IKON, thickBorder: false }
   return null
 }
 
@@ -625,7 +631,7 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
   const durationLabel = formatDurationShort(secondsFor(w, mode))
   const shootingSec = shootingSecondsFor(w, mode)
   const shootingLabel = shootingSec > 0
-    ? `🎯 ${Math.round(shootingSec / 60)}min`
+    ? <><Ikon navn="skyting" variant="fyll" storrelse={14} /> {Math.round(shootingSec / 60)}min</>
     : null
   const { onEditWorkout } = useCalendarActions()
 
@@ -683,10 +689,10 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
           overflow: 'hidden',
           overflowWrap: 'break-word', wordBreak: 'normal',
         }}>
-          {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
-          {w.is_altitude_training && <span aria-label="Høydetrening" style={{ marginRight: '2px' }}>🏔️</span>}
-          {w.is_heat_training && <span aria-label="Varmetrening" style={{ marginRight: '2px' }}>🌡️</span>}
-          {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '2px' }} aria-label="Fellestrening">👥</span>}
+          {w.is_important && <Ikon navn="favoritt" variant="fyll" storrelse={14} style={{ color: '#FF4500' }} />}
+          {w.is_altitude_training && <Ikon navn="hoydesamling" variant="fyll" storrelse={14} style={{ marginRight: '2px' }} tittel="Høydetrening" />}
+          {w.is_heat_training && <Ikon navn="varmetrening" variant="fyll" storrelse={14} style={{ marginRight: '2px' }} tittel="Varmetrening" />}
+          {w.is_group_session && <Ikon navn="fellestrening" variant="fyll" storrelse={14} style={{ color: COACH_BLUE, marginRight: '2px' }} tittel="Fellestrening" />}
           {showCoachStyle && (
             <span aria-hidden="true"
               style={{
@@ -700,9 +706,9 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
               <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
             </span>
           )}
-          {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
+          {comp && <Ikon navn={comp.icon} variant="fyll" storrelse={14} style={{ color: comp.color, marginRight: '2px' }} />}
           {isCoachEdited && (kompakt ? <TrenerPrikk navn={w.coach_name} /> : <TrenerChip navn={w.coach_name} style={{ marginRight: 6, fontSize: 10 }} />)}
-          {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
+          {w.is_completed && <Ikon navn="fullfort" variant="fyll" storrelse={14} style={{ color: '#28A86E', marginRight: '2px' }} tittel="Gjennomført" />}
           {w.start_time && (
             <span style={{ color: 'var(--tekst-4-kal)', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
           )}
@@ -733,8 +739,10 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
             {shootingLabel ? <span style={{ color: 'var(--tekst-4-kal)' }}>{shootingLabel}</span> : null}
             {/* Kø #48: diskret standardøkt-markør (serienavn i title). */}
             {w.standard_session_name ? (
-              <span title={`Standardøkt: ${w.standard_session_name}`}
-                style={{ color: '#FF8A5C', marginLeft: '4px' }}>⟳</span>
+              <span style={{ marginLeft: '4px', display: 'inline-flex' }}>
+                <Ikon navn="standardokt-serie" variant="fyll" storrelse={14} style={{ color: '#FF8A5C' }}
+                  tittel={`Standardøkt: ${w.standard_session_name}`} />
+              </span>
             ) : null}
           </span>
         )}
@@ -801,7 +809,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
         touchAction: 'manipulation',
       }}>
       <span className="flex items-center gap-2 w-full" style={{ minWidth: 0 }}>
-      {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
+      {w.is_completed && <Ikon navn="fullfort" variant="fyll" storrelse={14} style={{ color: '#28A86E', flexShrink: 0 }} tittel="Gjennomført" />}
       {/* Strava-synk = offisiell Strava-logo (attribution), fit = klokke-badge
           - aldri rød trekant. */}
       {(w.imported_from ?? w.merged_source) && (
@@ -809,8 +817,8 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
           <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
         </span>
       )}
-      {comp && <span style={{ fontSize: 12, flexShrink: 0 }}>{comp.icon}</span>}
-      {w.is_important && <span style={{ color: '#FF4500', fontSize: 12, flexShrink: 0 }}>★</span>}
+      {comp && <Ikon navn={comp.icon} variant="fyll" storrelse={14} style={{ color: comp.color, flexShrink: 0 }} />}
+      {w.is_important && <Ikon navn="favoritt" variant="fyll" storrelse={14} style={{ color: '#FF4500', flexShrink: 0 }} />}
       {w.start_time && (
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: '12.5px', flexShrink: 0 }}>
           {w.start_time.slice(0, 5)}
@@ -999,9 +1007,10 @@ function CalendarAnalysisPanel({
 
           <div className="flex gap-2 mt-4 flex-wrap">
             <Link href={analyseHref}
-              className="text-xs tracking-widest uppercase px-4 py-2"
+              className="inline-flex items-center gap-1 text-xs tracking-widest uppercase px-4 py-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 10, textDecoration: 'none' }}>
-              Se full analyse →
+              Se full analyse
+              <Ikon navn="neste" variant="strek" storrelse={14} />
             </Link>
             {showNoteButton && (
               <button type="button"
@@ -1107,11 +1116,15 @@ function MonthPicker({ year, month, onSelect, onClose }: {
     <div className="absolute z-50 top-full left-1/2 mt-2 shadow-xl"
       style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-6)', transform: 'translateX(-50%)', minWidth: '280px' }}>
       <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--kant-2)' }}>
-        <button type="button" onClick={() => setPickYear(y => y - 1)}
-          style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>←</button>
+        <button type="button" onClick={() => setPickYear(y => y - 1)} aria-label="Forrige år"
+          style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex' }}>
+          <Ikon navn="forrige" variant="strek" storrelse={18} />
+        </button>
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.08em' }}>{pickYear}</span>
-        <button type="button" onClick={() => setPickYear(y => y + 1)}
-          style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>→</button>
+        <button type="button" onClick={() => setPickYear(y => y + 1)} aria-label="Neste år"
+          style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex' }}>
+          <Ikon navn="neste" variant="strek" storrelse={18} />
+        </button>
       </div>
       <div className="grid grid-cols-4 gap-1 p-2">
         {MONTHS_SHORT.map((m, i) => (
@@ -1127,8 +1140,10 @@ function MonthPicker({ year, month, onSelect, onClose }: {
           </button>
         ))}
       </div>
-      <button type="button" onClick={onClose}
-        style={{ position: 'absolute', top: '6px', right: '8px', color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>×</button>
+      <button type="button" onClick={onClose} aria-label="Lukk"
+        style={{ position: 'absolute', top: '6px', right: '8px', color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex' }}>
+        <Ikon navn="lukk" variant="strek" storrelse={18} />
+      </button>
     </div>
   )
 }
@@ -1145,7 +1160,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   isExpanded: boolean
   onToggle: () => void
   keyDatesOnDay: import('@/app/actions/seasons').SeasonKeyDate[]
-  // 📍 samling / 🏔 høyde som dekker dagen — diskret emoji ved datotallet,
+  // Samling/høyde som dekker dagen - diskret ikon ved datotallet,
   // KUN på dager innenfor spennet (title = navn + datoer). Aldri utenfor.
   markingsOnDay?: import('@/app/actions/seasons').SeasonMarking[]
 }) {
@@ -1195,7 +1210,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         flexDirection: 'column',
         transition: 'background 0.12s, outline-color 0.12s',
       }}
-      title={keyDatesOnDay.map(k => `${KEY_EVENT_VISUALS[k.event_type].icon} ${k.name}`).join('\n') || undefined}
+      title={keyDatesOnDay.map(k => k.name).join('\n') || undefined}
     >
       {/* Date number + key-date icons + health dot */}
       <div className="flex items-center justify-between mb-1">
@@ -1209,32 +1224,28 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           {date.getDate()}
         </span>
         <div className="flex items-center gap-1">
-          {/* 📍/🏔 vises maks én gang hver - samling/høyde per dag i spennet. */}
+          {/* Samling/høyde vises maks én gang hver - per dag i spennet. */}
           {markingsOnDay.some(m => m.is_training_camp) && (
-            <span aria-hidden style={{ fontSize: '11px', lineHeight: 1, opacity: 0.85 }}
-              title={markingsOnDay.filter(m => m.is_training_camp).map(m => `📍 ${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')}>
-              📍
-            </span>
+            <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ opacity: 0.85 }}
+              tittel={markingsOnDay.filter(m => m.is_training_camp).map(m => `${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')} />
           )}
           {markingsOnDay.some(m => m.is_altitude) && (
-            <span aria-hidden style={{ fontSize: '11px', lineHeight: 1, opacity: 0.85 }}
-              title={markingsOnDay.filter(m => m.is_altitude).map(m => `🏔 ${m.name}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')}>
-              🏔
-            </span>
+            <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ opacity: 0.85 }}
+              tittel={markingsOnDay.filter(m => m.is_altitude).map(m => `${m.name}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')} />
           )}
-          <DayStateIndicator states={states} size={11} />
+          <DayStateIndicator states={states} />
           {keyDatesOnDay.slice(0, 2).map(k => (
-            <span key={k.id} aria-hidden
-              style={{ fontSize: '13px', lineHeight: 1 }}>
-              {KEY_EVENT_VISUALS[k.event_type].icon}
-            </span>
+            <Ikon key={k.id} navn={NOKKELDATO_IKON[k.event_type]} variant="fyll" storrelse={14}
+              style={{ color: KEY_EVENT_VISUALS[k.event_type].color }} />
           ))}
           {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
           {(mode === 'plan' || mode === 'dagbok') && !readOnly && (
             <button type="button"
               onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
-              style={{ color: 'var(--accent)', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
-              title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</button>
+              style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0, display: 'inline-flex' }}
+              title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>
+              <Ikon navn="legg-til" variant="strek" storrelse={14} />
+            </button>
           )}
         </div>
       </div>
@@ -1473,8 +1484,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
             <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtDuration(goalMins) ?? '0m'}</b>
             <span>· {fmtDuration(plannedMins) ?? '0m'} planlagt</span>
             {diffMins > 0
-              ? <span style={{ color: '#FF8C00' }}>→ {fmtDuration(diffMins)} igjen</span>
-              : <span style={{ color: '#28A86E' }}>· i mål ✓</span>}
+              ? <span className="inline-flex items-center gap-1" style={{ color: '#FF8C00' }}><Ikon navn="neste" variant="strek" storrelse={14} /> {fmtDuration(diffMins)} igjen</span>
+              : <span className="inline-flex items-center gap-1" style={{ color: '#28A86E' }}>· i mål <Ikon navn="fullfort" variant="fyll" storrelse={14} /></span>}
           </a>
         )
       })()}
@@ -1633,11 +1644,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   </span>
                   {/* B2: samling/høyde-chips fra markeringslaget. */}
                   {weekMarkings.map(m => (
-                    <span key={m.id} title={`${m.name} (${m.start_date} → ${m.end_date})`}
+                    <span key={m.id} title={`${m.name} (${m.start_date} - ${m.end_date})`}
+                      className="inline-flex items-center gap-1"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
-                      {m.is_training_camp ? `📍 ${m.location || m.name}` : ''}
-                      {m.is_training_camp && m.is_altitude ? ' ' : ''}
-                      {m.is_altitude ? `🏔${m.altitude_meters ? ` ${m.altitude_meters} moh` : !m.is_training_camp ? ` ${m.name}` : ''}` : ''}
+                      {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+                      {m.is_training_camp ? (m.location || m.name) : ''}
+                      {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+                      {m.is_altitude ? `${m.altitude_meters ? `${m.altitude_meters} moh` : !m.is_training_camp ? m.name : ''}` : ''}
                     </span>
                   ))}
                 </div>
@@ -1659,7 +1672,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   // raden (samme stateBgFor/stateBorderFor som DayCell).
                   const stateBg = stateBgFor(states)
                   const stateDashed = stateBorderFor(states)
-                  // Markørrad der en samling/høyde STARTER («📍 Samling · Sted · spenn»).
+                  // Markørrad der en samling/høyde STARTER (ikon + «Samling · Sted · spenn»).
                   const markingStartsHere = seasonMarkings.filter(m => m.start_date === ds)
                   return (
                     <Fragment key={ds}>
@@ -1667,8 +1680,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5"
                         style={{ padding: '6px 0 3px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.05em', fontWeight: 700 }}>
                         {markingStartsHere.map(m => (
-                          <span key={m.id} style={{ color: '#D4A017' }}>
-                            {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
+                          <span key={m.id} className="inline-flex items-center gap-1" style={{ color: '#D4A017' }}>
+                            {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+                            {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+                            {m.name}
                             {m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
                             {' · '}{formatSpanNO(m.start_date, m.end_date)}
                           </span>
@@ -1707,9 +1722,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         {/* Paritet med grid-cellen: tilstander/nøkkeldatoer/helse. */}
                         {(states.length > 0 || keyDatesOnDay.length > 0 || healthDates.has(ds)) && (
                           <span className="flex items-center justify-center gap-0.5" style={{ marginTop: 2, fontSize: 11 }}>
-                            <DayStateIndicator states={states} size={10} />
+                            <DayStateIndicator states={states} />
                             {keyDatesOnDay.slice(0, 2).map(k => (
-                              <span key={k.id} aria-hidden>{KEY_EVENT_VISUALS[k.event_type].icon}</span>
+                              <Ikon key={k.id} navn={NOKKELDATO_IKON[k.event_type]} variant="fyll" storrelse={14}
+                                style={{ color: KEY_EVENT_VISUALS[k.event_type].color }} />
                             ))}
                             {healthDates.has(ds) && <span style={{ color: '#28A86E', fontSize: 6 }}>●</span>}
                           </span>
@@ -1730,7 +1746,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     <span style={{ fontWeight: 600, marginRight: 6 }}>#{w.position_overall}</span>
                                   )}
                                   {[w.primary_subcategory, w.primary_movement].filter(Boolean).join(' · ')}
-                                  {shootingSecondsFor(w, mode) > 0 ? ` · 🎯 ${Math.round(shootingSecondsFor(w, mode) / 60)}min` : ''}
+                                  {shootingSecondsFor(w, mode) > 0 && (
+                                    <span className="inline-flex items-center gap-1">
+                                      {' · '}<Ikon navn="skyting" variant="fyll" storrelse={14} /> {Math.round(shootingSecondsFor(w, mode) / 60)}min
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1741,8 +1761,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         <button type="button"
                           onClick={e => { e.stopPropagation(); onCreateWorkout(ds) }}
                           aria-label={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}
-                          style={{ flexShrink: 0, color: 'var(--tekst-8-alt)', fontSize: 15, padding: '6px 2px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
-                          ＋
+                          style={{ flexShrink: 0, color: 'var(--tekst-8-alt)', padding: '6px 2px 0', background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex' }}>
+                          <Ikon navn="legg-til" variant="strek" storrelse={18} />
                         </button>
                       )}
                     </MobileDayDropRow>
@@ -1834,7 +1854,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             ) : (
                               <><b style={{ color: 'var(--mut)', fontWeight: 600, letterSpacing: '0.04em' }}>{gapDays.length} dager</b> uten økter - trykk for å utvide</>
                             )}
-                            <span style={{ marginLeft: 'auto', color: 'var(--tekst-8-alt)' }}>{single ? '＋' : '▾'}</span>
+                            <span style={{ marginLeft: 'auto', color: 'var(--tekst-8-alt)', display: 'inline-flex', alignItems: 'center' }}>
+                              {single ? <Ikon navn="legg-til" variant="strek" storrelse={14} /> : '▾'}
+                            </span>
                           </button>
                         </div>
                       })
@@ -1894,11 +1916,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       </div>
                       <button type="button" onClick={() => setExpandedDay(null)}
                         aria-label="Lukk"
-                        style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', padding: '4px 8px' }}>×</button>
+                        style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', display: 'inline-flex' }}>
+                        <Ikon navn="lukk" variant="strek" storrelse={22} />
+                      </button>
                     </div>
 
                     {/* B2 (kø #39): dagens periodiserings-kontekst - belastnings-
-                        periode + markeringer (📍/🏔) fra markeringslaget, med
+                        periode + markeringer (samling/høyde) fra markeringslaget, med
                         eksplisitt grensedag-info (starter/slutter i dag). */}
                     {(() => {
                       const dp = periodForDate(seasonPeriods, ds)
@@ -1911,16 +1935,19 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       return (
                         <div className="flex flex-wrap items-center gap-2 mb-3">
                           {dp && (
-                            <span title={`${dp.start_date} → ${dp.end_date}`}
+                            <span title={`${dp.start_date} - ${dp.end_date}`}
                               style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: INTENSITY_COLOR[dp.intensity], border: `1px solid ${INTENSITY_COLOR[dp.intensity]}55`, borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em' }}>
                               ● {dp.name}{edge(dp.start_date, dp.end_date)}
                             </span>
                           )}
                           {dm.map(m => (
-                            <button key={m.id} type="button" title={`${m.start_date} → ${m.end_date}${readOnly ? '' : ' - klikk for å redigere'}`}
+                            <button key={m.id} type="button" title={`${m.start_date} - ${m.end_date}${readOnly ? '' : ' - klikk for å redigere'}`}
                               onClick={() => { if (!readOnly) onEditMarking(m) }}
+                              className="inline-flex items-center gap-1"
                               style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#D4A017', border: '1px solid rgba(212,160,23,0.45)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em', background: 'none', cursor: readOnly ? 'default' : 'pointer' }}>
-                              {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
+                              {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+                              {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+                              {m.name}
                               {m.location ? ` · ${m.location}` : ''}
                               {m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
                               {edge(m.start_date, m.end_date)}
@@ -2005,17 +2032,17 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
                                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', fontWeight: 600 }}>
-                                      {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
-                                      {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
-                                      {w.is_altitude_training && <span title="Høydetrening" style={{ marginRight: '4px' }}>🏔️</span>}
-                                      {w.is_heat_training && <span title="Varmetrening" style={{ marginRight: '4px' }}>🌡️</span>}
-                                      {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
+                                      {w.is_important && <Ikon navn="favoritt" variant="fyll" storrelse={14} style={{ color: '#FF4500', marginRight: '4px' }} />}
+                                      {w.is_completed && <Ikon navn="fullfort" variant="fyll" storrelse={14} style={{ color: '#28A86E', marginRight: '4px' }} tittel="Gjennomført" />}
+                                      {w.is_altitude_training && <Ikon navn="hoydesamling" variant="fyll" storrelse={14} style={{ marginRight: '4px' }} tittel="Høydetrening" />}
+                                      {w.is_heat_training && <Ikon navn="varmetrening" variant="fyll" storrelse={14} style={{ marginRight: '4px' }} tittel="Varmetrening" />}
+                                      {w.is_group_session && <Ikon navn="fellestrening" variant="fyll" storrelse={14} style={{ color: COACH_BLUE, marginRight: '4px' }} tittel="Fellestrening" />}
                                       {(w.imported_from ?? w.merged_source) && (
                                         <span style={{ marginRight: '4px', verticalAlign: 'middle' }}>
                                           <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
                                         </span>
                                       )}
-                                      {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
+                                      {comp && <Ikon navn={comp.icon} variant="fyll" storrelse={14} style={{ color: comp.color, marginRight: '4px' }} />}
                                       {w.start_time && <span style={{ color: 'var(--tekst-4-kal)', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
                                       {w.title}
                                       {w.position_overall != null && mode !== 'plan' && (
@@ -2031,7 +2058,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   </div>
                                   <div className="flex items-center gap-2 shrink-0">
                                     {isCoachEdited && <TrenerChip navn={w.coach_name} />}
-                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓</span>}
+                                    {w.is_completed && mode !== 'plan' && <Ikon navn="fullfort" variant="fyll" storrelse={14} style={{ color: '#28A86E' }} tittel="Gjennomført" />}
                                     {isPlanned && <span style={{ color: 'var(--tekst-8-app)', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
                                     {(() => {
                                       const lbl = formatDurationShort(secondsFor(w, mode))
@@ -2129,14 +2156,14 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             {isStrengthRow && (
                               <button type="button"
                                 onClick={() => router.push(`/app/okt/${w.id}`)}
-                                className="w-full transition-opacity hover:opacity-90"
+                                className="w-full inline-flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
                                 style={{
                                   marginTop: '2px', background: '#FF4500', color: 'var(--flate-3)',
                                   border: 'none', fontFamily: "'Bebas Neue', sans-serif",
                                   fontSize: 16, letterSpacing: '0.06em', padding: '9px',
                                   cursor: 'pointer',
                                 }}>
-                                ▶ Start live
+                                <Ikon navn="play" variant="strek" storrelse={14} /> Start live
                               </button>
                             )}
                             </div>
@@ -2198,8 +2225,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     const res = await deleteRecoveryEntry(r.id)
                                     if (!res.error) router.refresh()
                                   }}
-                                  style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '0 4px' }}
-                                  title="Slett">×</button>
+                                  style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1, padding: '0 4px', display: 'inline-flex' }}
+                                  title="Slett"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
                               )}
                             </div>
                           )
@@ -2214,7 +2241,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const isRest = s.state_type === 'hviledag'
                           const isTravel = s.state_type === 'reisedag'
                           const color = isRest ? '#28A86E' : isTravel ? '#5B8DEF' : '#E11D48'
-                          const icon = isRest ? '🛌' : isTravel ? '✈️' : '🤒'
+                          const icon: IkonNavn = isRest ? DAGSTATUS_IKON.hviledag : isTravel ? DAGSTATUS_IKON.reisedag : DAGSTATUS_IKON.sykdom
                           const label = isRest
                             ? (restStillPlanned(s) ? 'Planlagt hviledag' : 'Hviledag')
                             : isTravel
@@ -2228,7 +2255,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const rowInner = (
                             <>
                               <span className="flex items-center gap-2 flex-wrap">
-                                <span aria-hidden style={{ fontSize: '14px' }}>{icon}</span>
+                                <Ikon navn={icon} variant="fyll" storrelse={14} style={{ color }} />
                                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px', fontWeight: 600 }}>
                                   {label}
                                 </span>
@@ -2282,41 +2309,41 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       }
                       return (
                         <div className="flex gap-2 flex-wrap">
-                          <button type="button" onClick={() => onCreateWorkout(ds)} style={primaryBtn}>
-                            {mode === 'plan' || isFuture ? '+ Planlegg' : '+ Logg'}
+                          <button type="button" onClick={() => onCreateWorkout(ds)} className="inline-flex items-center gap-1.5" style={primaryBtn}>
+                            <Ikon navn="legg-til" variant="strek" storrelse={14} /> {mode === 'plan' || isFuture ? 'Planlegg' : 'Logg'}
                           </button>
                           {/* Dag-tilstander: hviledag kan planlegges (også fremtid);
                               syk/skade markeres kun på inntrufne dager. */}
-                          <button type="button" onClick={() => onMarkDayState(ds, 'hviledag')} style={ghostBtn}>
-                            🛌 Hviledag
+                          <button type="button" onClick={() => onMarkDayState(ds, 'hviledag')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                            <Ikon navn={DAGSTATUS_IKON.hviledag} variant="fyll" storrelse={14} /> Hviledag
                           </button>
                           {/* Reisedag kan planlegges frem i tid, som hviledag. */}
-                          <button type="button" onClick={() => onMarkDayState(ds, 'reisedag')} style={ghostBtn}>
-                            ✈️ Reisedag
+                          <button type="button" onClick={() => onMarkDayState(ds, 'reisedag')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                            <Ikon navn={DAGSTATUS_IKON.reisedag} variant="fyll" storrelse={14} /> Reisedag
                           </button>
                           {/* Samling/høyde planlegges med fra-til - bor i
                               årsplanens markeringslag (én kilde). */}
-                          <button type="button" onClick={() => onPlanSamling(ds)} style={ghostBtn}>
-                            📍 Samling
+                          <button type="button" onClick={() => onPlanSamling(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                            <Ikon navn={MARKERING_IKON.leggTil} variant="strek" storrelse={14} /> Samling
                           </button>
                           {!isFuture && (
-                            <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} style={ghostBtn}>
-                              🤒 Syk
+                            <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                              <Ikon navn={DAGSTATUS_IKON.sykdom} variant="fyll" storrelse={14} /> Syk
                             </button>
                           )}
                           {!isFuture && (
-                            <button type="button" onClick={() => onMarkDayState(ds, 'skade')} style={ghostBtn}>
-                              🩹 Skade
+                            <button type="button" onClick={() => onMarkDayState(ds, 'skade')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                              <Ikon navn={DAGSTATUS_IKON.skade} variant="fyll" storrelse={14} /> Skade
                             </button>
                           )}
                           {mode !== 'plan' && !healthData[ds] && (
-                            <button type="button" onClick={() => onEditHealth(ds)} style={ghostBtn}>
-                              + Helse
+                            <button type="button" onClick={() => onEditHealth(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                              <Ikon navn="legg-til" variant="strek" storrelse={14} /> Helse
                             </button>
                           )}
                           {mode !== 'plan' && !isFuture && (
-                            <button type="button" onClick={() => onAddRecovery(ds)} style={ghostBtn}>
-                              + Recovery
+                            <button type="button" onClick={() => onAddRecovery(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                              <Ikon navn="legg-til" variant="strek" storrelse={14} /> Recovery
                             </button>
                           )}
                         </div>
@@ -3020,11 +3047,15 @@ export function Calendar({
                   <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
                     onClick={() => setMonthLayoutPersist('grid')}
                     className={monthLayout === 'grid' ? 'on' : undefined}
-                    style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
+                    style={{ minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>
+                    <Ikon navn="arsplan" variant="strek" storrelse={18} />
+                  </button>
                   <button type="button" aria-label="Liste (stablet)" title="Liste"
                     onClick={() => setMonthLayoutPersist('list')}
                     className={monthLayout === 'list' ? 'on' : undefined}
-                    style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+                    style={{ minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>
+                    <Ikon navn="hamburgermeny" variant="strek" storrelse={18} />
+                  </button>
                 </div>
               </div>
               <div className="md:hidden">
@@ -3032,11 +3063,15 @@ export function Calendar({
                   <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
                     onClick={() => setMobilLayoutPersist('grid')}
                     className={mobilLayout === 'grid' ? 'on' : undefined}
-                    style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
+                    style={{ minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>
+                    <Ikon navn="arsplan" variant="strek" storrelse={18} />
+                  </button>
                   <button type="button" aria-label="Liste (stablet)" title="Liste"
                     onClick={() => setMobilLayoutPersist('list')}
                     className={mobilLayout === 'list' ? 'on' : undefined}
-                    style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+                    style={{ minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>
+                    <Ikon navn="hamburgermeny" variant="strek" storrelse={18} />
+                  </button>
                 </div>
               </div>
             </>
@@ -3047,8 +3082,8 @@ export function Calendar({
         <div className="flex items-center justify-center gap-2 relative">
           <button type="button" onClick={prev} aria-label="Forrige periode"
             className="xp-mnav-btn"
-            style={{ width: 'auto', height: 'auto', padding: '8px 14px', minHeight: '44px', minWidth: '44px', fontSize: '16px' }}>
-            ←
+            style={{ width: 'auto', height: 'auto', padding: '8px 14px', minHeight: '44px', minWidth: '44px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Ikon navn="forrige" variant="strek" storrelse={18} />
           </button>
           <button type="button" onClick={() => setShowPicker(p => !p)}
             className="flex-1 md:flex-none"
@@ -3063,8 +3098,8 @@ export function Calendar({
           </button>
           <button type="button" onClick={next} aria-label="Neste periode"
             className="xp-mnav-btn"
-            style={{ width: 'auto', height: 'auto', padding: '8px 14px', minHeight: '44px', minWidth: '44px', fontSize: '16px' }}>
-            →
+            style={{ width: 'auto', height: 'auto', padding: '8px 14px', minHeight: '44px', minWidth: '44px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Ikon navn="neste" variant="strek" storrelse={18} />
           </button>
           {showPicker && (
             <MonthPicker year={year} month={month} onSelect={goToMonth} onClose={() => setShowPicker(false)} />

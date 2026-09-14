@@ -11,6 +11,8 @@ import {
   type SeasonMarking,
 } from '@/app/actions/seasons'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { Ikon } from '@/components/ui/ikoner'
+import { MARKERING_IKON } from '@/lib/nokkeldato-ikoner'
 
 const ORANGE = '#FF4500'
 
@@ -83,8 +85,8 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
             {existing ? 'Rediger samling/høyde' : 'Planlegg samling/høyde'}
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: 22 }}>
-            ×
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', display: 'flex' }}>
+            <Ikon navn="lukk" variant="strek" storrelse={18} />
           </button>
         </div>
 
@@ -97,10 +99,10 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
 
           <div className="flex gap-2">
             <Chip aktiv={form.is_training_camp} onClick={() => set({ is_training_camp: !form.is_training_camp })}>
-              📍 Samling
+              <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} /> Samling
             </Chip>
             <Chip aktiv={form.is_altitude} onClick={() => set({ is_altitude: !form.is_altitude })}>
-              🏔 Høyde
+              <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} /> Høyde
             </Chip>
           </div>
 
@@ -134,7 +136,7 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
           </Felt>
 
           <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
-            Vises i kalenderen (📍/🏔 per dag) og i årsplanen - dette er samme markering,
+            Vises i kalenderen (samling/høyde per dag) og i årsplanen - dette er samme markering,
             endringer slår gjennom begge steder.
           </p>
 
@@ -182,7 +184,7 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
 function Chip({ aktiv, onClick, children }: { aktiv: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button type="button" onClick={onClick}
-      className="px-3.5 py-2 text-xs font-semibold tracking-widest uppercase"
+      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         borderRadius: 999,

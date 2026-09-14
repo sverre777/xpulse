@@ -28,6 +28,7 @@ import type { StatusOkt } from '@/lib/oversikt-status-type'
 import { hoyIntensitetSek } from '@/lib/activity-summary'
 import { getOversiktStatus } from '@/app/actions/oversikt-status'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
+import { Ikon } from '@/components/ui/ikoner'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const BEBAS = "'Bebas Neue', sans-serif"
@@ -128,8 +129,10 @@ function Tom({ tekst, lenke, lenkeTekst }: { tekst: string; lenke?: string; lenk
     <div data-status-tom style={{ padding: '14px 0 6px', color: 'var(--tekst-5-app)', fontFamily: FONT, fontSize: 13.5 }}>
       {tekst}
       {lenke && (
-        <a href={lenke} style={{ display: 'inline-block', marginLeft: 6, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
-          {lenkeTekst ?? 'Åpne →'}
+        <a href={lenke} className="inline-flex items-center gap-1"
+          style={{ marginLeft: 6, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
+          {lenkeTekst ?? 'Åpne'}
+          <Ikon navn="neste" variant="strek" storrelse={14} />
         </a>
       )}
     </div>
@@ -167,7 +170,9 @@ function OktMeta({ o }: { o: StatusOkt }) {
     <span key="s" style={{ display: 'inline-block', padding: '0 6px', borderRadius: 999, border: `1px solid ${ZONE_COLORS_V2[o.hovedsone as keyof typeof ZONE_COLORS_V2] ?? 'var(--line2)'}`, color: ZONE_COLORS_V2[o.hovedsone as keyof typeof ZONE_COLORS_V2] ?? 'var(--tekst-5-app)', fontFamily: FONT, fontWeight: 700, fontSize: 11, lineHeight: '17px' }}>{o.hovedsone}</span>,
   )
   if (o.meter > 0) deler.push(<span key="km">{fmtKm(o.meter)} km</span>)
-  if (o.treffPct != null) deler.push(<span key="t">🎯 {o.treffPct} %</span>)
+  if (o.treffPct != null) deler.push(
+    <span key="t" className="inline-flex items-center gap-1"><Ikon navn="skyting" variant="fyll" storrelse={14} /> {o.treffPct} %</span>,
+  )
   return (
     <div style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-5-app)', display: 'flex', flexWrap: 'wrap', gap: '4px 10px', alignItems: 'center' }}>
       {deler.map((d, i) => <span key={i} style={{ display: 'inline-flex', gap: 10, alignItems: 'center' }}>{i > 0 && <span style={{ opacity: 0.5 }}>·</span>}{d}</span>)}
@@ -198,8 +203,10 @@ function SisteHardBoks({ status }: { status: OversiktStatus | null }) {
             { etikett: 'Laktat maks', verdi: o.laktatMaks != null ? String(o.laktatMaks).replace('.', ',') : '-' },
             { etikett: 'Opplevd', verdi: o.opplevd != null ? `${o.opplevd}` : '-', under: o.opplevd != null ? '/10' : null },
           ]} />
-          <a href={`/app/okt/${o.id}`} style={{ display: 'inline-block', marginTop: 8, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
-            Åpne økta →
+          <a href={`/app/okt/${o.id}`} className="inline-flex items-center gap-1"
+            style={{ marginTop: 8, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
+            Åpne økta
+            <Ikon navn="neste" variant="strek" storrelse={14} />
           </a>
         </>
       )}
@@ -214,7 +221,7 @@ function NesteBoks({ status }: { status: OversiktStatus | null }) {
   if (!ok || (!ok.nesteHard && !ok.nesteOkt)) {
     return (
       <Boks tittel="Neste hardøkt" nokkel="oversikt_status_neste">
-        <Tom tekst="Ingen planlagte økter." lenke="/app/plan" lenkeTekst="Planlegg uka →" />
+        <Tom tekst="Ingen planlagte økter." lenke="/app/plan" lenkeTekst="Planlegg uka" />
       </Boks>
     )
   }
@@ -272,7 +279,7 @@ function PlanBoks({ status }: { status: OversiktStatus | null }) {
   const p = status?.plan ?? null
   return (
     <Boks tittel="Timer · plan vs gjennomført" nokkel="oversikt_status_plan" undertittel={p?.harPlan ? 'Valgt periode' : undefined}>
-      {!p || !p.harPlan ? <Tom tekst="Ingen plan i perioden." lenke="/app/plan" lenkeTekst="Planlegg →" /> : (
+      {!p || !p.harPlan ? <Tom tekst="Ingen plan i perioden." lenke="/app/plan" lenkeTekst="Planlegg" /> : (
         <>
           <PlanRad etikett="Timer" faktisk={p.faktiskTimerMin} plan={p.planTimerMin} format={fmtMin} />
           <PlanRad etikett="Hard I3+I4" faktisk={p.faktiskHardMin} plan={p.planHardMin} format={fmtMin} />
@@ -430,7 +437,7 @@ function HelseBoks({ status, canSeeHealthData }: { status: OversiktStatus | null
   return (
     <Boks tittel="Helse · 30 dager" nokkel="oversikt_status_helse" undertittel={h && h.dagerMedData > 0 ? `${h.dagerMedData} dager med data` : undefined}>
       {!canSeeHealthData ? <Tom tekst="Helsedata er ikke delt med deg." />
-        : !h || h.dagerMedData === 0 ? <Tom tekst="Ingen helsedata ført." lenke="/app/health/hrv" lenkeTekst="Logg helse →" /> : (
+        : !h || h.dagerMedData === 0 ? <Tom tekst="Ingen helsedata ført." lenke="/app/health/hrv" lenkeTekst="Logg helse" /> : (
         <>
           <Smaatall celler={[
             { etikett: 'HRV snitt', verdi: h.hrvSnitt != null ? String(h.hrvSnitt) : '-', under: diff(h.hrvSnitt, h.hrvForrige, ' ms') },

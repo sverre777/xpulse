@@ -14,6 +14,7 @@ import { WorkoutOverview } from './WorkoutOverview'
 import { CommentSection } from '@/components/coach/CommentSection'
 import { TrainerAttendanceSection } from './TrainerAttendanceSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
+import { Ikon } from '@/components/ui/ikoner'
 
 export type WorkoutModalState =
   | { kind: 'edit'; workoutId: string; formMode: 'plan' | 'dagbok' }
@@ -202,13 +203,13 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           <div className="flex items-center gap-2">
             {showOverview && !readOnly && (
               <button type="button" onClick={() => setShowEditForm(true)}
-                className="px-3 text-xs tracking-widest uppercase"
+                className="inline-flex items-center gap-1.5 px-3 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--accent)',
                   background: 'none', border: '1px solid var(--accent)', borderRadius: 9,
                   minHeight: '36px', cursor: 'pointer', fontWeight: 700,
                 }}>
-                ✎ Rediger
+                <Ikon navn="for-okt" variant="strek" storrelse={14} /> Rediger
               </button>
             )}
             {state.kind === 'edit' && !readOnly && (
@@ -226,10 +227,10 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             <button type="button" onClick={onClose} aria-label="Lukk"
               style={{
                 color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 28, lineHeight: 1, padding: 0,
-                minHeight: '44px', minWidth: '44px',
+                padding: 0, minHeight: '44px', minWidth: '44px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>
-              ×
+              <Ikon navn="lukk" variant="strek" storrelse={22} />
             </button>
           </div>
         </div>

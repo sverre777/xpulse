@@ -36,6 +36,8 @@ import { Chip, SoneChip, Meta } from '@/components/oversikt/IDagKort'
 import { fmtHM } from '@/components/oversikt/kort-deler'
 import type { DayState } from '@/lib/day-state-types'
 import { INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS, weekOverlayFor, formatSpanNO } from '@/lib/periodization-overlay'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { NOKKELDATO_IKON, MARKERING_IKON, KONKURRANSE_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 import {
   planVisual, secondsFor, metersFor, zoneSecondsFor, filterByMode, includeInSum,
   competitionChipStyle, intensityAccent, type CalendarMode,
@@ -187,8 +189,10 @@ function UkeBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyD
             </span>
           ))}
           {weekMarkings.map(m => (
-            <span key={m.id} className="text-xs" title={`${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`} style={{ fontFamily: FONT, color: '#D4A017', fontWeight: 700 }}>
-              {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}{m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
+            <span key={m.id} className="inline-flex items-center gap-1 text-xs" title={`${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`} style={{ fontFamily: FONT, color: '#D4A017', fontWeight: 700 }}>
+              {m.is_training_camp && <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} />}
+              {m.is_altitude && <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} />}
+              {m.name}{m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
             </span>
           ))}
           {weeklyGuideMins != null && (
@@ -199,7 +203,9 @@ function UkeBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyD
           {weekKeyDates.length > 0 && (
             <div className="flex items-center gap-2 ml-auto flex-wrap">
               {weekKeyDates.map(k => { const v = KEY_EVENT_VISUALS[k.event_type]; return (
-                <span key={k.id} className="px-2 py-0.5 text-xs" style={{ fontFamily: FONT, color: v.color, border: `1px solid ${v.color}` }}><span aria-hidden>{v.icon}</span> {k.name}</span>
+                <span key={k.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs" style={{ fontFamily: FONT, color: v.color, border: `1px solid ${v.color}` }}>
+                  <Ikon navn={NOKKELDATO_IKON[k.event_type]} variant="fyll" storrelse={14} /> {k.name}
+                </span>
               ) })}
             </div>
           )}
@@ -247,8 +253,9 @@ function KolonneChip({ w, dateStr, mode, onVelg, dndEnabled, gjennomsiktig = fal
         boxShadow: konkurranse ? `0 0 0 1px ${farge} inset` : undefined, opacity: isDragging || gjennomsiktig ? 0.4 : 1, touchAction: 'manipulation',
         borderLeft: planlagt && !konkurranse ? `3px solid ${farge}` : undefined,
       }}>
-      <span style={{ display: 'block', fontFamily: FONT, fontWeight: 700, fontSize: 12, lineHeight: 1.15, letterSpacing: '0.03em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {konkurranse ? '🏆 ' : ''}{w.title || typeLabel(w.workout_type)}
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontWeight: 700, fontSize: 12, lineHeight: 1.15, letterSpacing: '0.03em', overflow: 'hidden' }}>
+        {konkurranse && <Ikon navn={KONKURRANSE_CHIP_IKON} variant="fyll" storrelse={14} style={{ flexShrink: 0 }} />}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.title || typeLabel(w.workout_type)}</span>
       </span>
       {meta && <span className="uke-chip-meta" style={{ display: 'block', fontFamily: "'Barlow', sans-serif", fontSize: 10.5, opacity: 0.85, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</span>}
     </button>
@@ -362,13 +369,21 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
       <div className="flex items-center gap-2 flex-wrap">
         {planlagt ? <Chip farge={BLAA} data="planlagt">Planlagt{w.start_time ? ` · ${w.start_time.slice(0, 5)}` : ''}</Chip> : <Chip farge={GRONN} data="gjennomfort">Gjennomført</Chip>}
         {w.created_by_coach_id && planlagt && <span style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: BLAA, border: `1px solid ${BLAA}`, borderRadius: 999, padding: '1px 7px' }}>Trener</span>}
-        {w.workout_type === 'competition' && <span style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D4A017', border: '1px solid #D4A017', borderRadius: 999, padding: '1px 7px' }}>🏆 Konkurranse</span>}
+        {w.workout_type === 'competition' && (
+          <span className="inline-flex items-center gap-1" style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D4A017', border: '1px solid #D4A017', borderRadius: 999, padding: '1px 7px' }}>
+            <Ikon navn={KONKURRANSE_CHIP_IKON} variant="fyll" storrelse={14} /> Konkurranse
+          </span>
+        )}
       </div>
       <h3 style={{ fontFamily: BEBAS, fontSize: 26, letterSpacing: '0.03em', lineHeight: 1.05, color: 'var(--tekst-1-app)', margin: '8px 0 0' }}>{w.title || typeLabel(w.workout_type)}</h3>
       <Meta deler={dedupe([
         styrke ? null : sportLabel(w.sport), w.primary_movement ?? null, w.primary_subcategory ?? null, styrke ? null : typeLabel(w.workout_type),
         sek > 0 ? fmtHM(sek) : null, <SoneChip key="s" sone={sone} />, meter > 0 ? fmtKm(meter) : null,
-        kurve ? <span key="k" data-klokke-chip style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 7px' }}>⌚ {w.imported_from ?? w.merged_source ?? 'klokke'}</span> : null,
+        kurve ? (
+          <span key="k" data-klokke-chip className="inline-flex items-center gap-1" style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 7px' }}>
+            <Ikon navn="klokke" variant="strek" storrelse={14} /> {w.imported_from ?? w.merged_source ?? 'klokke'}
+          </span>
+        ) : null,
       ])} />
       {styrke ? <StyrkeInnhold pakke={pakke} /> : (
         <div className="mt-3" data-uke-graf={harKurveData ? 'kurve' : harBlokker ? 'blokker' : 'ingen'}>
@@ -390,7 +405,11 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
           <>
             {mode === 'dagbok' && <button type="button" className="xp-hbtn" data-uke-knapp="logg" onClick={() => (onCreateLogg ?? onEdit)(w, dateStr)} style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)', border: 'none', cursor: 'pointer' }}>Logg økta</button>}
             <button type="button" className="xp-hbtn xp-hbtn-outline" data-uke-knapp="plan" onClick={() => mode === 'plan' ? onEdit(w, dateStr) : router.push(`/app/plan?edit=${w.id}`)} style={{ color: BLAA, cursor: 'pointer', background: 'none' }}>Rediger plan</button>
-            {kanLive && <button type="button" className="xp-hbtn xp-hbtn-outline" data-uke-knapp="live" onClick={() => router.push(`/app/okt/${w.id}`)} style={{ color: GRONN, cursor: 'pointer', background: 'none' }}>▶ Start live</button>}
+            {kanLive && (
+              <button type="button" className="xp-hbtn xp-hbtn-outline inline-flex items-center gap-1.5" data-uke-knapp="live" onClick={() => router.push(`/app/okt/${w.id}`)} style={{ color: GRONN, cursor: 'pointer', background: 'none' }}>
+                <Ikon navn="play" variant="strek" storrelse={14} /> Start live
+              </button>
+            )}
           </>
         ) : (
           <button type="button" className="xp-hbtn xp-hbtn-outline" data-uke-knapp="aapne" onClick={() => onEdit(w, dateStr)} style={{ color: planlagt ? BLAA : GRONN, cursor: 'pointer', background: 'none' }}>Åpne økt</button>
@@ -404,33 +423,35 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
 /** Periodene fra årsplanen som en VANNRETT stripe over dagene de dekker (Sverre 6. sep).
  *  Samme farger som årsplanen (INTENSITY_COLOR) - ingen nye. Går perioden ut av uka,
  *  er enden åpen (ingen avrunding, pil-hint), så uka ikke lyver om start og slutt.
- *  Samlinger og nøkkeldatoer markeres med emoji på sin egen dag, som ellers i appen. */
+ *  Samlinger og nøkkeldatoer markeres med ikon på sin egen dag, som ellers i appen. */
 function PeriodeRad({ ukeISO, perioder, keyDates, markeringer }: {
   ukeISO: string[]; perioder: SeasonPeriod[]; keyDates: SeasonKeyDate[]; markeringer: SeasonMarking[]
 }) {
-  // Stripen er den delte PeriodeStripe (samme som måned og liste). Emoji-raden
+  // Stripen er den delte PeriodeStripe (samme som måned og liste). Ikon-raden
   // under (nøkkeldatoer og samlinger per dag) er ukevisningens egen.
-  const emojiPerDag = ukeISO.map(ds => {
-    const ut: { tegn: string; tittel: string }[] = []
+  const ikonPerDag = ukeISO.map(ds => {
+    const ut: { tegn: IkonNavn; tittel: string; farge: string }[] = []
     for (const k of keyDates) if (k.event_date === ds) {
       const v = KEY_EVENT_VISUALS[k.event_type]
-      ut.push({ tegn: v.icon, tittel: `${v.label}: ${k.name}` })
+      ut.push({ tegn: NOKKELDATO_IKON[k.event_type], tittel: `${v.label}: ${k.name}`, farge: v.color })
     }
     for (const m of markeringer) if (m.start_date <= ds && m.end_date >= ds && m.start_date === ds) {
-      ut.push({ tegn: m.is_altitude ? '🏔' : '📍', tittel: `${m.name} (${m.start_date} - ${m.end_date})` })
+      ut.push({ tegn: m.is_altitude ? MARKERING_IKON.hoyde : MARKERING_IKON.samling, tittel: `${m.name} (${m.start_date} - ${m.end_date})`, farge: '#D4A017' })
     }
     return ut
   })
   const harPeriode = perioder.some(p => p.start_date <= ukeISO[6] && p.end_date >= ukeISO[0])
-  if (!harPeriode && emojiPerDag.every(e => e.length === 0)) return null
+  if (!harPeriode && ikonPerDag.every(e => e.length === 0)) return null
   return (
     <div className="px-3 md:px-6 pt-3" data-uke-perioder>
       <PeriodeStripe ukeISO={ukeISO} perioder={perioder} />
-      {emojiPerDag.some(e => e.length > 0) && (
+      {ikonPerDag.some(e => e.length > 0) && (
         <div className="uke-kolonner" data-uke-emoji style={{ marginTop: 4, marginBottom: 2 }}>
-          {emojiPerDag.map((e, i) => (
+          {ikonPerDag.map((e, i) => (
             <div key={ukeISO[i]} style={{ minHeight: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-              {e.map((x, j) => <span key={j} title={x.tittel} aria-label={x.tittel} style={{ fontSize: 13, lineHeight: 1 }}>{x.tegn}</span>)}
+              {e.map((x, j) => (
+                <Ikon key={j} navn={x.tegn} variant="fyll" storrelse={14} tittel={x.tittel} style={{ color: x.farge }} />
+              ))}
             </div>
           ))}
         </div>

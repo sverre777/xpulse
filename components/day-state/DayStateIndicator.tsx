@@ -1,7 +1,9 @@
 'use client'
 
 import type { DayState } from '@/lib/day-state-types'
+import { DAGSTATUS_IKON } from '@/lib/day-state-types'
 import { iDagISO } from '@/lib/local-date'
+import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 
 export const REST_BG = 'rgba(40, 168, 110, 0.12)'
 export const SICK_BG = 'rgba(225, 29, 72, 0.14)'
@@ -49,44 +51,43 @@ export function stateBorderFor(states: DayState[]): 'dashed' | undefined {
 
 // Liten ikon-badge for DayCell-hjørnet.
 export function DayStateIndicator({
-  states, size = 12,
+  states,
 }: {
   states: DayState[]
-  size?: number
 }) {
   if (states.length === 0) return null
-  const icons: { icon: string; title: string; color: string }[] = []
+  const icons: { icon: IkonNavn; title: string; color: string }[] = []
   for (const s of states) {
     if (s.state_type === 'hviledag') {
       icons.push({
-        icon: '🛌',
+        icon: DAGSTATUS_IKON.hviledag,
         title: `Hviledag${restStillPlanned(s) ? ' (planlagt)' : ''}${s.sub_type ? ` · ${s.sub_type}` : ''}`,
         color: '#28A86E',
       })
     } else if (s.state_type === 'skade') {
       icons.push({
-        icon: '🩹',
+        icon: DAGSTATUS_IKON.skade,
         title: `Skade${s.sub_type ? ` · ${s.sub_type}` : ''}`,
         color: '#FF8C00',
       })
     } else if (s.state_type === 'reisedag') {
       icons.push({
-        icon: '✈️',
+        icon: DAGSTATUS_IKON.reisedag,
         title: `Reisedag${restStillPlanned(s) ? ' (planlagt)' : ''}${s.travel_hours != null ? ` · ${String(s.travel_hours).replace('.', ',')} t` : ''}`,
         color: '#5B8DEF',
       })
     } else {
       icons.push({
-        icon: '🤒',
+        icon: DAGSTATUS_IKON.sykdom,
         title: `Sykdom${s.sub_type ? ` · ${s.sub_type}` : ''}`,
         color: '#E11D48',
       })
     }
   }
   return (
-    <span className="inline-flex items-center gap-0.5" aria-hidden>
+    <span className="inline-flex items-center gap-0.5">
       {icons.map((i, idx) => (
-        <span key={idx} title={i.title} style={{ fontSize: `${size}px`, lineHeight: 1 }}>{i.icon}</span>
+        <Ikon key={idx} navn={i.icon} variant="fyll" storrelse={14} tittel={i.title} style={{ color: i.color }} />
       ))}
     </span>
   )

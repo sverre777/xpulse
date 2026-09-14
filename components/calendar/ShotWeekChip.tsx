@@ -11,6 +11,7 @@
 
 import type { ShotStats } from '@/lib/types'
 import { SHOT_TYPE_ORDER as TYPE_ORDER } from '@/lib/shooting'
+import { Ikon } from '@/components/ui/ikoner'
 
 export function ShotWeekChip({ stats, plannedShots }: {
   stats: ShotStats
@@ -37,7 +38,7 @@ export function ShotWeekChip({ stats, plannedShots }: {
           border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 10px',
           whiteSpace: 'nowrap', flexShrink: 0,
         }}>
-        <span aria-hidden>🎯</span>
+        <Ikon navn="skyting" variant="fyll" storrelse={14} />
         {stats.shots > 0 ? (
           <>
             <b>{stats.shots}{plannedShots ? `/${plannedShots}` : ''}</b>&nbsp;skudd

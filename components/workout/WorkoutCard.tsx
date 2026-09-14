@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Workout, SPORTS, WORKOUT_TYPES_BIATHLON as WORKOUT_TYPES, TYPE_COLORS } from '@/lib/types'
+import { Ikon } from '@/components/ui/ikoner'
 
 interface WorkoutCardProps {
   workout: Workout
@@ -39,9 +40,9 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
             {typeLabel}
           </span>
           <div className="flex items-center gap-2">
-            {workout.is_important && <span style={{ color: '#FF4500', fontSize: '12px' }}>★</span>}
-            {workout.is_altitude_training && <span title={workout.altitude_meters ? `Høydetrening · ${workout.altitude_meters} moh` : 'Høydetrening'} style={{ fontSize: '12px' }}>🏔️</span>}
-            {workout.is_heat_training && <span title={workout.body_temperature ? `Varmetrening · ${workout.body_temperature}°C` : 'Varmetrening'} style={{ fontSize: '12px' }}>🌡️</span>}
+            {workout.is_important && <Ikon navn="favoritt" variant="fyll" storrelse={14} style={{ color: '#FF4500' }} tittel="Viktig økt" />}
+            {workout.is_altitude_training && <Ikon navn="hoydesamling" variant="fyll" storrelse={14} tittel={workout.altitude_meters ? `Høydetrening · ${workout.altitude_meters} moh` : 'Høydetrening'} />}
+            {workout.is_heat_training && <Ikon navn="varmetrening" variant="fyll" storrelse={14} tittel={workout.body_temperature ? `Varmetrening · ${workout.body_temperature}°C` : 'Varmetrening'} />}
             {workout.is_planned && !workout.is_completed && (
               <span className="text-xs tracking-widest uppercase" style={{ color: 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
                 Planlagt

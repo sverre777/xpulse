@@ -1,7 +1,8 @@
 import type { OversiktHero as HeroData, OversiktTodayState } from '@/app/actions/oversikt'
 import {
-  REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS, INJURY_SUBTYPE_LABELS,
+  REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS, INJURY_SUBTYPE_LABELS, DAGSTATUS_IKON,
 } from '@/lib/day-state-types'
+import { Ikon } from '@/components/ui/ikoner'
 
 function formatHoursMin(seconds: number): string {
   if (seconds <= 0) return '0t'
@@ -77,7 +78,7 @@ export function OversiktHero({
         const softBg = kind === 'sickness' ? 'rgba(226,58,90,.12)'
           : kind === 'injury' ? 'rgba(255,140,0,.12)'
           : 'rgba(40,168,110,.12)'
-        const icon = kind === 'sickness' ? '🤒' : kind === 'injury' ? '🩹' : '🛌'
+        const icon = kind === 'sickness' ? DAGSTATUS_IKON.sykdom : kind === 'injury' ? DAGSTATUS_IKON.skade : DAGSTATUS_IKON.hviledag
         const label = kind === 'sickness' ? 'Syk i dag' : kind === 'injury' ? 'Skade' : 'Hviledag i dag'
         const subLabels: Record<string, string> = kind === 'sickness' ? SICK_SUBTYPE_LABELS
           : kind === 'injury' ? INJURY_SUBTYPE_LABELS
@@ -91,7 +92,7 @@ export function OversiktHero({
               color: accent, borderRadius: 999, padding: '6px 14px',
               fontSize: '12.5px', letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
-              <span aria-hidden>{icon}</span>
+              <Ikon navn={icon} variant="fyll" storrelse={14} style={{ color: accent }} />
               {label}
               {sub && <span style={{ color: 'var(--tekst-3)', fontWeight: 600 }}>· {sub}</span>}
           </div>

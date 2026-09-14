@@ -466,11 +466,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .xp-add.xp-grey { border-color: var(--line2); color: var(--mut); }
 .xp-add.xp-grey:hover { background: var(--card2); }
 
-/* ── Segment-toggle (pace-enhet o.l.) ── */
-.xp-seg { display: flex; border: 1px solid var(--line2); border-radius: var(--r-field); overflow: hidden; }
-.xp-seg button { border: none; background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .1em; padding: 0 14px; cursor: pointer; }
-.xp-seg button.on { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-
 /* ── Dagsform: stjerner + RPE ── */
 .xp-stars { display: flex; gap: 6px; margin-top: 6px; }
 .xp-star { font-size: 26px; color: var(--line2); cursor: pointer; transition: .1s; background: none; border: none; padding: 2px; }
@@ -553,6 +548,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .xp-seg-pill { display: flex; border: 1px solid var(--line2); border-radius: 999px; overflow: hidden; }
 .xp-seg-pill button { border: none; background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: .15s; }
 .xp-seg-pill button.on { background: var(--accent); color: var(--tekst-1-ren); }
+.xp-seg-pill button:disabled { opacity: .6; cursor: not-allowed; }
 .xp-mnav { display: flex; align-items: center; gap: 8px; }
 .xp-mnav-btn { width: 36px; height: 36px; border: 1px solid var(--line2); border-radius: 8px; background: none; color: var(--mut); cursor: pointer; font-size: 15px; transition: .15s; }
 .xp-mnav-btn:hover { color: var(--ink); border-color: var(--mut); }
@@ -616,7 +612,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .xp-keycard .xp-hbtn { margin-top: auto; }
 
 /* Hjem-knapper. Outline-varianten arver farge via currentColor. */
-.xp-hbtn { display: inline-block; border-radius: 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: .13em; text-transform: uppercase; padding: 12px 20px; cursor: pointer; transition: .15s; border: 1px solid transparent; background: none; text-decoration: none; text-align: center; }
+/* Sverre 14. sep: knappene paa hjem-skjermen er PILLER som resten av appen. */
+.xp-hbtn { display: inline-block; border-radius: 999px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: .13em; text-transform: uppercase; padding: 12px 20px; cursor: pointer; transition: .15s; border: 1px solid transparent; background: none; text-decoration: none; text-align: center; }
 .xp-hbtn-solid { background: var(--green); color: var(--tekst-1-ren); }
 .xp-hbtn-solid:hover { filter: brightness(1.1); }
 .xp-hbtn-outline { border-color: currentColor; }

@@ -503,7 +503,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       className="inline-flex items-center gap-1.5 transition-colors"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
-        letterSpacing: '0.06em', borderRadius: 9, padding: '8px 13px', cursor: 'pointer',
+        letterSpacing: '0.06em', borderRadius: 999, padding: '8px 15px', cursor: 'pointer',
         minHeight: 40,
         border: '1px solid var(--line2)',
         color: brush === b ? 'var(--tekst-1-ren)' : 'var(--mut)',
@@ -522,7 +522,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       className="inline-flex items-center gap-1.5 transition-colors"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
-        letterSpacing: '0.06em', borderRadius: 9, padding: '8px 13px', cursor: 'pointer', minHeight: 40,
+        letterSpacing: '0.06em', borderRadius: 999, padding: '8px 15px', cursor: 'pointer', minHeight: 40,
         border: '1px solid var(--line2)',
         color: brush === bru ? 'var(--tekst-1-ren)' : 'var(--mut)',
         background: brush === bru ? 'var(--flate-17)' : 'none',
@@ -538,8 +538,8 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
     <button key={g} type="button" onClick={() => { setGranularity(g); setSel(null); setEdgeDrag(null) }}
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: '12.5px',
-        letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: 9,
-        padding: '8px 13px', cursor: 'pointer', border: '1px solid var(--line2)',
+        letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: 999,
+        padding: '8px 15px', cursor: 'pointer', border: '1px solid var(--line2)',
         minHeight: 40,
         color: granularity === g ? 'var(--tekst-1-ren)' : 'var(--mut)',
         background: granularity === g ? 'var(--accent)' : 'none',
@@ -631,7 +631,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
         <div style={{ marginTop: 8 }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em',
-            borderRadius: 9, padding: '5px 10px', border: '1px solid var(--line2)', color: 'var(--tekst-1-app)', background: 'var(--card2)',
+            borderRadius: 999, padding: '5px 11px', border: '1px solid var(--line2)', color: 'var(--tekst-1-app)', background: 'var(--card2)',
           }}>Pensel <span style={{ width: 9, height: 9, borderRadius: 2, background: INTENSITY_COLOR.hard }} /></span>
         </div>
       </div>

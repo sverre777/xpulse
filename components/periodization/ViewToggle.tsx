@@ -22,8 +22,7 @@ export function ViewToggle({ active }: { active: CalendarView }) {
   }
 
   return (
-    <div className="inline-flex" role="tablist" aria-label="Kalendervisning"
-      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+    <div className="xp-seg-pill" role="tablist" aria-label="Kalendervisning">
       {VIEWS.map(v => {
         const isActive = v.value === active
         return (
@@ -33,14 +32,7 @@ export function ViewToggle({ active }: { active: CalendarView }) {
             role="tab"
             aria-selected={isActive}
             onClick={() => setView(v.value)}
-            className="px-3 py-1.5 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: isActive ? '#FF4500' : 'transparent',
-              color: isActive ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            className={isActive ? 'on' : undefined}
           >
             {v.label}
           </button>

@@ -112,15 +112,8 @@ export function ModalFooter({
           type="button"
           onClick={onDelete}
           disabled={busy}
-          className="px-3 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'transparent',
-            border: '1px solid #E11D48',
-            borderRadius: 'var(--r-field)',
-            color: '#E11D48',
-            cursor: busy ? 'not-allowed' : 'pointer',
-          }}
+          className="xp-pill xp-pill-sm"
+          style={{ background: 'none', border: '1px solid #E11D48', color: '#E11D48' }}
         >
           Slett
         </button>
@@ -130,29 +123,14 @@ export function ModalFooter({
           type="button"
           onClick={onCancel}
           disabled={busy}
-          className="px-3 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'var(--card2)',
-            border: '1px solid var(--line)',
-            borderRadius: 'var(--r-field)',
-            color: 'var(--tekst-1-app)',
-            cursor: busy ? 'not-allowed' : 'pointer',
-          }}
+          className="xp-pill xp-pill-ghost xp-pill-sm"
         >
           Avbryt
         </button>
         <button
           type="submit"
           disabled={disabled}
-          className="px-3 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: disabled ? '#3A1A0F' : '#FF4500',
-            border: `1px solid ${disabled ? '#3A1A0F' : '#FF4500'}`,
-            color: 'var(--tekst-1-ren)',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            borderRadius: 'var(--r-field)',}}
+          className="xp-pill xp-pill-primary xp-pill-sm"
         >
           {busy ? 'Lagrer…' : submitLabel}
         </button>

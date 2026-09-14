@@ -82,11 +82,7 @@ export function InstallHint() {
           <button
             type="button"
             onClick={install}
-            className="px-3 py-2 text-xs tracking-widest uppercase shrink-0"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-              backgroundColor: '#FF4500', color: 'var(--tekst-1-app)', border: 'none', cursor: 'pointer',
-            }}
+            className="xp-pill xp-pill-primary xp-pill-sm shrink-0"
           >
             Installer
           </button>

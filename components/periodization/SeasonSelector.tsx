@@ -55,14 +55,7 @@ export function SeasonSelector({
           <button
             type="button"
             onClick={() => setEditOpen(true)}
-            className="px-3 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: 'var(--flate-14)',
-              border: '1px solid var(--kant-3)',
-              color: 'var(--tekst-1-app)',
-              cursor: 'pointer',
-            }}
+            className="xp-pill xp-pill-ghost xp-pill-sm"
           >
             Rediger
           </button>
@@ -71,14 +64,7 @@ export function SeasonSelector({
           <button
             type="button"
             onClick={() => setNewOpen(true)}
-            className="px-3 py-2 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#FF4500',
-              border: '1px solid #FF4500',
-              color: 'var(--tekst-1-ren)',
-              cursor: 'pointer',
-            }}
+            className="xp-pill xp-pill-primary xp-pill-sm"
           >
             + Ny sesong
           </button>

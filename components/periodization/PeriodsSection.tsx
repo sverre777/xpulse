@@ -70,28 +70,15 @@ export function PeriodsSection({
             <button
               type="button"
               onClick={() => setNewMarkingRange({ start: season.start_date, end: season.start_date })}
-              className="px-3 py-1.5 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: 'transparent',
-                border: '1px solid #D4A017',
-                color: '#D4A017',
-                cursor: 'pointer',
-              }}
+              className="xp-pill xp-pill-sm"
+              style={{ background: 'none', border: '1px solid #D4A017', color: '#D4A017' }}
             >
               + Samling/høyde
             </button>
             <button
               type="button"
               onClick={() => setNewOpen(true)}
-              className="px-3 py-1.5 text-xs tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500',
-                border: '1px solid #FF4500',
-                color: 'var(--tekst-1-ren)',
-                cursor: 'pointer',
-              }}
+              className="xp-pill xp-pill-primary xp-pill-sm"
             >
               + Legg til periode
             </button>

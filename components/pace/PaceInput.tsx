@@ -146,40 +146,20 @@ function UnitToggle({
   onChange: (u: PaceUnit) => void
   disabled?: boolean
 }) {
-  const baseStyle: React.CSSProperties = {
-    fontFamily: "'Barlow Condensed', sans-serif",
-    fontSize: '13px',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    border: '1px solid var(--kant-5)',
-    background: 'var(--flate-8)',
-    color: 'var(--tekst-5-app)',
-    cursor: disabled ? 'default' : 'pointer',
-    padding: '0 10px',
-    minHeight: '40px',
-    minWidth: '54px',
-  }
-  const activeStyle: React.CSSProperties = {
-    ...baseStyle,
-    background: 'var(--kant-2)',
-    color: 'var(--tekst-1-app)',
-    borderColor: '#FF4500',
-  }
+  // Sverre 14. sep: enhetsbryteren er en PILLE som resten av appen
+  // (.xp-seg-pill), ikke en firkantet delt boks. Aktiv del fylt oransje.
   return (
-    <div className="flex" role="group" aria-label="Pace-enhet">
+    <div className="xp-seg-pill" role="group" aria-label="Pace-enhet" data-pace-enhet={unit}>
       <button type="button"
         disabled={disabled}
         onClick={() => onChange('min_per_km')}
-        style={unit === 'min_per_km' ? activeStyle : baseStyle}>
+        className={unit === 'min_per_km' ? 'on' : undefined}>
         min/km
       </button>
       <button type="button"
         disabled={disabled}
         onClick={() => onChange('km_per_h')}
-        style={{
-          ...(unit === 'km_per_h' ? activeStyle : baseStyle),
-          marginLeft: '-1px',
-        }}>
+        className={unit === 'km_per_h' ? 'on' : undefined}>
         km/t
       </button>
     </div>

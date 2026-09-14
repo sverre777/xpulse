@@ -80,23 +80,11 @@ export function MonthFullCalendar({
         </h2>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => navigateMonth(-1)} disabled={!prevAllowed}
-            className="px-3 py-1 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
-              color: prevAllowed ? 'var(--tekst-1-app)' : 'var(--kant-6)',
-              cursor: prevAllowed ? 'pointer' : 'not-allowed',
-            }}>
+            className="xp-pill xp-pill-ghost xp-pill-sm">
             ← Forrige
           </button>
           <button type="button" onClick={() => navigateMonth(1)} disabled={!nextAllowed}
-            className="px-3 py-1 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
-              color: nextAllowed ? 'var(--tekst-1-app)' : 'var(--kant-6)',
-              cursor: nextAllowed ? 'pointer' : 'not-allowed',
-            }}>
+            className="xp-pill xp-pill-ghost xp-pill-sm">
             Neste →
           </button>
         </div>

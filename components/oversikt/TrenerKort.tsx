@@ -116,19 +116,12 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Link href="/app/innboks/meldinger"
-          className="inline-block px-3 py-2 text-xs tracking-widest uppercase hover:opacity-90"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)', textDecoration: 'none',
-          }}>
+          className="xp-pill xp-pill-sm"
+          style={{ backgroundColor: COACH_BLUE, borderColor: COACH_BLUE, color: 'var(--tekst-1-app)' }}>
           Send melding
         </Link>
         <Link href="/app/innstillinger/trener"
-          className="inline-block px-3 py-2 text-xs tracking-widest uppercase hover:opacity-90"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: 'var(--tekst-5-app)', border: '1px solid var(--kant-6)', textDecoration: 'none',
-          }}>
+          className="xp-pill xp-pill-ghost xp-pill-sm">
           Se profil
         </Link>
       </div>

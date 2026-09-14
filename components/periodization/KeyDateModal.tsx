@@ -138,7 +138,7 @@ export function KeyDateModal({
         {/* Type-chips - samme språk som konkurransepanelet i økt-føringen. */}
         <div className="mb-3">
           <FieldLabel>Type</FieldLabel>
-          <span className="inline-flex flex-wrap" style={{ border: '1px solid var(--line2, var(--line2))', borderRadius: 10, overflow: 'hidden' }}>
+          <span className="inline-flex flex-wrap" style={{ border: '1px solid var(--line2, var(--line2))', borderRadius: 999, overflow: 'hidden' }}>
             {KIND_CHIPS.map(c => (
               <button key={c.verdi} type="button" onClick={() => setKind(c.verdi)}
                 style={{
@@ -172,7 +172,7 @@ export function KeyDateModal({
                       color: prioritet === pv ? GULL : 'var(--mut)',
                       background: prioritet === pv ? 'rgba(232,185,60,.12)' : 'transparent',
                       border: `1px solid ${prioritet === pv ? GULL : 'var(--line2, var(--line2))'}`,
-                      borderRadius: 9,
+                      borderRadius: 999,
                     }}>
                     {pv.toUpperCase()}
                   </button>

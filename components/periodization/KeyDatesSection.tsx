@@ -41,14 +41,7 @@ export function KeyDatesSection({
           <button
             type="button"
             onClick={() => setNewOpen(true)}
-            className="px-3 py-1.5 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#FF4500',
-              border: '1px solid #FF4500',
-              color: 'var(--tekst-1-ren)',
-              cursor: 'pointer',
-            }}
+            className="xp-pill xp-pill-primary xp-pill-sm"
           >
             + Legg til hendelse
           </button>

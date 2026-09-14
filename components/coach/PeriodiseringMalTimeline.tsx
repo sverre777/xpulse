@@ -7,7 +7,7 @@ import { INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS } from '@/lib/perio
 import type { Intensity, KeyEventType } from '@/app/actions/seasons'
 import { addDays, formatNorskKortDato } from '@/lib/template-dates'
 import { Ikon } from '@/components/ui/ikoner'
-import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
+import { NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 const GOLD = '#D4A017'
 
@@ -204,11 +204,13 @@ function Legend() {
         <Ikon navn={NOKKELDATO_IKON.camp} variant="fyll" storrelse={14} style={{ color: KEY_EVENT_VISUALS.camp.color }} /> Samling
       </span>
       <span className="flex items-center gap-1">
-        <span style={{
-          width: 8, height: 8, display: 'inline-block',
-          boxShadow: `0 0 4px ${GOLD}CC`,
-          backgroundColor: GOLD,
-        }} />
+        <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} />
+        <Ikon navn={MARKERING_IKON.hoyde} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.hoyde }} />
+        Samling/høyde
+      </span>
+      <span className="flex items-center gap-1">
+        <Ikon navn={MARKERING_IKON.peak} variant="fyll" storrelse={14}
+          style={{ color: MARKERING_FARGE.peak, filter: `drop-shadow(0 0 4px ${GOLD}CC)` }} />
         Form-topp
       </span>
     </div>

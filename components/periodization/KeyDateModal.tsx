@@ -10,7 +10,7 @@ import type { Sport } from '@/lib/types'
 import { SPORTS } from '@/lib/types'
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
-import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
+import { NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 // Fase 104 + panel-språket fra økt-føringen (Sverre 22. aug): typen velges
 // med chips (Konkurranse / Testløp / Test / Annet, hvert med ikon), og A/B/C er
@@ -215,6 +215,7 @@ export function KeyDateModal({
           <span>
             <span className="block text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
+              <Ikon navn={MARKERING_IKON.peak} variant="fyll" storrelse={14} style={{ marginRight: 5 }} />
               Form-topp-mål
             </span>
             <span className="block text-xs"

@@ -160,6 +160,7 @@ import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 import { SKYTE_FARGER, SEGMENT_FARGER } from '@/lib/segmenter'
+import { IkonVelger } from '@/components/ui/IkonVelger'
 
 /** Ikonet for en aktivitetstype - slås opp i ACTIVITY_TYPES (lib/types), som er
  *  ÉN kilde for etikett og ikon. Ukjent type faller til «annet». */
@@ -1045,48 +1046,40 @@ function ActivityRowItem({
               + boxSizing:border-box, så de krymper innenfor cellen uten å kuttes. */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <Field label="Aktivitetstype">
-              <select value={row.activity_type}
-                onChange={e => {
-                  const nyType = e.target.value as ActivityType
-                  // Veksling har NAVN (T1/T2), ikke bevegelsesform. Bytter
-                  // man til eller fra veksling, følger ikke navnet med —
-                  // ellers ble «Løping» stående som vekslingens navn (og
-                  // «T1» som bevegelsesform den andre veien).
+              {/* Sverre 14. sep: lista skal vise ikonene. Et native select kan
+                  bare bære tekst, så typevelgeren er nå IkonVelger - samme
+                  verdier, samme grupper («Mest brukt» / «Alle»), med ikon i
+                  typens farge. */}
+              <IkonVelger<ActivityType>
+                ariaLabel="Aktivitetstype"
+                verdi={row.activity_type}
+                uthevet={manglerLS(row)}
+                stil={iSt}
+                valg={[
+                  ...(showFavoritesGroup
+                    ? visibleFavorites.flatMap(v => {
+                        const opt = typeOptions.find(t => t.value === v)
+                        return opt ? [{ verdi: opt.value, etikett: opt.label, ikon: opt.icon, farge: fargeForAktivitetstype(opt.value), gruppe: 'Mest brukt' }] : []
+                      })
+                    : []),
+                  ...typeOptions.map(t => ({
+                    verdi: t.value, etikett: t.label, ikon: t.icon,
+                    farge: fargeForAktivitetstype(t.value),
+                    gruppe: showFavoritesGroup ? 'Alle' : undefined,
+                  })),
+                  // Gamle rader m/ legacy skyting-variant: behold verdien synlig.
+                  ...(meta?.legacy && !typeOptions.some(t => t.value === meta.value)
+                    ? [{ verdi: meta.value, etikett: legacySkytingLabel(row, meta), ikon: meta.icon, farge: fargeForAktivitetstype(meta.value) }]
+                    : []),
+                ]}
+                onVelg={nyType => {
+                  // Veksling har NAVN (T1/T2), ikke bevegelsesform. Bytter man
+                  // til eller fra veksling, følger ikke navnet med.
                   const bytterVeksling = (nyType === 'veksling') !== (row.activity_type === 'veksling')
                   onUpdate(bytterVeksling
                     ? { activity_type: nyType, movement_name: '', movement_subcategory: '' }
                     : { activity_type: nyType })
-                }}
-                data-velg-ls={manglerLS(row) ? '' : undefined}
-                style={manglerLS(row) ? { ...iSt, color: 'var(--accent)', fontWeight: 700 } : iSt}>
-                {showFavoritesGroup && (
-                  <optgroup label="Mest brukt">
-                    {visibleFavorites.map(v => {
-                      const opt = typeOptions.find(t => t.value === v)
-                      if (!opt) return null
-                      return (
-                        <option key={`fav-${v}`} value={v}>{opt.label}</option>
-                      )
-                    })}
-                  </optgroup>
-                )}
-                {showFavoritesGroup ? (
-                  <optgroup label="Alle">
-                    {typeOptions.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </optgroup>
-                ) : (
-                  typeOptions.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))
-                )}
-                {/* Gamle rader m/ legacy skyting-variant: behold verdien synlig.
-                    Kombinert uten L/S i seriene → «Skyting · velg L/S» (bolk 24). */}
-                {meta?.legacy && !typeOptions.some(t => t.value === meta.value) && (
-                  <option value={meta.value}>{legacySkytingLabel(row, meta)}</option>
-                )}
-              </select>
+                }} />
             </Field>
 
             {meta?.usesMovement && (

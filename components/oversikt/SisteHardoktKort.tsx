@@ -160,11 +160,11 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
       <div className="mt-3"><Nokkeltall celler={celler} /></div>
 
       <div className="mt-3 flex items-center gap-2 flex-wrap" data-hardokt-piller>
-        {laktatVerdier.length > 0 && <Pille farge={LAKTAT} data="laktat"><Ikon navn="laktat" storrelse={14} /> {laktatVerdier.map(fmtMmol).join(' · ')}</Pille>}
-        {laktatVerdier.length === 0 && w.lactate_mmol != null && <Pille farge={LAKTAT} data="laktat"><Ikon navn="laktat" storrelse={14} /> {fmtMmol(w.lactate_mmol)}</Pille>}
-        {karbo > 0 && <Pille farge={ERNAERING} data="ernaering"><Ikon navn="ernaering" storrelse={14} /> {Math.round(karbo)} g karbo</Pille>}
-        {harSki && ligg && ligg.shots > 0 && <Pille farge={COLOR_PRONE} data="ligg"><Ikon navn="skyting" storrelse={14} /> L {ligg.hits}/{ligg.shots}</Pille>}
-        {harSki && staa && staa.shots > 0 && <Pille farge={COLOR_STANDING} data="staa"><Ikon navn="skyting" storrelse={14} /> S {staa.hits}/{staa.shots}</Pille>}
+        {laktatVerdier.length > 0 && <Pille farge={LAKTAT} data="laktat"><Ikon navn="laktat" variant="fyll" storrelse={14} /> {laktatVerdier.map(fmtMmol).join(' · ')}</Pille>}
+        {laktatVerdier.length === 0 && w.lactate_mmol != null && <Pille farge={LAKTAT} data="laktat"><Ikon navn="laktat" variant="fyll" storrelse={14} /> {fmtMmol(w.lactate_mmol)}</Pille>}
+        {karbo > 0 && <Pille farge={ERNAERING} data="ernaering"><Ikon navn="ernaering" variant="fyll" storrelse={14} /> {Math.round(karbo)} g karbo</Pille>}
+        {harSki && ligg && ligg.shots > 0 && <Pille farge={COLOR_PRONE} data="ligg"><Ikon navn="skyting" variant="fyll" storrelse={14} /> L {ligg.hits}/{ligg.shots}</Pille>}
+        {harSki && staa && staa.shots > 0 && <Pille farge={COLOR_STANDING} data="staa"><Ikon navn="skyting" variant="fyll" storrelse={14} /> S {staa.hits}/{staa.shots}</Pille>}
         {w.rpe != null && <Pille farge="var(--tekst-5-app)" data="opplevd">Opplevd {w.rpe}/10</Pille>}
       </div>
 

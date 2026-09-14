@@ -4,6 +4,8 @@ import type { Season, SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
 import type { MonthlyVolumePlan } from '@/app/actions/volume-plans'
 import { headerStatsFor } from '@/lib/season-calendar'
 import { SeasonVolumeSummary } from './SeasonVolumeSummary'
+import { Ikon } from '@/components/ui/ikoner'
+import { MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 function fmtDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
@@ -79,8 +81,9 @@ export function SeasonHeaderBar({
       {peakDates.length > 0 && (
         <div className="mt-4 pt-3 flex flex-wrap items-center gap-2"
           style={{ borderTop: '1px solid var(--kant-3)' }}>
-          <span className="text-xs tracking-widest uppercase"
+          <span className="text-xs tracking-widest uppercase inline-flex items-center gap-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+            <Ikon navn={MARKERING_IKON.peak} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.peak }} />
             Form-topp
           </span>
           {peakDates.map(p => (

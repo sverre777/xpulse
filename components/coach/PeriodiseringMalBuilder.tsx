@@ -880,6 +880,7 @@ function KeyDateRow({
         <span>
           <span className="block text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
+            <Ikon navn={MARKERING_IKON.peak} variant="fyll" storrelse={14} style={{ marginRight: 5 }} />
             Form-topp-mål
           </span>
           <span className="block text-xs"

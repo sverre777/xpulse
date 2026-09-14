@@ -2338,12 +2338,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           )}
                           {mode !== 'plan' && !healthData[ds] && (
                             <button type="button" onClick={() => onEditHealth(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                              <Ikon navn="legg-til" variant="strek" storrelse={14} /> Helse
+                              <Ikon navn="helse" variant="fyll" storrelse={14} style={{ color: '#E23A5A' }} /> Helse
                             </button>
                           )}
                           {mode !== 'plan' && !isFuture && (
                             <button type="button" onClick={() => onAddRecovery(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                              <Ikon navn="legg-til" variant="strek" storrelse={14} /> Recovery
+                              <Ikon navn="aktiv-pause" variant="fyll" storrelse={14} style={{ color: DAGSTATUS_FARGE.hviledag }} /> Recovery
                             </button>
                           )}
                         </div>

@@ -2372,7 +2372,9 @@ function OktbyggerKnapp({ onClick }: { onClick: () => void }) {
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 12.5,
         letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999,
         padding: '7px 14px', minHeight: 36, cursor: 'pointer', whiteSpace: 'nowrap',
-        background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)',
+        // Sverre 14. sep: tekst og ring er hvite (svarte i lysmodus) - fargene
+        // bor i ikonet, ikke i ramma.
+        background: 'transparent', border: '1.5px solid var(--tekst-1-app)', color: 'var(--tekst-1-app)',
       }}>
       <OktbyggerIkon variant="fyll" storrelse={18} />
       Øktbygger

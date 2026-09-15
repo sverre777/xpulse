@@ -90,12 +90,14 @@ export function PeriodModal({
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <FieldLabel>Startdato</FieldLabel>
-            <input type="date" value={startDate} min={seasonStart} max={seasonEnd}
+            {/* Ingen min/max (Sverre 15. sep): en forhåndsutfylt dato feltet selv
+                nekter er verre enn ingen grense. Serveren validerer. */}
+            <input type="date" value={startDate}
               onChange={e => setStartDate(e.target.value)} style={INPUT_STYLE} />
           </div>
           <div>
             <FieldLabel>Sluttdato</FieldLabel>
-            <input type="date" value={endDate} min={seasonStart} max={seasonEnd}
+            <input type="date" value={endDate}
               onChange={e => setEndDate(e.target.value)} style={INPUT_STYLE} />
           </div>
         </div>

@@ -238,10 +238,15 @@ export interface SkiTestAnalysisData {
 export async function getSkiTestAnalysis(
   from: string,
   to: string,
+  targetUserId?: string,
 ): Promise<SkiTestAnalysisData> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { tests: [], ski: [] }
+  // Sverre 15. sep: som de andre analysefanene - treneren skal se UTØVERENS
+  // ski-tester, ikke sine egne. Ski-tester er treningsdata, ikke helsedata,
+  // så can_view_analysis er riktig nivå.
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+  if ('error' in resolved) return { tests: [], ski: [] }
+  const user = { id: resolved.userId }
 
   const { data: tests } = await supabase
     .from('ski_tests')

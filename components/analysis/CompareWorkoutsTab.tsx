@@ -198,7 +198,7 @@ export function CompareWorkoutsTab({
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <button type="button" onClick={() => { setShowCompare(false); setPakker(null) }}
             className="text-xs tracking-widest uppercase px-3 py-2"
-            style={{
+            style={{ borderRadius: 999,
               fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
               backgroundColor: 'transparent', border: '1px solid var(--kant-3)',
             }}>
@@ -220,7 +220,7 @@ export function CompareWorkoutsTab({
               />
               <button type="button" onClick={handleSave}
                 className="text-xs tracking-widest uppercase px-3 py-2"
-                style={{
+                style={{ borderRadius: 999,
                   fontFamily: "'Barlow Condensed', sans-serif",
                   backgroundColor: '#FF4500', color: 'var(--flate-3)',
                   border: 'none', cursor: 'pointer',
@@ -239,7 +239,7 @@ export function CompareWorkoutsTab({
           ) : (
             <button type="button" onClick={() => setShowSaveInput(true)}
               className="text-xs tracking-widest uppercase px-3 py-2"
-              style={{
+              style={{ borderRadius: 999,
                 fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4',
                 background: 'none', border: '1px solid #1A6FD4',
                 cursor: 'pointer',
@@ -316,7 +316,7 @@ export function CompareWorkoutsTab({
             <span key={c.id} className="inline-flex items-center gap-1">
               <button type="button" onClick={() => handleLoadSaved(c)}
                 className="text-xs tracking-widest uppercase px-2 py-1"
-                style={{
+                style={{ borderRadius: 999,
                   fontFamily: "'Barlow Condensed', sans-serif",
                   color: '#1A6FD4', border: '1px solid #1A6FD4',
                   background: 'none', cursor: 'pointer',
@@ -356,7 +356,7 @@ export function CompareWorkoutsTab({
           <button type="button" onClick={() => setSelected([])}
             disabled={selected.length === 0}
             className="text-xs tracking-widest uppercase px-3 py-2"
-            style={{
+            style={{ borderRadius: 999,
               fontFamily: "'Barlow Condensed', sans-serif",
               color: selected.length === 0 ? 'var(--tekst-8-app)' : 'var(--tekst-1-app)',
               backgroundColor: 'transparent', border: '1px solid var(--kant-3)',
@@ -368,7 +368,7 @@ export function CompareWorkoutsTab({
           <button type="button" onClick={() => setShowCompare(true)}
             disabled={selected.length < 2}
             className="text-xs tracking-widest uppercase px-4 py-2"
-            style={{
+            style={{ borderRadius: 999,
               fontFamily: "'Barlow Condensed', sans-serif",
               color: selected.length < 2 ? 'var(--tekst-8-app)' : 'var(--flate-3)',
               backgroundColor: selected.length < 2 ? 'var(--line)' : '#FF4500',
@@ -527,7 +527,7 @@ function WorkoutRow({
           </span>
           {isPlannedOnly && (
             <span className="text-xs tracking-widest uppercase px-1.5 py-0.5"
-              style={{
+              style={{ borderRadius: 999,
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#D4A017', border: '1px solid #D4A017',
               }}>
@@ -536,7 +536,7 @@ function WorkoutRow({
           )}
           {workout.is_completed && workout.is_planned && (
             <span className="text-xs tracking-widest uppercase px-1.5 py-0.5"
-              style={{
+              style={{ borderRadius: 999,
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#28A86E', border: '1px solid #28A86E',
               }}>

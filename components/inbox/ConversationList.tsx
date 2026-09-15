@@ -65,7 +65,7 @@ export function ConversationList({ conversations }: Props) {
                   {c.kind === 'group' && (
                     <span
                       className="text-[9px] tracking-widest uppercase px-1.5 py-0.5"
-                      style={{
+                      style={{ borderRadius: 999,
                         fontFamily: "'Barlow Condensed', sans-serif",
                         color: 'var(--tekst-5-app)',
                         border: '1px solid var(--kant-6)',

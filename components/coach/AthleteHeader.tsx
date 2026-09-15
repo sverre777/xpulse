@@ -14,7 +14,7 @@ function PermissionIcon({ label, granted }: { label: string; granted: boolean })
     <span
       title={granted ? `${label}: tilgang` : `${label}: ingen tilgang`}
       className="text-xs tracking-widest uppercase px-2 py-0.5"
-      style={{
+      style={{ borderRadius: 999,
         fontFamily: "'Barlow Condensed', sans-serif",
         color: granted ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
         border: `1px solid ${granted ? COACH_BLUE : 'var(--line)'}`,

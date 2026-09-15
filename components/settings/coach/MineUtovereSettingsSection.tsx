@@ -137,7 +137,7 @@ function RelationCard({
         </div>
         <span
           className="text-xs tracking-widest uppercase px-2 py-0.5"
-          style={{
+          style={{ borderRadius: 999,
             fontFamily: "'Barlow Condensed', sans-serif",
             color: STATUS_COLOR[relation.status],
             border: `1px solid ${STATUS_COLOR[relation.status]}`,

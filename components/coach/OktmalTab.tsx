@@ -200,7 +200,7 @@ function Row({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {template.category && (
               <span className="px-2 py-0.5"
-                style={{ color: '#D4A017', border: '1px solid #D4A01766', letterSpacing: '0.1em' }}>
+                style={{ borderRadius: 999, padding: '2px 9px', color: '#D4A017', border: '1px solid #D4A01766', letterSpacing: '0.1em' }}>
                 {template.category}
               </span>
             )}

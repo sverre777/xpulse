@@ -67,7 +67,7 @@ function AthleteAvatarRow({ athletes, max = 8 }: { athletes: CoachOverviewAthlet
       {overflow > 0 && (
         <span
           className="text-xs tracking-widest uppercase px-2 py-1"
-          style={{
+          style={{ borderRadius: 999,
             fontFamily: "'Barlow Condensed', sans-serif",
             color: 'var(--tekst-5-app)',
             border: '1px solid var(--line)',
@@ -132,7 +132,7 @@ export async function CoachUpcomingCards() {
             </span>
             <span
               className="text-xs tracking-widest uppercase px-2 py-0.5"
-              style={{
+              style={{ borderRadius: 999,
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: GOLD,
                 border: `1px solid ${GOLD}`,

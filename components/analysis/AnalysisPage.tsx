@@ -288,21 +288,26 @@ function AnalysisPageInner({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to, sportFilter])
 
+  // Erik Jørstad 15. sep: ÅTTE faner hentet uten targetUserId, så treneren så
+  // SINE EGNE tall under utøverens navn (terskel, skyting, sammenligning,
+  // maler, periodisering, konkurranser, tester & PR, helse-korrelasjon).
+  // Alle actionene tar den og sjekker can_view_analysis selv - de manglet bare
+  // å få den. Ski-tester (getSkiTestAnalysis) tar den ikke ennå: rapportert.
   const hentFaneData = (k: FaneDataKey): Promise<unknown> => {
     switch (k) {
       case 'klokkedata': return getKlokkedataTrender(range.from, range.to, sportFilter, targetUserId)
       case 'belastning': return getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
       case 'prestasjon': return getPrestasjonAnalyse(range.from, range.to, targetUserId)
-      case 'terskel': return getTerskelAnalysis(range.from, range.to, sportFilter)
-      case 'skyting': return getShootingDepthAnalysis(range.from, range.to, sportFilter)
-      case 'sammenlign': return getWorkoutsForComparison(range.from, range.to, { sport: sportFilter })
-      case 'mal_analyse': return getTemplateAnalysis(range.from, range.to, sportFilter)
-      case 'periodisering': return getPeriodizationOverview(range.from, range.to, sportFilter)
-      case 'konkurranser': return getCompetitionAnalysis(range.from, range.to, sportFilter)
-      case 'tester_pr': return getTestsAndPRs(sportFilter)
+      case 'terskel': return getTerskelAnalysis(range.from, range.to, sportFilter, targetUserId)
+      case 'skyting': return getShootingDepthAnalysis(range.from, range.to, sportFilter, targetUserId)
+      case 'sammenlign': return getWorkoutsForComparison(range.from, range.to, { sport: sportFilter }, targetUserId)
+      case 'mal_analyse': return getTemplateAnalysis(range.from, range.to, sportFilter, targetUserId)
+      case 'periodisering': return getPeriodizationOverview(range.from, range.to, sportFilter, targetUserId)
+      case 'konkurranser': return getCompetitionAnalysis(range.from, range.to, sportFilter, null, targetUserId)
+      case 'tester_pr': return getTestsAndPRs(sportFilter, targetUserId)
       case 'ski_tester': return getSkiTestAnalysis(range.from, range.to)
       case 'helse': return getHelseOversikt(range.from, range.to, targetUserId)
-      case 'helse_korrelasjon': return getHealthCorrelations(range.from, range.to)
+      case 'helse_korrelasjon': return getHealthCorrelations(range.from, range.to, targetUserId)
       case 'helse_belastning': return getHelseBelastning(range.from, range.to, targetUserId)
       case 'ernering': return getNutritionAnalysis(range.from, range.to, targetUserId)
       case 'vaer': return getWeatherAnalysis(range.from, range.to, targetUserId)
@@ -372,6 +377,8 @@ function AnalysisPageInner({
               key={key}
               type="button"
               onClick={() => setTab(key)}
+              data-analyse-fane={key}
+              aria-current={tab === key ? 'page' : undefined}
               className="px-4 py-2 text-sm tracking-widest uppercase whitespace-nowrap"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
@@ -542,7 +549,7 @@ function AnalysisPageInner({
         )}
         {tab === 'terskel' && (
           cache.terskel
-            ? <TerskelTab data={cache.terskel} />
+            ? <TerskelTab data={cache.terskel} targetUserId={targetUserId} />
             : <LoadingStub label="Laster terskel…" />
         )}
         {tab === 'skyting' && (
@@ -571,7 +578,7 @@ function AnalysisPageInner({
         )}
         {tab === 'klokkedata' && (
           cache.klokkedata
-            ? <KlokkedataTrenderTab data={cache.klokkedata} />
+            ? <KlokkedataTrenderTab data={cache.klokkedata} targetUserId={targetUserId} />
             : <LoadingStub label="Laster klokkedata-trender…" />
         )}
         {tab === 'styrke' && (

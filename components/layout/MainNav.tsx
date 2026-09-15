@@ -13,6 +13,7 @@ import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { PcAvatar, MerNedtrekk } from './PcMeny'
 import { RollebytteSkjelett } from './RollebytteSkjelett'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
+import { ToppTittelPC } from '@/components/layout/ToppTittelPC'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import type { Role } from '@/lib/types'
 
@@ -54,7 +55,13 @@ export function MainNav({
   klokkesyncBadge,
 }: MainNavProps) {
   const pathname = usePathname()
-  const accent = activeRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE
+  // Erik Jørstad 15. sep: inne på en utøver (/app/trener/...) ER man i
+  // trenerkontekst, uansett hvilken rolle som står som aktiv - aksenten skal
+  // være blå, og PC-linja skal vise utøverens navn med tilbake-pil. Navnet
+  // kommer fra SAMME topp-tittel-lager som mobilens glass-linje (bolk 6),
+  // ikke en ny kopi. Rollen selv (menyer, rettigheter) røres ikke.
+  const iTrenerkontekst = activeRole === 'coach' || (pathname ?? '').startsWith('/app/trener')
+  const accent = iTrenerkontekst ? COACH_BLUE : ATHLETE_ORANGE
 
   const glassNav = useErMobilNav()
   // Navigasjon v2 bolk 2: på app-mobil erstattes hele mobil-linja av glass-topplinja.
@@ -63,7 +70,8 @@ export function MainNav({
   }
   return (
     <nav
-      className="flex items-center justify-between px-4 md:px-6 py-0 sticky top-0 z-40"
+      className={`flex items-center justify-between px-4 md:px-6 py-0 sticky top-0 z-40${iTrenerkontekst ? ' xp-coach' : ''}`}
+      data-pc-nav={iTrenerkontekst ? 'coach' : 'athlete'}
       style={{
         background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
         backdropFilter: 'blur(8px)',
@@ -130,6 +138,8 @@ export function MainNav({
         </div>
       </div>
 
+      {/* Utøverens navn i den klebrige linja (delt med CoachNav). */}
+      <ToppTittelPC accent={accent} />
       <RollebytteSkjelett />
       <div className="flex items-center gap-3">
         <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />

@@ -2,6 +2,7 @@
 
 import { useErMobilNav } from '@/lib/er-app'
 import { GlassTopp } from '@/components/layout/GlassTopp'
+import { ToppTittelPC } from '@/components/layout/ToppTittelPC'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
@@ -50,6 +51,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
   return (
     <nav
       className="flex items-center justify-between px-4 md:px-6 py-0 sticky top-0 z-40"
+      data-pc-nav="coach"
       style={{
         background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
         backdropFilter: 'blur(8px)',
@@ -128,7 +130,9 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
         <SearchIconButton mode="coach" accent={COACH_BLUE} />
         {/* Rettelser 6. sep: innboks, rollebytte og lys/mørk står i topplinja på PC (til høyre). */}
         <InboxIconLink unreadCount={unreadInboxCount} isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')} />
-        <RollebytteSkjelett />
+        {/* Erik Jørstad 15. sep: utøverens navn står i den klebrige linja på alle fanene inne på utøveren. */}
+      <ToppTittelPC accent={COACH_BLUE} />
+      <RollebytteSkjelett />
         <RoleSwitcher activeRole="coach" hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} />
         <TemaBryter accent={COACH_BLUE} />
         <PcAvatar rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} />

@@ -88,9 +88,16 @@ export const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
 }
 
+/** Serverens avslag skal STÅ i modalen, ved knappen - ikke forsvinne
+    (Sverre 15. sep). Boks med kant, ikke en liten grå linje. */
 export function ErrorText({ message }: { message: string }) {
   return (
-    <p className="text-xs mt-2" style={{ fontFamily: 'ui-monospace, monospace', color: '#E11D48' }}>
+    <p role="alert" data-modal-feil className="mt-3"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, lineHeight: 1.4,
+        color: '#E11D48', background: 'rgba(225,29,72,.10)', border: '1px solid rgba(225,29,72,.55)',
+        borderRadius: 10, padding: '10px 12px',
+      }}>
       {message}
     </p>
   )

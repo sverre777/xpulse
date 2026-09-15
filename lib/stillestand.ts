@@ -135,6 +135,28 @@ export function finnStillestand(
   return ut
 }
 
+/** Et tidsvindu på økta, i sekunder fra start. */
+export interface Vindu {
+  fra: number
+  til: number
+}
+
+/**
+ * Perioder som overlapper standplass tas ut.
+ *
+ * Skyting ligger allerede utenfor ren treningstid (lib/activity-summary), så
+ * en pause oppå en skyterad ville trukket den samme tida fra to ganger.
+ */
+export function utenSkytingOverlapp(
+  perioder: Stillestand[],
+  skytevinduer: Vindu[],
+): { beholdt: Stillestand[]; hoppetOver: number } {
+  const gyldige = skytevinduer.filter(v => Number.isFinite(v.fra) && Number.isFinite(v.til) && v.til > v.fra)
+  if (gyldige.length === 0) return { beholdt: perioder, hoppetOver: 0 }
+  const beholdt = perioder.filter(p => !gyldige.some(v => p.fraSek < v.til && v.fra < p.tilSek))
+  return { beholdt, hoppetOver: perioder.length - beholdt.length }
+}
+
 /** Sum stillestand i sekunder - det dialogen viser som «til sammen X min». */
 export function stillestandSum(perioder: Stillestand[]): number {
   return perioder.reduce((s, p) => s + (p.tilSek - p.fraSek), 0)

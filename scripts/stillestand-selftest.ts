@@ -7,7 +7,7 @@
 //      skal forbli to korte stopp, ikke smelte sammen til ett langt.
 
 import {
-  finnStillestand, fartProver, stillestandSum,
+  finnStillestand, fartProver, stillestandSum, utenSkytingOverlapp,
   STILLESTAND_MPS, STILLESTAND_MIN_SEK, STILLESTAND_MAKS_HULL_SEK,
   type Fartprove, type Stillestand,
 } from '../lib/stillestand.ts'
@@ -128,6 +128,20 @@ sjekk('usorterte prøver sorteres', finnStillestand(usortert), [{ fraSek: 300, t
 sjekk('opts overstyrer terskel og minstetid',
   finnStillestand([...stripe(0, 100, FART), ...stripe(100, 140, STILLE), ...stripe(140, 200, FART)],
     { minSek: 30 }), [{ fraSek: 100, tilSek: 139 }])
+
+console.log('\nSkyting hoppes over (fase C-regelen)')
+const perioder = [{ fraSek: 600, tilSek: 780 }, { fraSek: 1200, tilSek: 1320 }]
+sjekk('periode som ligger oppå standplass tas ut',
+  utenSkytingOverlapp(perioder, [{ fra: 1200, til: 1320 }]),
+  { beholdt: [{ fraSek: 600, tilSek: 780 }], hoppetOver: 1 })
+sjekk('delvis overlapp teller også som overlapp',
+  utenSkytingOverlapp(perioder, [{ fra: 1300, til: 1500 }]),
+  { beholdt: [{ fraSek: 600, tilSek: 780 }], hoppetOver: 1 })
+sjekk('skyting som grenser inntil (til = fra) er ikke overlapp',
+  utenSkytingOverlapp([{ fraSek: 600, tilSek: 780 }], [{ fra: 780, til: 900 }]),
+  { beholdt: [{ fraSek: 600, tilSek: 780 }], hoppetOver: 0 })
+sjekk('uten skyterader beholdes alt', utenSkytingOverlapp(perioder, []), { beholdt: perioder, hoppetOver: 0 })
+sjekk('skyterad uten tidsvindu ignoreres', utenSkytingOverlapp(perioder, [{ fra: 0, til: 0 }]), { beholdt: perioder, hoppetOver: 0 })
 
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

@@ -1,0 +1,38 @@
+X-PULSE - LOGOFILER  (rettet 14. sep)
+
+lockup = X + PULSE          logo = bare X-merket
+gradient / hvit / sort      tre fargevarianter av hver
+
+svg/   vektor, til web og alt digitalt
+pdf/   vektor, det trykkeriet vil ha
+eps/   vektor, for eldre trykkeriverktøy
+png/   2048 px, transparent - bare for skjerm
+
+RETTET
+Første versjon hadde et hakk i hvert av de tre hjørnene der konturen
+begynner. Årsak: utflatingen av transformasjonen mistet Z-en, så pathene
+sto ulukket og møtepunktet ble tegnet med strekende (butt) i stedet for
+sammenføyning (round). Alle pathene er nå lukket. Geometrien er verifisert
+pikselidentisk med design/logo i repoet - null avvik.
+
+GEOMETRI
+Samme paths som design/logo og components/branding/XPulseIcon.tsx.
+Ingenting er tegnet om. Alle transformasjoner er bakt inn i path-dataene,
+så filene har ingen nestede grupper.
+
+ORDMERKET
+Barlow Condensed 600, sperring 0.30em, KONVERTERT TIL KURVER.
+Trykkeriet trenger ikke fonten.
+
+GRADIENTEN
+#D24729 -> #A5516C -> #4B62AC, samme tre stopp som favikonet.
+X og PULSE har HVER SIN fulle gradient - begge går rødt til blått.
+
+BRUK
+Mørk bakgrunn: gradient eller hvit.
+Lys bakgrunn: gradient eller sort.
+Merkeoransje (#FF4500): hvit eller sort, ikke gradient.
+
+FORBEHOLD
+Alt er RGB. Skal det trykkes i offset, må trykkeriet konvertere til CMYK
+med sin egen profil - gradienten blir dusere. Be om prøvetrykk.

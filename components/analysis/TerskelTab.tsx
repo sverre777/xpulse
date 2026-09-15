@@ -62,7 +62,7 @@ export function TerskelTab({ data, targetUserId }: { data: TerskelAnalysis; targ
       <EstimateCards data={data} />
       <HfmaxKort data={data} />
       <TerskelHistorikk data={data} targetUserId={targetUserId} />
-      <EstimaterTabell data={data} />
+      <EstimaterTabell data={data} targetUserId={targetUserId} />
       <LactateProfile data={data} />
       <LaktatVedIntensitet data={data} />
       <LactateTrend data={data} />
@@ -340,7 +340,7 @@ function MethodNote() {
 export function renderFavoritt(key: string, data: TerskelAnalysis, ctx?: { config?: Record<string, unknown> | null; targetUserId?: string }): React.ReactNode | null {
   switch (key) {
     case 'terskel_historikk': return <TerskelHistorikk data={data} initialConfig={ctx?.config} targetUserId={ctx?.targetUserId} />
-    case 'terskel_estimater': return <EstimaterTabell data={data} />
+    case 'terskel_estimater': return <EstimaterTabell data={data} targetUserId={ctx?.targetUserId} />
     case 'terskel_hfmax': return <HfmaxKort data={data} />
     case 'terskel_hfmax_fort': case 'terskel_hfmax_formel': case 'terskel_hfmax_pct': case 'terskel_watt_per_kg': return <HfmaxKort data={data} bare={key} />
     case 'terskel_watt_soner_per_uke': return <WattSonerPerUke data={data} />

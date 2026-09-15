@@ -119,7 +119,10 @@ export function TerskelHistorikk({ data, initialConfig, targetUserId }: { data: 
 }
 
 /** Estimert vs testet: hvert estimat mot terskelen som gjaldt den dagen. */
-export function EstimaterTabell({ data }: { data: TerskelAnalysis }) {
+export function EstimaterTabell({ data, targetUserId }: { data: TerskelAnalysis
+  /** Trenerkontekst: teksten skal ikke be treneren bruke en knapp som ikke
+      finnes for ham («Oppdater terskel» er skjult der). */
+  targetUserId?: string }) {
   if (data.estimater.length === 0) return null
   const gjeldende = (e: TerskelEstimatPunkt): number | null => {
     const m: Metrikk = e.type === 'ftp20' ? 'ftp' : e.type === 'pace30' ? 'tempo' : 'puls'
@@ -132,7 +135,7 @@ export function EstimaterTabell({ data }: { data: TerskelAnalysis }) {
   const td: React.CSSProperties = { fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)', padding: '5px 8px', borderBottom: '1px solid var(--kant-3)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }
   return (
     <ChartWrapper chartKey="terskel_estimater" title="Estimert vs testet" height="auto"
-      subtitle="Beste 20-min watt × 0,95 · beste 30-min tempo · laktat-krysning ved 4 mmol - mot terskelen som gjaldt den dagen. Bruk «Oppdater terskel» når et estimat bør bli ny terskel.">
+      subtitle={`Beste 20-min watt × 0,95 · beste 30-min tempo · laktat-krysning ved 4 mmol - mot terskelen som gjaldt den dagen. ${targetUserId ? 'Utøveren oppdaterer terskelen selv når et estimat bør bli ny terskel.' : 'Bruk «Oppdater terskel» når et estimat bør bli ny terskel.'}`}>
       <div className="overflow-x-auto xp-hscroll">
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 620 }} data-estimater>
           <thead><tr><th style={th}>Dato</th><th style={th}>Økt</th><th style={th}>Estimat</th><th style={th}>Verdi</th><th style={th}>Gjaldt da</th><th style={th}>Avvik</th></tr></thead>

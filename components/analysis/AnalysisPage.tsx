@@ -305,7 +305,7 @@ function AnalysisPageInner({
       case 'periodisering': return getPeriodizationOverview(range.from, range.to, sportFilter, targetUserId)
       case 'konkurranser': return getCompetitionAnalysis(range.from, range.to, sportFilter, null, targetUserId)
       case 'tester_pr': return getTestsAndPRs(sportFilter, targetUserId)
-      case 'ski_tester': return getSkiTestAnalysis(range.from, range.to)
+      case 'ski_tester': return getSkiTestAnalysis(range.from, range.to, targetUserId)
       case 'helse': return getHelseOversikt(range.from, range.to, targetUserId)
       case 'helse_korrelasjon': return getHealthCorrelations(range.from, range.to, targetUserId)
       case 'helse_belastning': return getHelseBelastning(range.from, range.to, targetUserId)
@@ -343,6 +343,10 @@ function AnalysisPageInner({
     } else if (tab === 'sammenlign') { trengs.add('sammenlign'); trengs.add('mal_analyse'); trengs.add('periodisering') }
     else if (tab === 'belastning') { trengs.add('belastning'); trengs.add('helse_belastning') }
     else if (tab !== 'oversikt' && tab !== 'helse' && tab !== 'standardokter') trengs.add(tab as FaneDataKey)
+    // GDPR art. 9 (Sverre 15. sep): helsedata hentes ALDRI uten at utøveren har
+    // delt dem. Serveren sier nei uansett, men klienten skal ikke spørre heller -
+    // da slipper vi en fane som står der og feiler.
+    if (!canSeeHealthData) for (const k of ['helse', 'helse_korrelasjon', 'helse_belastning'] as FaneDataKey[]) trengs.delete(k)
     for (const k of trengs) hent(k)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, favoriteKeys, cache, range.from, range.to, sportFilter, surfaceFilter])

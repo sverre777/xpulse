@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { forsteEmbed } from '@/lib/embed'
-import { resolveTargetUser } from '@/lib/target-user'
+import { resolveTargetUser, resolveHealthTargetUser } from '@/lib/target-user'
 import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-summary'
 import { zoneForHeartRate, ALL_ZONE_NAMES, type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
@@ -1794,7 +1794,11 @@ export async function getHealthCorrelations(
 ): Promise<HealthCorrelations | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+    // GDPR art. 9 (Sverre 15. sep): denne leser daily_health - HRV, hvilepuls,
+    // søvn, søvnkvalitet og vekt. Helsedata arves ALDRI fra can_view_analysis,
+    // så her gjelder resolveHealthTargetUser (krever
+    // coach_data_permissions.can_see_health_data, fail-closed).
+    const resolved = await resolveHealthTargetUser(supabase, targetUserId, 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -3279,6 +3283,11 @@ export async function getTerskelAnalysis(
     const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
+    // GDPR art. 9 (Sverre 15. sep): funksjonen henter mest treningsdata, men
+    // ÉN spørring går på vekt (health_metrics) for watt/kg. Egen sjekk for den
+    // ene - er helsedeling av, uteblir watt/kg og resten står.
+    const helse = await resolveHealthTargetUser(supabase, targetUserId, 'read')
+    const kanSeHelse = !('error' in helse)
 
     let q = supabase
       .from('workouts')
@@ -3310,7 +3319,12 @@ export async function getTerskelAnalysis(
         .eq('user_id', userId)
         .order('valid_from', { ascending: true }),
       supabase.from('profiles').select('max_heart_rate, birth_year, gender').eq('id', userId).maybeSingle(),
-      supabase.from('health_metrics').select('date, body_weight_kg').eq('user_id', userId).not('body_weight_kg', 'is', null).order('date', { ascending: false }).limit(120),
+      // GDPR art. 9: vekt er helsedata og arves ikke fra can_view_analysis.
+      // Uten helsedeling hopper vi over spørringen - da uteblir watt/kg, som
+      // er en bekvemmelighet. Resten av terskelanalysen er treningsdata.
+      kanSeHelse
+        ? supabase.from('health_metrics').select('date, body_weight_kg').eq('user_id', userId).not('body_weight_kg', 'is', null).order('date', { ascending: false }).limit(120)
+        : Promise.resolve({ data: [] as { date: string; body_weight_kg: number | null }[], error: null }),
     ])
     if (workoutsRes.error) return { error: workoutsRes.error.message }
     if (templatesRes.error) return { error: templatesRes.error.message }

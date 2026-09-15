@@ -1,6 +1,7 @@
 'use client'
 
 import { VisMer } from '@/components/oversikt/kort-deler'
+import { avgrensHelse, minusDager } from '@/lib/helse-vindu'
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { buildWeekDates, toISO, getDateRange, getPrevRange, erSammeOmraade, type ServerOmraade } from '@/lib/kalender-omraade'
 import { Fragment, createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
@@ -108,6 +109,9 @@ export interface CalendarProps {
   /** Forrige periode (for analyse-panelets delta) — SSR-hydrert fra page-view. */
   initialPrevWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
   initialHealthData?: Record<string, HealthSummary>
+  /** Helseoversikten for måneden (+30 dager bak), hentet på serveren. Dag-
+      popupen skjærer sitt vindu ut av den - ingen henting per dag. */
+  initialHelse?: import('@/app/actions/helse-oversikt').HelseOversiktData | null
   initialRecoveryData?: Record<string, RecoveryEntry[]>
   heartZones?: HeartZone[]
   // Valgfrie initial-kommentarer (nøklet på periodeID) for å unngå roundtrip ved mount.
@@ -1296,11 +1300,12 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [], layout = 'grid', mobilLayout = 'list' }: {
+function MonthView({ year, month, byDate, healthDates, healthData, helse = null, recoveryData, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [], layout = 'grid', mobilLayout = 'list' }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
   healthData: Record<string, HealthSummary>
+  helse?: import('@/app/actions/helse-oversikt').HelseOversiktData | null
   recoveryData: Record<string, RecoveryEntry[]>
   mode: CalendarMode
   // Desktop-layout: 'grid' (7-kolonners kalender, default) eller 'list'
@@ -2194,6 +2199,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       return (
                         <div className="mb-3" data-dag-helsekort>
                           <KompaktHelseKort targetUserId={targetUserId} sluttDato={ds}
+                            forhandsdata={helse ? avgrensHelse(helse, minusDager(ds, 30), ds) : undefined}
                             fot={(_data, aapne) => (
                               <div className="flex items-center gap-2 flex-wrap" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }} data-dag-helse-fot>
                                 {!readOnly && (
@@ -2658,7 +2664,7 @@ function useLagretLayout(nokkel: string, standard: 'grid' | 'list'): ['grid' | '
 export function Calendar({
   mode, userId, primarySport, userSports, activityTypeFavorites, templates,
   initialView = 'måned', initialDate,
-  initialWorkoutsByDate = {}, initialPrevWorkoutsByDate = {}, initialHealthData = {}, serverRange = null,
+  initialWorkoutsByDate = {}, initialPrevWorkoutsByDate = {}, initialHealthData = {}, initialHelse = null, serverRange = null,
   initialRecoveryData = {},
   heartZones = [],
   initialWeekNote = '',
@@ -3211,7 +3217,7 @@ export function Calendar({
         </>
       )}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} mobilLayout={mobilLayout} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} helse={initialHelse} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} mobilLayout={mobilLayout} />
       )}
       {view === 'uke' && (
         <UkeVisning

@@ -7,6 +7,8 @@ import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maan
 import { createClient } from '@/lib/supabase/server'
 import { getCalendarWorkouts, getActivityTypeFavorites } from '@/app/actions/workouts'
 import { HelseOversikt } from '@/components/helse/HelseOversikt'
+import { getHelseOversikt } from '@/app/actions/helse-oversikt'
+import { minusDager } from '@/lib/helse-vindu'
 import { getTemplates } from '@/app/actions/health'
 import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
 import { Calendar } from '@/components/calendar/Calendar'
@@ -63,7 +65,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
   // Profil + favorittene har lavest avhengighet — parallelliser med resten
   // av Promise.all så vi ikke serialiserer på dem etter at de andre er ferdige.
   const [
-    rawWorkouts, prevRawWorkouts, healthRows, sovnDager, klokkeDager, merkeDager, recoveryRows, templates, heartZones,
+    rawWorkouts, prevRawWorkouts, healthRows, sovnDager, klokkeDager, merkeDager, helseRes, recoveryRows, templates, heartZones,
     weekNotes, monthNotes, dayStatesRes,
     profileRes, activityTypeFavorites, periodization, planWeekNotes, planMonthNotes,
   ] = await Promise.all([
@@ -79,6 +81,11 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
     supabase.from('sleep_records').select('date').eq('user_id', userId).gte('date', monthStart).lte('date', monthEnd),
     supabase.from('health_metrics').select('date').eq('user_id', userId).gte('date', monthStart).lte('date', monthEnd),
     supabase.from('health_brand_metrics').select('date').eq('user_id', userId).gte('date', monthStart).lte('date', monthEnd),
+    // Helseoversikten for hele måneden (+30 dager bak) i ÉN henting: dag-
+    // popupen skjærer sitt 30-dagers vindu ut av den (lib/helse-vindu) i
+    // stedet for å hente på nytt per dag - kortet «kom noen ganger, ellers
+    // tok det lang tid» (Sverre 15. sep).
+    getHelseOversikt(minusDager(monthStart, 30), monthEnd, targetId),
     getRecoveryEntriesForRange(userId, monthStart, monthEnd),
     getTemplates(targetId),
     getHeartZonesForUserCached(userId),
@@ -200,6 +207,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
               initialWorkoutsByDate={workoutsByDate}
               initialPrevWorkoutsByDate={prevWorkoutsByDate}
               initialHealthData={healthData}
+              initialHelse={!('error' in helseRes) ? helseRes : null}
               initialRecoveryData={recoveryByDate}
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}

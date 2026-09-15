@@ -47,7 +47,9 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anker, targetUserId])
 
-  if (!lastet) return null
+  // Sverre 15. sep: aldri «borte» mens den laster - et lavt skjelett i samme
+  // ramme, så kortet står der fra første tegning.
+  if (!lastet) return <div data-helse-laster aria-busy style={{ ...ramme, minHeight: 96, opacity: 0.55 }} />
   if (!data || !data.harData || data.dager.length === 0) {
     if (!tomTekst) return null
     return (

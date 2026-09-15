@@ -2198,7 +2198,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, helse = null,
                       // «Vis mer» som åpner SAMME helseoversikt som klikk på kortet.
                       return (
                         <div className="mb-3" data-dag-helsekort>
-                          <KompaktHelseKort targetUserId={targetUserId} sluttDato={ds}
+                          <KompaktHelseKort targetUserId={targetUserId} sluttDato={ds} kunAnkerdag
                             forhandsdata={helse ? avgrensHelse(helse, minusDager(ds, 30), ds) : undefined}
                             fot={(_data, aapne) => (
                               <div className="flex items-center gap-2 flex-wrap" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }} data-dag-helse-fot>

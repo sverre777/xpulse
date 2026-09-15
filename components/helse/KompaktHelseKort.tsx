@@ -12,10 +12,13 @@ import { Ikon } from '@/components/ui/ikoner'
 // samme data-action som resten av helseflaten (regel 11, aldri kopier).
 // Brukes på hjem-skjermen og ved dag-klikk i kalenderen.
 
-export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsdata, tillegg, fot }: {
+export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsdata, tillegg, fot, kunAnkerdag = false }: {
   targetUserId?: string
   /** Dag-klikk: fliser og popup ankres til denne dagen. Uten = i dag. */
   sluttDato?: string
+  /** Sverre 15. sep: i dag-popupen skal tallene være NØYAKTIG dagens - ikke
+      «siste dag med verdi i spennet». Snittet er fortsatt 30 dager. */
+  kunAnkerdag?: boolean
   /** Hjem-konteksten viser en «kom i gang»-tekst uten data; dag-klikk
    * skjuler kortet helt (dagen HAR ikke helsedata da). */
   tomTekst?: string
@@ -62,14 +65,18 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
     )
   }
 
-  // Flisene viser ankerdagens verdier — eller siste dag med verdi i spennet.
+  // Flisene viser ankerdagens verdier — eller siste dag med verdi i spennet
+  // (Hjem). Med kunAnkerdag: KUN ankerdagen, ellers «-».
+  const ankerDag = data.dager.find(d => d.date === anker) ?? null
   const siste = (felt: 'resting_hr' | 'hrv_ms' | 'total_sleep_minutes' | 'sleep_score' | 'day_form') =>
-    [...data.dager].reverse().find(d => d[felt] != null)?.[felt] ?? null
+    kunAnkerdag ? (ankerDag?.[felt] ?? null) : ([...data.dager].reverse().find(d => d[felt] != null)?.[felt] ?? null)
   const snitt = (felt: 'resting_hr' | 'hrv_ms' | 'sleep_score') => {
     const v = data.dager.map(d => d[felt]).filter((x): x is number => typeof x === 'number')
     return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null
   }
-  const natt = data.sisteNatt ? data.dager.find(d => d.date === data.sisteNatt!.date) ?? null : null
+  const natt = kunAnkerdag
+    ? (ankerDag && ankerDag.total_sleep_minutes != null ? ankerDag : null)
+    : (data.sisteNatt ? data.dager.find(d => d.date === data.sisteNatt!.date) ?? null : null)
   const folelse = data.dager.find(d => d.date === anker)?.day_form ?? null
 
   return (

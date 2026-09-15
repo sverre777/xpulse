@@ -1,4 +1,3 @@
-import { PlanAarsplanSegment } from '@/components/layout/PlanAarsplanSegment'
 import { LoadError } from '@/components/ui/LoadError'
 import {
   getSeasons, getSeasonCalendarData,
@@ -104,7 +103,6 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
               Årsplan
             </h1>
-            <PlanAarsplanSegment />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <SeasonSelector

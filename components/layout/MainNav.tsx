@@ -32,11 +32,13 @@ interface MainNavProps {
 const INBOX_HREF = '/app/innboks'
 const HOME_HREF = '/app/oversikt'
 
-// Navigasjon v2 bolk 7 + rettelser (Sverre 6. sep): Hjem · Plan · Dagbok ·
-// Analyse · Maler · Mer (nedtrekk m/ de ni postene). Maler & standardøkter
-// står i topplinja på PC.
+// Navigasjon v2 bolk 7 + rettelser (Sverre 6. sep): Hjem · Plan · Årsplan ·
+// Dagbok · Analyse · Maler · Mer (nedtrekk m/ de ni postene). Maler &
+// standardøkter står i topplinja på PC. Sverre 15. sep: Årsplan er egen post
+// i topplinja igjen - «Plan | Årsplan»-segmentet under tittelen er borte på PC.
 const NAV_LINKS: { href: string; label: string; ikon: IkonNavn }[] = [
   { href: '/app/plan',          label: 'Plan',    ikon: 'plan' },
+  { href: '/app/periodisering', label: 'Årsplan', ikon: 'arsplan' },
   { href: '/app/dagbok',        label: 'Dagbok',  ikon: 'dagbok' },
   { href: '/app/analyse',       label: 'Analyse', ikon: 'analyse' },
   { href: '/app/maler',         label: 'Maler',   ikon: 'maler' },
@@ -97,7 +99,7 @@ export function MainNav({
           {[{ href: HOME_HREF, label: 'Hjem', ikon: 'hjem' as IkonNavn }, ...NAV_LINKS].map(({ href, label, ikon }) => {
             const active = href === HOME_HREF
               ? pathname === href
-              : pathname === href || pathname.startsWith(href + '/') || (href === '/app/plan' && pathname.startsWith('/app/periodisering'))
+              : pathname === href || pathname.startsWith(href + '/')
             return (
               <Link
                 key={href}

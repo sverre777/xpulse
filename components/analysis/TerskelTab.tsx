@@ -46,7 +46,7 @@ function downloadCsv(filename: string, rows: string[][]) {
   URL.revokeObjectURL(url)
 }
 
-export function TerskelTab({ data }: { data: TerskelAnalysis }) {
+export function TerskelTab({ data, targetUserId }: { data: TerskelAnalysis; targetUserId?: string }) {
   if (!data.hasData) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
@@ -61,7 +61,7 @@ export function TerskelTab({ data }: { data: TerskelAnalysis }) {
     <div className="space-y-5">
       <EstimateCards data={data} />
       <HfmaxKort data={data} />
-      <TerskelHistorikk data={data} />
+      <TerskelHistorikk data={data} targetUserId={targetUserId} />
       <EstimaterTabell data={data} />
       <LactateProfile data={data} />
       <LaktatVedIntensitet data={data} />
@@ -337,9 +337,9 @@ function MethodNote() {
 }
 
 /** Bolk 1: favoritt-rendring for Terskel-nøklene. */
-export function renderFavoritt(key: string, data: TerskelAnalysis, ctx?: { config?: Record<string, unknown> | null }): React.ReactNode | null {
+export function renderFavoritt(key: string, data: TerskelAnalysis, ctx?: { config?: Record<string, unknown> | null; targetUserId?: string }): React.ReactNode | null {
   switch (key) {
-    case 'terskel_historikk': return <TerskelHistorikk data={data} initialConfig={ctx?.config} />
+    case 'terskel_historikk': return <TerskelHistorikk data={data} initialConfig={ctx?.config} targetUserId={ctx?.targetUserId} />
     case 'terskel_estimater': return <EstimaterTabell data={data} />
     case 'terskel_hfmax': return <HfmaxKort data={data} />
     case 'terskel_hfmax_fort': case 'terskel_hfmax_formel': case 'terskel_hfmax_pct': case 'terskel_watt_per_kg': return <HfmaxKort data={data} bare={key} />

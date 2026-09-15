@@ -47,7 +47,11 @@ function fmtVerdi(m: Metrikk, v: number): string {
 const estimatType: Record<Metrikk, TerskelEstimatPunkt['type']> = { puls: 'laktat', tempo: 'pace30', ftp: 'ftp20' }
 
 /** Terskel over tid per bev.form med estimatene som punkter. */
-export function TerskelHistorikk({ data, initialConfig }: { data: TerskelAnalysis; initialConfig?: Record<string, unknown> | null }) {
+export function TerskelHistorikk({ data, initialConfig, targetUserId }: { data: TerskelAnalysis; initialConfig?: Record<string, unknown> | null
+  /** Trener ser utøverens analyse (Erik Jørstad 15. sep): «Oppdater terskel»
+      pekte på TRENERENS egne terskler. Med targetUserId satt vises ingen
+      lenke - treneren kan ikke sette utøverens terskel. */
+  targetUserId?: string }) {
   const [metrikk, setMetrikk] = useState<Metrikk>(initialConfig?.metrikk === 'tempo' || initialConfig?.metrikk === 'ftp' ? initialConfig.metrikk : 'puls')
   const nokler = useMemo(() => [...new Set(data.historikk.map(h => nokkel(h.movement_name, h.movement_subcategory)))], [data.historikk])
   const [skjult, setSkjult] = useState<Set<string>>(new Set(Array.isArray(initialConfig?.skjult) ? initialConfig.skjult.filter((x): x is string => typeof x === 'string') : []))
@@ -75,13 +79,21 @@ export function TerskelHistorikk({ data, initialConfig }: { data: TerskelAnalysi
             {serier.map(s => <Chip key={s.navn} farge={s.farge} etikett={s.navn} paa={!skjult.has(s.navn)} fokus={false} onClick={() => setSkjult(v => { const n = new Set(v); if (n.has(s.navn)) n.delete(s.navn); else n.add(s.navn); return n })} />)}
           </Gruppe>
         )}
-        <Link href="/app/innstillinger/profil/terskler" data-oppdater-terskel
-          style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          Oppdater terskel <Ikon navn="apne-fane" variant="strek" storrelse={14} />
-        </Link>
+        {targetUserId ? (
+          <span data-terskel-utover style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', marginLeft: 'auto' }}>
+            Utøveren oppdaterer terskelen selv
+          </span>
+        ) : (
+          <Link href="/app/innstillinger/profil/terskler" data-oppdater-terskel
+            style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            Oppdater terskel <Ikon navn="apne-fane" variant="strek" storrelse={14} />
+          </Link>
+        )}
       </div>
       {!harNoe ? (
-        <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)' }}>Ingen ført terskel for denne metrikken ennå - sett den under Innstillinger › Terskler.</p>
+        <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-app)' }}>
+          {`Ingen ført terskel for denne metrikken ennå - ${targetUserId ? 'utøveren setter' : 'sett'} den under Innstillinger › Terskler.`}
+        </p>
       ) : (
         <div style={{ width: '100%', height: 280 }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>

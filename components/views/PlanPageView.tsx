@@ -1,5 +1,6 @@
 import { PlussKnapp } from '@/components/ui/PlussKnapp'
 import { Suspense } from 'react'
+import { PeriodeRedigeringProvider } from '@/components/calendar/PeriodeRedigering'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
 import { createClient } from '@/lib/supabase/server'
@@ -135,6 +136,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
         <div className="xp-calcard" style={{ marginBottom: '32px' }}>
           <Suspense fallback={null}>
             <BrukerSporterProvider sporter={userSports}>
+            <PeriodeRedigeringProvider kanRedigere={kanRedigerePerioder} targetUserId={targetId}>
             <Calendar
               mode="plan"
               userId={userId}
@@ -151,13 +153,13 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
               seasonMarkings={seasonMarkings}
-              season={kanRedigerePerioder ? activeSeason : null}
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
               serverNoteKeys={{ week: weekKey, month: monthKey }}
               targetUserId={targetId}
             />
+            </PeriodeRedigeringProvider>
           </BrukerSporterProvider>
           </Suspense>
         </div>

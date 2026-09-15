@@ -1,5 +1,6 @@
 import { PlussKnapp } from '@/components/ui/PlussKnapp'
 import { Suspense } from 'react'
+import { PeriodeRedigeringProvider } from '@/components/calendar/PeriodeRedigering'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { harSkiskyting } from '@/lib/har-skiskyting'
 import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
@@ -87,7 +88,6 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
     getPeriodNotes('month', [monthKey], 'plan', targetId),
   ])
   const profile = profileRes.data
-  const activeSeason = !('error' in periodization) ? periodization.season : null
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
   const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
   const seasonMarkings = !('error' in periodization) ? periodization.markings : []
@@ -175,6 +175,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
           <Suspense fallback={null}>
             {/* Skyting kun for skiskyttere: personen vi ser på (utøveren i trenervisning) styrer. */}
             <BrukerSporterProvider sporter={userSports}>
+            <PeriodeRedigeringProvider kanRedigere={kanRedigerePerioder} targetUserId={targetId}>
             <Calendar
               mode="dagbok"
               userId={userId}
@@ -201,8 +202,8 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
               seasonMarkings={seasonMarkings}
-              season={kanRedigerePerioder ? activeSeason : null}
             />
+            </PeriodeRedigeringProvider>
           </BrukerSporterProvider>
           </Suspense>
         </div>

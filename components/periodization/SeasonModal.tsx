@@ -7,18 +7,25 @@ import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './M
 import { Ikon } from '@/components/ui/ikoner'
 
 export function SeasonModal({
-  open, onClose, editing, targetUserId, basePath = '/app/periodisering',
+  open, onClose, editing, targetUserId, basePath = '/app/periodisering', initialName, initialStart, initialEnd, onCreated,
 }: {
   open: boolean
   onClose: () => void
   editing?: Season | null
+  /** Forhåndsutfylling når sesongen opprettes fra plan/dagbok («Ingen sesong
+      dekker 21. september» -> «Opprett sesong 2026/27»). */
+  initialName?: string
+  initialStart?: string
+  initialEnd?: string
+  /** Satt = bli der man er etter opprettelse (ingen router.push til årsplanen). */
+  onCreated?: (id: string) => void
   targetUserId?: string
   basePath?: string
 }) {
   const router = useRouter()
-  const [name, setName] = useState(editing?.name ?? '')
-  const [startDate, setStartDate] = useState(editing?.start_date ?? '')
-  const [endDate, setEndDate] = useState(editing?.end_date ?? '')
+  const [name, setName] = useState(editing?.name ?? initialName ?? '')
+  const [startDate, setStartDate] = useState(editing?.start_date ?? initialStart ?? '')
+  const [endDate, setEndDate] = useState(editing?.end_date ?? initialEnd ?? '')
   const [goalMain, setGoalMain] = useState(editing?.goal_main ?? '')
   const [goalDetails, setGoalDetails] = useState(editing?.goal_details ?? '')
   const [kpiNotes, setKpiNotes] = useState(editing?.kpi_notes ?? '')
@@ -44,8 +51,9 @@ export function SeasonModal({
       : await createSeason(payload)
     if (res.error) { setError(res.error); setBusy(false); return }
     router.refresh()
-    if (!editing && 'id' in res && res.id) {
-      router.push(`${basePath}?s=${res.id}`)
+    if (!editing && 'id' in res && typeof res.id === 'string') {
+      if (onCreated) onCreated(res.id)
+      else router.push(`${basePath}?s=${res.id}`)
     }
     setBusy(false)
     onClose()

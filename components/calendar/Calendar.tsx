@@ -51,7 +51,6 @@ import { UkeVisning } from './UkeVisning'
 import type { DayState, DayStateType } from '@/lib/day-state-types'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import { DayStateModal } from '@/components/day-state/DayStateModal'
-import { SamlingModal } from '@/components/calendar/SamlingModal'
 import {
   DayStateIndicator, restStillPlanned, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
@@ -68,7 +67,7 @@ import {
 import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
 import type { ShotStats } from '@/lib/types'
 import { PeriodeStripe } from '@/components/calendar/PeriodeStripe'
-import { PeriodeRedigeringProvider, usePeriodeRedigering } from '@/components/calendar/PeriodeRedigering'
+import { usePeriodeRedigering } from '@/components/calendar/PeriodeRedigering'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
 import {
   NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE, KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON,
@@ -124,9 +123,6 @@ export interface CalendarProps {
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
   // B2 (kø #39): markeringslaget (📍 samling / høyde) — dag-presist.
   seasonMarkings?: import('@/app/actions/seasons').SeasonMarking[]
-  /** Sesongen periodene hører til - trengs for å opprette/redigere dem her
-      (Sverre 14. sep). Uten sesong er stripen bare lesing, som før. */
-  season?: import('@/app/actions/seasons').Season | null
   // Dag-tilstander (hviledag/sykdom) indeksert etter dato.
   initialDayStates?: Record<string, DayState[]>
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
@@ -165,6 +161,8 @@ interface CalendarActions {
   // årsplanen, så endringer herfra ER årsplan-oppdateringer.
   onPlanSamling: (dateStr: string) => void
   onEditMarking: (m: import('@/app/actions/seasons').SeasonMarking) => void
+  /** Falsk uten årsplan-rett: da vises ikke SAMLING-knappen (regel 20). */
+  kanPlanleggeSamling: boolean
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 /** Forsidens eksport-side monterer den EKTE øktchipen (WorkoutChip) med
@@ -172,7 +170,7 @@ const CalendarActionsContext = createContext<CalendarActions | null>(null)
 export function CalendarActionsStubProvider({ children }: { children: React.ReactNode }) {
   const ingen: CalendarActions = {
     onEditWorkout: () => {}, onCreateWorkout: () => {}, readOnly: true,
-    refreshCalendar: () => {}, moveWorkoutTo: () => {}, onPlanSamling: () => {}, onEditMarking: () => {},
+    refreshCalendar: () => {}, moveWorkoutTo: () => {}, onPlanSamling: () => {}, onEditMarking: () => {}, kanPlanleggeSamling: false,
   } as unknown as CalendarActions
   return <CalendarActionsContext.Provider value={ingen}>{children}</CalendarActionsContext.Provider>
 }
@@ -1191,6 +1189,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       tabIndex={0}
       onClick={onToggle}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
+      data-dag={dateStr}
       className="text-left w-full min-h-[140px] sm:min-h-[150px] flex flex-col"
       style={{
         // minWidth: 0 lar grid-cellen krympe under sitt innhold (default er
@@ -1311,7 +1310,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditHealth, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo, onPlanSamling, onEditMarking } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditHealth, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo, onPlanSamling, onEditMarking, kanPlanleggeSamling } = useCalendarActions()
   // Periodestripen er en inngang til årsplanens popup (Sverre 14. sep).
   const periodeRed = usePeriodeRedigering()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
@@ -2332,9 +2331,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           </button>
                           {/* Samling/høyde planlegges med fra-til - bor i
                               årsplanens markeringslag (én kilde). */}
-                          <button type="button" onClick={() => onPlanSamling(ds)} className="inline-flex items-center gap-1.5" style={ghostBtn}>
-                            <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} /> Samling
-                          </button>
+                          {kanPlanleggeSamling && (
+                            <button type="button" onClick={() => onPlanSamling(ds)} data-dag-samling className="inline-flex items-center gap-1.5" style={ghostBtn}>
+                              <Ikon navn={MARKERING_IKON.samling} variant="fyll" storrelse={14} style={{ color: MARKERING_FARGE.samling }} /> Samling
+                            </button>
+                          )}
                           {!isFuture && (
                             <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} className="inline-flex items-center gap-1.5" style={ghostBtn}>
                               <Ikon navn={DAGSTATUS_IKON.sykdom} variant="fyll" storrelse={14} style={{ color: DAGSTATUS_FARGE.sykdom }} /> Syk
@@ -2658,7 +2659,6 @@ export function Calendar({
   seasonPeriods = [],
   seasonKeyDates = [],
   seasonMarkings = [],
-  season = null,
   initialDayStates = {},
   readOnly = false,
   targetUserId,
@@ -2839,8 +2839,11 @@ export function Calendar({
     }
   }, [searchParams, mode])
 
-  // 📍 Samling/høyde-modalen (season_markings — én kilde m/ årsplanen).
-  const [samlingModal, setSamlingModal] = useState<{ existing: import('@/app/actions/seasons').SeasonMarking | null; date?: string } | null>(null)
+  // Samling/høyde og perioder (Sverre 15. sep): ÉN modal for alt, eid av
+  // PeriodeRedigeringProvider som sidene legger rundt kalenderen. Dag-popupens
+  // SAMLING-knapp åpner nøyaktig samme popup som «+ legg til periode» ->
+  // «Samling/høyde».
+  const periodeRed = usePeriodeRedigering()
 
   const fetchData = useCallback(async (start: Date, end: Date, prevStart?: Date, prevEnd?: Date) => {
     setLoading(true)
@@ -3033,7 +3036,6 @@ export function Calendar({
     : `${MONTHS_NO[month - 1]} ${year}`
 
   return (
-    <PeriodeRedigeringProvider season={season} readOnly={readOnly} targetUserId={targetUserId}>
     <KompaktKurverProvider byDate={byDate}>
     <CalendarActionsContext.Provider value={{
       onEditWorkout: handleEditWorkout,
@@ -3047,8 +3049,9 @@ export function Calendar({
       readOnly,
       refreshCalendar,
       moveWorkoutTo: handleMoveWorkout,
-      onPlanSamling: (dateStr: string) => setSamlingModal({ existing: null, date: dateStr }),
-      onEditMarking: (m) => setSamlingModal({ existing: m }),
+      onPlanSamling: (dateStr: string) => periodeRed.apneMarkering(dateStr, dateStr),
+      onEditMarking: (m) => periodeRed.apneMarkeringRediger(m),
+      kanPlanleggeSamling: periodeRed.kanRedigere,
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
@@ -3289,18 +3292,7 @@ export function Calendar({
         targetUserId={targetUserId}
       />
     )}
-    {samlingModal && (
-      <SamlingModal
-        existing={samlingModal.existing}
-        defaultDate={samlingModal.date}
-        targetUserId={targetUserId}
-        onClose={() => setSamlingModal(null)}
-        // seasonMarkings kommer som server-prop — refresh henter dem på nytt.
-        onSaved={() => { router.refresh() }}
-      />
-    )}
     </CalendarActionsContext.Provider>
     </KompaktKurverProvider>
-    </PeriodeRedigeringProvider>
   )
 }

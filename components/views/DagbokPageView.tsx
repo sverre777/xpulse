@@ -63,7 +63,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
   // Profil + favorittene har lavest avhengighet — parallelliser med resten
   // av Promise.all så vi ikke serialiserer på dem etter at de andre er ferdige.
   const [
-    rawWorkouts, prevRawWorkouts, healthRows, recoveryRows, templates, heartZones,
+    rawWorkouts, prevRawWorkouts, healthRows, sovnDager, klokkeDager, merkeDager, recoveryRows, templates, heartZones,
     weekNotes, monthNotes, dayStatesRes,
     profileRes, activityTypeFavorites, periodization, planWeekNotes, planMonthNotes,
   ] = await Promise.all([
@@ -73,6 +73,12 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
       .eq('user_id', userId)
       .gte('date', monthStart)
       .lte('date', monthEnd),
+    // Sverre 15. sep: dagen HAR helsedata også når de kommer fra klokka
+    // (søvn, HRV/hvilepuls, merkeverdier) - ikke bare fra manuell føring.
+    // Bare datoene: kortet i dag-popupen henter verdiene selv.
+    supabase.from('sleep_records').select('date').eq('user_id', userId).gte('date', monthStart).lte('date', monthEnd),
+    supabase.from('health_metrics').select('date').eq('user_id', userId).gte('date', monthStart).lte('date', monthEnd),
+    supabase.from('health_brand_metrics').select('date').eq('user_id', userId).gte('date', monthStart).lte('date', monthEnd),
     getRecoveryEntriesForRange(userId, monthStart, monthEnd),
     getTemplates(targetId),
     getHeartZonesForUserCached(userId),
@@ -107,6 +113,10 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
   const healthData: Record<string, { hrv_ms?: number | null; resting_hr?: number | null; sleep_hours?: number | null; body_weight_kg?: number | null }> = {}
   for (const r of (healthRows.data ?? []) as HealthRow[]) {
     healthData[r.date] = { hrv_ms: r.hrv_ms, resting_hr: r.resting_hr, sleep_hours: r.sleep_hours, body_weight_kg: r.body_weight_kg }
+  }
+  // Klokkedager uten manuell føring: tom post = «dagen har helsedata».
+  for (const res of [sovnDager, klokkeDager, merkeDager]) {
+    for (const r of (res.data ?? []) as { date: string }[]) if (!healthData[r.date]) healthData[r.date] = {}
   }
 
   const recoveryByDate: Record<string, RecoveryEntry[]> = {}

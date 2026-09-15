@@ -1,5 +1,6 @@
 'use client'
 
+import { VisMer } from '@/components/oversikt/kort-deler'
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { buildWeekDates, toISO, getDateRange, getPrevRange, erSammeOmraade, type ServerOmraade } from '@/lib/kalender-omraade'
 import { Fragment, createContext, useContext, useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
@@ -1241,7 +1242,9 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
             <Ikon key={k.id} navn={NOKKELDATO_IKON[k.event_type]} variant="fyll" storrelse={14}
               style={{ color: KEY_EVENT_VISUALS[k.event_type].color }} />
           ))}
-          {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
+          {/* Sverre 15. sep: hjertet (samme som HELSE-knappen) sier at dagen har
+              helsedata - fra klokka eller ført for hånd. */}
+          {healthDate && <span data-helse-merke style={{ display: 'inline-flex', color: '#E23A5A' }}><Ikon navn="helse" variant="fyll" storrelse={14} tittel="Helsedata for dagen" /></span>}
           {(mode === 'plan' || mode === 'dagbok') && !readOnly && (
             <button type="button"
               onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
@@ -2186,15 +2189,22 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       // (helse-designet, bolk 2): fliser + natt-miniatyr,
                       // klikk åpner hele oversikten ankret til dagen.
                       // Rediger-knappen (manuell føring) består ved siden av.
+                      // Sverre 15. sep: foten som på Hjem - «Rediger føring» +
+                      // «Vis mer» som åpner SAMME helseoversikt som klikk på kortet.
                       return (
-                        <div className="mb-3">
-                          <KompaktHelseKort targetUserId={targetUserId} sluttDato={ds} />
-                          {!readOnly && (
-                            <button type="button" onClick={() => onEditHealth(ds)}
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-hover)', marginTop: 6, padding: 0, cursor: 'pointer' }}>
-                              Rediger føring
-                            </button>
-                          )}
+                        <div className="mb-3" data-dag-helsekort>
+                          <KompaktHelseKort targetUserId={targetUserId} sluttDato={ds}
+                            fot={(_data, aapne) => (
+                              <div className="flex items-center gap-2 flex-wrap" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }} data-dag-helse-fot>
+                                {!readOnly && (
+                                  <button type="button" onClick={() => onEditHealth(ds)}
+                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', background: 'none', border: '1px solid var(--accent-50, var(--accent))', borderRadius: 8, padding: '5px 10px', cursor: 'pointer' }}>
+                                    Rediger føring
+                                  </button>
+                                )}
+                                <VisMer onClick={aapne} />
+                              </div>
+                            )} />
                         </div>
                       )
                     })()}

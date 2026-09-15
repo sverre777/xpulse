@@ -29,7 +29,9 @@ interface Props {
 
 const FONT = "'Barlow Condensed', sans-serif"
 
-export function KlokkedataTrenderTab({ data }: Props) {
+export function KlokkedataTrenderTab({ data, targetUserId }: Props & {
+  /** Trenerkontekst: «Koble til klokke» ville koblet TRENERENS klokke. */
+  targetUserId?: string }) {
   const hasAnything =
     data.sufferScore.length > 0 ||
     data.cadence.length > 0 ||
@@ -51,15 +53,21 @@ export function KlokkedataTrenderTab({ data }: Props) {
           power curve og watt- og kadens-trender over tid. Effektivitetsfaktor og
           aerob frakobling bor i Prestasjon-fanen.
         </p>
-        <Link href="/app/innstillinger/klokkesync"
-          className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)',
-            textDecoration: 'none',
-          }}>
-          Koble til klokke →
-        </Link>
+        {targetUserId ? (
+          <p data-klokke-utover style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: 13.5 }}>
+            Utøveren kobler klokka selv.
+          </p>
+        ) : (
+          <Link href="/app/innstillinger/klokkesync" data-klokke-lenke
+            className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)',
+              textDecoration: 'none',
+            }}>
+            Koble til klokke →
+          </Link>
+        )}
       </div>
     )
   }

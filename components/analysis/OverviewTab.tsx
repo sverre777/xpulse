@@ -71,7 +71,14 @@ const SPORT_LABELS: Record<string, string> = {
   endurance: 'utholdenhet',
 }
 
-const EMPTY = (
+/** Trenerkontekst: ingen handlinger som ville ført TRENEREN til sin egen
+    dagbok eller klokkesync (Erik Jørstad 15. sep). */
+const tomTilstand = (targetUserId?: string) => targetUserId ? (
+  <EmptyState
+    title="Ingen økter i valgt periode"
+    body="Juster periode- eller sport-filteret over - eller vent til utøveren har ført flere økter."
+  />
+) : (
   <EmptyState
     title="Ingen økter i valgt periode"
     body="Analysen våkner når det finnes økter - logg en økt, koble klokken, eller juster periode/sport-filteret over."
@@ -162,7 +169,7 @@ export function OverviewTab({ stats, overview, analysisRange, status = null, har
     return () => { cancelled = true }
   }, [analysisRange.from, analysisRange.to])
 
-  if (!stats.hasData && (!overview || overview.current.workout_count === 0)) return EMPTY
+  if (!stats.hasData && (!overview || overview.current.workout_count === 0)) return tomTilstand(targetUserId)
 
 
   const plannedHours = volumePlans.reduce((s, p) => s + (Number(p.planned_hours) || 0), 0)

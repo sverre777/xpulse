@@ -8,6 +8,7 @@
 
 import {
   finnStillestand, fartProver, stillestandSum, utenSkytingOverlapp,
+  erStillestandRad, stillestandRader, ikkeStillestandRader,
   STILLESTAND_MPS, STILLESTAND_MIN_SEK, STILLESTAND_MAKS_HULL_SEK,
   type Fartprove, type Stillestand,
 } from '../lib/stillestand.ts'
@@ -142,6 +143,51 @@ sjekk('skyting som grenser inntil (til = fra) er ikke overlapp',
   { beholdt: [{ fraSek: 600, tilSek: 780 }], hoppetOver: 0 })
 sjekk('uten skyterader beholdes alt', utenSkytingOverlapp(perioder, []), { beholdt: perioder, hoppetOver: 0 })
 sjekk('skyterad uten tidsvindu ignoreres', utenSkytingOverlapp(perioder, [{ fra: 0, til: 0 }]), { beholdt: perioder, hoppetOver: 0 })
+
+console.log('\nAngre-nøkkelen er auto_pause, ikke navnet (fase 127)')
+// Radene slik handlingen ser dem. Bare feltene saken handler om.
+interface TestRad { id: string; auto_pause?: boolean | null; lap_notes?: string | null }
+
+// 1) Utøveren har DØPT OM pausen vår. Den skal fortsatt angres.
+const omdopt: TestRad[] = [
+  { id: 'a', lap_notes: 'Oppvarming' },
+  { id: 'b', auto_pause: true, lap_notes: 'Ventet på Ola' },
+]
+sjekk('omdøpt pause angres likevel', stillestandRader(omdopt).map(r => r.id), ['b'])
+
+// 2) Utøverens EGEN rad heter «Stillestand». Den skal ALDRI slettes.
+const fremmed: TestRad[] = [
+  { id: 'a', auto_pause: false, lap_notes: 'Stillestand' },
+  { id: 'b', lap_notes: 'Stillestand' },
+  { id: 'c', auto_pause: null, lap_notes: 'Stillestand' },
+  { id: 'd', auto_pause: true, lap_notes: 'Stillestand' },
+]
+sjekk('bare vår egen rad slettes, ikke hans som HETER det samme',
+  stillestandRader(fremmed).map(r => r.id), ['d'])
+sjekk('hans tre rader står igjen', ikkeStillestandRader(fremmed).map(r => r.id), ['a', 'b', 'c'])
+ok('rad uten feltet er ikke vår', erStillestandRad({ lap_notes: 'Stillestand' }) === false)
+ok('undefined er ikke vår', erStillestandRad(undefined) === false)
+
+// 3) Knappen kjørt TO GANGER, med omdøping imellom: ingen duplikat.
+//    Samme bokføring som gjorStillestandTilPause: rydd våre gamle rader,
+//    behold resten, legg inn én ny rad per periode.
+let nr = 0
+const kjor = (rader: TestRad[], perioder: number): TestRad[] => [
+  ...ikkeStillestandRader(rader),
+  ...Array.from({ length: perioder }, () => ({ id: `p${++nr}`, auto_pause: true, lap_notes: 'Stillestand' })),
+]
+const start: TestRad[] = [{ id: 'egen1', lap_notes: 'Intervall 1' }, { id: 'egen2', lap_notes: 'Stillestand' }]
+const etterForste = kjor(start, 2)
+sjekk('første kjøring: to pauser inn', stillestandRader(etterForste).length, 2)
+// Utøveren døper den ene om, og lar den andre stå.
+etterForste.find(r => r.id === 'p1')!.lap_notes = 'Rødt lys i Maridalen'
+const etterAndre = kjor(etterForste, 2)
+sjekk('andre kjøring etter omdøping: fortsatt to pauser, ingen duplikat',
+  stillestandRader(etterAndre).length, 2)
+sjekk('de omdøpte ble ryddet, ikke liggende igjen',
+  stillestandRader(etterAndre).map(r => r.id), ['p3', 'p4'])
+sjekk('utøverens egne rader overlevde begge kjøringene',
+  ikkeStillestandRader(etterAndre).map(r => r.id), ['egen1', 'egen2'])
 
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

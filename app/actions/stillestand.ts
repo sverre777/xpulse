@@ -15,19 +15,26 @@
 // (lib/activity-summary). Lot vi en pause overlappe en skyterad, ville tida
 // blitt trukket fra to ganger.
 //
-// ANGRE: radene merkes med lap_notes = STILLESTAND_MERKE, og angre sletter
-// nøyaktig de radene. Ingen eksisterende rad endres - bortsett fra
-// sort_order, som er ren visning (tidsplassering er dataene), slik at
-// pausene havner MELLOM radene og ikke sist i lista.
+// ANGRE GÅR PÅ auto_pause (fase 127), IKKE PÅ NAVNET. lap_notes er
+// segmentets navn og redigeres fritt av utøveren i Oktbyggeren - døpte han
+// pausen om, ville angre mistet den og neste kjøring lagt en ny pause oppå;
+// døpte han en annen rad «Stillestand», ville angre slettet hans egen rad.
+// Navnet står fortsatt PÅ raden, som synlig og ærlig tekst - det er bare
+// ikke nøkkelen. Ingen eksisterende rad endres - bortsett fra sort_order,
+// som er ren visning (tidsplassering er dataene), slik at pausene havner
+// MELLOM radene og ikke sist i lista.
 //
 // EGNE ØKTER: handlingen krever at man eier økta. Trener kan ikke føre i
 // utøverens dagbok i dag - se køposten om trener som redigerer utøverdata.
 
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { finnStillestand, stillestandSum, fartProver, utenSkytingOverlapp } from '@/lib/stillestand'
+import {
+  finnStillestand, stillestandSum, fartProver, utenSkytingOverlapp,
+  stillestandRader, ikkeStillestandRader,
+} from '@/lib/stillestand'
 
-/** Radnavnet som gjør pausene gjenkjennelige - og angrbare. */
+/** Navnet utøveren ser på raden. Synlig tekst - ikke nøkkelen, se over. */
 export const STILLESTAND_MERKE = 'Stillestand'
 
 const ER_SKYTING = (t: string | null | undefined) => (t ?? '').startsWith('skyting')
@@ -52,6 +59,7 @@ interface Rad {
   window_start_seconds: number | null
   window_duration_seconds: number | null
   lap_notes: string | null
+  auto_pause: boolean | null
 }
 
 interface Grunnlag {
@@ -90,7 +98,7 @@ export async function forhandsvisStillestand(
   if (!prover) return { error: 'Økta har ingen fartsdata' }
 
   const { data: rader } = await supabase.from('workout_activities')
-    .select('id, activity_type, sort_order, duration_seconds, window_start_seconds, window_duration_seconds, lap_notes')
+    .select('id, activity_type, sort_order, duration_seconds, window_start_seconds, window_duration_seconds, lap_notes, auto_pause')
     .eq('workout_id', workoutId).order('sort_order', { ascending: true })
 
   const alle = finnStillestand(prover)
@@ -131,18 +139,20 @@ export async function gjorStillestandTilPause(
   if (!prover) return { error: 'Økta har ingen fartsdata' }
 
   const { data: raderRaa, error: lesFeil } = await supabase.from('workout_activities')
-    .select('id, activity_type, sort_order, duration_seconds, window_start_seconds, window_duration_seconds, lap_notes')
+    .select('id, activity_type, sort_order, duration_seconds, window_start_seconds, window_duration_seconds, lap_notes, auto_pause')
     .eq('workout_id', workoutId).order('sort_order', { ascending: true })
   if (lesFeil) return { error: lesFeil.message }
   const rader = (raderRaa ?? []) as Rad[]
 
   // Idempotens: rydd bort forrige kjørings rader før vi teller på nytt.
-  const gamle = rader.filter(r => r.lap_notes === STILLESTAND_MERKE).map(r => r.id)
+  // Samme nøkkel som angre - auto_pause, ikke navnet. Ellers ville en
+  // omdøpt pause blitt liggende igjen og fått en ny pause oppå seg.
+  const gamle = stillestandRader(rader).map(r => r.id)
   if (gamle.length > 0) {
     const { error } = await supabase.from('workout_activities').delete().in('id', gamle)
     if (error) return { error: error.message }
   }
-  const beholdteRader = rader.filter(r => r.lap_notes !== STILLESTAND_MERKE)
+  const beholdteRader = ikkeStillestandRader(rader)
 
   const { beholdt, hoppetOver } = utenSkytingOverlapp(finnStillestand(prover), skytevinduer(beholdteRader))
   const tider = prover.map(p => p.t)
@@ -158,6 +168,7 @@ export async function gjorStillestandTilPause(
     movement_name: null,
     movement_subcategory: null,
     lap_notes: STILLESTAND_MERKE,
+    auto_pause: true,
     duration_seconds: p.tilSek - p.fraSek,
     window_start_seconds: p.fraSek,
     window_duration_seconds: p.tilSek - p.fraSek,
@@ -191,7 +202,12 @@ export async function gjorStillestandTilPause(
   }
 }
 
-/** Angre: sletter nøyaktig radene denne handlingen laget. */
+/**
+ * Angre: sletter nøyaktig radene denne handlingen laget.
+ *
+ * Kjennetegnet er auto_pause = true. Raden er borte selv om utøveren har
+ * døpt den om, og en rad han SELV har kalt «Stillestand» røres aldri.
+ */
 export async function angreStillestandPauser(
   workoutId: string,
 ): Promise<{ slettet: number } | { error: string }> {
@@ -200,7 +216,7 @@ export async function angreStillestandPauser(
   const { supabase, brukerId } = g
 
   const { data, error } = await supabase.from('workout_activities')
-    .delete().eq('workout_id', workoutId).eq('lap_notes', STILLESTAND_MERKE).select('id')
+    .delete().eq('workout_id', workoutId).eq('auto_pause', true).select('id')
   if (error) return { error: error.message }
 
   updateTag(`user-workouts-${brukerId}`)

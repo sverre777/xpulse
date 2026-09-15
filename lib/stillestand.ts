@@ -161,3 +161,37 @@ export function utenSkytingOverlapp(
 export function stillestandSum(perioder: Stillestand[]): number {
   return perioder.reduce((s, p) => s + (p.tilSek - p.fraSek), 0)
 }
+
+/**
+ * Raden slik angre trenger å se den. Bare de to feltene saken handler om.
+ */
+export interface PauseRad {
+  /** Fase 127: satt av «gjør stillestand til pause», aldri for hånd. */
+  auto_pause?: boolean | null
+  /** Segmentets navn. BRUKERENS tekst - aldri en nøkkel. */
+  lap_notes?: string | null
+}
+
+/**
+ * Er raden laget av «gjør stillestand til pause»?
+ *
+ * NØKKELEN ER auto_pause, IKKE lap_notes. lap_notes er segmentets navn, og
+ * Oktbyggerens navnefelt tegnes for enhver valgt rad - uten filtrering på
+ * type. Døper utøveren pausen om, ville den forsvinne for angre og få en ny
+ * pause oppå seg ved neste kjøring; døper han en annen rad «Stillestand»,
+ * ville angre slettet hans egen rad. En maskinskapt rad kan ikke kjennes
+ * igjen på et felt brukeren skriver i (Sverre 15. sep 2026).
+ */
+export function erStillestandRad(rad: PauseRad | null | undefined): boolean {
+  return rad?.auto_pause === true
+}
+
+/** Radene handlingen selv har laget - de angre skal slette. */
+export function stillestandRader<T extends PauseRad>(rader: T[]): T[] {
+  return rader.filter(erStillestandRad)
+}
+
+/** Alt annet på økta - utøverens egne rader, uansett hva de heter. */
+export function ikkeStillestandRader<T extends PauseRad>(rader: T[]): T[] {
+  return rader.filter(r => !erStillestandRad(r))
+}

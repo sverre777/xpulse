@@ -424,6 +424,10 @@ async function computeMetricsForRange(
   toDate: string,
   primarySport: Sport,
   sportFilter: Sport | null,
+  /** GDPR art. 9 (Sverre 15. sep): health_averages (HRV, hvilepuls, søvn, vekt)
+      hentes KUN når utøveren har delt helsedata. Kortene var skjult fra før,
+      men tallene lå i svaret - det er payloaden som skal slutte å bære dem. */
+  kanSeHelse = true,
 ): Promise<OverviewMetrics> {
   const heartZones = await getHeartZonesForUserCached(userId)
 
@@ -452,12 +456,14 @@ async function computeMetricsForRange(
     return count ?? 0
   })()
 
-  const healthPromise = supabase
-    .from('daily_health')
-    .select('resting_hr,hrv_ms,sleep_hours,body_weight_kg')
-    .eq('user_id', userId)
-    .gte('date', fromDate)
-    .lte('date', toDate)
+  const healthPromise = kanSeHelse
+    ? supabase
+        .from('daily_health')
+        .select('resting_hr,hrv_ms,sleep_hours,body_weight_kg')
+        .eq('user_id', userId)
+        .gte('date', fromDate)
+        .lte('date', toDate)
+    : Promise.resolve({ data: [] as Array<Record<string, number | null>>, error: null })
 
   const dayStatesPromise = supabase
     .from('day_states')
@@ -700,6 +706,10 @@ export async function getAnalysisOverview(
     const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
+    // GDPR art. 9: health_averages i current/previous hentes bare når utøveren
+    // har delt helsedata (samme mønster som getTerskelAnalysis fikk i 338ff3e).
+    const helse = await resolveHealthTargetUser(supabase, targetUserId, 'read')
+    const kanSeHelse = !('error' in helse)
 
     const { data: profile, error: pErr } = await supabase
       .from('profiles').select('primary_sport').eq('id', userId).single()
@@ -711,8 +721,8 @@ export async function getAnalysisOverview(
     const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
 
     const [current, previous, weekly_distribution] = await Promise.all([
-      computeMetricsForRange(supabase, userId, fromDate, toDate, primarySport, sportFilter ?? null),
-      computeMetricsForRange(supabase, userId, prevFrom, prevTo, primarySport, sportFilter ?? null),
+      computeMetricsForRange(supabase, userId, fromDate, toDate, primarySport, sportFilter ?? null, kanSeHelse),
+      computeMetricsForRange(supabase, userId, prevFrom, prevTo, primarySport, sportFilter ?? null, kanSeHelse),
       computeWeeklyDistribution(supabase, userId, fromDate, toDate, sportFilter ?? null),
     ])
 

@@ -19,6 +19,10 @@ import Link from 'next/link'
 
 interface Props {
   workoutId: string
+  /** Trener ser utøverens økt (Erik Jørstad 15. sep): lenker som peker på
+      «mine innstillinger» må ALDRI vises da - treneren havnet på sin egen
+      terskelside og kunne endret egne tall i den tro at det var utøverens. */
+  targetUserId?: string
   // Bumpes av Øktbyggeren etter lagring — tvinger refetch så
   // segmentbånd/vinduer viser det som nettopp ble plassert.
   refreshTick?: number
@@ -77,7 +81,7 @@ function KlokkedataLaster() {
   )
 }
 
-export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger, punktStil }: Props) {
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger, punktStil, targetUserId }: Props) {
   // Henter selv bare når ingen deler dataene med oss (øktas hovedside).
   const egen = useKlokkedata(klokke ? null : workoutId, refreshTick)
   const state = klokke ?? egen
@@ -185,10 +189,16 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           ) : (
             <>
               {' · '}IF krever FTP -{' '}
-              <Link href="/app/innstillinger/profil/terskler"
-                style={{ color: '#FF4500', textDecoration: 'none' }}>
-                sett terskel først →
-              </Link>
+              {targetUserId ? (
+                // Treneren har ingen rute inn til utøverens terskler og ingen
+                // skriverett på dem i dag - da er dette ikke en handling.
+                <span data-terskel-utover style={{ color: 'var(--tekst-8-alt)' }}>utøveren må sette terskel</span>
+              ) : (
+                <Link href="/app/innstillinger/profil/terskler" data-terskel-lenke
+                  style={{ color: '#FF4500', textDecoration: 'none' }}>
+                  sett terskel først →
+                </Link>
+              )}
             </>
           )}
         </p>

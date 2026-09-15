@@ -608,7 +608,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
               <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
-          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick}
+          <WorkoutKlokkesyncSection workoutId={workoutId} targetUserId={targetUserId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick}
             handlinger={canEdit ? {
               onOktbygger: () => (onOpenOktbygger ?? onEdit)(),
               onPlottTreff: () => (onOpenOktbygger ?? onEdit)(),

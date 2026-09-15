@@ -1816,7 +1816,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           og rendrer kun hvis det finnes sample-data eller laps fra import.
           Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
       {workoutId && !templateBuildingMode && (
-        <WorkoutKlokkesyncSection workoutId={workoutId} klokke={klokke} visGraf={false}
+        <WorkoutKlokkesyncSection workoutId={workoutId} targetUserId={targetUserId} klokke={klokke} visGraf={false}
           importedFrom={defaultValues?.imported_from ?? defaultValues?.merged_source ?? null} />
       )}
 

@@ -34,6 +34,7 @@ import { Ikon } from '@/components/ui/ikoner'
 import { KONKURRANSE_CHIP_IKON, TESTLOP_CHIP_IKON } from '@/lib/nokkeldato-ikoner'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { OktbyggerInngang } from './Oktbygger'
+import { StillestandKnapp } from './StillestandKnapp'
 import { SamletBryter } from './SamletBryter'
 import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
 import { fraTidspunktNotater, type GrafPunkt } from './Punkt'
@@ -867,8 +868,14 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           </div>
           )}
           {kanLeggeTilDetaljer && (
-            <div className="mt-3">
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
               <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
+              {/* Stillestand -> pause (fase D). Samme komponent som i byggeren;
+                  den tegner seg selv bare når økta er klokkesynket og har fart.
+                  Står bevisst KUN i kortet som har rader - se vakten i
+                  StillestandKnapp om hvorfor. */}
+              <StillestandKnapp workoutId={workoutId ?? null} erKlokkeokt={harKlokkeRader}
+                rader={activities} onEndret={() => onDataEndret?.()} />
             </div>
           )}
         </Card>

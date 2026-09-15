@@ -32,24 +32,15 @@ import { createClient } from '@/lib/supabase/server'
 import {
   finnStillestand, stillestandSum, fartProver, utenSkytingOverlapp,
   stillestandRader, ikkeStillestandRader,
+  STILLESTAND_MERKE, type StillestandResultat,
 } from '@/lib/stillestand'
 
-/** Navnet utøveren ser på raden. Synlig tekst - ikke nøkkelen, se over. */
-export const STILLESTAND_MERKE = 'Stillestand'
+// MERK: denne fila kan BARE eksportere async funksjoner. STILLESTAND_MERKE
+// og StillestandResultat bor derfor i lib/stillestand - en konstant eller en
+// type eksportert herfra velter hele action-chunken i det en
+// klientkomponent importerer fra den.
 
 const ER_SKYTING = (t: string | null | undefined) => (t ?? '').startsWith('skyting')
-
-export interface StillestandResultat {
-  antall: number
-  sumSek: number
-  /** Klokkas egen «i bevegelse»-tid. Null: verken Strava eller .fit lagrer
-      den i basen i dag, og vi finner den ikke på. */
-  timerTimeSek: number | null
-  /** Spennet klokka faktisk tok opp - første til siste fartsprøve. */
-  elapsedSek: number
-  /** Perioder vi hoppet over fordi de overlapper standplass. */
-  hoppetOverSkyting: number
-}
 
 interface Rad {
   id: string

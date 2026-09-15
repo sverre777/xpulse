@@ -301,6 +301,10 @@ type SkjulteAktivitetsFelter = {
   window_duration_seconds: number | null
   split_parent_id: string | null
   split_backup: unknown
+  /** Fase 127: raden er laget av «gjør stillestand til pause». Maskinfelt -
+      skjemaet setter den ALDRI, men den må overleve en lagring, ellers
+      mister angre radene sine neste gang utøveren redigerer økta. */
+  auto_pause: boolean
 }
 async function insertActivitiesWithChildren(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -332,6 +336,7 @@ async function insertActivitiesWithChildren(
         window_duration_seconds: a.window_duration_seconds !== undefined ? a.window_duration_seconds : (skjult?.window_duration_seconds ?? null),
         split_parent_id: skjult?.split_parent_id ?? null,
         split_backup: skjult?.split_backup ?? null,
+        auto_pause: skjult?.auto_pause ?? false,
       } : {}),
       workout_id: workoutId,
       activity_type: a.activity_type,
@@ -843,7 +848,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     // Fase 113/114-vern: les de skjulte kolonnene FØR radene slettes.
     {
       const { data: skjulte } = await supabase.from('workout_activities')
-        .select('id, external_id, strava_lap_index, window_start_seconds, window_duration_seconds, split_parent_id, split_backup, avg_cadence, max_cadence')
+        .select('id, external_id, strava_lap_index, window_start_seconds, window_duration_seconds, split_parent_id, split_backup, avg_cadence, max_cadence, auto_pause')
         .eq('workout_id', workoutId)
       for (const r of (skjulte ?? [])) {
         skjulteAktivitetsFelter.set(r.id as string, {
@@ -855,6 +860,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
           window_duration_seconds: (r.window_duration_seconds as number | null) ?? null,
           split_parent_id: (r.split_parent_id as string | null) ?? null,
           split_backup: r.split_backup ?? null,
+          auto_pause: r.auto_pause === true,
         })
       }
     }
@@ -1642,6 +1648,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
     window_duration_seconds?: number | null
     lap_notes?: string | null
     gruppe_id?: string | null
+    auto_pause?: boolean | null
     workout_activity_exercises?: DbExercise[] | null
     workout_activity_lactate_measurements?: DbLactate[] | null
     workout_shooting_series?: {
@@ -1712,6 +1719,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
         window_duration_seconds: a.window_duration_seconds ?? null,
         lap_notes: a.lap_notes ?? '',
         gruppe_id: a.gruppe_id ?? null,
+        auto_pause: a.auto_pause === true,
         avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
         pace_unit_preference: a.pace_unit_preference ?? '',
         splits_per_km: deserializeSplits(a.splits_per_km),

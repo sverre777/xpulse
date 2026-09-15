@@ -1836,6 +1836,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           rader={form.activities}
           onRader={a => set('activities', a)}
           klokke={klokke.data}
+          erKlokkeokt={!!(defaultValues?.imported_from || defaultValues?.merged_source)}
           erPlanlagt={isPlanMode}
           heartZones={heartZones}
           rpe={form.rpe}

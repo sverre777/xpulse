@@ -21,6 +21,7 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
+import { StillestandKnapp } from './StillestandKnapp'
 import { PlanSpokelse, VisPlanBryter } from './PlanSpokelse'
 import { hentPlanensRunder, hentPlanensPunkter, sikreKlokkerundeBackup, hentKlokkerunder, type PlanBlokk, type Klokkerunde } from '@/app/actions/runder'
 import { nyttTidspunktNotat, type TidspunktNotat, type PunktType } from '@/lib/tidspunkt-notater'
@@ -93,7 +94,7 @@ function erTomOkt(rader: ActivityRow[]): boolean {
 }
 
 export function OktbyggerPopup({
-  workoutId, sport, rader, onRader, klokke, erPlanlagt, heartZones, rpe, timeOfDay,
+  workoutId, sport, rader, onRader, klokke, erKlokkeokt, erPlanlagt, heartZones, rpe, timeOfDay,
   laktat, onLaktat, ernaering, onErnaering, punkter, onPunkter, onRaderFraBasen,
   onClose, onSerierLagret, onOpprett, onByggTittel, onBolkTittel, userSports,
 }: {
@@ -107,6 +108,10 @@ export function OktbyggerPopup({
   onRader: (rader: ActivityRow[]) => void
   /** Klokkedataene skjemaet alt har hentet (samples, totalSek, radinfo). */
   klokke: WorkoutKlokkesyncData | null
+  /** workouts.imported_from || merged_source - økta kommer fra en klokke.
+      Styrer «gjør stillestand til pause»; harKurve holder ikke, en flettet
+      økt kan ha kurve uten å ha fart. */
+  erKlokkeokt?: boolean
   erPlanlagt: boolean
   heartZones: HeartZone[]
   rpe: number | null
@@ -619,6 +624,14 @@ export function OktbyggerPopup({
                     <Ikon navn="klokke" variant="strek" storrelse={14} />Snapp til klokkerunder ({klokkerunder.length})
                   </button>
                 )}
+                {/* Stillestand -> pause (fase D). Skriver til basen, så radene
+                    hentes inn igjen etterpå - som rundevalget over. */}
+                <StillestandKnapp workoutId={workoutId} erKlokkeokt={!!erKlokkeokt} rader={rader} kompakt
+                  onEndret={async () => {
+                    setValgtRad(null)
+                    setAngreStabel([])
+                    await onRaderFraBasen()
+                  }} />
                 {(() => {
                   const s = klokke?.samples
                   const valg = ([

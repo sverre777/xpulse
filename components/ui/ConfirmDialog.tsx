@@ -107,6 +107,9 @@ export function DialogHost() {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
               fontSize: 14, lineHeight: 1.6, margin: 0,
+              // Avsnitt i body-teksten skal overleve (stillestand-dialogen
+              // skiller følgene fra skyting-merknaden). Enkeltlinjer er uendret.
+              whiteSpace: 'pre-line',
             }}
           >
             {current.body}

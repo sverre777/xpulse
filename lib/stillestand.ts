@@ -195,3 +195,27 @@ export function stillestandRader<T extends PauseRad>(rader: T[]): T[] {
 export function ikkeStillestandRader<T extends PauseRad>(rader: T[]): T[] {
   return rader.filter(r => !erStillestandRad(r))
 }
+
+/**
+ * Navnet utøveren ser på de maskinskapte pausene.
+ *
+ * SYNLIG TEKST, IKKE NØKKEL - se erStillestandRad. Den bor her og ikke i
+ * server-actionen fordi en «use server»-fil bare kan eksportere async
+ * funksjoner: en konstant eller en type derfra velter hele action-chunken
+ * i det en klientkomponent importerer fra den (jf. regelen om at typer
+ * aldri re-eksporteres fra «use server»).
+ */
+export const STILLESTAND_MERKE = 'Stillestand'
+
+/** Det handlingen svarer med - tallene dialogen viser. */
+export interface StillestandResultat {
+  antall: number
+  sumSek: number
+  /** Klokkas egen «i bevegelse»-tid. Null: verken Strava eller .fit lagrer
+      den i basen i dag, og vi finner den ikke på. */
+  timerTimeSek: number | null
+  /** Spennet klokka faktisk tok opp - første til siste fartsprøve. */
+  elapsedSek: number
+  /** Perioder vi hoppet over fordi de overlapper standplass. */
+  hoppetOverSkyting: number
+}

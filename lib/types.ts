@@ -840,6 +840,12 @@ export interface ActivityRow {
   lap_notes?: string
   // Repetisjoner fra samme oppsett deler gruppe (fase 117) → klamme på båndet.
   gruppe_id?: string | null
+  // Fase 127: raden er laget av «gjør stillestand til pause» (klokka gikk,
+  // farten lå under terskelen). MASKINFELT - skjemaet setter den aldri, og
+  // den skrives fra basens egen verdi ved lagring. Den er her bare så UI-et
+  // kan se hvilke rader «angre» gjelder. lap_notes er utøverens tekst og
+  // duger ikke som kjennetegn.
+  auto_pause?: boolean | null
   // UTEN KLOKKE (bolk 6): når en rad kuttes, arver delene IKKE pulsen —
   // feltet står tomt med dragets snitt som grå plassholder. Dette er
   // hintet. Det lagres aldri (saveWorkout kjenner det ikke), og forsvinner

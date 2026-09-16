@@ -18,15 +18,66 @@
 // Samme prinsipp som gjorTilSkyting (lib/oktbygger-rader): tida flyttes
 // mellom rader, den forsvinner aldri og den dupliseres aldri.
 //
-// PULS, SONER OG DISTANSE PER DEL er IKKE med her - de kommer som eget
-// steg (Sverres rekkefølge: splitt først, så feltene). Delene arver
-// foreløpig originalens verdier, og pausen får ingen. Det er bevisst
-// ufullstendig, ikke oversett: et arvet pulssnitt ville påstått at pulsen
-// var den samme gjennom et stopp, og det er nettopp det som skal regnes
-// per del med pulsIVindu når steget tas.
+// PULS, SONER OG DISTANSE REGNES PER DEL (steg 5):
+//  · pulsen med pulsIVindu (lib/segmenter) - ALDRI arvet. Et arvet snitt
+//    ville påstått at pulsen var 158 gjennom et stopp der den falt til 120.
+//  · sonene med computeZoneSecondsFromSamples per vindu. Uten pulsdata
+//    fordeles originalens soner etter tid - det er det beste vi har, og
+//    bare da.
+//  · distansen fra distance_samples, fordelt etter FAKTISK tilbakelagt.
+//    Pausen får ingen: man beveget seg ikke.
+// SUMMENE BEVARES: delene skaleres så sonesummen og distansesummen er
+// nøyaktig originalens. En fordeling som ser riktig ut men mister ti meter
+// er en fordeling som lyver.
 
 import type { Stillestand } from '@/lib/stillestand'
 import { MIN_RAD_SEK } from '@/lib/oktbygger-rader'
+import { pulsIVindu } from '@/lib/segmenter'
+import { computeZoneSecondsFromSamples, type HeartZone } from '@/lib/heart-zones'
+
+/** Klokkedataene splitten regner delene fra. Alt er valgfritt. */
+export interface SplittKilder {
+  hr?: Array<{ t: number; hr: number }> | null
+  distanse?: Array<{ t: number; d: number }> | null
+  soner?: HeartZone[] | null
+}
+
+/** Meter tilbakelagt i vinduet, lest av den kumulative distansekurven. */
+function meterIVindu(
+  d: Array<{ t: number; d: number }> | null | undefined,
+  fra: number, til: number,
+): number | null {
+  if (!d || d.length < 2) return null
+  let forste: number | null = null, siste: number | null = null
+  for (const s of d) {
+    if (s.t < fra) { forste = s.d; continue }
+    if (s.t > til) break
+    if (forste == null) forste = s.d
+    siste = s.d
+  }
+  if (forste == null || siste == null) return null
+  return Math.max(0, siste - forste)
+}
+
+/**
+ * Skaler andelene så summen blir NØYAKTIG målet.
+ *
+ * Uten dette ville avrunding spist noen meter eller et par sekunder for
+ * hver del, og originalens sum ikke kommet tilbake ved angre. Resten av
+ * avrundingen legges på den største delen - den tåler det best.
+ */
+function fordel(andeler: number[], mal: number): number[] {
+  const sum = andeler.reduce((a, b) => a + b, 0)
+  if (!(sum > 0) || !(mal > 0)) return andeler.map(() => 0)
+  const ut = andeler.map(a => Math.round((a / sum) * mal))
+  const rest = mal - ut.reduce((a, b) => a + b, 0)
+  if (rest !== 0) {
+    let storst = 0
+    for (let i = 1; i < ut.length; i++) if (ut[i] > ut[storst]) storst = i
+    ut[storst] += rest
+  }
+  return ut
+}
 
 /** Raden slik splitten trenger å se den. */
 export interface SplittRad {
@@ -106,6 +157,7 @@ function del(mal: SplittRad, type: string, fra: number, sek: number, nr: number)
 export function splittForStillestand(
   rader: SplittRad[],
   stopp: Stillestand[],
+  kilder: SplittKilder = {},
 ): SplittResultat {
   const gyldige = stopp
     .filter(s => s.tilSek > s.fraSek)
@@ -176,7 +228,65 @@ export function splittForStillestand(
     // splitter av samme rad ville truffet fase 114s avvisning av nestede
     // backuper på stopp nummer to - og etterlatt en halv splitt.
     const backup = lagBackup(rad)
+
+    // ── FELTENE PER DEL ──────────────────────────────────────────────
+    // PULS: alltid fra samples når de finnes. Aldri arvet.
+    const puls = biter.map(b => pulsIVindu(kilder.hr, b.fra, b.fra + b.sek))
+
+    // SONER: regnes på nytt fra samples. Uten pulsdata fordeles
+    // originalens soner etter tid - pro rata antar jevn intensitet, og et
+    // stillestand beviser det motsatte, så det er siste utvei.
+    const harPuls = !!(kilder.hr && kilder.hr.length > 1 && kilder.soner && kilder.soner.length > 0)
+    const sonerPerDel: (Record<string, number> | null)[] = biter.map(b =>
+      harPuls
+        ? computeZoneSecondsFromSamples(kilder.hr!, kilder.soner!, b.fra, b.fra + b.sek) as unknown as Record<string, number>
+        : null)
+    const origSoneSum = Object.values(rad.zones ?? {}).reduce((a, v) => a + v, 0)
+    if (!harPuls && origSoneSum > 0) {
+      // Tidsfordeling, skalert så summen står.
+      const andeler = fordel(biter.map(b => b.sek), origSoneSum)
+      const navn = Object.keys(rad.zones ?? {})
+      biter.forEach((_, i) => {
+        // Hele andelen i originalens dominerende sone - vi vet ikke mer.
+        const dominant = navn.reduce((best, n) =>
+          (rad.zones?.[n] ?? 0) > (rad.zones?.[best] ?? 0) ? n : best, navn[0])
+        sonerPerDel[i] = andeler[i] > 0 ? { [dominant]: andeler[i] } : {}
+      })
+    } else if (harPuls && origSoneSum > 0) {
+      // Skaler sample-sonene så SUMMEN er originalens. Samples dekker ikke
+      // nødvendigvis hele spennet, og da ville sonetid forsvunnet stille.
+      const sumPerDel = sonerPerDel.map(z => Object.values(z ?? {}).reduce((a, v) => a + v, 0))
+      const mal = fordel(sumPerDel.some(x => x > 0) ? sumPerDel : biter.map(b => b.sek), origSoneSum)
+      sonerPerDel.forEach((z, i) => {
+        const sum = Object.values(z ?? {}).reduce((a, v) => a + v, 0)
+        if (!z || sum === 0) { sonerPerDel[i] = mal[i] > 0 ? { I1: mal[i] } : {}; return }
+        const navn = Object.keys(z)
+        const skalert = fordel(navn.map(n => z[n]), mal[i])
+        sonerPerDel[i] = Object.fromEntries(navn.map((n, j) => [n, skalert[j]]).filter(([, v]) => (v as number) > 0))
+      })
+    }
+
+    // DISTANSE: etter faktisk tilbakelagt, aldri til pausen. Skalert så
+    // summen er originalens - en fordeling som mister ti meter lyver.
+    const origDist = rad.distance_meters ?? 0
+    const maltPerDel = biter.map(b =>
+      b.type === 'pause' ? 0 : (meterIVindu(kilder.distanse, b.fra, b.fra + b.sek) ?? b.sek))
+    const distPerDel = origDist > 0 ? fordel(maltPerDel, origDist) : biter.map(() => 0)
+
     biter.forEach((b, i) => {
+      const erPause = b.type === 'pause'
+      const felter = {
+        avg_heart_rate: puls[i].snitt,
+        max_heart_rate: puls[i].maks,
+        distance_meters: erPause ? null : (origDist > 0 ? distPerDel[i] : null),
+        // SONENE STÅR OGSÅ PÅ PAUSEN. De er MÅLT fra samples, ikke arvet -
+        // pulsen var 104 der, og det er sant. Sonesummen over alle delene
+        // skal være originalens, ellers forsvinner sonetid i en operasjon
+        // som bare skulle flytte den. computeActivityTotals hopper uansett
+        // over pause-rader før den leser soner, så treningstida påvirkes
+        // ikke (Sverre 16. sep).
+        zones: sonerPerDel[i] ?? null,
+      }
       if (i === 0) {
         ut.push({
           ...rad,
@@ -185,14 +295,11 @@ export function splittForStillestand(
           window_duration_seconds: b.sek,
           duration_seconds: b.sek,
           split_backup: backup,
-          // Pausen arver ingenting, heller ikke når den er første bit.
-          ...(b.type === 'pause'
-            ? { distance_meters: null, avg_heart_rate: null, max_heart_rate: null, zones: null }
-            : {}),
+          ...felter,
         })
         return
       }
-      ut.push(del(rad, b.type, b.fra, b.sek, i))
+      ut.push({ ...del(rad, b.type, b.fra, b.sek, i), ...felter })
     })
     splittede.push(rad.id)
   }

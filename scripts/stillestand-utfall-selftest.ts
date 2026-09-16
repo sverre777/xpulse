@@ -12,6 +12,24 @@
 //     ren treningstid FØR - ren treningstid ETTER = stoppets varighet
 //
 // Alt annet kommer etter den.
+//
+// ────────────────────────────────────────────────────────────────────────
+// MERKNAD TIL DEN SOM VIL «RETTE» TALLENE HER (Sverre 16. sep 2026):
+//
+// Sjekkene er bundet til FORHOLDET, ikke til magiske tall. Nedgangen
+// sammenlignes med summen av pausene som faktisk ble laget - ikke med
+// «300 s», og radantallet regnes ut - ikke «fem rader».
+//
+// Det er ikke slurv. En test låst til et magisk tall driver fra produktet
+// første gang en terskel justeres, og da er det testen som blir «rettet».
+// En test låst til invarianten kan ikke det.
+//
+// Målt: da splitten ble koblet inn mot en ekte økt krevde denne fila 300 s
+// og fem rader. Produktet ga 298 og seks - og hadde rett begge ganger.
+// finnStillestand er bevisst konservativ (tilSek er SISTE lave prøve), og
+// oppvarmingsraden telles også. Hadde tallene stått hardkodet, ville to
+// riktige svar sett ut som to feil.
+// ────────────────────────────────────────────────────────────────────────
 
 import { computeActivityTotals, type ActivityLike } from '../lib/activity-summary.ts'
 import { splittForStillestand, angreSplitt, type SplittRad } from '../lib/stillestand-splitt.ts'
@@ -226,6 +244,71 @@ dobbelt('over to rader', [rad('oppvarming', 0, 900), rad('aktivitet', 900, 2700)
   ok('uten angre først: splitten nekter i stedet for å lage halvdeler',
     utenAngre.alleredeSplittet.length > 0 && utenAngre.rader.length === en.rader.length,
     JSON.stringify(utenAngre.rader.map(r => [r.activity_type, r.window_duration_seconds])))
+}
+
+console.log('\nPULS, SONER OG DISTANSE PER DEL (steg 5)')
+{
+  // Én rad på 3600 s. Pulsen er 158 hele veien, UNNTATT i stoppet der den
+  // faller til 120. Deles raden, skal delene få ULIKE snitt - og ingen av
+  // dem skal være originalens 158.
+  const hr: Array<{ t: number; hr: number }> = []
+  // 150 før stoppet, 120 UNDER det, 165 etter. Originalen har 158 som
+  // snitt over hele raden - et tall ingen av delene skal arve.
+  for (let t = 0; t < 3600; t++) hr.push({ t, hr: t < 600 ? 150 : (t < 900 ? 120 : 165) })
+  // Distansen: 5 m/s i bevegelse, 0 under stoppet.
+  const dist: Array<{ t: number; d: number }> = []
+  let m = 0
+  for (let t = 0; t < 3600; t++) { if (!(t >= 600 && t < 900)) m += 5; dist.push({ t, d: m }) }
+
+  const original: Rad = { ...rad('aktivitet', 0, 3600), avg_heart_rate: 158, max_heart_rate: 172,
+    distance_meters: 16500, zones: { I3: 3300, I1: 300 } }
+  const ut = splittForStillestand([original], [{ fraSek: 600, tilSek: 900 }], {
+    hr, distanse: dist,
+    soner: [
+      { zone_name: 'I1', min_bpm: 0, max_bpm: 130 }, { zone_name: 'I2', min_bpm: 131, max_bpm: 145 },
+      { zone_name: 'I3', min_bpm: 146, max_bpm: 165 }, { zone_name: 'I4', min_bpm: 166, max_bpm: 178 },
+      { zone_name: 'I5', min_bpm: 179, max_bpm: 220 },
+    ],
+  })
+  const deler = ut.rader
+  const akt = deler.filter(r => r.activity_type !== 'pause')
+  const pause = deler.find(r => r.activity_type === 'pause')
+
+  console.log('  deler:', JSON.stringify(deler.map(r => [r.activity_type, r.window_duration_seconds, r.avg_heart_rate, r.distance_meters])))
+  ok('5a INGEN del har originalens 158 - pulsen er målt, ikke arvet',
+    !deler.some(r => r.avg_heart_rate === 158), JSON.stringify(deler.map(r => r.avg_heart_rate)))
+  ok('5a2 de to aktivitetsdelene har ULIKE snitt',
+    akt.length === 2 && akt[0].avg_heart_rate !== akt[1].avg_heart_rate,
+    JSON.stringify(akt.map(r => r.avg_heart_rate)))
+  ok('5b pausen har LAV puls, ikke originalens',
+    pause?.avg_heart_rate !== null && (pause?.avg_heart_rate ?? 999) < 140,
+    String(pause?.avg_heart_rate))
+  ok('5c pausens puls er ikke arvet fra originalen',
+    pause?.avg_heart_rate !== original.avg_heart_rate, String(pause?.avg_heart_rate))
+
+  const sonesum = (r: Rad[]) => r.reduce((s, x) => {
+    for (const v of Object.values(x.zones ?? {})) s += v
+    return s
+  }, 0)
+  ok('5d sonesummen over ALLE delene er lik originalens',
+    sonesum(deler) === sonesum([original]), `${sonesum([original])} -> ${sonesum(deler)}`)
+
+  const distsum = deler.reduce((s, r) => s + (r.distance_meters ?? 0), 0)
+  ok('5e distansesummen over delene er lik originalens - ikke pro rata',
+    distsum === original.distance_meters, `${original.distance_meters} -> ${distsum}`)
+  ok('5f pausen har ingen distanse - man beveget seg ikke',
+    (pause?.distance_meters ?? 0) === 0, String(pause?.distance_meters))
+}
+{
+  // Uten pulsdata: sonene fordeles etter tid, og summen står likevel.
+  const original: Rad = { ...rad('aktivitet', 0, 1000), zones: { I3: 1000 }, distance_meters: 5000 }
+  const ut = splittForStillestand([original], [{ fraSek: 400, tilSek: 600 }], {})
+  const sonesum = ut.rader.reduce((s, x) => s + Object.values(x.zones ?? {}).reduce((a, b) => a + b, 0), 0)
+  ok('5g uten pulsdata: sonesummen står likevel', sonesum === 1000, String(sonesum))
+  const distsum = ut.rader.reduce((s, r) => s + (r.distance_meters ?? 0), 0)
+  ok('5h uten fartsdata: distansesummen står likevel', distsum === 5000, String(distsum))
+  ok('5i og pausen får fortsatt ingen distanse',
+    (ut.rader.find(r => r.activity_type === 'pause')?.distance_meters ?? 0) === 0)
 }
 
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)

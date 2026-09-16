@@ -601,6 +601,94 @@ table.kart code{background:var(--card2); border:1px solid var(--line); border-ra
     </div>
   </section>
 
+  <!-- ══════════ 3b. FLETT ══════════ -->
+  <section class="blokk">
+    <h2>3b. Flett - styrke møter klokka</h2>
+    <p class="und">Du fører live styrke, klokka synker samme økt. Pulsen skal inn i økta du allerede har ført,
+      ikke bli en duplikat i dagboka. <b>Live styrke er sjef</b> - settene dine står urørt, klokka legger
+      pulskurven bak. Dette er <b>modus «Legg bak»</b>, som allerede finnes.</p>
+
+    <div class="rad">
+
+      <div class="tlf">
+        <div class="etikett">Flett - velg økt</div>
+        <div class="skjerm" style="min-height:600px">
+          <div class="statuslinje"><span>10:34</span><span>98 %</span></div>
+          <div class="appbar">
+            <button>×</button>
+            <span class="tit">Flett med<span class="sub">Fra: Morning Weight Training ⌚</span></span>
+          </div>
+          <div class="innhold">
+
+            <div class="etikett" style="margin:2px 0 8px">Planlagte økter</div>
+            <div class="k tett" style="border-color:var(--line2);margin-bottom:6px">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <span style="color:var(--dim);font-size:16px">○</span>
+                <div style="flex:1">
+                  <b style="font-size:13px">Styrke - underkropp</b>
+                  <span class="chip plan" style="height:20px;margin-left:6px;font-size:10.5px">Planlagt</span>
+                  <div class="meta">tir 16. sep · 45 min</div>
+                </div>
+              </div>
+            </div>
+            <div class="meta" style="margin:0 0 14px;font-size:11px">
+              Flett med en plan, og økta markeres samtidig som gjennomført.
+            </div>
+
+            <div class="etikett" style="margin:2px 0 8px">Førte økter i dagboka</div>
+            <div class="k tett" style="border-color:var(--green);background:rgba(40,168,110,.09);margin-bottom:6px">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <span style="color:var(--green);font-size:16px">●</span>
+                <div style="flex:1">
+                  <b style="font-size:13px">Styrke</b>
+                  <span class="chip" style="height:20px;margin-left:6px;font-size:10.5px">Live · 12 sett</span>
+                  <div class="meta">tir 16. sep · 48 min · 7 840 kg</div>
+                </div>
+              </div>
+            </div>
+            <div class="meta" style="margin:0 0 16px;font-size:11px">
+              Flett med en ført økt, og den står som den er - klokka legges bak.
+            </div>
+
+            <div class="k" style="border-color:var(--line2)">
+              <h3 style="font-size:15px">Hvordan</h3>
+              <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
+                <span style="color:var(--orange);font-size:15px">●</span>
+                <div><b style="font-size:13px">Legg bak</b>
+                  <div class="meta">Settene dine står urørt. Inn: puls, pulskurve, totaltid og soner.</div></div>
+              </div>
+              <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0 2px">
+                <span style="color:var(--dim);font-size:15px">○</span>
+                <div><b style="font-size:13px">Bytt ut aktivitetene</b>
+                  <div class="meta">Klokkas runder erstatter radene. <b style="color:var(--red)">12 sett ut, 4 runder inn.</b></div></div>
+              </div>
+            </div>
+
+            <span class="pill gronn full stor" style="margin-top:6px">Flett</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tlf" style="width:560px">
+        <div class="etikett">Etter flett - styrke på pulskurven</div>
+        <div class="grafkort" style="margin:0">
+          <h3>Styrke · 48 min · ⌚ flettet</h3>
+          <p class="und">Pulskurven fra klokka ligger bak, settene dine foran. Du ser hvor pulsen dro seg opp
+            i settet og hvor langt ned den kom i hvilen.</p>
+          <svg class="g" id="g6" viewBox="0 0 560 230" preserveAspectRatio="xMidYMid meet" role="img"
+            aria-label="Styrkeøkt med pulskurve bak settene"></svg>
+          <div class="legend">
+            <span><i class="sw l" style="background:var(--red)"></i>Puls (fra klokka)</span>
+            <span><i class="sw" style="background:#6E6E78"></i>Sett</span>
+            <span><i class="sw" style="background:#43434B"></i>Hvile</span>
+            <span><i class="sw" style="background:rgba(212,160,23,.9)"></i>PR</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ══════════ 4. ANALYSE ══════════ -->
   <section class="blokk">
     <h2>4. Analyse - øvelse over tid</h2>
@@ -772,6 +860,47 @@ table.kart code{background:var(--card2); border:1px solid var(--line); border-ra
         <code>live_started_at</code></span> - da forsvinner økta fra banneret.</li>
     </ul>
 
+    <h3>4d. Flett - hva som allerede finnes</h3>
+    <ul>
+      <li><span class="nei">Flett er BYGGET.</span> <code>app/actions/flett.ts</code>
+        (<code>flettOkter</code>, <code>hentFlettGrunnlag</code>, <code>hentFlettStatus</code>,
+        <code>angreFlett</code>) og <code>LinkWorkoutActions.tsx</code> (505 linjer) med én dialog og to
+        moduser. Fasiten er <code>claude/plan-klokkesynk-flett.md</code> og
+        <code>design/xpulse-flett-design.html</code>.</li>
+      <li><b>«Live styrke er sjef, pulsen legges bak» finnes allerede som modus A «Legg bak»:</b> mål-øktas
+        aktiviteter og runder røres ALDRI, inn kommer puls, pulskurve, totaltid (klokkas vinner) og soner
+        regnet fra kurven. Fasit-dokumentet har nøyaktig dette scenariet som typetilfelle:
+        «planlagt styrke → live styrke ført → klokka synker samme økt → pulsen skal INN i økta».</li>
+      <li><b>Mål kan allerede være både planlagt og ført.</b> Det Sverre ber om - to adskilte grupper når man
+        trykker Flett - er en <b>presentasjonsendring i kandidat-pickeren</b>, ikke en ny mekanisme: i dag er
+        lista flat med en liten «planlagt»-etikett per rad. Det skal bli to grupper med overskrift, fordi
+        konsekvensen er ulik: <b>flett mot en plan markerer økta som gjennomført samtidig</b>, flett mot en
+        ført økt gjør ikke det.</li>
+      <li><span class="obs">REELT HULL:</span> <b>kilden i en flett må være en synket økt.</b> Står du på en
+        økt uten klokkedata sier dialogen «Ingen synkede økter å koble til innen ±3 dager». To manuelt førte
+        økter kan altså ikke flettes i dag. <b>Sverre må si om det er ønsket</b> - scenariet hans (styrke ført
+        + klokka kommer inn) virker allerede, men «ført styrke + ført løpetur slås sammen» gjør ikke det.</li>
+      <li>Vinduet er <b>±3 dager</b>. Modus B forvalgt i dag; <span class="obs">med styrke i bildet bør
+        «Legg bak» forvelges når målet er en styrkeøkt</span> - å bytte ut tolv sett med fire klokkerunder er
+        nesten alltid feil der. Forslag, ikke avgjort.</li>
+      <li>Skyting-rader fredes allerede i modus B, og tags, skjemadata, tittel og økttype overlever begge
+        moduser (fasit punkt 7 og 8). <span class="nei">Styrkeradene må inn i den samme fredningen</span> -
+        de er brukerens data på lik linje med skyteseriene.</li>
+    </ul>
+
+    <h3>4e. Styrke på pulskurven</h3>
+    <ul>
+      <li>Etter flett ligger <b>pulskurven bak og settene foran</b>, på samme tidsakse. Kurven er svak fylt
+        under (8 %) så settene leses tydelig oppå.</li>
+      <li>Dette er den eneste nye byggejobben i flett-delen: <b>selve fletten finnes, visningen gjør ikke.</b></li>
+      <li>Puls i en styrkeøkt er taggete - opp i settet, ned i hvilen. Det er nettopp det som gjør den
+        interessant: hvor høyt dro settet pulsen, og hvor langt ned kom den før neste.
+        <span class="nei">Ingen soneflater bak styrkeøkta</span> - soner på styrke er misvisende, og fasiten
+        sier allerede at soner i modus A regnes på øktnivå, ikke per rad.</li>
+      <li>Blandet økt med klokke: samme regel, men da har utholdenhetsdelen ekte sonefarger og styrkedelen
+        ikke. Det er ikke en inkonsekvens - det er at styrke ikke er en sone.</li>
+    </ul>
+
     <h3>5. Piller og stil</h3>
     <ul>
       <li>Alle knapper bruker <code>.xp-pill</code> - radius 999, versaler, minst 36 px. Klassen er ledig igjen
@@ -814,6 +943,9 @@ table.kart code{background:var(--card2); border:1px solid var(--line); border-ra
         Utkastet anbefaler nei i første versjon.</li>
       <li>Blandet økt: skal hvile under styrken telle som treningstid også der, slik den gjør i en ren
         styrkeøkt? Utkastet sier ja, men det gir to behandlinger av stillestand i samme økt (punkt 4b).</li>
+      <li>Skal to manuelt førte økter kunne flettes, eller er det nok at klokka kan flettes inn i en ført
+        økt? (punkt 4d)</li>
+      <li>Skal «Legg bak» forvelges når målet er en styrkeøkt, i stedet for «Bytt ut»? (punkt 4d)</li>
     </ul>
   </section>
 </div>
@@ -1007,7 +1139,49 @@ function tegnOvelse(){
     'font-family':'Barlow Condensed, sans-serif','letter-spacing':'.06em'},'SETT PER ØKT - HØYDE = KG, TALL = REPS'));
 }
 
-function alt(){ tegnOkt('g1',1000,220,false); tegnOkt('g3',360,150,true); tegnBlandet(); tegnSammenlign(); tegnOvelse(); }
+function tegnFlettet(){
+  const svg=document.getElementById('g6'); if(!svg) return; svg.textContent='';
+  const W=560,H=230,mv=30,mh=16,mt=12,mb=34;
+  const kurveH=H-mt-mb, gulv=H-mb;
+  /* pulskurve bak: stiger i sett, faller i hvile */
+  let p='', n=340;
+  for(let i=0;i<=n;i++){
+    const f=i/n, mm=f*48;
+    const syklus=(mm%4)/4;                       /* ca 4 min per sett+hvile */
+    const base=96+Math.min(26,mm*0.45);
+    const puls= syklus<0.35 ? base+34*Math.sin(syklus/0.35*Math.PI*0.9) : base+30*Math.exp(-(syklus-0.35)*6);
+    const yy=gulv-((puls-80)/90)*kurveH;
+    p+=(i?' L ':'M ')+(mv+f*(W-mv-mh)).toFixed(1)+' '+yy.toFixed(1);
+  }
+  svg.appendChild(e('path',{d:p+` L ${W-mh} ${gulv} L ${mv} ${gulv} Z`,fill:'#E23A5A','fill-opacity':.08,stroke:'none'}));
+  svg.appendChild(e('path',{d:p,fill:'none',stroke:'#E23A5A','stroke-width':1.6,'stroke-opacity':.85}));
+  [100,130,160].forEach(hr=>{
+    const yy=gulv-((hr-80)/90)*kurveH;
+    svg.appendChild(e('line',{x1:mv,x2:W-mh,y1:yy,y2:yy,stroke:v('--line'),'stroke-width':1}));
+    svg.appendChild(e('text',{x:mv-5,y:yy+3.5,'text-anchor':'end','font-size':9.5,fill:v('--dim')},hr));
+  });
+  /* settene foran */
+  const sett=[[8,100,1],[8,100,0],[8,95,0],[6,120,1],[6,120,0],[5,120,0],[10,40,0],[10,40,0],[10,40,0],[0,0,0],[0,0,0],[0,0,0]];
+  const bw=(W-mv-mh)/sett.length;
+  sett.forEach((s,i)=>{
+    const rel=s[1]>0? s[1]/125 : 0.18;
+    const h=Math.max(10,kurveH*rel*0.72);
+    const x=mv+i*bw+bw*0.16, b=bw*0.52;
+    svg.appendChild(e('rect',{x:x.toFixed(1),y:(gulv-h).toFixed(1),width:b.toFixed(1),height:h.toFixed(1),
+      rx:3,fill:'#6E6E78','fill-opacity':.95,stroke:v('--card'),'stroke-width':1}));
+    if(s[2]) svg.appendChild(e('rect',{x:(x-1.4).toFixed(1),y:(gulv-h-1.4).toFixed(1),width:(b+2.8).toFixed(1),
+      height:(h+2.8).toFixed(1),rx:4,fill:'none',stroke:'#D4A017','stroke-width':1.5}));
+    svg.appendChild(e('text',{x:(x+b/2).toFixed(1),y:(gulv-h+11).toFixed(1),'text-anchor':'middle','font-size':9,
+      fill:'#F0F0F2'},s[0]||'60s'));
+    svg.appendChild(e('rect',{x:(x+b+1).toFixed(1),y:(gulv-6).toFixed(1),width:(bw*0.28).toFixed(1),height:6,
+      rx:2,fill:'#43434B'}));
+  });
+  svg.appendChild(e('line',{x1:mv,x2:W-mh,y1:gulv,y2:gulv,stroke:v('--line2'),'stroke-width':1}));
+  svg.appendChild(e('text',{x:mv,y:H-8,'font-size':10,fill:v('--dim')},'0 min'));
+  svg.appendChild(e('text',{x:W-mh,y:H-8,'font-size':10,fill:v('--dim'),'text-anchor':'end'},'48 min'));
+}
+
+function alt(){ tegnFlettet(); tegnOkt('g1',1000,220,false); tegnOkt('g3',360,150,true); tegnBlandet(); tegnSammenlign(); tegnOvelse(); }
 document.getElementById('tema').addEventListener('click',()=>{
   const ny=document.documentElement.dataset.tema==='mork'?'lys':'mork';
   document.documentElement.dataset.tema=ny;

@@ -35,6 +35,7 @@ import {
   STILLESTAND_MERKE, type StillestandResultat,
 } from '@/lib/stillestand'
 import { splittForStillestand, angreSplitt, type SplittRad } from '@/lib/stillestand-splitt'
+import type { HeartZone } from '@/lib/heart-zones'
 
 // MERK: denne fila kan BARE eksportere async funksjoner. STILLESTAND_MERKE
 // og StillestandResultat bor derfor i lib/stillestand - en konstant eller en
@@ -44,6 +45,17 @@ import { splittForStillestand, angreSplitt, type SplittRad } from '@/lib/stilles
 // Skyte-typene har ÉN fasit (lib/activity-summary). En egen startsWith-regel
 // her ville gitt samme svar i dag og et annet den dagen lista endres.
 const ER_SKYTING = (t: string | null | undefined) => isShootingActivityType(t ?? '')
+
+/** Utøverens pulssoner - grunnlaget for å regne soner per del. */
+async function hentPulssoner(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  brukerId: string,
+): Promise<HeartZone[] | null> {
+  const { data } = await supabase.from('user_heart_zones')
+    .select('zone_name, min_bpm, max_bpm').eq('user_id', brukerId)
+  const soner = (data ?? []) as unknown as HeartZone[]
+  return soner.length > 0 ? soner : null
+}
 
 interface Rad {
   id: string
@@ -176,8 +188,12 @@ export async function gjorStillestandTilPause(
   if (g.feil) return { error: g.feil }
   const { supabase, brukerId } = g
 
+  // Puls og distanse hentes i SAMME rundtur: delene skal ha MÅLTE verdier,
+  // ikke arvede. Et arvet snitt ville påstått at pulsen var den samme
+  // gjennom et stopp der den falt.
   const { data: samples } = await supabase.from('workout_samples')
-    .select('speed_samples, pace_samples').eq('workout_id', workoutId).maybeSingle()
+    .select('speed_samples, pace_samples, hr_samples, distance_samples')
+    .eq('workout_id', workoutId).maybeSingle()
   const prover = fartProver(samples ?? null)
   if (!prover) return { error: 'Økta har ingen fartsdata' }
 
@@ -220,7 +236,14 @@ export async function gjorStillestandTilPause(
   // SPLITTEN: raden stoppet ligger i deles, den får ikke pausen oppå seg.
   // Uten dette summerer radene mer enn økta varte, og ren treningstid står
   // stille - se lib/stillestand-splitt.
-  const splitt = splittForStillestand(beholdteRader as unknown as SplittRad[], beholdt)
+  // Sonene trenger utøverens egne pulssoner. Finnes de ikke, fordeles
+  // originalens soner etter tid i stedet - se lib/stillestand-splitt.
+  const soner = await hentPulssoner(supabase, brukerId)
+  const splitt = splittForStillestand(beholdteRader as unknown as SplittRad[], beholdt, {
+    hr: (samples as { hr_samples?: Array<{ t: number; hr: number }> } | null)?.hr_samples ?? null,
+    distanse: (samples as { distance_samples?: Array<{ t: number; d: number }> } | null)?.distance_samples ?? null,
+    soner,
+  })
 
   // Originalene er kortet og har fått backup: oppdater dem der de står.
   for (const r of splitt.rader) {

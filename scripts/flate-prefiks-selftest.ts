@@ -18,6 +18,11 @@
 //     importene fra alle sider under app/app/trener - ingen håndholdt
 //     liste som råtner.
 //
+// TRE REGLER:
+//   1  flate-lenker med en trener-tvilling er PREFIKSET
+//   2  lenker til athlete-only-ruter er GATET på targetUserId
+//   3  ROLLEN utledes ikke av readOnly
+//
 // En vakt som må vedlikeholdes for hånd er en konvensjon med ekstra steg.
 // ────────────────────────────────────────────────────────────────────────
 
@@ -124,8 +129,23 @@ function gatetIKontekst(linjer: string[], nr: number): boolean {
       || vindu.some(l => /if\s*\(\s*targetUserId\s*\)/.test(l) && /\breturn\b/.test(l))
 }
 
+/**
+ * ROLLE UTLEDET AV readOnly - den tredje regelen.
+ *
+ * `viewerRole={readOnly ? 'coach' : 'athlete'}` ser riktig ut og er feil:
+ * treneren er readOnly i DAGBOK-fanen, men IKKE i PLAN-fanen (der får han
+ * redigere). På planfanen ble han derfor «athlete», og fikk utøverens
+ * tekster - «Svar treneren...» - og utøverens oransje knapp (meldt av Erik
+ * Jørstad 16. sep).
+ *
+ * readOnly svarer på «får jeg redigere?». targetUserId svarer på «hvem er
+ * jeg her?». Bare det siste er en rolle.
+ */
+const ROLLE_AV_READONLY = /\b(viewerRole|rolle|role)\s*=\s*\{[^}]*\breadOnly\b/
+
 const funn: { fil: string; flate: string; harTarget: boolean }[] = []
 const ugatet: { fil: string; flate: string }[] = []
+const rolleFeil: { fil: string; linje: number; tekst: string }[] = []
 for (const f of naabare) {
   const s = les(f)
   const harTarget = s.includes('targetUserId')
@@ -135,6 +155,9 @@ for (const f of naabare) {
   for (const flate of [...sett].sort()) funn.push({ fil: f, flate, harTarget })
   // Athlete-only: lenka må være gatet der den skrives, når komponenten i
   // det hele tatt kjenner targetUserId.
+  linjer.forEach((linje, i) => {
+    if (ROLLE_AV_READONLY.test(linje)) rolleFeil.push({ fil: f, linje: i + 1, tekst: linje.trim() })
+  })
   if (!harTarget) continue
   linjer.forEach((linje, i) => {
     const m = [...linje.matchAll(NAV)]
@@ -151,9 +174,15 @@ console.log(`komponenter som kan tegnes i trenerkontekst:    ${naabare.length}\n
 
 console.log(`athlete-only-flater (ingen trenerrute):           ${kunAthlete.join(', ')}\n`)
 
-if (funn.length === 0 && ugatet.length === 0) {
-  console.log('ALT OK - flate-lenker er prefikset, athlete-only er gatet\n')
+if (funn.length === 0 && ugatet.length === 0 && rolleFeil.length === 0) {
+  console.log('ALT OK - flate-lenker prefikset, athlete-only gatet, rolle ikke utledet av readOnly\n')
   process.exit(0)
+}
+if (rolleFeil.length > 0) {
+  console.log(`${rolleFeil.length} sted(er) utleder ROLLEN av readOnly:\n`)
+  for (const r of rolleFeil) console.log(`  ${r.fil}:${r.linje}  ${r.tekst.slice(0, 90)}`)
+  console.log('\nreadOnly = «får jeg redigere?». targetUserId = «hvem er jeg her?».')
+  console.log('Treneren er readOnly i dagbok, men IKKE i plan - bruk targetUserId.\n')
 }
 if (ugatet.length > 0) {
   console.log(`${ugatet.length} lenke(r) til en ATHLETE-ONLY-flate er ikke gatet på targetUserId:\n`)
@@ -161,7 +190,7 @@ if (ugatet.length > 0) {
   console.log('\nMiddleware sender treneren bort fra disse - lenka fører ingensteds.')
   console.log('Gate den: {!targetUserId && ...}\n')
 }
-if (funn.length === 0) { console.log(`\n${ugatet.length} FEIL\n`); process.exit(1) }
+if (funn.length === 0) { console.log(`\n${ugatet.length + rolleFeil.length} FEIL\n`); process.exit(1) }
 const perFil = new Map<string, { flater: string[]; harTarget: boolean }>()
 for (const f of funn) {
   const e = perFil.get(f.fil) ?? { flater: [], harTarget: f.harTarget }
@@ -174,5 +203,5 @@ for (const [fil, e] of [...perFil.entries()].sort()) {
   console.log(`      -> ${e.flater.map(x => '/app/' + x).join(', ')}`)
 }
 console.log('\nBruk flatePrefiks(targetUserId) fra lib/flate-prefiks.')
-console.log(`\n${perFil.size + ugatet.length} FEIL\n`)
+console.log(`\n${perFil.size + ugatet.length + rolleFeil.length} FEIL\n`)
 process.exit(1)

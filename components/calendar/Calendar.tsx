@@ -3208,14 +3208,22 @@ export function Calendar({
             readOnly={readOnly && noteContext === 'dagbok'}
           />
           <div className="px-4 md:px-6">
+            {/* ROLLEN KOMMER FRA targetUserId, IKKE FRA readOnly (Erik
+                Jørstad 16. sep): treneren er readOnly i DAGBOK-fanen, men
+                IKKE i PLAN-fanen - der får han redigere. readOnly ga derfor
+                'athlete' på planfanen, og treneren fikk «Svar treneren...»
+                og utøverens oransje knapp. targetUserId er satt nøyaktig når
+                vi står i coach-view (targetId = isCoachView ? userId :
+                undefined), og er det samme signalet
+                TrainerAttendanceSection alt bruker. */}
             <CommentSection
               key={`comments-month-${monthPeriodKey}-${noteContext}`}
               athleteId={targetUserId ?? userId}
               context={noteContext}
               scope="month"
               periodKey={monthPeriodKey}
-              viewerRole={readOnly ? 'coach' : 'athlete'}
-              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - ${MONTHS_NO[month - 1]}`}
+              viewerRole={targetUserId ? 'coach' : 'athlete'}
+              title={`Diskusjon med ${targetUserId ? 'utøver' : 'trener'} - ${MONTHS_NO[month - 1]}`}
             />
           </div>
         </>
@@ -3261,14 +3269,22 @@ export function Calendar({
             readOnly={readOnly && noteContext === 'dagbok'}
           />
           <div className="px-4 md:px-6">
+            {/* ROLLEN KOMMER FRA targetUserId, IKKE FRA readOnly (Erik
+                Jørstad 16. sep): treneren er readOnly i DAGBOK-fanen, men
+                IKKE i PLAN-fanen - der får han redigere. readOnly ga derfor
+                'athlete' på planfanen, og treneren fikk «Svar treneren...»
+                og utøverens oransje knapp. targetUserId er satt nøyaktig når
+                vi står i coach-view (targetId = isCoachView ? userId :
+                undefined), og er det samme signalet
+                TrainerAttendanceSection alt bruker. */}
             <CommentSection
               key={`comments-week-${weekPeriodKey}-${noteContext}`}
               athleteId={targetUserId ?? userId}
               context={noteContext}
               scope="week"
               periodKey={weekPeriodKey}
-              viewerRole={readOnly ? 'coach' : 'athlete'}
-              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - uke ${weekNum}`}
+              viewerRole={targetUserId ? 'coach' : 'athlete'}
+              title={`Diskusjon med ${targetUserId ? 'utøver' : 'trener'} - uke ${weekNum}`}
             />
           </div>
         </>

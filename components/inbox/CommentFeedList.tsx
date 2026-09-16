@@ -1,5 +1,9 @@
+'use client'
+
 import Link from 'next/link'
-import type { InboxCommentItem } from '@/app/actions/inbox'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef } from 'react'
+import { markInboxCommentsRead, type InboxCommentItem } from '@/app/actions/inbox'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 const COACH_BLUE = '#1A6FD4'
@@ -23,10 +27,34 @@ const CONTEXT_LABEL: Record<InboxCommentItem['context'], string> = {
   periodisering: 'Årsplan',
 }
 
-export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) {
+export function CommentFeedList({ comments, rolle }: {
+  comments: InboxCommentItem[]
+  rolle: 'coach' | 'athlete'
+}) {
+  const router = useRouter()
+  const uleste = comments.filter(c => !c.isRead).map(c => c.id)
+  const harUleste = uleste.length > 0
+
+  // Å ÅPNE LISTA ER Å LESE KOMMENTARENE - hele teksten står her, det finnes
+  // ingenting mer å «åpne». Samme regel som varsellista (Sverre 27. aug).
+  //
+  // router.refresh() er ikke pynt: telleren på innboks-ikonet tegnes av
+  // layouten OVER denne siden, og uten en refresh står tallet urørt til
+  // neste navigering. Det var nettopp «tallet går ikke ned» Erik meldte.
+  const merket = useRef(false)
+  useEffect(() => {
+    if (!harUleste || merket.current) return
+    merket.current = true
+    markInboxCommentsRead(uleste).then(() => router.refresh())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   if (comments.length === 0) {
     return (
-      <EmptyState compact title="Ingen kommentarer ennå" body="Kommentarer på øktene dine dukker opp her, med lenke rett til økten." />
+      <EmptyState compact title="Ingen kommentarer ennå"
+        body={rolle === 'coach'
+          ? 'Kommentarer utøverne dine skriver dukker opp her, med lenke rett til økten.'
+          : 'Kommentarer på øktene dine dukker opp her, med lenke rett til økten.'} />
     )
   }
 
@@ -88,7 +116,9 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
               >
                 {c.content}
               </p>
-              {c.athleteName && (
+              {/* «Om: <navn>» bare for treneren - utøveren vet at det er
+                  hans egen økt, og ville bare fått sitt eget navn. */}
+              {rolle === 'coach' && c.athleteName && (
                 <p className="text-xs tracking-widest uppercase mt-1"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
                   Om: {c.athleteName}

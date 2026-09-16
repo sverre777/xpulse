@@ -511,17 +511,25 @@ export async function getInboxComments(): Promise<InboxCommentItem[] | { error: 
     athleteIds = [viewer.userId]
   }
 
-  // Utøver: kommentarer ANDRE har skrevet på mine data (author != meg).
-  // Trener: kommentarer JEG har skrevet på utøvere (author = meg).
-  let req = supabase
+  // ÉN REGEL FOR BEGGE ROLLER: en innboks viser det ANDRE har skrevet til
+  // deg - author_id <> meg, på data jeg er part i (mine egne, eller mine
+  // utøveres).
+  //
+  // Sto ikke slik før (Erik Jørstad 16. sep): treneren fikk
+  // `.eq('author_id', meg)`, altså kommentarene HAN SELV hadde skrevet.
+  // Telleren på innboks-ikonet talte samtidig det motsatte - kommentarer
+  // PÅ hans utøvere skrevet av ANDRE. To disjunkte mengder: det telleren
+  // talte kom aldri i lista han kunne åpne, og tallet kunne derfor aldri gå
+  // ned. Lista og telleren må stille samme spørsmål, ellers er vi tilbake
+  // der. Se getInboxUnreadCountIndre - betingelsen er skrevet ut begge
+  // steder med vilje.
+  const { data, error } = await supabase
     .from('coach_comments')
     .select('id, author_id, athlete_id, scope, period_key, context, content, is_read, created_at')
     .in('athlete_id', athleteIds)
+    .neq('author_id', viewer.userId)
     .order('created_at', { ascending: false })
     .limit(200)
-  if (viewer.activeRole === 'athlete') req = req.neq('author_id', viewer.userId)
-  else req = req.eq('author_id', viewer.userId)
-  const { data, error } = await req
   if (error) return { error: error.message }
 
   const peopleIds = new Set<string>()
@@ -564,15 +572,31 @@ export async function getInboxComments(): Promise<InboxCommentItem[] | { error: 
   })
 }
 
-export async function markInboxCommentRead(commentId: string): Promise<{ error?: string }> {
+/**
+ * Merk kommentarer som lest. Gjennom RPC, ikke UPDATE - se fase 130.
+ *
+ * DEN GAMLE VEIEN VIRKET IKKE FOR UTØVEREN. `.update({ is_read: true })`
+ * traff RLS-policyen «Write comments on own or own athlete» (fase 26), som
+ * krever enten (author_id = meg OG athlete_id = meg) eller en aktiv
+ * trener-relasjon. En utøver som merker TRENERENS kommentar på sin egen økt
+ * treffer ingen av dem - og PostgREST svarer da 204 med NULL RADER, ikke en
+ * feil. Kallet så ut til å virke og gjorde ingenting.
+ *
+ * Funksjonen ble for øvrig aldri kalt fra noe sted i appen (fra fase 26 til
+ * 16. sep), så is_read har stått false på hver eneste kommentar. Det er den
+ * andre halvdelen av at telleren aldri gikk ned.
+ *
+ * RPC-en merker nøyaktig det telleren teller: andres kommentarer på data jeg
+ * er part i. Returnerer antall rader som faktisk ble merket - kalleren kan
+ * stole på tallet, i motsetning til før.
+ */
+export async function markInboxCommentsRead(ids: string[]): Promise<{ antall?: number; error?: string }> {
+  if (ids.length === 0) return { antall: 0 }
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('coach_comments')
-    .update({ is_read: true })
-    .eq('id', commentId)
+  const { data, error } = await supabase.rpc('merk_kommentarer_lest', { p_ids: ids })
   if (error) return { error: error.message }
   revalidatePath('/app/innboks')
-  return {}
+  return { antall: typeof data === 'number' ? data : 0 }
 }
 
 // ── Varsler (notifications) ─────────────────────────────────
@@ -847,6 +871,10 @@ async function getInboxUnreadCountIndre(): Promise<number> {
           .eq('athlete_id', viewer.userId)
           .neq('author_id', viewer.userId)
           .eq('is_read', false),
+    // Betingelsen over (begge roller): andres kommentarer på data jeg er
+    // part i. getInboxComments og merk_kommentarer_lest (fase 130) stiller
+    // NØYAKTIG samme spørsmål. Endres den ene, må de to andre følge etter -
+    // divergerer de, får du et tall som ikke kan nå null.
     supabase
       .from('notifications')
       .select('id', { count: 'exact', head: true })

@@ -1,8 +1,8 @@
-import { getInboxComments } from '@/app/actions/inbox'
+import { getInboxComments, getInboxViewer } from '@/app/actions/inbox'
 import { CommentFeedList } from '@/components/inbox/CommentFeedList'
 
 export default async function InboxCommentsPage() {
-  const res = await getInboxComments()
+  const [res, viewer] = await Promise.all([getInboxComments(), getInboxViewer()])
   if ('error' in res) {
     return (
       <p className="text-xs py-4"
@@ -11,5 +11,6 @@ export default async function InboxCommentsPage() {
       </p>
     )
   }
-  return <CommentFeedList comments={res} />
+  const rolle = 'error' in viewer ? 'athlete' : viewer.activeRole
+  return <CommentFeedList comments={res} rolle={rolle} />
 }

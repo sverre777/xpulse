@@ -282,6 +282,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                 ? () => router.push(`/app/okt/${state.workoutId}`)
                 : undefined}
             />
+            {/* Rollen kommer fra targetUserId - se TrainerAttendanceSection
+                under: treneren er readOnly i dagbok-fanen, men ikke i plan. */}
             {state.kind === 'edit' && athleteId && (
               <div className="px-4 pb-4">
                 <CommentSection
@@ -289,8 +291,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                   context={visningsMode}
                   scope="workout"
                   periodKey={state.workoutId}
-                  viewerRole={readOnly ? 'coach' : 'athlete'}
-                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - denne økta`}
+                  viewerRole={targetUserId ? 'coach' : 'athlete'}
+                  title={`Diskusjon med ${targetUserId ? 'utøver' : 'trener'} - denne økta`}
                 />
               </div>
             )}
@@ -334,6 +336,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                 viewerRole={targetUserId ? 'coach' : 'athlete'}
               />
             )}
+            {/* Rollen kommer fra targetUserId - se TrainerAttendanceSection
+                under: treneren er readOnly i dagbok-fanen, men ikke i plan. */}
             {state.kind === 'edit' && athleteId && (
               <div className="px-4 pb-4">
                 <CommentSection
@@ -341,8 +345,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                   context={visningsMode}
                   scope="workout"
                   periodKey={state.workoutId}
-                  viewerRole={readOnly ? 'coach' : 'athlete'}
-                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} - denne økta`}
+                  viewerRole={targetUserId ? 'coach' : 'athlete'}
+                  title={`Diskusjon med ${targetUserId ? 'utøver' : 'trener'} - denne økta`}
                 />
               </div>
             )}

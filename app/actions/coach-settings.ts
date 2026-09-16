@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { renTidSekPerOkt, renTidMin } from '@/lib/ren-treningstid'
 import { createClient } from '@/lib/supabase/server'
 import { REMINDER_THRESHOLDS } from './coach-settings-constants'
 
@@ -369,7 +370,11 @@ export async function getCoachAthleteExport(
       .in('id', athleteIds),
     supabase
       .from('workouts')
-      .select('user_id, date, duration_minutes, distance_km, workout_type, is_planned, is_completed')
+      // EKSPORTEN tåler et nøstet embed: sju dagers vindu, og den kjøres på
+      // kommando mens treneren venter på en fil. Målt 15. sep: 85 -> 401 ms.
+      // Utøverlista bruker en flat andre-spørring i stedet - den lastes hver
+      // gang (se app/actions/coach-utovere.ts).
+      .select('id, user_id, date, duration_minutes, distance_km, workout_type, is_planned, is_completed, workout_activities(workout_id, activity_type, duration_seconds)')
       .in('user_id', athleteIds)
       .is('merged_into_workout_id', null)
       .eq('is_planned', false)
@@ -383,6 +388,20 @@ export async function getCoachAthleteExport(
   ])
 
   if (profilesRes.error) return { error: profilesRes.error.message }
+
+  if (workoutsRes.error) return { error: workoutsRes.error.message }
+
+  // Samme regnemåte som utøverlista og kalenderen: radene vinner,
+  // duration_minutes bare når økta ikke HAR rader.
+  const eksportOkter = (workoutsRes.data ?? []) as unknown as Array<{
+    id: string; user_id: string; duration_minutes: number | null; distance_km: number | null
+    workout_type: string | null
+    workout_activities?: { activity_type: string; duration_seconds: number | null }[] | null
+  }>
+  const renTidSek = renTidSekPerOkt(eksportOkter.flatMap(w =>
+    (w.workout_activities ?? []).map(r => ({
+      workout_id: w.id, activity_type: r.activity_type, duration_seconds: r.duration_seconds,
+    }))))
 
   const COMPETITION_TYPES = new Set(['competition', 'testlop'])
 
@@ -400,11 +419,11 @@ export async function getCoachAthleteExport(
     })
   }
 
-  for (const w of workoutsRes.data ?? []) {
+  for (const w of eksportOkter) {
     const row = rowByAthlete.get(w.user_id)
     if (!row) continue
     row.totalSessions += 1
-    row.totalMinutes += Number(w.duration_minutes) || 0
+    row.totalMinutes += renTidMin(w, renTidSek)
     row.totalKm += Number(w.distance_km) || 0
     if (w.workout_type && COMPETITION_TYPES.has(w.workout_type)) row.competitions += 1
   }

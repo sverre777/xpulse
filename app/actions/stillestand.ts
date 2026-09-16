@@ -29,6 +29,7 @@
 
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { isShootingActivityType } from '@/lib/activity-summary'
 import {
   finnStillestand, stillestandSum, fartProver, utenSkytingOverlapp,
   stillestandRader, ikkeStillestandRader,
@@ -40,7 +41,9 @@ import {
 // type eksportert herfra velter hele action-chunken i det en
 // klientkomponent importerer fra den.
 
-const ER_SKYTING = (t: string | null | undefined) => (t ?? '').startsWith('skyting')
+// Skyte-typene har ÉN fasit (lib/activity-summary). En egen startsWith-regel
+// her ville gitt samme svar i dag og et annet den dagen lista endres.
+const ER_SKYTING = (t: string | null | undefined) => isShootingActivityType(t ?? '')
 
 interface Rad {
   id: string

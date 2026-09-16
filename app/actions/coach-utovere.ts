@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, getCurrentTier } from '@/lib/subscriptions'
+import { hentRaderForOkter } from '@/lib/aktivitetsrader-henting'
+import { renTidSekPerOkt, renTidMin } from '@/lib/ren-treningstid'
 import type { Sport } from '@/lib/types'
 
 // Datalag for /app/trener/utovere — utvider trener-dashboard-kortet med
@@ -108,6 +110,20 @@ export async function getCoachUtovere(): Promise<
   ])
 
   if (profilesRes.error) return { error: profilesRes.error.message }
+  if (workoutsRes.error) return { error: workoutsRes.error.message }
+
+  // REN TRENINGSTID: egen FLAT spørring, ikke et nøstet embed på workouts.
+  // Målt 15. sep (15 utøvere, 600 økter, 3 720 rader): nøstet embed 1 123 ms,
+  // flat andre-spørring 242 ms. Se lib/ren-treningstid for hvorfor vi ikke
+  // aggregerer i Postgres i stedet.
+  //
+  // Bare de gjennomførte: det er de eneste som telles under.
+  const gjennomforte = (workoutsRes.data ?? []).filter(w => w.is_completed)
+  const raderSvar = await hentRaderForOkter(supabase, gjennomforte.map(w => w.id))
+  // Feiler hentingen, eller kommer den tilbake kuttet, stopper vi. Et for
+  // lavt timetall ser riktig ut og blir aldri oppdaget.
+  if ('error' in raderSvar) return { error: raderSvar.error }
+  const renTidSek = renTidSekPerOkt(raderSvar.rader)
 
   const profilesById = new Map<string, {
     id: string; full_name: string | null; avatar_url: string | null; primary_sport: Sport | null
@@ -129,14 +145,14 @@ export async function getCoachUtovere(): Promise<
     const m30 = stats30.get(w.user_id)
     if (m30) {
       m30.sessions += 1
-      m30.minutes += Number(w.duration_minutes) || 0
+      m30.minutes += renTidMin(w, renTidSek)
       m30.km += Number(w.distance_km) || 0
     }
     if (w.date >= horizon7Iso) {
       const m7 = stats7.get(w.user_id)
       if (m7) {
         m7.sessions += 1
-        m7.minutes += Number(w.duration_minutes) || 0
+        m7.minutes += renTidMin(w, renTidSek)
         m7.km += Number(w.distance_km) || 0
       }
     }

@@ -21,7 +21,9 @@ function rowsToCsv(rows: ExportRow[], periodDays: number): string {
     'Navn',
     'E-post',
     `Økter (${periodDays}d)`,
-    'Minutter',
+    // Tallet er ren treningstid - pause, veksling og standplass trukket fra,
+    // samme regnemåte som utøverlista og utøverens egen kalender.
+    'Ren treningstid (min)',
     'Km',
     'Konkurranser',
     'Tester/PR',

@@ -227,8 +227,8 @@ export function UtovereGrid({ athletes }: Props) {
           <option value="status">Status / uleste</option>
           <option value="name">Navn</option>
           <option value="last_workout">Siste økt</option>
-          <option value="volume_7d">Volum 7d</option>
-          <option value="volume_30d">Volum 30d</option>
+          <option value="volume_7d">Ren treningstid 7d</option>
+          <option value="volume_30d">Ren treningstid 30d</option>
         </select>
       </div>
 
@@ -470,7 +470,7 @@ function PeriodStats({ label, stats }: { label: string; stats: { sessions: numbe
       </div>
       <p className="text-xs mt-0.5"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {stats.sessions} økt{stats.sessions !== 1 ? 'er' : ''}
+        {stats.sessions} økt{stats.sessions !== 1 ? 'er' : ''} · ren treningstid
       </p>
     </div>
   )
@@ -491,7 +491,10 @@ function UtovereTabell({ rader, tall, laster, periode }: {
         <thead>
           <tr>
             <th style={{ ...th, textAlign: 'left' }}>Utøver</th>
-            <th style={th}>{PERIODE_NAVN[periode]}</th>
+            {/* Tallet er REN TRENINGSTID - pause, veksling og standplass
+                trukket fra, samme tall utøveren ser i sin egen uke.
+                Perioden står i velgeren over tabellen. */}
+            <th style={th}>Ren treningstid {PERIODE_NAVN[periode].toLowerCase()}</th>
             <th style={th}>Hard I3+</th>
             <th style={th}>% av plan</th>
             <th style={th}>CTL</th>

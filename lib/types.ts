@@ -303,6 +303,13 @@ export interface WorkoutFormData {
   // (+ navnet slått opp i profiles). saveWorkout skriver aldri disse.
   created_by_coach_id?: string | null
   created_by_coach_name?: string | null
+  // Fase 129: hvem som SIST ENDRET økta, og når. Noe annet enn
+  // created_by_coach_id (som sier hvem som opprettet den): en økt utøveren
+  // laget selv, men treneren rettet i, har den NULL og disse satt.
+  // Read-only i skjemaet - maskinfelt, skrevet av saveWorkout.
+  sist_endret_av_trener_id?: string | null
+  sist_endret_av_trener_navn?: string | null
+  sist_endret_av_trener_at?: string | null
   notes: string
   tags: string[]
   // Skiskyting: serie-basert skyting på top-nivå (kun synlig når sport='biathlon')

@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/server'
 import { pulsIVindu } from '@/lib/segmenter'
 import { PAUSE_TYPER, VEKSLING_TYPER, normaliserBevform, normaliserUnderkategori } from '@/lib/types'
 import { dbFeilTekst } from '@/lib/db-feil'
+import { finnEndringer, OKT_FELTER, type Endring } from '@/lib/endringslogg'
+import { loggEndringer } from '@/lib/coach-audit'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
   WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType,
@@ -837,12 +839,31 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
 
   let savedId = workoutId
   const skjulteAktivitetsFelter = new Map<string, SkjulteAktivitetsFelter>()
+  /** Hva treneren endret på selve økta - skrives til loggen etter lagring. */
+  let endringerFraTrener: Endring[] = []
 
   if (workoutId) {
     // Trener-stempel bevares mellom redigeringer:
     //  - Trener redigerer → oppdater created_by_coach_id til innlogget trener (blå markering beholdes/oppdateres).
     //  - Utøver redigerer → ikke rør feltet (behold historikk for om treneren har rørt økten).
     if (resolved.isCoachImpersonating) workoutPayload.created_by_coach_id = resolved.coachId
+
+    // SPORBARHET (fase 129): retter treneren i utøverens økt, skal det STÅ
+    // på økta hvem og når - og hva, i coach_audit_log. En utøver som finner
+    // endrede tall uten å vite hvem som endret dem, mister tilliten til
+    // hele dagboka (Sverre 16. sep).
+    //
+    // created_by_coach_id sier hvem som OPPRETTET økta og er noe annet: en
+    // økt utøveren laget selv, men treneren siden rettet i, har den NULL.
+    if (resolved.isCoachImpersonating && resolved.coachId && resolved.userId !== resolved.coachId) {
+      // FØR-tilstanden må leses før oppdateringen - etterpå er den borte.
+      const { data: for_ } = await supabase.from('workouts')
+        .select(OKT_FELTER.map(f => f.felt).join(','))
+        .eq('id', workoutId).maybeSingle()
+      endringerFraTrener = finnEndringer(for_ as Record<string, unknown> | null, workoutPayload)
+      workoutPayload.sist_endret_av_trener_id = resolved.coachId
+      workoutPayload.sist_endret_av_trener_at = new Date().toISOString()
+    }
     const { error } = await supabase.from('workouts').update(workoutPayload).eq('id', workoutId).eq('user_id', resolved.userId)
     if (error) return { error: error.message }
     // Fase 113/114-vern: les de skjulte kolonnene FØR radene slettes.
@@ -915,6 +936,20 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     } catch {
       // Varsel-svikt skal ikke blokkere selve lagringen.
     }
+    // SPORBARHET: HVA som ble endret, ikke bare AT noe ble det. Varselet
+    // over sier «Trener endret økta»; denne sier «Varighet (min) fra 60 til
+    // 75». Skriver ingenting når ingenting endret seg - en trener som åpner
+    // og lukker en økt skal ikke fylle utøverens logg.
+    //
+    // Ny økt har ingen før-tilstand å sammenligne med: da logges det som
+    // opprettet, uten fra/til-par.
+    await loggEndringer(supabase, {
+      coachId: resolved.coachId,
+      athleteId: resolved.userId,
+      entityType: 'workout',
+      entityId: savedId,
+      actionType: workoutId ? 'oppdatert' : 'opprettet',
+    }, endringerFraTrener)
   }
 
   // ── Child-tabeller: alle uavhengige (ulike tabeller, alle på workout_id) ──
@@ -1790,9 +1825,19 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
 
   // Bolk 9: trener-markering — navnet slås opp én gang (read-only i skjemaet).
   const trenerId = ((workout as { created_by_coach_id?: string | null }).created_by_coach_id) ?? null
-  const trenerNavn = trenerId
-    ? ((await supabase.from('profiles').select('full_name').eq('id', trenerId).maybeSingle()).data?.full_name ?? null)
-    : null
+  // SPORBARHET (fase 129): hvem som SIST ENDRET økta er noe annet enn hvem
+  // som opprettet den. Slås opp i samme rundtur - som oftest er det samme
+  // trener, og da er det bare ett oppslag.
+  const endretId = ((workout as { sist_endret_av_trener_id?: string | null }).sist_endret_av_trener_id) ?? null
+  const navnIder = [...new Set([trenerId, endretId].filter((x): x is string => !!x))]
+  const navnMap = new Map<string, string | null>()
+  if (navnIder.length > 0) {
+    const { data: navnRader } = await supabase.from('profiles').select('id, full_name').in('id', navnIder)
+    for (const r of (navnRader ?? [])) navnMap.set(r.id as string, (r.full_name as string | null) ?? null)
+  }
+  const trenerNavn = trenerId ? (navnMap.get(trenerId) ?? null) : null
+  const endretNavn = endretId ? (navnMap.get(endretId) ?? null) : null
+  const endretAt = ((workout as { sist_endret_av_trener_at?: string | null }).sist_endret_av_trener_at) ?? null
 
   if (usePlanSnapshot) {
     // Hydrér aktiviteter fra snapshot når tilgjengelig; ellers fall tilbake
@@ -1820,6 +1865,9 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
       tidspunkt_notater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
       created_by_coach_id: trenerId,
       created_by_coach_name: trenerNavn,
+      sist_endret_av_trener_id: endretId,
+      sist_endret_av_trener_navn: endretNavn,
+      sist_endret_av_trener_at: endretAt,
       tags:         snap.tags ?? [],
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
@@ -1863,6 +1911,9 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
     tidspunkt_notater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
     created_by_coach_id: trenerId,
     created_by_coach_name: trenerNavn,
+    sist_endret_av_trener_id: endretId,
+    sist_endret_av_trener_navn: endretNavn,
+    sist_endret_av_trener_at: endretAt,
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)

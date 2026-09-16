@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { skrivAudit } from '@/lib/coach-audit'
 import { createClient } from '@/lib/supabase/server'
 import { insertActivityTreeForWorkout, parseIntOrNull, parseFloatOrNull } from '@/lib/workout-activity-insert'
 import type { ActivityRow, Sport, WorkoutType } from '@/lib/types'
@@ -60,6 +61,8 @@ async function assertActiveCoach(
   return { ok: true, coachId: user.id }
 }
 
+// writeAudit lå privat her og var kodebasens ENESTE skriver til
+// coach_audit_log. Den bor nå i lib/coach-audit, delt av alle (regel 11).
 async function writeAudit(params: {
   athleteId: string
   coachId: string
@@ -68,19 +71,8 @@ async function writeAudit(params: {
   entityId: string | null
   details: unknown
 }) {
-  try {
-    const supabase = await createClient()
-    await supabase.from('coach_audit_log').insert({
-      coach_id: params.coachId,
-      athlete_id: params.athleteId,
-      action_type: params.actionType,
-      entity_type: params.entityType,
-      entity_id: params.entityId,
-      details: params.details,
-    })
-  } catch {
-    // Audit-svikt skal ikke blokkere selve handlingen.
-  }
+  const supabase = await createClient()
+  await skrivAudit(supabase, params)
 }
 
 async function notifyAthlete(params: {

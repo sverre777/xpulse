@@ -40,6 +40,7 @@ import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
 import { fraTidspunktNotater, type GrafPunkt } from './Punkt'
 import { klokkeslettTilSek } from '@/lib/oktbygger-rader'
 import { TrenerChip } from '@/components/coach/TrenerChip'
+import { EndretAvTrener } from '@/components/workout/EndretAvTrener'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
 import { grupperRaderSamlet, heleOkta, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
@@ -450,6 +451,17 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             <ImportSourceBadge source="strava" />
           )}
           {data.created_by_coach_id && <TrenerChip navn={data.created_by_coach_name} />}
+          {/* Fase 129: treneren RETTET i økta. Står der utøveren ser økta,
+              aldri gjemt i en logg han må lete etter.
+              NAVNET STÅR ALLTID HER, også når TrenerChip står ved siden av:
+              saveWorkout:849 overskriver created_by_coach_id hver gang en
+              trener lagrer, så chipens «lagt inn av» kan gjelde en økt
+              utøveren selv laget. Denne linja er den som er presis. */}
+          {data.sist_endret_av_trener_at && (
+            <EndretAvTrener workoutId={workoutId ?? null}
+              navn={data.sist_endret_av_trener_navn}
+              nar={data.sist_endret_av_trener_at} />
+          )}
           {data.imported_from && data.imported_from !== 'strava' && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}><Ikon navn="klokke" variant="strek" storrelse={14} /> Klokkesynk</span>
           )}

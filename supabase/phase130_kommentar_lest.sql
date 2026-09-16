@@ -53,6 +53,21 @@
  
 begin; 
  
+/* ── FØR: funksjonen, radene, og hvor mange som star som lest ─────────────── */ 
+select 'FØR' as steg, 
+       (select count(*) from pg_proc p 
+          join pg_namespace n on n.oid = p.pronamespace 
+         where n.nspname = 'public' 
+           and p.proname = 'merk_kommentarer_lest') as funksjonen_finnes, 
+       (select count(*) from public.coach_comments) as antall_rader, 
+       (select count(*) from public.coach_comments where is_read) as antall_lest; 
+ 
+/* Tallene fryses her, sa assertionen under kan sammenligne mot dem. */ 
+/* on commit drop: tabellen forsvinner nar transaksjonen er ferdig. */ 
+create temporary table _fase130_for on commit drop as 
+select (select count(*) from public.coach_comments) as antall_rader, 
+       (select count(*) from public.coach_comments where is_read) as antall_lest; 
+ 
 create or replace function public.merk_kommentarer_lest(p_ids uuid[]) 
 returns integer 
 language plpgsql 
@@ -97,5 +112,58 @@ $$;
  
 revoke all on function public.merk_kommentarer_lest(uuid[]) from public; 
 grant execute on function public.merk_kommentarer_lest(uuid[]) to authenticated; 
+ 
+/* ── ETTER: samme tre ─────────────────────────────────────────────────────── */ 
+select 'ETTER' as steg, 
+       (select count(*) from pg_proc p 
+          join pg_namespace n on n.oid = p.pronamespace 
+         where n.nspname = 'public' 
+           and p.proname = 'merk_kommentarer_lest') as funksjonen_finnes, 
+       (select count(*) from public.coach_comments) as antall_rader, 
+       (select count(*) from public.coach_comments where is_read) as antall_lest; 
+ 
+/* ── TRE ASSERTIONS OG EN AVLESNING ───────────────────────────────────────── */ 
+select 'funksjonen finnes, er security definer, og har search_path=public' as sjekk, 
+       case when exists ( 
+         select 1 from pg_proc p 
+           join pg_namespace n on n.oid = p.pronamespace 
+          where n.nspname = 'public' 
+            and p.proname = 'merk_kommentarer_lest' 
+            and p.prosecdef 
+            and p.proconfig @> array['search_path=public'] 
+       ) then 'OK' else 'FEIL' end as resultat 
+union all 
+/* DEN VIKTIGSTE: en security definer-funksjon som star apen for PUBLIC */ 
+/* eller anon er verre enn policyen vi unngikk. proacl er NULL sa lenge */ 
+/* ingen har rort rettighetene - og NULL betyr at PUBLIC HAR EXECUTE, */ 
+/* som er standarden for funksjoner i Postgres. Derfor er revoke-linja */ 
+/* ikke pynt, og derfor sjekkes proacl eksplisitt her. */ 
+select 'execute er gitt til authenticated, og IKKE til public eller anon', 
+       case when ( 
+         select p.proacl is not null 
+            and exists (select 1 from aclexplode(p.proacl) a 
+                         where a.grantee = to_regrole('authenticated')::oid 
+                           and a.privilege_type = 'EXECUTE') 
+            and not exists (select 1 from aclexplode(p.proacl) a 
+                             where a.grantee = 0 
+                               and a.privilege_type = 'EXECUTE') 
+            and not exists (select 1 from aclexplode(p.proacl) a 
+                             where a.grantee = coalesce(to_regrole('anon')::oid, 0) 
+                               and a.privilege_type = 'EXECUTE') 
+           from pg_proc p 
+           join pg_namespace n on n.oid = p.pronamespace 
+          where n.nspname = 'public' 
+            and p.proname = 'merk_kommentarer_lest' 
+       ) then 'OK' else 'FEIL' end 
+union all 
+/* Migrasjonen skal opprette en funksjon, ikke rore data. Star det FEIL */ 
+/* her, har noe merket kommentarer lest - og da skal den rulles tilbake. */ 
+select 'ingen rad har endret is_read (migrasjonen rorer ikke data)', 
+       case when (select f.antall_lest from _fase130_for f) 
+               = (select count(*) from public.coach_comments where is_read) 
+         then 'OK' else 'FEIL' end 
+union all 
+select 'AVLESNING: radtall uendret i coach_comments (FØR = ETTER over)', 
+       'SE TALLENE'; 
  
 commit; 

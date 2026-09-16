@@ -45,7 +45,14 @@ export function CommentFeedList({ comments, rolle }: {
   useEffect(() => {
     if (!harUleste || merket.current) return
     merket.current = true
-    markInboxCommentsRead(uleste).then(() => router.refresh())
+    // STILLE HVIS DEN FEILER, MED VILJE. Dette er en bakgrunnshandling
+    // brukeren ikke har bedt om - en rød feilmelding i innboksen fordi et
+    // kall ikke gikk igjennom, er verre enn at et tall står ett besøk til.
+    // Merk: fram til fase 130 er kjørt svarer RPC-en 404 (PGRST202, målt mot
+    // prod 16. sep). supabase-js gir da { error } og kaster ikke, så dette
+    // er nøyaktig tilfellet over. .catch() tar nettverksfeil, som ville blitt
+    // en unhandled rejection.
+    markInboxCommentsRead(uleste).then(() => router.refresh()).catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

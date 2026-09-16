@@ -92,7 +92,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
   useEffect(() => {
     if (!haddeUleste || merket.current) return
     merket.current = true
-    markThreadRead(header.key).then(() => router.refresh())
+    markThreadRead(header.key).then(() => router.refresh()).catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [haddeUleste])
 

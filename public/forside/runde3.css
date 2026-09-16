@@ -1623,13 +1623,14 @@
 .t-og{padding:8px 10px;border-radius:10px;margin:8px 0}
 .t-og .og-t{display:none}
 
-/* ── Mobil (<=900 px): telefonramma i #inside ruller ikke innvendig (Sverre 16. sep:
-   «har man bladd nederst pa interaktiv mobil skal man kunne fortsette a bla ned pa
-   nettsiden»). Ramma far hoyden til innholdet, og sida ruller gjennom den med
-   kalenderhodet klebrig - slik notatet beskriver mobilen. PC-visningen av
-   telefonen (>900 px) beholder 800 px-ramma med innvendig rulling. ── */
+/* ── Mobil (<=900 px): telefonramma i #inside er aldri hoyere enn skjermen (Sverre
+   16. sep, andre runde: maned/liste ble «veeeeldig lang» - bunnen av ramma skal
+   synes hele tida, sa man kan velge a bla forbi). Ramma er maks 78 % av
+   viewporten, innholdet ruller innvendig, og overscroll-behavior:auto lar sida
+   rulle videre nar innholdet er ferdig. PC-visningen av telefonen (>900 px)
+   beholder 800 px-ramma. ── */
 @media (max-width:900px){
-  .fv-tlf{height:auto}
-  .fv-sk{overflow:visible}
-  .fv-mbody{overflow:visible;flex:none;padding-bottom:24px}
+  .fv-tlf{height:min(800px,78vh)}
+  .fv-sk{overflow:hidden}
+  .fv-mbody{overflow:auto;flex:1;overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch}
 }

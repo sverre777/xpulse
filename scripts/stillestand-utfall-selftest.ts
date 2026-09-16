@@ -14,7 +14,7 @@
 // Alt annet kommer etter den.
 
 import { computeActivityTotals, type ActivityLike } from '../lib/activity-summary.ts'
-import { splittForStillestand, type SplittRad } from '../lib/stillestand-splitt.ts'
+import { splittForStillestand, angreSplitt, type SplittRad } from '../lib/stillestand-splitt.ts'
 import type { Stillestand } from '../lib/stillestand.ts'
 
 let feil = 0
@@ -127,6 +127,67 @@ console.log('\nVakter')
     }
   }
   ok('190 plasseringer: aldri en nulllang rad, aldri endret totaltid', verst === '', verst)
+}
+
+console.log('\nANGRE - regel 40 på angre-siden')
+// «Radene er borte» er ikke «tallet er tilbake». Det er tallet som testes.
+function angreLoftet(navn: string, rader: Rad[], stopp: Stillestand[]) {
+  const forTid = renTid(rader)
+  const forTotal = sumVarighet(rader)
+  const etterSplitt = splittForStillestand(rader, stopp)
+  const tilbake = angreSplitt(etterSplitt.rader)
+  ok(`${navn}: REN TRENINGSTID ETTER ANGRE == FØR SPLITTEN`,
+    renTid(tilbake.rader) === forTid, `${forTid} -> ${renTid(etterSplitt.rader)} -> ${renTid(tilbake.rader)}`)
+  ok(`${navn}: totaltida er tilbake`, sumVarighet(tilbake.rader) === forTotal,
+    `${forTotal} -> ${sumVarighet(tilbake.rader)}`)
+  ok(`${navn}: like mange rader som før`, tilbake.rader.length === rader.length,
+    `${rader.length} -> ${etterSplitt.rader.length} -> ${tilbake.rader.length}`)
+  return tilbake
+}
+angreLoftet('ett stopp', [rad('aktivitet', 0, 3600)], [{ fraSek: 600, tilSek: 660 }])
+angreLoftet('TO stopp i samme rad', [rad('aktivitet', 0, 3600)],
+  [{ fraSek: 600, tilSek: 660 }, { fraSek: 2400, tilSek: 2520 }])
+angreLoftet('stopp over to rader',
+  [rad('oppvarming', 0, 900), rad('aktivitet', 900, 2700)], [{ fraSek: 850, tilSek: 1000 }])
+angreLoftet('stopp som dekker hele raden', [rad('aktivitet', 600, 120)], [{ fraSek: 600, tilSek: 720 }])
+
+console.log('\nAngre gjenoppretter originalen FULLT')
+{
+  const original: Rad = { ...rad('aktivitet', 0, 3600), distance_meters: 17000,
+    avg_heart_rate: 158, max_heart_rate: 181, zones: { I3: 3000, I1: 600 } }
+  const ut = splittForStillestand([original], [{ fraSek: 600, tilSek: 660 }, { fraSek: 2400, tilSek: 2520 }])
+  ok('to stopp gir fem deler i ÉN operasjon', ut.rader.length === 5,
+    JSON.stringify(ut.rader.map(r => [r.activity_type, r.window_duration_seconds])))
+  const tilbake = angreSplitt(ut.rader)
+  sjekk('én rad igjen', tilbake.rader.length, 1)
+  const r0 = tilbake.rader[0]
+  sjekk('id-en er originalens', r0.id, original.id)
+  sjekk('typen er tilbake', r0.activity_type, 'aktivitet')
+  sjekk('varigheten er tilbake', r0.window_duration_seconds, 3600)
+  sjekk('starten er tilbake', r0.window_start_seconds, 0)
+  sjekk('distansen er tilbake - et felt splitten ikke rørte', r0.distance_meters, 17000)
+  sjekk('pulsen er tilbake', [r0.avg_heart_rate, r0.max_heart_rate], [158, 181])
+  sjekk('sonene er tilbake', r0.zones, { I3: 3000, I1: 600 })
+  ok('backupen er ryddet, så raden kan splittes på nytt', !r0.split_backup, JSON.stringify(r0.split_backup))
+  ok('alle barna er slettet', tilbake.slettede.length === 4, JSON.stringify(tilbake.slettede))
+}
+{
+  // Fase 114: ingen nestede backuper. En allerede splittet rad hoppes over.
+  const en = splittForStillestand([rad('aktivitet', 0, 3600)], [{ fraSek: 600, tilSek: 660 }])
+  const to = splittForStillestand(en.rader, [{ fraSek: 2400, tilSek: 2520 }])
+  sjekk('splitt nummer to hopper over de allerede splittede',
+    to.alleredeSplittet.length, en.rader.length)
+  sjekk('og lager ingen nye rader', to.rader.length, en.rader.length)
+  const tilbake = angreSplitt(to.rader)
+  ok('angre gir fortsatt originalen hel etter forsøk nummer to',
+    tilbake.rader.length === 1 && tilbake.rader[0].window_duration_seconds === 3600,
+    JSON.stringify(tilbake.rader.map(r => [r.activity_type, r.window_duration_seconds])))
+}
+{
+  const urort = [rad('aktivitet', 0, 3600)]
+  const ut = angreSplitt(urort)
+  sjekk('angre på noe som aldri ble splittet: urørt', ut.rader.length, 1)
+  sjekk('og ingenting slettes', ut.slettede.length, 0)
 }
 
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)

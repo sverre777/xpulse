@@ -39,12 +39,19 @@ export interface SplittRad {
   avg_heart_rate: number | null
   max_heart_rate: number | null
   zones: Record<string, number> | null
+  /** Fase 114: barnet peker på originalen det ble splittet ut av. */
+  split_parent_id?: string | null
+  /** Fase 114: originalens fulle radfelter, skrevet FØR endring.
+      Ikke-null = raden ER en splittet original, og kan angres. */
+  split_backup?: Record<string, unknown> | null
 }
 
 export interface SplittResultat {
   rader: SplittRad[]
   /** Id-ene til radene som faktisk ble delt - originalene angre må hente hjem. */
   splittede: string[]
+  /** Rader som alt var splittet og derfor ble hoppet over. */
+  alleredeSplittet: string[]
 }
 
 /** Radens plass på tidslinja. Vinduet vinner, som ellers i byggeren. */
@@ -56,12 +63,26 @@ function spenn(r: SplittRad): { fra: number; sek: number } | null {
   return { fra, sek }
 }
 
+/**
+ * Kopien originalen tas vare på i.
+ *
+ * Fase 114-mønsteret: ALLE felter, også de splitten ikke rører. Angre
+ * gjenoppretter raden fullt ut, ikke bare tida - ellers ville en distanse
+ * eller en sone forsvunnet stille i en operasjon som het «angre».
+ */
+function lagBackup(r: SplittRad): Record<string, unknown> {
+  const { split_backup: _b, split_parent_id: _p, ...resten } = r
+  return { ...resten }
+}
+
 /** En del av originalen, med tida satt og identiteten ny. */
 function del(mal: SplittRad, type: string, fra: number, sek: number, nr: number): SplittRad {
   const erPause = type === 'pause'
   return {
     ...mal,
     id: `${mal.id}::${nr}`,
+    split_parent_id: mal.id,
+    split_backup: null,
     activity_type: type,
     window_start_seconds: fra,
     window_duration_seconds: sek,
@@ -90,12 +111,21 @@ export function splittForStillestand(
     .filter(s => s.tilSek > s.fraSek)
     .slice()
     .sort((a, b) => a.fraSek - b.fraSek)
-  if (gyldige.length === 0) return { rader, splittede: [] }
+  if (gyldige.length === 0) return { rader, splittede: [], alleredeSplittet: [] }
 
   const ut: SplittRad[] = []
   const splittede: string[] = []
+  const alleredeSplittet: string[] = []
 
   for (const rad of rader) {
+    // INGEN NESTEDE BACKUPER (fase 114). En rad som alt er splittet - enten
+    // den er originalen med backup eller et barn - hoppes over. Splittet vi
+    // den igjen, ville backupen blitt overskrevet med en HALV rad, og angre
+    // hadde gitt utøveren tilbake noe som aldri fantes.
+    // Angre først, splitt så på nytt.
+    if (rad.split_backup || rad.split_parent_id) {
+      ut.push(rad); alleredeSplittet.push(rad.id); continue
+    }
     const s = spenn(rad)
     if (!s) { ut.push(rad); continue }
     const slutt = s.fra + s.sek
@@ -138,15 +168,73 @@ export function splittForStillestand(
       i--
     }
 
-    // Ble alt til pause, er raden pausen - ingen splitt, bare ny type.
-    if (biter.length === 1) {
-      ut.push(del(rad, biter[0].type, biter[0].fra, biter[0].sek, 0))
-      if (biter[0].type !== rad.activity_type) splittede.push(rad.id)
-      continue
-    }
-    biter.forEach((b, i) => ut.push(del(rad, b.type, b.fra, b.sek, i)))
+    // ORIGINALEN BEHOLDES OG KORTES (fase 114-mønsteret): første bit
+    // beholder radens id, og får backupen av hele originalen. De øvrige
+    // bitene er nye rader som peker tilbake på den.
+    //
+    // ALT I ÉN OPERASJON, også når raden har flere stopp. To sekvensielle
+    // splitter av samme rad ville truffet fase 114s avvisning av nestede
+    // backuper på stopp nummer to - og etterlatt en halv splitt.
+    const backup = lagBackup(rad)
+    biter.forEach((b, i) => {
+      if (i === 0) {
+        ut.push({
+          ...rad,
+          activity_type: b.type,
+          window_start_seconds: b.fra,
+          window_duration_seconds: b.sek,
+          duration_seconds: b.sek,
+          split_backup: backup,
+          // Pausen arver ingenting, heller ikke når den er første bit.
+          ...(b.type === 'pause'
+            ? { distance_meters: null, avg_heart_rate: null, max_heart_rate: null, zones: null }
+            : {}),
+        })
+        return
+      }
+      ut.push(del(rad, b.type, b.fra, b.sek, i))
+    })
     splittede.push(rad.id)
   }
 
-  return { rader: ut, splittede }
+  return { rader: ut, splittede, alleredeSplittet }
+}
+
+
+export interface AngreResultat {
+  rader: SplittRad[]
+  /** Id-ene til barna som ble slettet. */
+  slettede: string[]
+}
+
+/**
+ * Sy raden sammen igjen.
+ *
+ * REGEL 40 PÅ ANGRE-SIDEN: «radene er borte» er ikke «tallet er tilbake».
+ * Derfor gjenopprettes originalen FULLT fra split_backup - alle felter,
+ * også de splitten aldri rørte - og ikke bare tida. En distanse eller en
+ * sone som forsvant i en operasjon som het «angre», ville vært verre enn
+ * splitten den angret.
+ *
+ * Flere barn på samme original slettes alle: en rad med to stopp har fire
+ * barn, og de hører sammen i én operasjon.
+ */
+export function angreSplitt(rader: SplittRad[]): AngreResultat {
+  const originaler = rader.filter(r => r.split_backup)
+  if (originaler.length === 0) return { rader, slettede: [] }
+  const foreldre = new Set(originaler.map(r => r.id))
+
+  const slettede: string[] = []
+  const ut: SplittRad[] = []
+  for (const r of rader) {
+    if (r.split_parent_id && foreldre.has(r.split_parent_id)) { slettede.push(r.id); continue }
+    if (r.split_backup) {
+      // Backupen ER raden slik den var. Vi setter den tilbake hel, og
+      // rydder backupen så raden kan splittes på nytt senere.
+      ut.push({ ...(r.split_backup as unknown as SplittRad), split_backup: null, split_parent_id: null })
+      continue
+    }
+    ut.push(r)
+  }
+  return { rader: ut, slettede }
 }

@@ -19,7 +19,8 @@
     "klokkerad-selftest": "tsx scripts/klokkerad-selftest.ts",
     "flate-prefiks": "tsx scripts/flate-prefiks-selftest.ts",
     "rpc-grense": "tsx scripts/rpc-grense-selftest.ts",
-    "inboks-teller": "tsx scripts/inboks-teller-selftest.ts"
+    "inboks-teller": "tsx scripts/inboks-teller-selftest.ts",
+    "bolk-endre": "tsx scripts/bolk-endre-selftest.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

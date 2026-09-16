@@ -8,7 +8,7 @@
 
 import type { ActivityRow } from './types'
 import { parseActivityDuration } from './activity-duration'
-import { segmentTypeFor } from './segmenter'
+import { segmentTypeFor, erPauseSegment } from './segmenter'
 import type { SkyteMonster, GenerertBlokk } from './intervall-generator'
 
 export interface RadBolk {
@@ -122,14 +122,18 @@ export function oppsettFraBolk(b: RadBolk): BolkOppsett {
   let i = 0
   while (i < kjerne.length) {
     const a = kjerne[i]
-    if (seg(a) === 'pause') { i++; continue }
+    // BEGGE PAUSETYPENE (Sverre 16. sep). Byggeren lager AKTIVE pauser som
+    // standard, så en `=== 'pause'` her leste dem som drag: «3 x 10:00 I6 /
+    // 2:00» kom tilbake fra Endre som åtte løsrevne rader med antall 1 og
+    // pause 0:00. erPauseSegment er den navngitte kilden - se segmenter.ts.
+    if (erPauseSegment(seg(a))) { i++; continue }
     const drag = [a]; const pauser: ActivityRow[] = []
     let j = i + 1
     while (j < kjerne.length) {
       const p = kjerne[j]
-      if (seg(p) === 'pause') {
+      if (erPauseSegment(seg(p))) {
         const d = kjerne[j + 1]
-        if (d && seg(d) !== 'pause' && likeDrag(d, a)) { pauser.push(p); drag.push(d); j += 2; continue }
+        if (d && !erPauseSegment(seg(d)) && likeDrag(d, a)) { pauser.push(p); drag.push(d); j += 2; continue }
         pauser.push(p); j += 1; break
       }
       if (likeDrag(p, a)) { drag.push(p); j += 1; continue }

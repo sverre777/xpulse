@@ -79,6 +79,33 @@ export function skyteMarkor(type: SegmentType, etikett: string, treff: string | 
   return `${navn}${treff ? ` ${treff}` : ''}`
 }
 
+/**
+ * PAUSERADENE - ÉN NAVNGITT KILDE (Sverre 16. sep 2026).
+ *
+ * 'pause' og 'aktiv_pause' er ULIKE segmenttyper, og det skillet skal stå:
+ * aktiv pause teller som treningstid og får sonen sin i grafen (678f3b2).
+ *
+ * Men noen steder er spørsmålet et annet: «er dette en pauserad?» - i
+ * bygger-forstand, der pausen er det som ligger MELLOM to drag. Der er
+ * begge to en pause.
+ *
+ * Skillet ble innført uten at bolker-fra-rader.ts ble oppdatert, og fordi
+ * byggeren lager AKTIVE pauser som standard, sprakk hver eneste bolk ved
+ * «Endre»: pausene ble lest som drag i I1, antallet falt til 1 og
+ * pausefeltet til 0:00. En `=== 'pause'` som var riktig 5. sep ble feil
+ * 16. sep uten at noen rørte linja.
+ *
+ * Derfor et navngitt predikat i stedet for en streng-sammenligning: neste
+ * gang familien utvides, er det ett sted som skal endres - og de som mente
+ * «pauserad» følger med.
+ */
+export const PAUSE_SEGMENTER: readonly SegmentType[] = ['pause', 'aktiv_pause']
+
+/** «Er dette en pauserad?» - begge pausetypene, i bygger-forstand. */
+export function erPauseSegment(type: string): boolean {
+  return (PAUSE_SEGMENTER as readonly string[]).includes(type)
+}
+
 /** Aktivitetstype (+ bev.form) → segmenttype. Brukes av båndet, spøkelseslaget
     og Øktbyggeren — én oversettelse, aldri tre. */
 export function segmentTypeFor(type: string, bevegelsesform: string): SegmentType {

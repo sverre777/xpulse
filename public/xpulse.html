@@ -2367,6 +2367,7 @@ section[id],header[id]{scroll-margin-top:108px}
 <script defer src="/forside/ikoner.js"></script>
 <script defer src="/forside/karusell.js"></script>
 <script defer src="/forside/scener-flyt.js"></script>
+<script defer src="/forside/scener-detaljene.js"></script>
 
 <!-- ═══════════ FORSIDE v7 bolk 1: DU FORTJENER ÉN APP. IKKE TRE. - rett under heroen, scrolldrevet (bolk 0-motoren) ═══════════ -->
 <section id="problem" style="padding:0 0 40px"><div class="flyt-scrolly prob-scrolly" data-n="4" style="height:calc(4 * 60vh + 30vh)">
@@ -2652,6 +2653,19 @@ section[id],header[id]{scroll-margin-top:108px}
       </div>
     </div>
   </div>
+</section>
+
+<section class="fb" id="dflyt" aria-roledescription="karusell" aria-label="Detaljene som avgjør" style="padding-top:20px">
+  <div class="wrap">
+    <div class="fb-hd"><div>
+      <div class="label">Verktøy for ski, skyting og sesong</div>
+      <h2>DETALJENE SOM <span class="o">AVGJØR.</span></h2>
+      <p class="lead">Sju verktøy som går et lag dypere. La det gå av seg selv, trykk deg til det du vil se - eller trykk + for alt som ligger i kortet.</p>
+    </div></div>
+    <div class="fb-kap" role="tablist" id="dkap"></div>
+  </div>
+  <div class="fb-spor" id="dspor"></div>
+  <div class="wrap"><div class="fb-ktl"><div class="prikker" id="dprikker"></div><button class="rundknapp" id="dspill" type="button" aria-label="Pause"></button><div class="pilpar"><button class="rundknapp" id="dforr" type="button" aria-label="Forrige"></button><button class="rundknapp" id="dnest" type="button" aria-label="Neste"></button></div></div></div>
 </section>
 
 <section id="sports" style="padding-top:20px;padding-bottom:0">
@@ -3452,6 +3466,7 @@ section[id],header[id]{scroll-margin-top:108px}
     {id:'problem',navn:'Én app',ik:'<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5.5h3"/>'},
     {id:'inside',navn:'Slik ser det ut',ik:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7 9h10M7 12.5h7M7 16h4"/>'},
     {id:'flyt',navn:'Fra årsplan til innsikt',ik:'<rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M8 12h8M13 9l3 3-3 3"/>'},
+    {id:'dflyt',navn:'Detaljene som avgjør',ik:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/>'},
     {id:'sports',navn:'Idretter',ik:'<path d="M4 19.5l14-13M7.5 21l14-13"/><circle cx="15.5" cy="4.5" r="1.6"/>'},
     {id:'trener',navn:'For trenere',ik:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 14.5c2.8.2 4.5 1.9 4.5 4.5"/>'},
     {id:'features',navn:'Funksjoner',ik:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="3" height="4" rx=".8"/>'},

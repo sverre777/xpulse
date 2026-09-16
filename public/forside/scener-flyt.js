@@ -5,9 +5,9 @@
 
    TO SCENER ER UTKAST og ikke bygget i appen: «Live styrke v2» (Tren) og
    «Formkartet» (Analyser). De ligger her ferdig, men filtreres ut av SC for
-   karusell() kalles sa lenge VIS_UTKAST_SCENER er false. Forsiden skal aldri
+   karusell() kalles nar VIS_UTKAST_SCENER er false (Sverre slo dem PA 16. sep). Forsiden skal aldri
    vise noe som ikke finnes i appen. Kapittel «Tren» beholder helse-scenen. */
-var VIS_UTKAST_SCENER = false;
+var VIS_UTKAST_SCENER = true; /* Sverre 16. sep: vis dem na - live styrke v2 og formkartet er pa vei inn i appen */
 var UTKAST_TITLER = ['LØFT MED ÉN HÅND.', 'SE HELE FORMEN PÅ ÉN AKSE.'];
 
 function oktbyggerIkon(){var farger=['#1A6FD4','#E23A5A','#28A86E','#FF4500'];var d=IK.oktbygger.f.split(/(?=M)/);

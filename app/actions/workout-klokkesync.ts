@@ -1,5 +1,6 @@
 'use server'
 
+import { kurvespennSek } from '@/lib/klokketid'
 import { createClient } from '@/lib/supabase/server'
 import { medTid } from '@/lib/ytelse-tid'
 import type { Sport } from '@/lib/types'
@@ -318,7 +319,11 @@ async function getWorkoutKlokkesyncDataIndre(
   }
 
   // Segmenter for båndet/vinduene: kurvens lengde er tidslinjens fasit.
-  const totalSek = kurveLengdeSek(samples)
+  // Spennet fra lib/klokketid - SAMME funksjon stillestand-actionen bruker
+  // (Sverre 16. sep). Var en lokal «siste t»; med prøver fra t=0 er
+  // første-til-siste det samme tallet, og ellers er det spennet som er
+  // riktig.
+  const totalSek = kurvespennSek(samples) ?? 0
   const segmenter = totalSek > 0
     ? beregnSegmenter((activities ?? []).map(a => ({
         id: a.id,
@@ -413,19 +418,6 @@ function secondsFromStart(
 }
 
 // Kurvens lengde i sekunder = siste t på tvers av sample-seriene.
-function kurveLengdeSek(samples: WorkoutSamples | null): number {
-  if (!samples) return 0
-  let maks = 0
-  const serier = [
-    samples.hr_samples, samples.watt_samples, samples.pace_samples,
-    samples.speed_samples, samples.altitude_samples, samples.cadence_samples,
-  ]
-  for (const serie of serier) {
-    const siste = serie?.[serie.length - 1]
-    if (siste && siste.t > maks) maks = siste.t
-  }
-  return maks
-}
 
 
 // ── Nedsampling av et helt sample-sett ──────────────────────

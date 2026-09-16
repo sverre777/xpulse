@@ -1,5 +1,7 @@
 'use client'
 
+import { klokketidForVisning } from '@/lib/klokketid'
+import { fmtKlokkeSek } from '@/lib/segmenter'
 import { useMemo } from 'react'
 import { klokkeslettTilSek } from '@/lib/oktbygger-rader'
 import type { LactateRow, NutritionEntryRow } from '@/lib/types'
@@ -94,7 +96,6 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
     // Sverre 14. sep: elapsed = hele spennet økta tar, men KUN fra øktas egne
     // rader - treningstid + pauser + veksling + skyting.
-    let elapsedSeconds = 0
     let totalMeters = 0
     const movementSeconds: Record<string, number> = {}
     // Pace per bevegelsesform: vekt = sekunder, slik at lange økter teller mer.
@@ -122,7 +123,6 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
       const meta = findActivityType(a.activity_type)
       const isPause = IKKE_TRENINGSTID_TYPER.has(a.activity_type)
       const durSec = parseActivityDuration(a.duration) ?? 0
-      elapsedSeconds += durSec
 
       // Skytestatistikk — summer skudd alltid; summer treff (og "scored"-nevner)
       // kun der treff er eksplisitt fylt inn.
@@ -242,7 +242,6 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
     return {
       totalSeconds,
       shootingSeconds,
-      elapsedSeconds,
       totalMeters,
       movementList,
       zoneSeconds,
@@ -281,11 +280,11 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
     : planNokkeltallCeller(planBlokker ?? [], heartZones)
   if (klokke?.data.samples && totalKm > 0) celler.push({ id: 'km', etikett: 'Distanse', verdi: totalKm.toFixed(1), hale: 'km' })
   if (summary.shootingSeconds > 0) celler.push({ id: 'skyting', etikett: 'Skyting', verdi: `${Math.round(summary.shootingSeconds / 60)}`, hale: 'min · utenfor treningstid' })
-  // Elapsed vises bare når den faktisk skiller seg fra treningstida - altså
-  // når økta har ren pause eller veksling i seg.
-  if (summary.elapsedSeconds > summary.totalSeconds + summary.shootingSeconds + 30) {
-    celler.push({ id: 'elapsed', etikett: 'Elapsed', verdi: `${Math.round(summary.elapsedSeconds / 60)}`, hale: 'min · med pause' })
-  }
+  // KLOKKETID (het «Elapsed» og var radsummen - Sverre 16. sep): kurvens
+  // spenn etter regel B i lib/klokketid, null = ikke vis. Ingen samples =
+  // ingen klokke = ingen celle.
+  const klokketidSek = klokketidForVisning(klokke?.data.totalSek ?? null, summary.totalSeconds)
+  if (klokketidSek != null) celler.push({ id: 'klokketid', etikett: 'Klokketid', verdi: fmtKlokkeSek(klokketidSek), hale: 'med pauser' })
   if (summary.bestPaceSeconds != null) celler.push({ id: 'pace', etikett: 'Beste pace', verdi: formatPace(summary.bestPaceSeconds, paceUnit), hale: summary.bestPaceMovement ?? undefined })
   if (summary.lactateCount > 0) celler.push({ id: 'laktat', etikett: 'Laktat', verdi: `${summary.lactateCount}×`, hale: summary.lactateMax != null ? `maks ${summary.lactateMax.toFixed(1)}` : undefined })
 
@@ -304,6 +303,7 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
       {klokke?.data.samples && klokke.data.sport && (
         <div className="mb-3">
           <WorkoutDetailChart
+            klokketidSek={klokketidSek}
             tetthet="skjema"
             flate="skjema"
             distanseKm={totalKm > 0 ? totalKm : null}

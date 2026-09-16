@@ -19,6 +19,8 @@ import Link from 'next/link'
 
 interface Props {
   workoutId: string
+  /** Klokketid etter regel B, regnet av flaten over (WorkoutOverview). */
+  klokketidSek?: number | null
   /** Trener ser utøverens økt (Erik Jørstad 15. sep): lenker som peker på
       «mine innstillinger» må ALDRI vises da - treneren havnet på sin egen
       terskelside og kunne endret egne tall i den tro at det var utøverens. */
@@ -81,7 +83,7 @@ function KlokkedataLaster() {
   )
 }
 
-export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger, punktStil, targetUserId }: Props) {
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger, punktStil, targetUserId, klokketidSek = null }: Props) {
   // Henter selv bare når ingen deler dataene med oss (øktas hovedside).
   const egen = useKlokkedata(klokke ? null : workoutId, refreshTick)
   const state = klokke ?? egen
@@ -207,6 +209,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
       {visGraf && hasSamples && data.samples && data.sport && (
         <WorkoutDetailChart
           workoutId={workoutId}
+          klokketidSek={klokketidSek}
           sport={data.sport}
           samples={data.samples}
           laps={data.lapMarkers}

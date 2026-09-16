@@ -738,7 +738,7 @@ export function OktbyggerPopup({
                   onErnaering={onErnaering} settErnaeringMin={settErnaeringMin}
                   onEndreRad={(id, patch) => endre(rader.map(x => (x.id === id ? { ...x, ...patch } : x)))} />
               )}
-              <ByggSum utkast={plassering} heartZones={heartZones} rpe={rpe} erPlanlagt={erPlanlagt} />
+              <ByggSum utkast={plassering} heartZones={heartZones} rpe={rpe} erPlanlagt={erPlanlagt} kurvespennSek={harKurve ? grunnlag.totalSek : null} />
 
               {/* ── RADENE ── tid som tall, del/slå sammen/slett/type/navn. */}
               <div className="space-y-1">

@@ -35,6 +35,8 @@ import {
   STILLESTAND_MERKE, type StillestandResultat,
 } from '@/lib/stillestand'
 import { splittForStillestand, angreSplitt, type SplittRad } from '@/lib/stillestand-splitt'
+import { spennAvTider, klokketidForVisning } from '@/lib/klokketid'
+import { computeActivityTotals } from '@/lib/activity-summary'
 import { beregnSegmenter, type SegmentRad } from '@/lib/segmenter'
 import type { Fartprove, Stillestand } from '@/lib/stillestand'
 import type { HeartZone } from '@/lib/heart-zones'
@@ -161,11 +163,18 @@ export async function forhandsvisStillestand(
   // SAMME funksjon som kjøringen bruker. Dialogen skal aldri kunne love
   // noe kjøringen ikke gjør.
   const f = periodeneSomBlirPauser(prover, (rader ?? []) as unknown as Rad[])
+  // Klokketid til dialogen: regel B fra lib/klokketid, mot treningstida
+  // radene gir. Regnes HER, så dialogen bare skriver tallet.
+  const treningstid = computeActivityTotals(((rader ?? []) as unknown as Rad[]).map(r => ({
+    activity_type: r.activity_type, duration_seconds: r.duration_seconds,
+    distance_meters: r.distance_meters, avg_heart_rate: r.avg_heart_rate, zones: r.zones,
+  })), []).totalSeconds
   return {
     antall: f.beholdt.length,
     sumSek: stillestandSum(f.beholdt),
     timerTimeSek: null,
     elapsedSek: f.totalSek,
+    klokketidSek: klokketidForVisning(f.totalSek, treningstid),
     hoppetOverSkyting: f.hoppetOverSkyting,
     utenforRader: f.utenforRader,
   }
@@ -240,8 +249,9 @@ function periodeneSomBlirPauser(
   rader: Rad[],
 ): { beholdt: Stillestand[]; hoppetOverSkyting: number; utenforRader: number;
      plass: Map<string, { fra: number; til: number }>; totalSek: number } {
-  const tider = prover.map(p => p.t)
-  const totalSek = tider.length > 0 ? Math.max(...tider) - Math.min(...tider) : 0
+  // Spennet fra lib/klokketid - SAMME funksjon øktgrafen bruker som
+  // tidslinjens fasit (Sverre 16. sep: ett tall, ett sted).
+  const totalSek = spennAvTider(prover.map(p => p.t)) ?? 0
   const plass = plasseringer(rader, totalSek)
   const alle = finnStillestand(prover)
   const etterSkyting = utenSkytingOverlapp(alle, skytevinduer(rader, plass))

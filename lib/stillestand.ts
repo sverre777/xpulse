@@ -216,6 +216,9 @@ export interface StillestandResultat {
   timerTimeSek: number | null
   /** Spennet klokka faktisk tok opp - første til siste fartsprøve. */
   elapsedSek: number
+  /** Klokketid etter regel B (lib/klokketid), eller null = ikke vis.
+      Settes av forhåndsvisningen; kjøringen trenger den ikke. */
+  klokketidSek?: number | null
   /** Perioder vi hoppet over fordi de overlapper standplass. */
   hoppetOverSkyting: number
   /** Perioder som faller utenfor alle rader. De telles IKKE som pauser:

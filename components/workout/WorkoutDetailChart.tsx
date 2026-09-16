@@ -106,6 +106,9 @@ interface Props {
   np?: number | null
   /** Planens tall når økta er koblet til en plan (bolk 5/7). */
   planVarighetSek?: number | null
+  /** Klokketid etter regel B (lib/klokketid), ferdig regnet av kalleren.
+      null = ikke vis. Grafen regner aldri selv. */
+  klokketidSek?: number | null
   forventetRpe?: number | null
   /** Punktene fra workouts.tidspunkt_notater (bolk 8): notat-punkter (fylt)
       og planlagte punkter (hule, vises med «Vis plan»). Ført laktat og
@@ -165,7 +168,7 @@ export function WorkoutDetailChart({
   sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
   height = 300, tetthet = 'full', punktStil = 'etikett', kontroller = 'alle', heartZones = [], rpe = null, onRpe, np = null,
-  planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn,
+  planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn, klokketidSek = null,
   ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km', sonerRader = [], rader = [],
   styrt, ekstraSerier, tidsakseSek,
 }: Props) {
@@ -415,6 +418,11 @@ export function WorkoutDetailChart({
           <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             Økt-graf
+            {klokketidSek != null && (
+              <span data-graf-klokketid style={{ marginLeft: 10, letterSpacing: '0.06em', color: 'var(--tekst-5-app)' }}>
+                · Klokketid {fmtKlokkeSek(klokketidSek)}
+              </span>
+            )}
           </p>
         )}
         <div className="flex gap-4 flex-wrap" data-chip-rader>

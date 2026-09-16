@@ -24,6 +24,7 @@ import {
 } from '@/app/actions/stillestand'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { Ikon } from '@/components/ui/ikoner'
+import { fmtKlokkeSek } from '@/lib/segmenter'
 import { ACTIVITY_TYPES, type ActivityRow } from '@/lib/types'
 
 /** «aktiv pause», «veksling», «skyting L» - slik utøveren ser typen. */
@@ -141,7 +142,7 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
     const ok = await xpConfirm({
       title: `Fant ${f.antall} ${f.antall === 1 ? 'periode' : 'perioder'}, til sammen ${ned}.`,
       body: `Totaltida på økta går ned med ${ned} - det er tida du sto stille.\n`
-        + `${FOLGER}${skyting}\n\n`
+        + `${FOLGER}${f.klokketidSek != null ? ` Klokketid ${fmtKlokkeSek(f.klokketidSek)}.` : ''}${skyting}\n\n`
         + 'Du kan angre, og du kan endre en rad til aktiv pause hvis du var i bevegelse.',
       confirmLabel: 'Lag pausene',
     })

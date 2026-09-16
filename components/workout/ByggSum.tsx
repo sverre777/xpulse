@@ -13,6 +13,8 @@
 //
 // Stripa er ren AVLEDNING og skriver ingenting.
 
+import { klokketidForVisning } from '@/lib/klokketid'
+import { fmtKlokkeSek } from '@/lib/segmenter'
 import { useMemo } from 'react'
 import {
   computeActivityTotals, ZONE_COLORS_V2, isShootingActivityType,
@@ -32,12 +34,14 @@ function varighetTekst(sek: number): { tall: string; enhet: string } {
 }
 
 export function ByggSum({
-  utkast, heartZones, rpe, erPlanlagt,
+  utkast, heartZones, rpe, erPlanlagt, kurvespennSek = null,
 }: {
   utkast: Utkast[]
   heartZones: HeartZone[]
   rpe: number | null
   erPlanlagt: boolean
+  /** Kurvens spenn (klokke.totalSek) - klokketid etter regel B i lib/klokketid. */
+  kurvespennSek?: number | null
 }) {
   const sum = useMemo(() => {
     const rader: ActivityLike[] = utkast.map(u => ({
@@ -71,6 +75,8 @@ export function ByggSum({
   const { t, hovedsone } = sum
   const totalSek = t.totalSeconds + t.pauseSeconds + t.vekslingSeconds + t.shootingSeconds
   const v = varighetTekst(totalSek)
+  // Klokketid: regel B fra lib/klokketid mot treningstida - null = ingen celle.
+  const klokketidSek = klokketidForVisning(kurvespennSek, t.totalSeconds)
   const hovedTid = hovedsone ? Math.round(t.zoneSeconds[hovedsone] / 60) : 0
 
   const bandDeler = [
@@ -104,6 +110,12 @@ export function ByggSum({
           <div style={merkelapp}>VARIGHET</div>
           <div style={verdi}>{v.tall}<small style={enhet}> {v.enhet}</small></div>
         </div>
+        {klokketidSek != null && (
+          <div style={celle} data-klokketid>
+            <div style={merkelapp}>KLOKKETID</div>
+            <div style={verdi}>{fmtKlokkeSek(klokketidSek)}</div>
+          </div>
+        )}
         <div style={celle}>
           <div style={merkelapp}>HOVEDSONE</div>
           <div style={{ ...verdi, color: hovedsone ? ZONE_COLORS_V2[hovedsone] : 'var(--tekst-5-app)' }}>

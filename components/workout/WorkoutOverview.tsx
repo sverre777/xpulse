@@ -43,6 +43,8 @@ import { TrenerChip } from '@/components/coach/TrenerChip'
 import { EndretAvTrener } from '@/components/workout/EndretAvTrener'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
+import { useKlokkedata } from '@/components/workout/useKlokkedata'
+import { klokketidForVisning } from '@/lib/klokketid'
 import { grupperRaderSamlet, heleOkta, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
@@ -180,6 +182,9 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   onDataEndret?: () => void
 }) {
   const harSki = useHarSkiskyting()
+  // Klokkedata fra lageret (useKlokkedata husker per økt) - samme sett
+  // klokkeseksjonen under bruker, ingen ny henting. Bare spennet leses her.
+  const klokke = useKlokkedata(workoutId)
   // Plan bak for en dagbok-økt uten klokke (Sverre 5. sep) — samme action som
   // øktgrafen og byggeren; bryteren husker valget per økt (lib/vis-plan).
   const [planBakBlokker, setPlanBakBlokker] = useState<PlanBlokkBak[]>([])
@@ -302,24 +307,19 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   })()
   const speedKmh = totalSec > 0 && totalKm > 0 ? (totalKm / (totalSec / 3600)) : 0
 
-  // KLOKKETID = det klokka på håndleddet viste fra start til stopp, med
-  // pauser og alt. TOTALTID er treningstiden, og den GÅR NED når pauser
-  // legges inn (Sverre 16. sep). Klokketid SUMMERES ALDRI inn i noe - den
-  // er til å se på.
+  // KLOKKETID = det klokka viste fra start til stopp, med pauser og alt.
+  // TOTALTID er treningstiden, og den GÅR NED når pauser legges inn
+  // (Sverre 16. sep). Klokketid SUMMERES ALDRI inn i noe - den er til å se på.
   //
-  // Alle radene til sammen er øktas spenn: pause og standplass er tid som
-  // gikk, de er bare ikke trening.
-  const klokketidSek = activities.reduce((sum, a) => {
-    const like = allLikes.get(a.id)
-    return sum + (like?.duration_seconds ?? 0)
-  }, 0)
-  // Vises BARE når den skiller seg fra totaltid. På en økt uten pauser er
-  // de like, og to like tall ved siden av hverandre er støy.
-  const visKlokketid = klokketidSek > 0 && Math.round(klokketidSek / 60) !== Math.round(totalSec / 60)
+  // Fra KURVENS SPENN, ikke radsummen (Sverre 16. sep): en sum av
+  // varigheter ser ikke hullene mellom radene. Regel B og grunnene står i
+  // lib/klokketid - null betyr «ikke vis», også når opptaket ikke dekker økta.
+  const klokketidSek = klokketidForVisning(klokke.data?.totalSek ?? null, totalSec)
+  const visKlokketid = klokketidSek != null
 
   const stats: { k: string; v: ReactNode; sm?: boolean }[] = []
   if (totalSec > 0) stats.push({ k: 'Total tid', v: fmtClock(totalSec) })
-  if (visKlokketid) stats.push({ k: 'Klokketid', v: fmtClock(klokketidSek) })
+  if (visKlokketid) stats.push({ k: 'Klokketid', v: fmtClock(klokketidSek!) })
   if (totalKm > 0) stats.push({ k: 'Distanse', v: <>{fmtNo(totalKm)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>km</span></> })
   if (hrWeighted > 0) stats.push({ k: 'Snittpuls', v: <>{hrWeighted} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>bpm</span></> })
   if (speedKmh > 0) stats.push({ k: 'Snittfart', v: <>{fmtNo(speedKmh)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>km/t</span></> })
@@ -637,7 +637,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
               <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
-          <WorkoutKlokkesyncSection workoutId={workoutId} targetUserId={targetUserId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick}
+          <WorkoutKlokkesyncSection workoutId={workoutId} targetUserId={targetUserId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick} klokketidSek={klokketidSek}
             handlinger={canEdit ? {
               onOktbygger: () => (onOpenOktbygger ?? onEdit)(),
               onPlottTreff: () => (onOpenOktbygger ?? onEdit)(),

@@ -181,26 +181,7 @@ export function aarsplan(): { season: Season; periods: SeasonPeriod[]; markings:
   return { season, periods, markings, keyDates }
 }
 
-// ── PLOTT TREFF · serie 2 · stående · 4/5, bom blink 2 høyre oppe ──
-export function plottTreffGruppe(): PlottTreffGruppe {
-  return {
-    activityId: 'okt-5', activityType: 'skyting_kombinert', shootingType: null, erTest: false, testRef: null, sortOrder: 5,
-    startSek: 1200 + 600 + 60 + 120 + 600, sluttSek: 1200 + 600 + 60 + 120 + 600 + 60,
-    serier: [{
-      id: 's2', db_id: 's2', position: 'S', shots: '5', hits: '4', time_seconds: '28.4', avg_heart_rate: '168', max_heart_rate: '', note: '',
-      shot_plot: [{ x: 0.53, y: 0.48 }, { x: 0.72, y: 0.35 }, { x: 0.45, y: 0.53 }, { x: 0.57, y: 0.55 }, { x: 0.48, y: 0.43 }],
-      points: '', vind_retning: 'H', vind_styrke: 3, sikt: 'god',
-    }],
-  } as unknown as PlottTreffGruppe
-}
 
-// ── STANDARDØKTA: 3 × 20 min I3 / 3 min · oppv 15 · nedjogg 12 ──
-export function standardoktBlokker(): PlanBlokkInn[] {
-  const ut: ActivityRow[] = []
-  const legg = (type: string, sek: number, sone?: string) => { const r = nyAktivitetsrad(type as ActivityRow['activity_type'], 'Løping'); r.duration = mmss(sek); if (sone) r.zones = { ...r.zones, [sone]: mmss(sek) } as ActivityRow['zones']; ut.push(r) }
-  legg('oppvarming', 900, 'I1'); for (let i = 0; i < 3; i++) { legg('aktivitet', 1200, 'I3'); if (i < 2) legg('aktiv_pause', 180) } legg('nedjogg', 720, 'I1')
-  return fraActivityRows(ut)
-}
 
 type CustomBreakdownInn = import('@/app/actions/analysis').CustomBreakdown
 

@@ -8,10 +8,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { PlanGraf, planNokkeltallCeller, Nokkeltall } from '@/components/workout/PlanGraf'
 import { byggPlanBlokker } from '@/lib/plan-graf'
-import { WorkoutDetailChart, Detaljrad } from '@/components/workout/WorkoutDetailChart'
-import { AktivitetKnapperad } from '@/components/workout/AktivitetKnapperad'
+import { WorkoutDetailChart } from '@/components/workout/WorkoutDetailChart'
 import { IntervallBygger } from '@/components/workout/IntervallBygger'
 import { HelseOversikt } from '@/components/helse/HelseOversikt'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
@@ -19,13 +17,9 @@ import { SamletBryter } from '@/components/workout/SamletBryter'
 import { WorkoutChip, CalendarActionsStubProvider } from '@/components/calendar/Calendar'
 import { KompaktKurverProvider } from '@/components/calendar/kompakt-kurver'
 import { SeasonCanvas } from '@/components/periodization/SeasonCanvas'
-import { Gruppe as PlottTreffGruppeVisning } from '@/components/workout/PlottTreff'
-import { RpeSkala } from '@/components/ui/RpeSkala'
 import { SerieListe } from '@/components/workout/SerieListe'
-import { fraTidspunktNotater } from '@/components/workout/Punkt'
 import {
-  oktaRader, oktaPlanBlokker, oktaSegmenter, oktaSamples, oktaLaps, OKTA_LAKTAT, OKTA_ERNAERING, OKTA_TOTAL,
-  kalenderUke, helseData, aarsplan, plottTreffGruppe, standardoktBlokker, customBreakdownDemo
+  oktaRader, oktaPlanBlokker, oktaSegmenter, oktaSamples, oktaLaps, OKTA_LAKTAT, OKTA_ERNAERING, OKTA_TOTAL, kalenderUke, helseData, aarsplan, customBreakdownDemo
 } from '@/lib/forside-eksport-data'
 import type { PlanBlokk } from '@/app/actions/runder'
 
@@ -62,8 +56,6 @@ function ForsideEksportInnhold() {
   const uke = useMemo(() => kalenderUke(), [])
   const helse = useMemo(() => helseData(), [])
   const aars = useMemo(() => aarsplan(), [])
-  const plott = useMemo(() => plottTreffGruppe(), [])
-  const standardokt = useMemo(() => standardoktBlokker(), [])
   // Planens blokker bak kurven: samme økt som plan, med tidsvinduer.
   const planBak: PlanBlokk[] = useMemo(() => byggPlanBlokker(plan).map((b, i) => (
     { id: `pb-${i}`, type: b.type, navn: b.navn, startSek: b.startSek, sluttSek: b.startSek + b.sek, sone: b.sone ? String(b.sone) : null }
@@ -90,51 +82,16 @@ function ForsideEksportInnhold() {
         </CalendarActionsStubProvider>
       </Kort>
 
-      <Kort navn="telefon-uke" bredde={300}>
-        <CalendarActionsStubProvider>
-          <KompaktKurverProvider byDate={{}}>
-            {uke.map(d => (
-              <div key={d.dato} data-eksport-dag={d.dato} style={{ marginBottom: 6 }}>
-                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, letterSpacing: '0.14em', color: 'var(--tekst-5-app)', margin: '0 0 3px' }}>{d.dag}</p>
-                {d.okter.map(w => <WorkoutChip key={w.id} w={w} dateStr={d.dato} mode="dagbok" kompakt={false} />)}
-              </div>
-            ))}
-          </KompaktKurverProvider>
-        </CalendarActionsStubProvider>
-      </Kort>
-
-      <Kort navn="oktkort-plan" bredde={330}>
-        <CalendarActionsStubProvider><KompaktKurverProvider byDate={{}}>
-          <WorkoutChip w={{ ...uke[3].okter[0], is_planned: true, is_completed: false }} dateStr={uke[3].dato} mode="plan" kompakt={false} />
-        </KompaktKurverProvider></CalendarActionsStubProvider>
-      </Kort>
       <Kort navn="oktkort-gjennomfort" bredde={330}>
         <CalendarActionsStubProvider><KompaktKurverProvider byDate={{}}>
           <WorkoutChip w={{ ...uke[3].okter[0], rpe: 7 } as typeof uke[3]['okter'][0]} dateStr={uke[3].dato} mode="dagbok" kompakt={false} />
         </KompaktKurverProvider></CalendarActionsStubProvider>
-      </Kort>
-      <Kort navn="standardokt-stripe" bredde={500}>
-        <PlanGraf blokker={standardokt} tetthet="kompakt" hoyde={40} />
-      </Kort>
-
-      <Kort navn="oktkart" bredde={500}>
-        <PlanGraf blokker={plan} tetthet="full" punkter={fraTidspunktNotater([{ id: 'p1', sek: 1200 + 600 + 60 + 120 + 600 + 30, type: 'laktat', tekst: '', planlagt: true }])} />
-        <Nokkeltall celler={planNokkeltallCeller(plan)} rpe={6} rpeEtikett="Forventet" />
       </Kort>
 
       <Kort navn="oktgraf" bredde={540}>
         <WorkoutDetailChart kurveStandard height={smal ? 170 : 200} sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
           segmenter={segmenter} heartZones={[]} np={238} rpe={7} onRpe={ingen} forventetRpe={6} planBlokkerInn={planBak}
           handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
-      </Kort>
-
-      <Kort navn="oktgraf-skjema" bredde={500}>
-        <WorkoutDetailChart kurveStandard height={smal ? 170 : 200} tetthet="skjema" sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
-          segmenter={segmenter} heartZones={[]} np={238} planBlokkerInn={planBak} />
-      </Kort>
-
-      <Kort navn="knapperad" bredde={500}>
-        <AktivitetKnapperad isPlanMode harSkyting userHasBiathlon onOktbygger={ingen} onLeggTilAktivitet={ingen} onLeggTilSkyting={ingen} />
       </Kort>
 
       <Kort navn="hurtigoppsett" bredde={500}>
@@ -162,24 +119,11 @@ function ForsideEksportInnhold() {
           onPickPeriod={ingen} onPickMarking={ingen} onDrawMarking={ingen} />
       </Kort>
 
-      <Kort navn="plott-treff" bredde={700}>
-        <PlottTreffGruppeVisning gruppe={plott} nr={2} antallLike={2} rekkefolge={2} hr={samples.hr_samples ?? []} ownTests={[]} onSerier={ingen} />
-      </Kort>
-
-      <Kort navn="detaljrad" bredde={540}>
-        <Detaljrad rpe={7} onRpe={ingen} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} segmenter={segmenter}
-          handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
-      </Kort>
-
       {/* Forside v7 bolk 6 (Sverre 6. sep): KUN skytestripen under «Før skytingen som på standplass» -
           den ekte serie-raden fra økt-skjemaet: S · 5 skudd · 4 treff · 28,4 s · puls inn 168 (manuelt ført = M-chip) · vimpel 3 H · ×. */}
       <Kort navn="skytestripe" bredde={smal ? 340 : 720}>
         <SerieListe planMode={false} showPoints={false} onChange={ingen}
           series={[{ id: 'ss-1', position: 'S', shots: '5', hits: '4', time_seconds: '28.4', avg_heart_rate: '168', max_heart_rate: '', note: '', shot_plot: null, points: '', vind_retning: 'H', vind_styrke: 3, sikt: 'god' }]} />
-      </Kort>
-
-      <Kort navn="rpe-skala" bredde={420}>
-        <RpeSkala value={7} onChange={ingen} kompakt etikett="Opplevd belastning 1-10" />
       </Kort>
 
       <p style={{ fontSize: 12, color: 'var(--tekst-8-alt)' }}>Total øktlengde {Math.round(OKTA_TOTAL / 60)} min · {rader.length} rader</p>

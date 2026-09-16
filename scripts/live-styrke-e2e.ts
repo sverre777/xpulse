@@ -51,7 +51,7 @@ async function hentNettleser(): Promise<Nettleser> {
 async function loggInn(b: Nettleser, epost: string): Promise<Side> {
   const ctx = await b.newContext({ viewport: { width: 420, height: 900 }, isMobile: true, hasTouch: true })
   const p = await ctx.newPage(); p.setDefaultTimeout(60000)
-  await p.goto(`${BASE}/app`, { waitUntil: 'load' }); await p.waitForTimeout(800)
+  await p.goto(`${BASE}/app`, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(800)
   await p.fill('input[type="email"]', epost); await p.fill('input[type="password"]', PASS)
   await p.getByRole('button', { name: /logg inn/i }).first().click(); await p.waitForTimeout(9000)
   const k = p.getByRole('button', { name: /OK, forstått/i })
@@ -116,7 +116,7 @@ try {
 
   b = await hentNettleser()
   const p = await loggInn(b, ut.epost)
-  await p.goto(`${BASE}/app/okt/${idag}`, { waitUntil: 'load' })
+  await p.goto(`${BASE}/app/okt/${idag}`, { waitUntil: 'domcontentloaded' })
   await p.locator('[data-live-styrke]').waitFor({ timeout: 60000 })
   await p.waitForTimeout(1500)
 

@@ -1,0 +1,170 @@
+// FORMKARTET - UTFALLSTEST MOT DEN EKTE FLATA (bolk 2, utvides i bolk 7).
+// Kjør:  TESTBRUKERE=ja npm run formkart-e2e    (krever dev på :3953)
+//
+// Regel 40: beviset er det som TEGNES for seeda data - sonesegmenter,
+// sykdomsdag, hardøkt-prikk, CTL-linje, HRV-avvik, følelse, skyteprikker
+// og tooltip-tallene - ikke at actionen svarte.
+// IKKE PÅ PREBUILD: lager ekte brukere i prod og rydder dem etterpå.
+
+import {
+  admin, PASS, krevSamtykke, lagBruker, girAbonnement, rydd, status, lagSjekker, UTOVER_META,
+} from './testbrukere.ts'
+
+const PREFIKS = 'cc-fkrt'
+const BASE = process.env.XP_BASE ?? 'http://localhost:3953'
+krevSamtykke('formkart-e2e')
+const { sjekk, tall } = lagSjekker()
+const maa = <T,>(r: { data: T; error: { message: string } | null }, h: string): T => {
+  if (r.error) throw new Error(`${h}: ${r.error.message}`); return r.data
+}
+
+type Element = {
+  waitFor: (o?: unknown) => Promise<void>; count: () => Promise<number>; first: () => Element
+  click: () => Promise<void>; textContent: () => Promise<string | null>; getAttribute: (n: string) => Promise<string | null>
+  boundingBox: () => Promise<{ x: number; y: number; width: number; height: number } | null>
+  scrollIntoViewIfNeeded: () => Promise<void>
+}
+type Side = {
+  setDefaultTimeout: (n: number) => void; goto: (u: string, o?: unknown) => Promise<unknown>
+  fill: (s: string, v: string) => Promise<void>; waitForTimeout: (n: number) => Promise<void>
+  getByRole: (r: string, o?: unknown) => Element; locator: (s: string) => Element
+  mouse: { move: (x: number, y: number) => Promise<void> }
+}
+type Nettleser = { newContext: (o: unknown) => Promise<{ newPage: () => Promise<Side> }>; close: () => Promise<void> }
+
+async function hentNettleser(): Promise<Nettleser> {
+  const last = async (navn: string, valg?: unknown) => {
+    const spec: string = navn
+    const m = await import(spec) as { chromium: { launch: (o?: unknown) => Promise<Nettleser> } }
+    return await m.chromium.launch(valg)
+  }
+  try { return await last('playwright') } catch { /* core mot Chrome */ }
+  try { return await last('playwright-core', { channel: 'chrome' }) } catch { /* ingen */ }
+  throw new Error('Playwright mangler: npm i -D playwright-core')
+}
+
+async function loggInn(b: Nettleser, epost: string, bredde = 1400): Promise<Side> {
+  const ctx = await b.newContext({ viewport: { width: bredde, height: 1000 } })
+  const p = await ctx.newPage(); p.setDefaultTimeout(60000)
+  await p.goto(`${BASE}/app`, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(800)
+  await p.fill('input[type="email"]', epost); await p.fill('input[type="password"]', PASS)
+  await p.getByRole('button', { name: /logg inn/i }).first().click(); await p.waitForTimeout(9000)
+  const k = p.getByRole('button', { name: /OK, forstått/i })
+  if (await k.count()) await k.first().click().catch(() => {})
+  return p
+}
+
+const dagerSiden = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10) }
+
+export async function seedFormkart(uid: string): Promise<{ oktDato: string }> {
+  // Terskel 180 fra lenge siden - % av terskel skal regnes mot den.
+  maa(await admin.from('user_thresholds').insert({ user_id: uid, movement_name: '', movement_subcategory: '', threshold_hr: 180, valid_from: '2024-01-01' }), 'terskel')
+  // Fullført økt for 3 dager siden: I1 1 t + I3 20 min (hardøkt), skyting L 5/5 og S 5/3, laktat 2,5 på rad med puls 160.
+  const oktDato = dagerSiden(3)
+  const okt = maa(await admin.from('workouts').insert([{
+    user_id: uid, title: 'CC formkart-økt', sport: 'biathlon', date: oktDato, time_of_day: '10:00',
+    is_planned: false, is_completed: true, completed_at: `${oktDato}T11:30:00Z`, duration_minutes: 80,
+  }], { defaultToNull: false }).select('id').single(), 'okt') as { id: string }
+  const akt = maa(await admin.from('workout_activities').insert({
+    workout_id: okt.id, activity_type: 'aktivitet', movement_name: 'Løping', sort_order: 0,
+    duration_seconds: 4800, avg_heart_rate: 160, zones: { I1: 3600, I3: 1200 },
+  }).select('id').single(), 'aktivitet') as { id: string }
+  maa(await admin.from('workout_shooting_series').insert([
+    { activity_id: akt.id, series_no: 1, position: 'L', shots: 5, hits: 5, time_seconds: 30, avg_heart_rate: 150 },
+    { activity_id: akt.id, series_no: 2, position: 'S', shots: 5, hits: 3, time_seconds: 34, avg_heart_rate: 160 },
+  ]), 'serier')
+  maa(await admin.from('workout_activity_lactate_measurements').insert({ activity_id: akt.id, value_mmol: 2.5, sort_order: 0 }), 'laktat')
+  // Planlagt, ikke gjennomført i går (60 min): åpen kontur, IKKE hviledag.
+  maa(await admin.from('workouts').insert([{
+    user_id: uid, title: 'CC planlagt', sport: 'biathlon', date: dagerSiden(1), time_of_day: '17:00',
+    is_planned: true, is_completed: false, duration_minutes: 60,
+  }], { defaultToNull: false }), 'plan')
+  // Sykdom for 5 dager siden.
+  maa(await admin.from('day_states').insert({ user_id: uid, date: dagerSiden(5), state_type: 'sykdom', is_planned: false }), 'sykdom')
+  // HRV/hvilepuls: grunnivå 50/50 i ti dager, så 60/45 for 2 dager siden (+20 % / -10 %). Følelse 4 samme dag.
+  const helse = []
+  for (let n = 14; n >= 4; n--) helse.push({ user_id: uid, date: dagerSiden(n), hrv_ms: 50, resting_hr: 50, sources: { hrv_ms: 'manual', resting_hr: 'manual' } })
+  helse.push({ user_id: uid, date: dagerSiden(2), hrv_ms: 60, resting_hr: 45, sources: { hrv_ms: 'manual', resting_hr: 'manual' } })
+  maa(await admin.from('health_metrics').insert(helse), 'helse')
+  maa(await admin.from('daily_health').insert({ user_id: uid, date: dagerSiden(2), day_form: 4 }), 'dagsform')
+  return { oktDato }
+}
+
+async function main() {
+console.log('\nFORMKARTET - mot ekte flate\n')
+let b: Nettleser | null = null
+try {
+  const ut = await lagBruker(PREFIKS, 'ut', 'CC Formkart', UTOVER_META)
+  await girAbonnement(ut.uid, 'athlete_pro')
+  console.log('FØR :', await status([ut.uid]))
+  await seedFormkart(ut.uid)
+
+  b = await hentNettleser()
+  const p = await loggInn(b, ut.epost)
+  await p.goto(`${BASE}/app/analyse`, { waitUntil: 'domcontentloaded' })
+  const kart = p.locator('[data-formkart]')
+  await kart.waitFor({ timeout: 60000 })
+  await p.locator('[data-formkart-graf]').waitFor({ timeout: 90000 }).catch(async () => {
+    console.log('  (grafen kom ikke) kortet sier:', ((await kart.textContent()) ?? '').slice(0, 300))
+  })
+  await p.waitForTimeout(800)
+
+  const antall = async (s: string) => p.locator(`[data-formkart] ${s}`).count()
+  sjekk('sonesegmenter tegnet (I1 og I3 for øktdagen)', await antall('rect[data-sone="I1"]') === 1 && await antall('rect[data-sone="I3"]') === 1)
+  sjekk('sykdomsdagen er rød i dagstripa', await antall('rect[data-dagstatus="sykdom"]') === 1)
+  sjekk('hviledager tegnes tomme (fravær av økt)', await antall('rect[data-dagstatus="hviledag"]') >= 20)
+  sjekk('planlagt, ikke gjennomført er IKKE hviledag - åpen kontur i dagstripa og plan bak i sonebanen', await antall('rect[data-dagstatus="planlagt"][stroke-dasharray="2 2"]') === 1 && await antall('rect[stroke-dasharray="2 2"]') === 2)
+  sjekk('hardøkt-prikk over øktdagen (I3 20 min)', await antall('circle[data-hard]') === 1)
+  sjekk('CTL- og ATL-linja finnes (én akse)', await antall('path[data-linje="ctl"]') === 1 && await antall('path[data-linje="atl"]') === 1)
+  sjekk('restitusjon: HRV- og hvilepulslinje + ±1 SD-band', await antall('path[data-linje="hrv"]') === 1 && await antall('path[data-linje="hp"]') === 1 && await antall('rect[data-band]') === 1)
+  sjekk('følelse 4 som prikk i egen bane', await antall('circle[data-folelse="4"]') === 1)
+  sjekk('standplass: liggende og stående som egne prikker', await antall('circle[data-skyting="L"]') === 1 && await antall('circle[data-skyting="S"]') === 1)
+  sjekk('helsebanene er IKKE meldt skjult for utøveren selv', await antall('[data-formkart-helse-skjult]') === 0)
+  sjekk('PC: I1-I5 er standard', (await p.locator('[data-formkart] button[data-sonemodus="fem"]').getAttribute('aria-pressed')) === 'true')
+
+  // Hover over øktdagen (indeks 26 av 30 = 3 dager siden) -> tooltip med tallene.
+  const svg = p.locator('[data-formkart-graf]').first()
+  await svg.scrollIntoViewIfNeeded(); await p.waitForTimeout(300)
+  const bb = (await svg.boundingBox())!
+  const n = 30, bw = (1100 - 56 - 16) / n, i = n - 1 - 3
+  const px = 56 + i * bw + bw / 2
+  await p.mouse.move(bb.x + px / 1100 * bb.width, bb.y + 120)
+  await p.waitForTimeout(300)
+  const tip = (await p.locator('[data-formkart-tip]').textContent()) ?? ''
+  sjekk('tooltip: trening 1 t 20 min', tip.includes('1 t 20 min'), tip.slice(0, 200))
+  sjekk('tooltip: treff L / S = 100 / 60 % (aldri slått sammen)', tip.includes('100 / 60 %'), tip)
+  sjekk('tooltip: puls inn 155 og laktat 2,5 mmol', tip.includes('155') && tip.includes('2,5 mmol'), tip)
+  // Hover over helsedagen (2 dager siden) -> avvik +20 % / -10 %.
+  const i2 = n - 1 - 2
+  await p.mouse.move(bb.x + (56 + i2 * bw + bw / 2) / 1100 * bb.width, bb.y + 120)
+  await p.waitForTimeout(300)
+  const tip2 = (await p.locator('[data-formkart-tip]').textContent()) ?? ''
+  sjekk('tooltip: HRV 60 ms som avvik i % mot grunnivået (+18-20 %)', /60ms\+(18|19|20)%/.test(tip2.replace(/\s+/g, '')), tip2)
+  sjekk('tooltip: hvilepuls 45 med negativt avvik', /45-(8|9|10|11)%/.test(tip2.replace(/\s+/g, '')), tip2)
+  sjekk('tooltip: følelse 4 / 5', tip2.includes('4 / 5'), tip2)
+  sjekk('krysshår tegnes gjennom banene', await antall('line[data-krysshaar]') === 1)
+
+  // Bryteren: Lav / Med / Høy
+  await p.locator('[data-formkart] button[data-sonemodus="tre"]').click()
+  await p.waitForTimeout(300)
+  sjekk('Lav/Med/Høy: lav- og høy-segment, ingen I1', await antall('rect[data-sone="lav"]') === 1 && await antall('rect[data-sone="med"]') === 1 && await antall('rect[data-sone="I1"]') === 0)
+
+  // Mobil: Lav/Med/Høy er standard under 640 px.
+  const pm = await loggInn(b, ut.epost, 390)
+  await pm.goto(`${BASE}/app/analyse`, { waitUntil: 'domcontentloaded' })
+  await pm.locator('[data-formkart-graf]').waitFor({ timeout: 90000 })
+  sjekk('mobil (390 px): Lav / Med / Høy er standard', (await pm.locator('[data-formkart] button[data-sonemodus="tre"]').getAttribute('aria-pressed')) === 'true')
+} finally {
+  if (b) await b.close().catch(() => {})
+  const r = await rydd(PREFIKS)
+  const { data: brukere } = await admin.from('profiles').select('id').like('email', `${PREFIKS}-%`)
+  const uids = (brukere ?? []).map(x => x.id as string)
+  const tellRest = async (t: string) => { const { count } = await admin.from(t).select('*', { count: 'exact', head: true }).in('user_id', uids.length ? uids : ['00000000-0000-0000-0000-000000000000']); return count ?? 0 }
+  console.log('\nRYDDET  før :', r.for)
+  console.log('        etter:', r.etter, `· profiler igjen: ${r.igjen} · health_metrics: ${await tellRest('health_metrics')} · day_states: ${await tellRest('day_states')} · user_thresholds: ${await tellRest('user_thresholds')}`)
+  const { ok, feil } = tall()
+  console.log(`\n${ok} OK · ${feil} FEIL\n`)
+  if (feil > 0 || r.igjen > 0) process.exitCode = 1
+}
+}
+if (process.argv[1]?.endsWith('formkart-e2e.ts')) main().catch(e => { console.error(e); process.exitCode = 1 })

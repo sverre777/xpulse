@@ -20,6 +20,7 @@ import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { VolumeProgressBar } from './VolumeProgressBar'
 import { PlanVsActualCard } from './PlanVsActualCard'
 import { StatusKort, StatusKortSelvhentende } from './StatusKort'
+import { Formkart } from './Formkart'
 import type { OversiktStatus } from '@/lib/oversikt-status-type'
 import dynamic from 'next/dynamic'
 // Lazy: sesong-grafen bærer recharts og hører til favoritt-rendringen (bolk 1).
@@ -182,6 +183,8 @@ export function OverviewTab({ stats, overview, analysisRange, status = null, har
       {overview && (
         <StatusKort overview={overview} status={status} range={analysisRange} harSkiskyting={harSkiskyting} canSeeHealthData={canSeeHealthData} targetUserId={targetUserId} />
       )}
+      {/* FORMKARTET (bolk 2): periodens ene bilde, rett under «Status nå». Henter selv - ett kall. */}
+      <Formkart range={analysisRange} targetUserId={targetUserId} />
       {plannedHours > 0 && (
         <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />
       )}
@@ -476,6 +479,7 @@ export function renderFavoritt(key: string, data: { stats: WorkoutStats; overvie
     case 'overview_training_vs_rest_vs_sickness': return <OverviewTrainingVsRestVsSickness weekly={data.overview.weekly_distribution} />
     case 'overview_custom_breakdown': return <CustomBreakdownChart analysisRange={ctx.range} targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
     case 'oversikt_status_kort': return <StatusKortSelvhentende overview={data.overview} range={ctx.range} targetUserId={ctx.targetUserId} />
+    case 'oversikt_formkart': return <Formkart range={ctx.range} targetUserId={ctx.targetUserId} />
     case 'oversikt_plan_vs_faktisk': return <PlanVsActualCard range={ctx.range} targetUserId={ctx.targetUserId} />
     case 'oversikt_sesong_mot_sesong': return <SesongSammenligningLazy targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
     default: return key.startsWith('oversikt_') || key.startsWith('overview_') ? <OversiktKort overview={data.overview} canSeeHealthData={ctx.canSeeHealthData} bare={key} /> : null

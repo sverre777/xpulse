@@ -23,7 +23,6 @@ import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { computeActivityTotals, hoyIntensitetSek, emptyZoneSeconds } from '@/lib/activity-summary'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { minusDager } from '@/lib/helse-vindu'
-import { addDaysISO } from '@/lib/workout-activity-insert'
 import { harSkiskyting, sporterFraProfil } from '@/lib/har-skiskyting'
 import {
   erHviledag, pctAvTerskel, skytingForDag, snittOgSd, GRUNNIVAA_DAGER,
@@ -46,9 +45,11 @@ type OktRad = {
   workout_activities: AktRad[] | null
 }
 
+// Middag-anker (minusDager), ikke midnatt: lokal midnatt gjennom toISOString
+// gir dagen FØR i Europe/Oslo, og en dagsløkke på det anker går evig lokalt.
 function daysBetween(fra: string, til: string): string[] {
   const ut: string[] = []
-  for (let d = fra; d <= til; d = addDaysISO(d, 1)) ut.push(d)
+  for (let d = fra; d <= til && ut.length < 800; d = minusDager(d, -1)) ut.push(d)
   return ut
 }
 

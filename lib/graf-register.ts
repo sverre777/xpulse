@@ -80,6 +80,8 @@ export const GRAFER: Record<string, GrafDef> = {
   overview_custom_breakdown: G('oversikt', 'Custom graf - fleksibel nedbryting', { data: 'selv', config: true }),
   // BOLK A (6. sep): «STATUS NÅ»-kortet øverst i Oversikt. Boksene får egne nøkler i A2/A3.
   oversikt_status_kort: G('oversikt', 'Status nå (statuskortet)', { bred: true }),
+  // FORMKARTET (16. sep): seks baner på én tidsakse under «Status nå». Bred som statuskortet.
+  oversikt_formkart: G('oversikt', 'Formkartet (belastning, form, helse, skyting på én tidsakse)', { bred: true }),
   oversikt_status_siste_hard: G('oversikt', 'Status nå - siste hardøkt'),
   oversikt_status_neste: G('oversikt', 'Status nå - neste hardøkt og neste økt'),
   oversikt_status_plan: G('oversikt', 'Status nå - timer plan vs gjennomført'),

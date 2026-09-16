@@ -167,8 +167,12 @@ select 'signaturen er (uuid[]) og returnerer integer',
            join pg_namespace n on n.oid = p.pronamespace 
           where n.nspname = 'public' 
             and p.proname = 'merk_kommentarer_lest' 
-            and pg_get_function_identity_arguments(p.oid) = 'uuid[]' 
-            and pg_get_function_result(p.oid) = 'integer' 
+            /* proargtypes/prorettype, IKKE pg_get_function_identity_arguments: */ 
+            /* den beholder parameternavnet og gir «p_ids uuid[]», ikke «uuid[]». */ 
+            /* Maalt 16. sep - foerste utkast meldte FEIL paa en riktig funksjon. */ 
+            and p.pronargs = 1 
+            and p.proargtypes[0] = 'uuid[]'::regtype 
+            and p.prorettype = 'integer'::regtype 
        ) then 'OK' else 'FEIL' end 
 union all 
 select 'AVLESNING: radtall uendret i coach_comments (FØR = ETTER over)', 

@@ -69,9 +69,13 @@ export async function seedFormkart(uid: string): Promise<{ oktDato: string; hels
     workout_id: okt.id, activity_type: 'aktivitet', movement_name: 'Løping', sort_order: 0,
     duration_seconds: 4800, avg_heart_rate: 160, zones: { I1: 3600, I3: 1200 },
   }).select('id').single(), 'aktivitet') as { id: string }
+  // Seriene henger på en skyte-rad, slik appen fører dem (skytedybden leser bare SHOOTING_ACT_TYPES).
+  const skyt = maa(await admin.from('workout_activities').insert({
+    workout_id: okt.id, activity_type: 'skyting_kombinert', movement_name: 'Skyting', sort_order: 1, duration_seconds: 600,
+  }).select('id').single(), 'skyterad') as { id: string }
   maa(await admin.from('workout_shooting_series').insert([
-    { activity_id: akt.id, series_no: 1, position: 'L', shots: 5, hits: 5, time_seconds: 30, avg_heart_rate: 150 },
-    { activity_id: akt.id, series_no: 2, position: 'S', shots: 5, hits: 3, time_seconds: 34, avg_heart_rate: 160 },
+    { activity_id: skyt.id, series_no: 1, position: 'L', shots: 5, hits: 5, time_seconds: 30, avg_heart_rate: 150 },
+    { activity_id: skyt.id, series_no: 2, position: 'S', shots: 5, hits: 3, time_seconds: 34, avg_heart_rate: 160 },
   ]), 'serier')
   maa(await admin.from('workout_activity_lactate_measurements').insert({ activity_id: akt.id, value_mmol: 2.5, sort_order: 0 }), 'laktat')
   // Planlagt, ikke gjennomført i går (60 min): åpen kontur, IKKE hviledag.
@@ -199,6 +203,16 @@ try {
   // Siste sju dager: 50, 50, 50 (dag -6..-4) og 60 (dag -2) = 52,5 mot grunnivå 50,8 -> +3 %.
   sjekk('Helse: HRV 7 mot 60 = +3 % (52,5 ms siste 7 d mot 50,8 ms på 60 d)', hmt.includes('+3 %') && hmt.includes('52,5 ms siste 7 d mot 50,8 ms'), hmt.slice(0, 200))
   sjekk('Helse: 1 sykdomsdag, 1 periode, «uka før startet: i snitt 0,0 t» som observasjon', /Sykdomsdageriperioden1/.test(hmt.replace(/\s+/g, '')) && hmt.includes('1 periode') && hmt.includes('uka før startet: i snitt 0,0 t') && hmt.includes('observasjon, ikke årsak'), hmt.slice(0, 300))
+
+  // BOLK 5: standplassform i skytefanen - én dag med skyting = for lite data, aldri et tall.
+  await p.goto(`${BASE}/app/analyse?tab=skyting`, { waitUntil: 'domcontentloaded' })
+  const sp = p.locator('[data-standplassform]')
+  await sp.waitFor({ timeout: 90000 })
+  let spt = (await sp.textContent()) ?? ''
+  for (let i = 0; i < 20 && spt.includes('…'); i++) { await p.waitForTimeout(500); spt = (await sp.textContent()) ?? '' }
+  sjekk('Skyting: standplassform vises (utøveren har skyting) med én økt = «for lite data» på alle fire tall', (await sp.getAttribute('data-okter')) === '1' && (spt.match(/for lite data/g) ?? []).length >= 4 && spt.includes('1 av 5 økter med skyting'), spt.slice(0, 240))
+  sjekk('Skyting: korrelasjonskortene TSB/puls inn mot treff stående sier for lite data (n < 10)', (await p.locator('[data-standplass-korr] [data-korrelasjon][data-n="1"]').count()) === 2, spt.slice(0, 240))
+  sjekk('Skyting: lenker til Belastning i stedet for å kopiere HRV/søvn mot treff', ((await p.locator('[data-standplass-lenke]').getAttribute('href')) ?? '') === '?tab=belastning')
 
   // Mobil: Lav/Med/Høy er standard under 640 px.
   const pm = await loggInn(b, ut.epost, 390)

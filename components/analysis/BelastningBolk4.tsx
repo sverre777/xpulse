@@ -90,8 +90,8 @@ export function HelseMotBelastning({ data, initialConfig }: { data: HelseBelastn
   )
 }
 
-/** Ett korrelasjonskort: scatter + r + n; n < 10 → dempet «for lite data». */
-function KorrKort({ chartKey, tittel, xNavn, yNavn, k, xEnhet = '', yEnhet = '' }: { chartKey: string; tittel: string; xNavn: string; yNavn: string; k: Korrelasjon; xEnhet?: string; yEnhet?: string }) {
+/** Ett korrelasjonskort: scatter + r + n; n < 10 → dempet «for lite data». Eksportert: Standplassform (bolk 5) bruker samme kort. */
+export function KorrKort({ chartKey, tittel, xNavn, yNavn, k, xEnhet = '', yEnhet = '' }: { chartKey: string; tittel: string; xNavn: string; yNavn: string; k: Korrelasjon; xEnhet?: string; yEnhet?: string }) {
   const forLite = k.forLite
   return (
     <ChartWrapper chartKey={chartKey} title={tittel} height="auto"

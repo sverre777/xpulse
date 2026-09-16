@@ -19,6 +19,7 @@ import { SkytingVindSiktCard } from './SkytingVindSiktCard'
 import { TestComparison } from './TestComparison'
 import { ShotVolumeChart } from './ShotVolumeChart'
 import type { DateRange } from './date-range'
+import { Standplassform } from './Standplassform'
 import { windShort, sightLabel } from '@/lib/shooting'
 // Kortene og fargefasiten bor i SkytingSummaryCards — ikke kopier dem hit igjen.
 import {
@@ -69,10 +70,14 @@ export function SkytingTab({ data, range, targetUserId }: {
   }
   if (!data.hasData) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
-          Ingen skyte-serier i perioden. Registrer skyting (liggende/stående/kombinert) på biathlon-økter for å se dybde-analyse.
-        </p>
+      <div className="space-y-5">
+        <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
+            Ingen skyte-serier i perioden. Registrer skyting (liggende/stående/kombinert) på biathlon-økter for å se dybde-analyse.
+          </p>
+        </div>
+        {/* Regel 20: standplassform skjules på «har utøveren skyting», ikke på tom periode - så den står også her. */}
+        {range && <Standplassform range={range} targetUserId={targetUserId} />}
       </div>
     )
   }
@@ -100,6 +105,8 @@ export function SkytingTab({ data, range, targetUserId }: {
       <SkytetidLiggStaa series={data.series} />
       <PlottHeatmap series={data.series} />
       <BomRetningOverTid series={data.series} />
+      {/* FORMKARTET bolk 5: standplassform mot fysisk form - under bolk 8, henter selv. */}
+      {range && <Standplassform range={range} targetUserId={targetUserId} />}
       <HrZoneAccuracy data={data} />
       <SkytingVindSiktCard data={data} />
       <FirstVsLast data={data} />
@@ -490,6 +497,8 @@ function MethodNote() {
     perioden (range) — resten kommer fra fanens data. */
 export function renderFavoritt(key: string, data: ShootingDepthAnalysis | null, ctx: { range: DateRange; targetUserId?: string; config?: Record<string, unknown> | null }): React.ReactNode | null {
   if (key === 'skyting_skuddmaal') return <ShotGoalCard targetUserId={ctx.targetUserId} />
+  // FORMKARTET bolk 5: standplassform henter selv.
+  if (key.startsWith('skyting_standplass') || key.startsWith('skyting_korr_')) return <Standplassform range={ctx.range} targetUserId={ctx.targetUserId} bare={key === 'skyting_standplass' ? undefined : key} />
   if (key === 'skyting_skuddmengde') return <ShotVolumeChart range={ctx.range} targetUserId={ctx.targetUserId} title="Skudd per uke" initialConfig={ctx.config} />
   if (!data || !data.hasData || data.sportMismatch) return null
   switch (key) {

@@ -204,6 +204,14 @@ export const GRAFER: Record<string, GrafDef> = {
   skyting_forste_vs_siste: G('skyting', 'Første vs. siste serie'),
   skyting_skuddmaal: G('skyting', 'Skuddmengde mot årsmål', { data: 'selv' }),
   skyting_skuddmengde: G('skyting', 'Skudd per uke / måned', { data: 'selv', config: true }),
+  // FORMKARTET bolk 5 - standplassform (henter selv gjennom getFormkart).
+  skyting_standplass: G('skyting', 'Standplassform mot fysisk form (alle)', { data: 'selv' }),
+  skyting_standplass_staaende: G('skyting', 'Treff stående · siste 7 økter', { data: 'selv' }),
+  skyting_standplass_liggende: G('skyting', 'Treff liggende · siste 7 økter', { data: 'selv' }),
+  skyting_standplass_puls_inn: G('skyting', 'Puls inn på standplass · siste 7 økter', { data: 'selv' }),
+  skyting_standplass_skytetid: G('skyting', 'Skytetid per serie · siste 7 økter', { data: 'selv' }),
+  skyting_korr_tsb_staaende: G('skyting', 'Form (TSB) mot treff stående', { data: 'selv' }),
+  skyting_korr_pulsinn_staaende: G('skyting', 'Puls inn mot treff stående', { data: 'selv' }),
 
   // ── Sammenligning (bolk 5): ØktGraf stablet/oppå + runder + nøkkeltall —
   // favoritt = øktsett + visning (config). Splits per km står som egen graf.

@@ -32,6 +32,7 @@ import { beregnSoneTss } from '@/lib/belastning'
 import { gapFart } from '@/lib/prestasjon'
 import { RpeSkala, rpeFarge } from '@/components/ui/RpeSkala'
 import { Ikon, type IkonNavn } from '@/components/ui/ikoner'
+import { OktbyggerIkon } from '@/components/ui/ikoner'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -1137,9 +1138,11 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
   const staa = skyte.filter(sg => sg.type === 'skyting_staa').map(sg => treffTall(sg.treff)).filter((x): x is number[] => !!x)
   const sumAv = (xs: number[][]) => `${xs.reduce((a, t) => a + t[0], 0)}/${xs.reduce((a, t) => a + t[1], 0)}`
   const harNoe = rpe != null || !!onRpe || mmol.length > 0 || nutrition.length > 0 || skyte.length > 0
-  type DetaljKnapp = { navn: string; ikon: IkonNavn; farge: string; kall: () => void; id: string }
+  type DetaljKnapp = { navn: string; ikon: IkonNavn; eget?: boolean; farge: string; kall: () => void; id: string }
   const knappRader: Array<DetaljKnapp | false | undefined> = [
-    handlinger?.onOktbygger && { navn: 'Øktbygger', ikon: 'aktivitet', farge: 'var(--accent)', kall: handlinger.onOktbygger, id: 'oktbygger' },
+    // Øktbyggeren bærer sitt eget merke, ikke lynet. eget: true tegner
+    // OktbyggerIkon i stedet for <Ikon> - fargene bor i ikonet.
+    handlinger?.onOktbygger && { navn: 'Øktbygger', ikon: 'oktbygger', eget: true, farge: 'var(--accent)', kall: handlinger.onOktbygger, id: 'oktbygger' },
     handlinger?.onPlottTreff && { navn: 'Plott treff', ikon: 'skyting', farge: '#E23A5A', kall: handlinger.onPlottTreff, id: 'plott' },
     handlinger?.onSettLaktat && { navn: 'Sett laktat', ikon: 'laktat', farge: 'var(--tekst-5-app)', kall: handlinger.onSettLaktat, id: 'laktat' },
     handlinger?.onNotat && { navn: 'Notat', ikon: 'for-okt', farge: 'var(--tekst-5-app)', kall: handlinger.onNotat, id: 'notat' },
@@ -1183,7 +1186,9 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
                 textTransform: 'uppercase', border: `1px solid ${b.farge}`, borderRadius: 999, padding: '8px 13px',
                 minHeight: 36, color: b.farge, background: b.id === 'oktbygger' ? 'rgba(255,69,0,.06)' : 'transparent', cursor: 'pointer',
               }}>
-              <Ikon navn={b.ikon} variant="strek" storrelse={14} style={{ marginRight: 5 }} />
+              {b.eget
+                ? <OktbyggerIkon variant="fyll" storrelse={14} style={{ marginRight: 5 }} />
+                : <Ikon navn={b.ikon} variant="strek" storrelse={14} style={{ marginRight: 5 }} />}
               {b.navn}
             </button>
           ))}

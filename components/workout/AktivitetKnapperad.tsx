@@ -1,6 +1,7 @@
 'use client'
 
 import { Ikon } from '@/components/ui/ikoner'
+import { OktbyggerIkon } from '@/components/ui/ikoner'
 import { SKYTE_FARGER } from '@/lib/segmenter'
 
 // Felles knapperad over aktivitetsradene — ÉN komponent brukt i både plan
@@ -72,7 +73,8 @@ export function AktivitetKnapperad({
       {visBygger && (
         <button type="button" onClick={onOktbygger} className={PILL_KLASSE}
           style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
-          <Ikon navn="oktbygger" variant="fyll" storrelse={18} /> Øktbygger
+          {/* Samme merke som ellers - fargene bor i ikonet. */}
+          <OktbyggerIkon variant="fyll" storrelse={18} /> Øktbygger
         </button>
       )}
       {visPlottTreff && (

@@ -30,7 +30,7 @@ import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { emptyNutritionEntryRow } from '@/lib/types'
 import { verdiVed } from './OktKurve'
 import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
-import { Ikon } from '@/components/ui/ikoner'
+import { Ikon, OktbyggerIkon } from '@/components/ui/ikoner'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { lesVisning, settVisning, abonnerVisning, VISNING_ETIKETT, type GrafVisning } from '@/lib/kurve-valg'
 import { byggPlanBlokker, fraActivityRows, type PlanBlokkInn } from '@/lib/plan-graf'
@@ -77,7 +77,10 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
         padding: '6px 14px', cursor: 'pointer', minHeight: 32,
         display: 'inline-flex', alignItems: 'center', gap: 6,
       }}>
-      <Ikon navn="oktbygger" variant="fyll" storrelse={14} style={{ color: 'var(--accent)' }} />Øktbygger
+      {/* Øktbygger-merket, samme overalt der knappen står (Sverre 16. sep):
+          fargene bor i IKONET - blå/rød/grønn søyler og oransje pluss - ikke
+          i ramma. Ett merke, ett gjenkjennelig sted å trykke. */}
+      <OktbyggerIkon variant="fyll" storrelse={14} />Øktbygger
     </button>
   )
 }

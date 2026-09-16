@@ -7,6 +7,7 @@
 // <form>, og popupen har input-felter — portal-grepet gjelder.
 
 import { useMemo, useState } from 'react'
+import { flateSti } from '@/lib/flate-prefiks'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import {
@@ -30,7 +31,7 @@ interface Props {
   onClose: () => void
 }
 
-export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr', hint, onDone, onClose }: Props) {
+export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr', hint, onDone, onClose, targetUserId }: Props & { targetUserId?: string }) {
   const [valgte, setValgte] = useState<string[]>(selectedIds)
   const [sok, setSok] = useState('')
 
@@ -85,7 +86,7 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
         <div className="px-5 py-4">
           {aktive.length === 0 ? (
             <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              Du har ingen aktivt utstyr. Legg til på <Link href="/app/utstyr"
+              Du har ingen aktivt utstyr. Legg til på <Link href={flateSti('utstyr', targetUserId)}
                 style={{ color: ATHLETE_ORANGE, textDecoration: 'underline' }}>/app/utstyr</Link>.
             </p>
           ) : (

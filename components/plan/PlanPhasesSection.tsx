@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { flateSti } from '@/lib/flate-prefiks'
 import Link from 'next/link'
 import type { Season, SeasonPeriod, Intensity } from '@/app/actions/seasons'
 import { PeriodModal } from '@/components/periodization/PeriodModal'
@@ -29,13 +30,13 @@ function SectionHeader() {
   )
 }
 
-function EmptyCTA({ message }: { message: string }) {
+function EmptyCTA({ message, targetUserId }: { message: string; targetUserId?: string }) {
   return (
     <div className="p-6 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
       <p className="text-sm mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {message}
       </p>
-      <Link href="/app/periodisering"
+      <Link href={flateSti('periodisering', targetUserId)}
         className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
         → /app/periodisering
@@ -45,8 +46,10 @@ function EmptyCTA({ message }: { message: string }) {
 }
 
 export function PlanPhasesSection({
-  season, periods, todayISO, monthStart, monthEnd,
+  season, periods, todayISO, monthStart, monthEnd, targetUserId,
 }: {
+  /** Trenerkontekst: lenkene peker på UTØVERENS flate (lib/flate-prefiks). */
+  targetUserId?: string
   season: Season | null
   periods: SeasonPeriod[]
   todayISO: string
@@ -63,7 +66,7 @@ export function PlanPhasesSection({
     return (
       <div>
         <SectionHeader />
-        <EmptyCTA message="Ingen aktiv sesong. Opprett en sesong og perioder i periodisering." />
+        <EmptyCTA targetUserId={targetUserId} message="Ingen aktiv sesong. Opprett en sesong og perioder i periodisering." />
       </div>
     )
   }
@@ -72,7 +75,7 @@ export function PlanPhasesSection({
     return (
       <div>
         <SectionHeader />
-        <EmptyCTA message="Ingen perioder definert. Opprett perioder i periodisering." />
+        <EmptyCTA targetUserId={targetUserId} message="Ingen perioder definert. Opprett perioder i periodisering." />
       </div>
     )
   }

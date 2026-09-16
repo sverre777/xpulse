@@ -1,6 +1,7 @@
 'use client'
 
 import { StarRating } from '@/components/ui/StarRating'
+import { flateSti } from '@/lib/flate-prefiks'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveDailyHealth } from '@/app/actions/health'
@@ -79,7 +80,7 @@ interface HealthFormProps {
   onCancel?: () => void
 }
 
-export function HealthForm({ date, existing, sleep = null, metrics = null, onSaved, onCancel }: HealthFormProps) {
+export function HealthForm({ date, existing, sleep = null, metrics = null, onSaved, onCancel, targetUserId }: HealthFormProps & { targetUserId?: string }) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -192,7 +193,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
       router.refresh()
       onSaved()
     } else {
-      router.push('/app/dagbok')
+      router.push(flateSti('dagbok', targetUserId))
       router.refresh()
     }
   }

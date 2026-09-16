@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { flateSti } from '@/lib/flate-prefiks'
 import { Workout, SPORTS, WORKOUT_TYPES_BIATHLON as WORKOUT_TYPES, TYPE_COLORS } from '@/lib/types'
 import { Ikon } from '@/components/ui/ikoner'
 
@@ -7,7 +8,7 @@ interface WorkoutCardProps {
   compact?: boolean
 }
 
-export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
+export function WorkoutCard({ workout, compact = false, targetUserId }: WorkoutCardProps & { targetUserId?: string }) {
   const sportLabel = SPORTS.find(s => s.value === workout.sport)?.label ?? workout.sport
   const typeLabel  = WORKOUT_TYPES.find(t => t.value === workout.workout_type)?.label ?? ''
   const typeColor  = TYPE_COLORS[workout.workout_type] ?? 'var(--graa-33)'
@@ -21,7 +22,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
 
   return (
     <Link
-      href={`/app/dagbok?edit=${workout.id}`}
+      href={flateSti('dagbok', targetUserId, `?edit=${workout.id}`)}
       className="block group transition-colors"
       style={{ textDecoration: 'none' }}
     >

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { flateSti } from '@/lib/flate-prefiks'
 
 export type CalendarView = 'år' | 'måned' | 'uke'
 
@@ -10,7 +11,12 @@ const VIEWS: { value: CalendarView; label: string }[] = [
   { value: 'uke', label: 'Uke' },
 ]
 
-export function ViewToggle({ active }: { active: CalendarView }) {
+export function ViewToggle({ active, targetUserId }: {
+  active: CalendarView
+  /** Trenerkontekst: lenkene skal peke på UTØVERENS flate, ikke
+      trenerens egen (lib/flate-prefiks). */
+  targetUserId?: string
+}) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -18,7 +24,7 @@ export function ViewToggle({ active }: { active: CalendarView }) {
     const params = new URLSearchParams(searchParams.toString())
     if (v === 'år') params.delete('view')
     else params.set('view', v)
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(flateSti('periodisering', targetUserId, `?${params.toString()}`))
   }
 
   return (

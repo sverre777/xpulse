@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "font-selftest": "tsx scripts/font-selftest.ts",
-    "prebuild": "npm run font-selftest",
+    "prebuild": "npm run font-selftest && npm run flate-prefiks",
     "stillestand-selftest": "tsx scripts/stillestand-selftest.ts",
     "trenertid-selftest": "tsx scripts/trenertid-selftest.ts",
     "skyting-selftest": "tsx scripts/skyting-konvertering-selftest.ts",

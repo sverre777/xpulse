@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { flateSti } from '@/lib/flate-prefiks'
 import type {
   Season, SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot, SeasonMarking,
 } from '@/app/actions/seasons'
@@ -11,12 +12,16 @@ import { Ikon } from '@/components/ui/ikoner'
 import { NOKKELDATO_IKON, MARKERING_IKON, MARKERING_FARGE } from '@/lib/nokkeldato-ikoner'
 
 export function YearCalendarView({
-  season, periods, keyDates, plannedWorkouts, markings = [],
+  season, periods, keyDates, plannedWorkouts, markings = [], targetUserId,
 }: {
   season: Season
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
   plannedWorkouts: PlannedWorkoutDot[]
+  /** Trenerkontekst: lenkene skal peke på UTØVERENS flate, ikke
+      trenerens egen (lib/flate-prefiks). */
+  targetUserId?: string
+
   // Kø #39 punkt 8: markeringslaget som gull-bånd i minikalenderne.
   markings?: SeasonMarking[]
 }) {
@@ -30,18 +35,18 @@ export function YearCalendarView({
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', 'måned')
     params.set('m', `${year}-${String(month0 + 1).padStart(2, '0')}`)
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(flateSti('periodisering', targetUserId, `?${params.toString()}`))
   }
 
   const goToWeek = (mondayISO: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', 'uke')
     params.set('w', mondayISO)
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(flateSti('periodisering', targetUserId, `?${params.toString()}`))
   }
 
   const goToDay = (dateISO: string) => {
-    router.push(`/app/plan?d=${dateISO}`)
+    router.push(flateSti('plan', targetUserId, `?d=${dateISO}`))
   }
 
   return (

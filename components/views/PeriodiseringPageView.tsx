@@ -147,7 +147,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
             />
 
             <div className="flex items-center justify-between mb-4">
-              <ViewToggle active={view} />
+              <ViewToggle active={view} targetUserId={targetId} />
               <span className="text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {view === 'år' && 'Oversikt over hele sesongen'}
@@ -159,6 +159,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
             <div className="mb-8">
               {view === 'år' && (
                 <YearCalendarView
+                  targetUserId={targetId}
                   season={activeSeason}
                   periods={periods}
                   keyDates={keyDates}
@@ -168,6 +169,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               )}
               {view === 'måned' && (
                 <MonthFullCalendar
+                  targetUserId={targetId}
                   season={activeSeason}
                   periods={periods}
                   keyDates={keyDates}
@@ -176,6 +178,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               )}
               {view === 'uke' && (
                 <WeekOverviewCalendar
+                  targetUserId={targetId}
                   season={activeSeason}
                   periods={periods}
                   keyDates={keyDates}

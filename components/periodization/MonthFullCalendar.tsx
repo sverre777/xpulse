@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { flateSti } from '@/lib/flate-prefiks'
 import type {
   Season, SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot,
 } from '@/app/actions/seasons'
@@ -23,12 +24,16 @@ function parseMonthParam(m: string | null, fallback: { year: number; month0: num
 }
 
 export function MonthFullCalendar({
-  season, periods, keyDates, plannedWorkouts,
+  season, periods, keyDates, plannedWorkouts, targetUserId,
 }: {
   season: Season
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
   plannedWorkouts: PlannedWorkoutDot[]
+  /** Trenerkontekst: lenkene skal peke på UTØVERENS flate, ikke
+      trenerens egen (lib/flate-prefiks). */
+  targetUserId?: string
+
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -55,17 +60,17 @@ export function MonthFullCalendar({
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', 'måned')
     params.set('m', key)
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(flateSti('periodisering', targetUserId, `?${params.toString()}`))
   }
 
   const inSeason = (iso: string) => iso >= season.start_date && iso <= season.end_date
 
-  const goToDay = (iso: string) => router.push(`/app/plan?d=${iso}`)
+  const goToDay = (iso: string) => router.push(flateSti('plan', targetUserId, `?d=${iso}`))
   const goToWeek = (mondayISO: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', 'uke')
     params.set('w', mondayISO)
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(flateSti('periodisering', targetUserId, `?${params.toString()}`))
   }
 
   const monthStart = new Date(year, month0, 1)

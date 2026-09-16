@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { flateSti } from '@/lib/flate-prefiks'
 import Link from 'next/link'
 import type { Season, SeasonKeyDate, KeyEventType } from '@/app/actions/seasons'
 import { KeyDateModal } from '@/components/periodization/KeyDateModal'
@@ -29,13 +30,13 @@ function SectionHeader() {
   )
 }
 
-function EmptyCTA({ message }: { message: string }) {
+function EmptyCTA({ message, targetUserId }: { message: string; targetUserId?: string }) {
   return (
     <div className="p-6 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
       <p className="text-sm mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {message}
       </p>
-      <Link href="/app/periodisering"
+      <Link href={flateSti('periodisering', targetUserId)}
         className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
         → /app/periodisering
@@ -45,8 +46,10 @@ function EmptyCTA({ message }: { message: string }) {
 }
 
 export function PlanGoalsSection({
-  season, keyDates, todayISO,
+  season, keyDates, todayISO, targetUserId,
 }: {
+  /** Trenerkontekst: lenkene peker på UTØVERENS flate (lib/flate-prefiks). */
+  targetUserId?: string
   season: Season | null
   keyDates: SeasonKeyDate[]
   todayISO: string
@@ -57,7 +60,7 @@ export function PlanGoalsSection({
     return (
       <div>
         <SectionHeader />
-        <EmptyCTA message="Ingen aktiv sesong for gjeldende dato. Opprett en sesong for å se mål og konkurranser." />
+        <EmptyCTA targetUserId={targetUserId} message="Ingen aktiv sesong for gjeldende dato. Opprett en sesong for å se mål og konkurranser." />
       </div>
     )
   }
@@ -90,7 +93,7 @@ export function PlanGoalsSection({
       )}
 
       {upcoming.length === 0 ? (
-        <EmptyCTA message="Ingen kommende konkurranser. Legg til i periodisering." />
+        <EmptyCTA targetUserId={targetUserId} message="Ingen kommende konkurranser. Legg til i periodisering." />
       ) : (
         <div className="space-y-2">
           {upcoming.map(k => {

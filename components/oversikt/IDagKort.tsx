@@ -11,6 +11,7 @@
 // PlanGraf / Nokkeltall — ingen ny graf på Hjem. Skyting kun for skiskyttere.
 
 import Link from 'next/link'
+import { flateSti } from '@/lib/flate-prefiks'
 import { useMemo, useSyncExternalStore } from 'react'
 import type { OversiktWorkoutCard, OversiktFeedEntry } from '@/app/actions/oversikt'
 import type { WorkoutKlokkesyncData } from '@/app/actions/workout-klokkesync'
@@ -103,12 +104,12 @@ function Blokkgraf({ w, hoyde, harSki = true }: { w: OversiktWorkoutCard; hoyde:
   return <div data-idag-blokkgraf><PlanGraf blokker={blokker} tetthet="kompakt" hoyde={hoyde} /></div>
 }
 
-function NesteOektLinje({ w, todayISO, liten = false, harSki = true }: { w: OversiktWorkoutCard; todayISO: string; liten?: boolean; harSki?: boolean }) {
+function NesteOektLinje({ w, todayISO, liten = false, harSki = true, targetUserId }: { w: OversiktWorkoutCard; todayISO: string; liten?: boolean; harSki?: boolean; targetUserId?: string }) {
   const bev = bevForm(w)
   const live = erPlanlagtStyrke(w)
   return (
     <div className="flex items-center gap-2">
-    <Link href={`/app/plan?edit=${w.id}`} data-neste-okt={w.id} className="flex items-center gap-3 no-underline flex-1 min-w-0"
+    <Link href={flateSti('plan', targetUserId, `?edit=${w.id}`)} data-neste-okt={w.id} className="flex items-center gap-3 no-underline flex-1 min-w-0"
       style={{ textDecoration: 'none', color: 'inherit', padding: liten ? '5px 0' : '6px 0' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: BLAA, margin: 0 }}>
@@ -128,7 +129,9 @@ function NesteOektLinje({ w, todayISO, liten = false, harSki = true }: { w: Over
   )
 }
 
-export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
+export function IDagKort({ today, nextPlanned, klokke, siste, todayISO, targetUserId }: {
+  /** Trenerkontekst: lenkene peker på UTØVERENS flate (lib/flate-prefiks). */
+  targetUserId?: string
   today: OversiktWorkoutCard[]
   nextPlanned: OversiktWorkoutCard[]
   klokke: WorkoutKlokkesyncData | null
@@ -181,7 +184,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
               ? <Chip farge={GRONN} data="gjennomfort">Gjennomført</Chip>
               : <Chip farge={BLAA} data="planlagt">Planlagt{hoved.time_of_day ? ` · ${hoved.time_of_day.slice(0, 5)}` : ''}</Chip>}
             {flere > 0 && (
-              <Link href="/app/dagbok" data-flere-okter style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-5-app)', textDecoration: 'underline' }}>
+              <Link href={flateSti('dagbok', targetUserId)} data-flere-okter style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-5-app)', textDecoration: 'underline' }}>
                 +{flere} økt{flere > 1 ? 'er' : ''} til
               </Link>
             )}
@@ -229,11 +232,11 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
 
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             {erGjennomfort ? (
-              <Link href={`/app/dagbok?edit=${hoved.id}`} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="dagbok" style={{ color: GRONN }}>Åpne i dagbok</Link>
+              <Link href={flateSti('dagbok', targetUserId, `?edit=${hoved.id}`)} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="dagbok" style={{ color: GRONN }}>Åpne i dagbok</Link>
             ) : (
               <>
-                <Link href={`/app/dagbok?edit=${hoved.id}`} className="xp-hbtn" data-idag-knapp="logg" style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)' }}>Logg økta</Link>
-                <Link href={`/app/plan?edit=${hoved.id}`} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="plan" style={{ color: BLAA }}>Åpne i plan</Link>
+                <Link href={flateSti('dagbok', targetUserId, `?edit=${hoved.id}`)} className="xp-hbtn" data-idag-knapp="logg" style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)' }}>Logg økta</Link>
+                <Link href={flateSti('plan', targetUserId, `?edit=${hoved.id}`)} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="plan" style={{ color: BLAA }}>Åpne i plan</Link>
                 {erPlanlagtStyrke(hoved) && <Link href={`/app/okt/${hoved.id}`} className="xp-hbtn" data-idag-knapp="live" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: GRONN, color: 'var(--tekst-1-ren)' }}><Ikon navn="play" storrelse={14} /> Start live</Link>}
               </>
             )}
@@ -246,7 +249,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
           </p>
           {siste && (
             <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', margin: '6px 0 0' }}>
-              Forrige økt: <Link href={`/app/dagbok?edit=${siste.id}`} style={{ color: 'var(--tekst-1-app)' }}>{siste.title}</Link>
+              Forrige økt: <Link href={flateSti('dagbok', targetUserId, `?edit=${siste.id}`)} style={{ color: 'var(--tekst-1-app)' }}>{siste.title}</Link>
               {' · '}{fmtDato(siste.date)}{siste.duration_minutes != null ? ` · ${fmtHM(siste.duration_minutes * 60)}` : ''}
             </p>
           )}
@@ -262,12 +265,12 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
           </p>
           {nextPlanned.length === 0 ? (
             <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', margin: '4px 0 0' }}>
-              Ingen planlagt økt framover. <Link href={`/app/plan?new=${todayISO}`} style={{ color: BLAA }}>+ Planlegg økt</Link>
+              Ingen planlagt økt framover. <Link href={flateSti('plan', targetUserId, `?new=${todayISO}`)} style={{ color: BLAA }}>+ Planlegg økt</Link>
             </p>
           ) : lite ? (
-            nextPlanned.slice(0, 3).map(w => <NesteOektLinje key={w.id} w={w} todayISO={todayISO} liten harSki={harSki} />)
+            nextPlanned.slice(0, 3).map(w => <NesteOektLinje targetUserId={targetUserId} key={w.id} w={w} todayISO={todayISO} liten harSki={harSki} />)
           ) : neste ? (
-            <NesteOektLinje w={neste} todayISO={todayISO} harSki={harSki} />
+            <NesteOektLinje targetUserId={targetUserId} w={neste} todayISO={todayISO} harSki={harSki} />
           ) : null}
         </div>
       </div>

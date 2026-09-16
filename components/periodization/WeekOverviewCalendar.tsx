@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { flateSti } from '@/lib/flate-prefiks'
 import type {
   Season, SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot,
 } from '@/app/actions/seasons'
@@ -15,12 +16,16 @@ import { Ikon } from '@/components/ui/ikoner'
 import { NOKKELDATO_IKON } from '@/lib/nokkeldato-ikoner'
 
 export function WeekOverviewCalendar({
-  season, periods, keyDates, plannedWorkouts,
+  season, periods, keyDates, plannedWorkouts, targetUserId,
 }: {
   season: Season
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
   plannedWorkouts: PlannedWorkoutDot[]
+  /** Trenerkontekst: lenkene skal peke på UTØVERENS flate, ikke
+      trenerens egen (lib/flate-prefiks). */
+  targetUserId?: string
+
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -51,10 +56,10 @@ export function WeekOverviewCalendar({
     const params = new URLSearchParams(searchParams.toString())
     params.set('view', 'uke')
     params.set('w', next)
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(flateSti('periodisering', targetUserId, `?${params.toString()}`))
   }
 
-  const goToDay = (iso: string) => router.push(`/app/plan?d=${iso}`)
+  const goToDay = (iso: string) => router.push(flateSti('plan', targetUserId, `?d=${iso}`))
 
   const prevAllowed = addDays(mondayISO, -7) >= toISO(mondayOf(parseISO(season.start_date)))
   const nextAllowed = addDays(mondayISO, 7) <= season.end_date

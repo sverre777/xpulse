@@ -1376,7 +1376,7 @@
 .fv-pk .pkg .pt{position:absolute;right:0;top:-2px;font:700 9.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#E23A5A}
 .fv-pk .pkg .fv-graf{height:120px}
 .fv-pk .pkg .fv-graf-ak{justify-content:flex-start}
-.fv-pk .pkg span{position:absolute;font:700 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.06em;transform:translateX(-50%);white-space:nowrap}
+.fv-pk .pkg > span{position:absolute;font:700 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.06em;transform:translateX(-50%);white-space:nowrap}
 .fv-pk .pkg .skm{top:2px;color:var(--a-ink3);background:rgba(10,10,11,.7);padding:2px 4px;border-radius:4px;letter-spacing:.1em}
 .fv-pk .pkg .pt{transform:none;left:auto}
 .fv-pk .ern{display:flex;align-items:center;gap:12px;border-top:1px solid var(--a-line);margin-top:8px;padding-top:8px;font-size:13px;color:var(--a-mut)}
@@ -1387,3 +1387,12 @@
 .fv-mbody{position:relative}
 .fv-hint{margin-top:16px;font-size:13px;color:var(--mute)}
 .fv-inn{min-height:200px}
+
+/* ── Rettelser mot faktisk-ut-utkastet (16. sep) ── */
+/* Settgrafens forklaring («PR i settet» / «hvile») ligger i .fv-graf-ak, som er
+   barn av .pkg: den generelle «alle span i .pkg er absolutte markorer»-regelen
+   traff den og la den halvveis utenfor kortet. Regelen gjelder na bare direkte
+   barn (markorene). Ikonene pa Skyting/Ernaering/Laktat/puls er settets
+   (ikoner.js), samme som appens flater (Sverre 16. sep). */
+/* Ikonene fra ik() har viewBox 0 0 24 24 - grafene har ikke, sa regelen treffer bare dem. */
+.fv-pk span > svg[viewBox="0 0 24 24"]{width:13px;height:13px;vertical-align:-2px;margin-right:4px}

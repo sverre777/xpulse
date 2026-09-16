@@ -148,7 +148,24 @@ export interface SegmentRad {
   prone_hits: number | null
   standing_shots: number | null
   standing_hits: number | null
-  /** Raden kom fra klokka (external_id eller strava_lap_index satt). */
+  /**
+   * Raden kom fra klokka - MÅLT SOM `external_id || strava_lap_index`.
+   *
+   * NAVNET LOVER MER ENN DET HOLDER (målt 16. sep 2026): det betyr i
+   * praksis «kom dette fra STRAVA». Strava-importen skriver begge
+   * feltene på hver rad (298 av 298 målt), .fit-importen skriver ingen
+   * av dem (0 av 162) - der ligger external_id på ØKTA, som
+   * anti-duplikat-hash, ikke på radene.
+   *
+   * Følgen: for .fit-økter er dette alltid false, kanFlislegge sier nei,
+   * og radene plasseres etter hverandre i stedet for å flislegges langs
+   * kurven. Stille så lenge radenes varigheter omtrent summerer til
+   * kurven; synlig som drift mellom bånd og kurve når de ikke gjør det.
+   *
+   * Skal det rettes, må .fit-importen begynne å skrive proveniens på
+   * radene - og det løser bare NYE økter: opphavet kan ikke utledes i
+   * ettertid for de som ligger der.
+   */
   harKlokkeProveniens: boolean
   /** Repetisjoner fra samme oppsett deler gruppe (fase 117). */
   gruppeId?: string | null

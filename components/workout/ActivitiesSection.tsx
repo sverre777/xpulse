@@ -365,7 +365,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             onToggle={() => setExpandedId(expandedId === 'alt' ? null : 'alt')}
             onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
             onUpdateRad={(id, patch) => updateRow(id, patch)}
-            onSamleFelt={(felt, verdi) => onChange(skrivSamleFelt(rows, g, felt, verdi, isPlanMode))}
+            onSamleFelt={(felt, verdi) => onChange(skrivSamleFelt(rows, g, felt, verdi, isPlanMode, erKlokkeokt))}
             userMovementTypes={userMovementTypes}
             onSplitt={() => velgVisning('splittet')}
             isPlanMode={isPlanMode}
@@ -408,7 +408,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             onToggle={() => setExpandedId(expandedId === g.id ? null : g.id)}
             onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
             onUpdateRad={(id, patch) => updateRow(id, patch)}
-            onSamleFelt={(felt, verdi) => onChange(skrivSamleFelt(rows, g, felt, verdi, isPlanMode))}
+            onSamleFelt={(felt, verdi) => onChange(skrivSamleFelt(rows, g, felt, verdi, isPlanMode, erKlokkeokt))}
             userMovementTypes={userMovementTypes}
             onSplitt={() => velgVisning('splittet')}
             isPlanMode={isPlanMode}

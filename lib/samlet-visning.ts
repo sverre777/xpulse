@@ -285,9 +285,21 @@ const SNITT_FELTER: ReadonlySet<SamleFelt> = new Set<SamleFelt>(['avg_heart_rate
  * På en Strava-økt skjer ikke det, for der er radene plassert.
  * ────────────────────────────────────────────────────────────────────
  */
-export function erKlokkeRad(a: ActivityRow): boolean {
-  return a.window_start_seconds != null || !!a.arvet_puls
+export function erKlokkeRad(a: ActivityRow, erImportertOkt = false): boolean {
+  if (a.window_start_seconds != null || a.arvet_puls) return true
+  // Importert økt: raden er klokkas HVIS DEN BÆRER EN MÅLING. Har den
+  // verken puls, watt eller kadens, er det ingenting å overskrive, og
+  // skrivingen er trygg uansett opphav (Sverre 16. sep). Det er også det
+  // som gjør at en rad brukeren selv har lagt til på en Garmin-økt
+  // fortsatt kan fylles fra «Samlet».
+  if (!erImportertOkt) return false
+  return MAALTE_FELTER.some(f => String(a[f] ?? '').trim() !== '')
 }
+
+/** Feltene som bærer en MÅLING fra klokka. Samme sett som SNITT_FELTER -
+    det er nettopp de som kan bli overskrevet fra «Samlet». */
+const MAALTE_FELTER = ['avg_heart_rate', 'max_heart_rate', 'avg_watts',
+  'max_watts', 'avg_cadence', 'max_cadence'] as const
 
 /** Aktiv rad: verken pause eller skyting. */
 export function erAktivRad(a: ActivityRow): boolean {
@@ -373,7 +385,7 @@ function flestDeler(verdier: string[]): string {
 
 /** Skriver ett felt fra gruppe-raden ut på radene i gruppa. Ren funksjon —
     radene utenfor gruppa røres ikke. */
-export function skrivSamleFelt(rows: ActivityRow[], g: RadGruppe, felt: SamleFelt, verdi: string, plan = false): ActivityRow[] {
+export function skrivSamleFelt(rows: ActivityRow[], g: RadGruppe, felt: SamleFelt, verdi: string, plan = false, erImportertOkt = false): ActivityRow[] {
   const ider = new Set(g.rader.map(r => r.id))
   const v = verdi.trim()
   if (felt === 'distance_km') {
@@ -401,10 +413,10 @@ export function skrivSamleFelt(rows: ActivityRow[], g: RadGruppe, felt: SamleFel
     // skrivbare radene deler (så en ny verdi på gruppa erstatter den
     // forrige gruppe-verdien, mens en rad ført for hånd beholdes).
     // Klokkerader beholder det målte.
-    const skrivbare = g.rader.filter(r => feltGjelderRad(r, felt, plan) && !erKlokkeRad(r))
+    const skrivbare = g.rader.filter(r => feltGjelderRad(r, felt, plan) && !erKlokkeRad(r, erImportertOkt))
     const forrige = flestDeler(skrivbare.map(r => String(r[felt] ?? '').trim()))
     return rows.map(r => {
-      if (!ider.has(r.id) || !feltGjelderRad(r, felt, plan) || erKlokkeRad(r)) return r
+      if (!ider.has(r.id) || !feltGjelderRad(r, felt, plan) || erKlokkeRad(r, erImportertOkt)) return r
       const egen = String(r[felt] ?? '').trim()
       if (egen !== '' && egen !== forrige) return r
       return { ...r, [felt]: v }

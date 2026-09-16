@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="nb" data-tema="mork">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>X-PULSE - Trener-bolken (utkast)</title>
+<style>
+@font-face{font-family:'Bebas Neue';font-weight:400;font-display:swap;src:url('../public/fonts/bebas-neue-normal-400-latin.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:300;font-display:swap;src:url('../public/fonts/barlow-condensed-normal-300-latin.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:400;font-display:swap;src:url('../public/fonts/barlow-condensed-normal-400-latin.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:500;font-display:swap;src:url('../public/fonts/barlow-condensed-normal-500-latin.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url('../public/fonts/barlow-condensed-normal-600-latin.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url('../public/fonts/barlow-condensed-normal-700-latin.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:100 900;font-display:swap;src:url('../public/fonts/inter-variable-latin.woff2') format('woff2')}
+
+/* ── Forsidens tokens (public/xpulse.html :root / lys) ── */
+:root{
+  --bg:#0D0D11;--surface:#101014;--card:#15151B;--line:#1F1F26;--line2:#2A2A33;
+  --paper:#F2F2F0;--dim:#8B8B95;--mute:#55555F;
+  --orange:#FF4500;--blue:#1A6FD4;--gold:#D4A017;--green:#28A86E;--red:#E23A5A;
+  --i1:#28A86E;--i2:#1A6FD4;--i3:#E8B93C;--i4:#FF8C00;--i5:#E23A5A;
+  /* App-flatene inni scenene (app/globals.css, mørk) */
+  --a-flate:#0A0A0B;--a-card:#101014;--a-card2:#15151B;--a-graf:#13131A;--a-felt:#1A1A22;
+  --a-line:#1F1F26;--a-line2:#2A2A33;--a-kant:#1E1E22;
+  --a-ink:#F0F0F2;--a-ink3:#C0C0CC;--a-mut:#8A8A96;--a-mute:#55555F;
+  --tile:#0F0F13;--tile-kant:rgba(255,255,255,.07);
+  --kontroll:rgba(38,38,46,.72);--kontroll-ink:#F2F2F0;
+}
+:root[data-tema="lys"]{
+  --bg:#EEEEF2;--surface:#EBEBEF;--card:#E4E4EA;--line:#D9D9E0;--line2:#CCCCD5;
+  --paper:#0F0F0D;--dim:#6A6A74;--mute:#A0A0AA;
+  --a-flate:#F4F4F6;--a-card:#FFFFFF;--a-card2:#F4F4F7;--a-graf:#F7F7FA;--a-felt:#EDEDF2;
+  --a-line:#D9D9E0;--a-line2:#CCCCD5;--a-kant:#DEDEE5;
+  --a-ink:#101014;--a-ink3:#33333B;--a-mut:#6A6A74;--a-mute:#9A9AA4;
+  --tile:#FFFFFF;--tile-kant:rgba(0,0,0,.07);
+  --kontroll:rgba(255,255,255,.8);--kontroll-ink:#101014;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:linear-gradient(115deg,rgba(255,69,0,.09),rgba(26,111,212,.09) 70%) fixed,var(--bg);color:var(--paper);font:16px/1.6 'Inter',-apple-system,sans-serif;overflow-x:hidden}
+:root[data-tema="lys"] body{background:linear-gradient(115deg,rgba(255,69,0,.06),rgba(26,111,212,.055) 70%) fixed,#F4F4F6}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.label{font:600 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.28em;text-transform:uppercase;color:var(--orange)}
+h2{font:400 clamp(34px,7vw,64px)/1.0 'Bebas Neue','Arial Narrow',sans-serif;letter-spacing:.015em;margin:12px 0 14px}
+h2 .o{color:var(--orange)}
+.lead{color:var(--dim);font-size:17px;max-width:58ch}
+
+/* Utkast-ramme (ikke til prod) */
+.utkast{position:fixed;left:0;right:0;top:0;z-index:50;display:flex;gap:12px;align-items:center;justify-content:center;padding:8px 12px;background:rgba(10,10,12,.86);backdrop-filter:blur(10px);font:600 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#C9C9D1;border-bottom:1px solid rgba(255,255,255,.08)}
+.utkast b{color:#FF4500}
+.utkast button{border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 12px;color:#F2F2F0;letter-spacing:.12em}
+.stubb{padding:130px 0 70px;color:var(--mute);font:600 13px/1.4 'Barlow Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;text-align:center}
+
+/* ═════════ FLYT-BOLKEN ═════════ */
+.fb{padding:40px 0 96px;position:relative}
+.fb-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap}
+.fb-hd .lead{margin-bottom:6px}
+
+/* Kapittelfanene - samme fem ord og ikoner som flyt-stripa i heroen */
+.fb-kap{display:flex;gap:8px;margin:34px 0 22px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.fb-kap::-webkit-scrollbar{display:none}
+.kap{flex:0 0 auto;display:flex;align-items:center;gap:9px;height:44px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--line2);font:700 13px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);position:relative;overflow:hidden;transition:color .3s,border-color .3s,background .3s}
+.kap svg{width:18px;height:18px}
+.kap .kn{font-weight:600;color:var(--mute);letter-spacing:.06em;transition:color .3s}
+.kap:hover{color:var(--paper);border-color:var(--dim)}
+.kap.on{color:var(--paper);border-color:transparent;background:var(--card)}
+.kap.on .kn{color:var(--orange)}
+.kap i{position:absolute;left:0;bottom:0;height:2px;width:0;background:linear-gradient(90deg,#E23A5A,#FF4500 35%,#8B5CF6 70%,#2E7FE0)}
+.kap.on i{width:var(--kp,0%)}
+
+/* Sporet - horisontalt, native scroll med snap. Vertikal scroll passerer uhindret. */
+.fb-spor{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;
+  padding:6px max(28px,calc((100vw - 1180px)/2 + 28px)) 10px;scroll-padding:0 max(28px,calc((100vw - 1180px)/2 + 28px));overscroll-behavior-x:contain}
+.fb-spor::-webkit-scrollbar{display:none}
+.sc{flex:0 0 min(1124px,calc(100vw - 120px));scroll-snap-align:start;border-radius:30px;background:var(--tile);border:1px solid var(--tile-kant);
+  display:grid;grid-template-columns:318px minmax(0,1fr);min-height:640px;overflow:hidden;position:relative;
+  transition:opacity .5s,transform .5s;opacity:.42;transform:scale(.985)}
+.sc.on{opacity:1;transform:none}
+:root[data-tema="lys"] .sc{box-shadow:0 20px 60px rgba(20,20,40,.08)}
+.sc-tx{padding:42px 10px 40px 40px;display:flex;flex-direction:column;position:relative;z-index:2}
+.sc-kick{display:flex;align-items:center;gap:9px;font:700 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--orange)}
+.sc-kick svg{width:16px;height:16px}
+.sc h3{font:400 44px/.98 'Bebas Neue',sans-serif;letter-spacing:.012em;margin:18px 0 14px;color:var(--paper)}
+.sc p{color:var(--dim);font-size:15px;line-height:1.6}
+.sc-steg{list-style:none;margin-top:auto;padding-top:26px;display:flex;flex-direction:column;gap:12px}
+.sc-steg li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:center;font:600 14px/1.25 'Barlow Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);transition:color .4s}
+.sc-steg li b{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line2);display:grid;place-items:center;transition:all .4s}
+.sc-steg li b svg{width:12px;height:12px;opacity:0;transition:opacity .3s;color:#fff}
+.sc-steg li.na{color:var(--paper)}
+.sc-steg li.na b{border-color:var(--orange);box-shadow:0 0 0 4px rgba(255,69,0,.14)}
+.sc-steg li.ok{color:var(--dim)}
+.sc-steg li.ok b{background:var(--orange);border-color:var(--orange)}
+.sc-steg li.ok b svg{opacity:1}
+.sc-scene{position:relative;padding:34px 34px 34px 18px;display:flex;align-items:center;justify-content:center;min-width:0}
+.sc-scene::before{content:'';position:absolute;inset:0;background:radial-gradient(60% 55% at 60% 45%,rgba(255,69,0,.07),transparent 70%),radial-gradient(50% 50% at 90% 90%,rgba(26,111,212,.08),transparent 70%);pointer-events:none}
+
+/* Kontrollene - Apple-pille med prikker + pause, og piler */
+.fb-ktl{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:26px;position:relative}
+.prikker{display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;border-radius:999px;background:var(--kontroll);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4)}
+.prikk{width:8px;height:8px;border-radius:999px;background:var(--dim);opacity:.55;position:relative;overflow:hidden;transition:width .45s cubic-bezier(.3,.7,.2,1),opacity .3s;padding:0}
+.prikk:hover{opacity:.9}
+.prikk.on{width:52px;opacity:1;background:rgba(139,139,149,.45)}
+.prikk i{position:absolute;inset:0 auto 0 0;width:0;background:var(--kontroll-ink);border-radius:999px}
+.prikk.on i{width:var(--p,0%)}
+.prikk.ferdig{opacity:.8}
+.rundknapp{width:52px;height:52px;border-radius:50%;background:var(--kontroll);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);display:grid;place-items:center;color:var(--kontroll-ink);transition:transform .2s,background .2s}
+.rundknapp:hover{transform:scale(1.06)}
+.rundknapp:active{transform:scale(.96)}
+.rundknapp svg{width:18px;height:18px}
+.pilpar{position:absolute;right:max(0px,calc((100vw - 1180px)/2 + 0px));display:flex;gap:10px}
+.pilpar .rundknapp{width:44px;height:44px}
+.pilpar .rundknapp:disabled{opacity:.35;cursor:default;transform:none}
+
+/* ═════════ APP-FLATER INNI SCENENE (fra app-koden) ═════════ */
+.app{background:var(--a-card);border:1px solid var(--a-line);border-radius:16px;color:var(--a-ink);font-family:'Barlow Condensed',sans-serif;position:relative;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+:root[data-tema="lys"] .app{box-shadow:0 24px 60px rgba(20,20,40,.1)}
+.bebas{font-family:'Bebas Neue',sans-serif;font-weight:400}
+.cap{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--a-mute)}
+.strek{display:inline-block;width:22px;height:4px;border-radius:2px;background:var(--orange);vertical-align:middle}
+.pil{display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--a-line2);font:700 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;padding:0 13px;min-height:34px;color:var(--a-mut);white-space:nowrap;transition:all .25s}
+.pil svg{width:14px;height:14px}
+.pil.fylt{background:var(--orange);border-color:var(--orange);color:#fff}
+.pil.trykk{transform:scale(.94);box-shadow:0 0 0 4px rgba(255,69,0,.22)}
+.a{opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s cubic-bezier(.3,.7,.2,1)}
+.a.inn{opacity:1;transform:none}
+.pop{opacity:0;transform:scale(.6);transition:opacity .35s,transform .45s cubic-bezier(.3,1.6,.5,1)}
+.pop.inn{opacity:1;transform:none}
+.markor{position:absolute;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.85);box-shadow:0 4px 18px rgba(0,0,0,.4);pointer-events:none;z-index:9;transition:left .7s cubic-bezier(.4,.1,.2,1),top .7s cubic-bezier(.4,.1,.2,1),transform .15s,opacity .3s;opacity:0;transform:translate(-50%,-50%)}
+:root[data-tema="lys"] .markor{background:rgba(0,0,0,.12);border-color:rgba(0,0,0,.6)}
+.markor.vis{opacity:1}
+.markor.klikk{transform:translate(-50%,-50%) scale(.72)}
+@media (max-width:900px){
+  .wrap{padding:0 16px}
+  .fb{padding:24px 0 72px}
+  .lead{font-size:15px}
+  .fb-kap{margin:22px -16px 16px;padding:2px 16px}
+  .kap{height:40px;padding:0 14px 0 11px;font-size:12px}
+  .fb-spor{gap:12px;padding:4px 16px 8px;scroll-padding:0 16px}
+  .sc{flex-basis:calc(100vw - 32px);grid-template-columns:1fr;grid-template-rows:auto 1fr;min-height:0;border-radius:24px;opacity:1;transform:none}
+  .sc-tx{padding:24px 20px 4px}
+  .sc h3{font-size:34px;margin:12px 0 8px}
+  .sc p{font-size:14px}
+  .sc-steg{display:none}
+  .sc-steg li{font-size:12px;grid-template-columns:16px auto;gap:6px}
+  .sc-steg li b{width:16px;height:16px}
+  .sc-steg li b svg{width:9px;height:9px}
+  .sc-scene{padding:14px 12px 18px;align-items:flex-start}
+  .fb-ktl{margin-top:16px}
+  .prikker{height:44px;padding:0 16px;gap:8px}
+  .prikk{width:7px;height:7px}
+  .prikk.on{width:36px}
+  .rundknapp{width:44px;height:44px}
+  .pilpar{display:none}
+}
+.sc-pluss{position:absolute;right:18px;top:18px;width:40px;height:40px;border-radius:50%;background:var(--kontroll-ink);color:var(--tile);display:grid;place-items:center;z-index:6;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.sc-pluss svg{width:18px;height:18px}
+.sc.apen .sc-pluss{transform:rotate(45deg)}
+.sc-mer{position:absolute;inset:0;background:var(--tile);padding:40px 44px;opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .35s,transform .35s;z-index:5;overflow:auto}
+.sc.apen .sc-mer{opacity:1;pointer-events:auto;transform:none}
+.sc-mer h4{font:400 40px/1 'Bebas Neue',sans-serif;margin:14px 0 16px;color:var(--paper)}
+.sc-mer ul{list-style:none;display:flex;flex-direction:column;gap:12px;max-width:640px}
+.sc-mer li{position:relative;padding-left:20px;color:var(--dim);font-size:15.5px;line-height:1.5}
+.sc-mer li:before{content:'';position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:50%;background:var(--orange)}
+@media (max-width:900px){.sc-mer{padding:24px 20px}.sc-mer h4{font-size:30px}.sc-pluss{right:14px;top:14px;width:36px;height:36px}}
+.notat{max-width:1180px;margin:0 auto 90px;padding:0 28px}
+.notat-inn{border:1px solid var(--line2);border-radius:18px;padding:26px 30px;background:var(--surface)}
+.notat h2{font-size:26px;letter-spacing:.05em;margin:0 0 10px}
+.notat ol{padding-left:20px;color:var(--dim);font-size:14.5px;line-height:1.6}
+.notat li{margin:7px 0}.notat b{color:var(--paper)}.notat code{font-size:12.5px;background:var(--card);padding:1px 5px;border-radius:4px}
+@media (max-width:900px){.notat{padding:0 16px}.notat-inn{padding:18px}}
+
+/* ═══ TRENER-BOLKEN - blå aksent, samme motor ═══ */
+#tflyt .label{color:var(--blue)}
+#tflyt h2 .b{color:var(--blue)}
+#tflyt .sc-kick{color:var(--blue)}
+#tflyt .sc-steg li.na b{border-color:var(--blue);box-shadow:0 0 0 4px rgba(26,111,212,.16)}
+#tflyt .sc-steg li.ok b{background:var(--blue);border-color:var(--blue)}
+#tflyt .kap.on .kn{color:var(--blue)}
+#tflyt .kap i{background:linear-gradient(90deg,#1A6FD4,#2E7FE0 50%,#8B5CF6)}
+#tflyt .sc-mer li:before{background:var(--blue)}
+#tflyt .sc-scene::before{background:radial-gradient(60% 55% at 60% 45%,rgba(26,111,212,.09),transparent 70%),radial-gradient(50% 50% at 90% 90%,rgba(255,69,0,.05),transparent 70%)}
+.t-app{padding:14px 16px;font-family:'Barlow Condensed',sans-serif;color:var(--a-ink);position:relative;overflow:hidden}
+.t-av{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font:700 10.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.04em;flex:none}
+.t-nav{display:flex;gap:2px;margin:-4px 0 10px}
+.t-nav span{font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mute);padding:7px 10px;border-radius:999px}
+.t-nav span.on{color:var(--blue);background:rgba(26,111,212,.12)}
+.t-faner{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.t-faner .pil{min-height:30px;font-size:11px}
+.pil.fylt.bla,.t-faner .pil.fylt{background:var(--blue);border-color:var(--blue);color:#fff}
+.t-zs{display:flex;height:6px;border-radius:3px;overflow:hidden;width:100%;min-width:70px}
+.t-zs i{display:block;transform:scaleX(0);transform-origin:left;transition:transform .8s cubic-bezier(.3,.7,.2,1)}
+.t-zs.vis i{transform:none}
+/* T1 push */
+.t-to{display:grid;grid-template-columns:1fr 1.15fr;gap:14px;align-items:start}
+.t-mal{background:var(--a-card2);border:1px solid var(--a-line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.t-mal .bebas{font-size:22px;letter-spacing:.02em}
+.t-mal small{font-size:12px;color:var(--a-mut);margin-bottom:6px}
+.t-mr{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--a-ink3);padding:3px 0;border-top:1px solid var(--a-line)}
+.t-mr i{width:8px;height:8px;border-radius:2px;flex:none}
+.t-mr span{width:28px;color:var(--a-mute);font-weight:600}
+.t-pushk{align-self:flex-start;margin-top:10px;background:var(--blue);border-color:var(--blue);color:#fff}
+.t-modal{background:var(--a-card);border:1px solid var(--a-line2);border-radius:14px;padding:12px 14px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.t-mh{display:flex;align-items:center;margin-bottom:8px}
+.t-mh .bebas{font-size:19px}
+.t-mh .x{margin-left:auto;color:var(--a-mute);font-size:18px}
+.t-grp{display:flex;gap:6px;margin:4px 0 10px}
+.t-grp .pil{min-height:28px;font-size:11px}
+.t-grp .pil.fylt{background:var(--blue);border-color:var(--blue)}
+.t-uh{display:flex;justify-content:space-between;align-items:center}
+.t-uh small{font-size:12px;color:var(--a-mut)}
+.t-ul{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin:4px 0 8px}
+.t-ur{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:13px}
+.t-ur .nm{display:flex;flex-direction:column;line-height:1.05;font-weight:600}
+.t-ur .nm small{font-weight:400;font-size:10.5px;color:var(--a-mute)}
+.t-cb{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--a-line2);flex:none;position:relative;transition:background .2s,border-color .2s}
+.t-cb.on{background:var(--blue);border-color:var(--blue)}
+.t-cb.on:after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.t-ok{margin-left:auto;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;font:700 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#28A86E;opacity:0;transform:translateX(6px);transition:opacity .3s,transform .3s}
+.t-ok svg{width:11px;height:11px}
+.t-ur.ok .t-ok{opacity:1;transform:none}
+.t-ur.ok .t-cb{background:#28A86E;border-color:#28A86E}
+.t-mf{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--a-line);padding-top:8px;font-size:13px;color:var(--a-mut)}
+.t-mf b{color:var(--a-ink)}
+.t-pushn{background:var(--blue);border-color:var(--blue);color:#fff}
+.t-push{padding-bottom:58px}
+.t-toast{position:absolute;left:16px;right:16px;bottom:12px;display:flex;align-items:center;gap:10px;background:var(--a-card);border:1px solid var(--a-line2);border-left:3px solid var(--blue);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--a-mut);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.t-toast svg{width:16px;height:16px;color:var(--blue)}
+.t-toast b{color:var(--a-ink)}
+/* T2 kommentar */
+.t-wm{background:var(--a-card2);border:1px solid var(--a-line);border-left:3px solid #FF8C00;border-radius:12px;padding:10px 14px 8px}
+.t-wmh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.t-wmh .bebas{font-size:22px}
+.t-eier{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--a-mut)}
+.t-eier .t-av{width:20px;height:20px;font-size:8.5px}
+.t-graf{width:100%;height:90px;display:block;margin:6px 0 4px}
+.t-nk{display:flex;gap:16px;font-size:12.5px;color:var(--a-mut)}
+.t-nk b{font:400 16px/1 'Bebas Neue',sans-serif;color:var(--a-ink);margin-right:3px}
+.t-ks{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.t-ksh{display:flex;align-items:center;gap:10px}
+.t-ksh .t-lest{margin-left:auto;font-size:11.5px;color:#28A86E}
+.t-kb{border-radius:12px;padding:9px 12px;max-width:88%;position:relative}
+.t-kb.tr{background:rgba(26,111,212,.14);border:1px solid rgba(26,111,212,.4);align-self:flex-start}
+.t-kb.sv{background:var(--a-card2);border:1px solid var(--a-line);align-self:flex-end}
+.t-kb p{font-size:13.5px;line-height:1.4;color:var(--a-ink3)}
+.t-kb small{display:block;font-size:11px;color:var(--a-mute);margin-top:4px}
+.chip-t{font:700 9.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:3px}
+.t-varsel.bort{display:none}
+.t-varsel{display:flex;align-items:center;gap:10px;background:var(--a-card);border:1px solid var(--a-line2);border-left:3px solid #FF4500;border-radius:10px;padding:8px 12px;font-size:12.5px;color:var(--a-mut);align-self:flex-end;max-width:92%}
+.t-varsel svg{width:15px;height:15px;color:#FF4500;flex:none}
+.t-varsel b{color:var(--a-ink)}
+.t-skriv{display:flex;gap:8px;align-items:center}
+.t-inn{flex:1;min-height:34px;border:1px solid var(--a-line2);border-radius:10px;padding:6px 10px;font-size:13px;color:var(--a-ink3);display:flex;align-items:center;gap:1px;min-width:0}
+.t-typ{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.t-cur{width:1.5px;height:14px;background:var(--a-ink);animation:tcur 1s steps(2) infinite}
+@keyframes tcur{50%{opacity:0}}
+.t-send{background:var(--blue);border-color:var(--blue);color:#fff}
+/* T3 sammenlign */
+.t-sf .pil{min-height:28px;font-size:10.5px;padding:0 10px}
+.t-sv{display:flex;gap:6px;margin-bottom:10px}
+.t-sv .pil{min-height:28px;font-size:11px}
+.t-tab{display:flex;flex-direction:column;transition:opacity .3s}
+.t-tab.vekk{display:none}
+.t-th,.t-tr{display:grid;grid-template-columns:90px 1fr 1fr;gap:10px;align-items:center;padding:4px 0;border-bottom:1px solid var(--a-line)}
+.t-th span{display:inline-flex;align-items:center;gap:7px;font:700 13px/1 'Barlow Condensed',sans-serif}
+.t-tr .k{font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mute)}
+.t-tr .v{font:400 17px/1 'Bebas Neue',sans-serif;letter-spacing:.02em}
+.t-tr .v.dim{font:400 13px/1 'Barlow Condensed',sans-serif;color:var(--a-mute)}
+.t-tr .v.rod{color:#E23A5A}.t-tr .v.gron,.t-tr2 .v.gron{color:#28A86E}
+.t-bel{display:none;background:var(--a-card2);border:1px solid var(--a-line);border-radius:12px;padding:10px 14px;margin-top:10px}
+.t-bel .t-graf{height:70px}
+.t-bel.inn{display:block}
+.t-bel svg polyline{stroke-dasharray:1200;stroke-dashoffset:1200;transition:stroke-dashoffset 1.8s ease}
+.t-bel svg.tegn polyline{stroke-dashoffset:0}
+.t-bel .t-konk{opacity:0;transition:opacity .4s 1.6s}
+.t-bel svg.tegn .t-konk{opacity:1}
+.t-leg{display:flex;gap:14px;font-size:12px;color:var(--a-mut);margin-top:4px}
+.t-leg i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+/* T4 troppen */
+.t-hero{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.t-hero .cap{width:100%}
+.t-hero .bebas{font-size:24px;letter-spacing:.03em}
+.t-seg{margin-left:auto;display:inline-flex;border:1px solid var(--a-line2);border-radius:999px;overflow:hidden}
+.t-seg span{padding:0 11px;height:28px;display:inline-flex;align-items:center;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--a-mute)}
+.t-seg span:first-child{display:none}
+.t-seg span.on{background:#FF4500;color:#fff}
+.t-lh,.t-lr{display:grid;grid-template-columns:12px 1.5fr .6fr 1fr 1.1fr 1fr .6fr;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--a-line);position:relative}
+.t-lh span{font:600 10.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mute)}
+.t-lr{font-size:13px;color:var(--a-ink3)}
+.t-lr .nm{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--a-ink)}
+.t-lr .nm span{display:flex;flex-direction:column;line-height:1.05}
+.t-lr .nm small{font-weight:400;font-size:10.5px;color:var(--a-mute)}
+.t-lr .tm{font:400 16px/1 'Bebas Neue',sans-serif;color:var(--a-ink)}
+.t-lr .pl{display:flex;align-items:center;gap:6px}
+.t-lr .pl small{font-size:11.5px;color:var(--a-mut);min-width:32px}
+.t-bar{flex:1;height:6px;border-radius:3px;background:var(--a-line);position:relative;overflow:hidden;display:block}
+.t-bar b{position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--blue);border-radius:3px;transform:scaleX(0);transform-origin:left;transition:transform .9s cubic-bezier(.3,.7,.2,1)}
+.t-bar b.vis{transform:none}
+.t-bar em{position:absolute;left:100%;top:-2px;bottom:-2px;width:1px;background:var(--a-mute)}
+.t-lr .zo{display:flex;flex-direction:column;gap:3px}
+.t-lr .zo small{font-size:11px;color:var(--a-mut)}
+.t-lr .sk,.t-lr .hr{font-size:12.5px}
+.t-lr .hr.dim{color:var(--a-mute);font-size:11.5px}
+.t-dot{width:8px;height:8px;border-radius:50%;display:block}
+.t-dot.rod{background:#E11D48;box-shadow:0 0 0 3px rgba(225,29,72,.2)}.t-dot.gul{background:#D4A017}.t-dot.gron{background:#28A86E}
+.t-tip{position:absolute;left:24px;top:-26px;background:var(--a-ink);color:var(--a-flate);font:700 10.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;border-radius:6px;z-index:3}
+.t-tip:after{content:'';position:absolute;left:12px;bottom:-4px;width:8px;height:8px;background:var(--a-ink);transform:rotate(45deg)}
+.t-tropp.drill:before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:2}
+.t-drill{display:none;position:absolute;left:6%;right:6%;top:54px;background:var(--a-card);border:1px solid var(--a-line2);border-radius:14px;padding:14px 16px;z-index:3;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.t-tropp.drill .t-drill{display:block}
+.t-dh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.t-dh .bebas{font-size:24px}
+.t-dh small{color:var(--a-mute);font-size:12px}
+.t-dt{display:flex;gap:2px;border-bottom:1px solid var(--a-line);margin-bottom:12px}
+.t-dt span{font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mut);padding:8px 10px;border-bottom:2px solid transparent}
+.t-dt span.on{color:#FF4500;border-color:#FF4500}
+.t-dt span.gra{color:var(--a-line2)}
+.t-dk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.t-dk div{background:var(--a-card2);border:1px solid var(--a-line);border-radius:8px;padding:6px;min-height:86px}
+.t-dk small{display:block;font:600 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mute);margin-bottom:5px}
+.t-dk em{font-style:normal;font-size:11px;color:var(--a-mute)}
+.t-dp{display:block;font:600 11.5px/1.15 'Barlow Condensed',sans-serif;border:1px dashed color-mix(in srgb,var(--a-ink) 38%,transparent);border-left:3px solid var(--c);border-radius:5px;padding:4px 5px;color:var(--a-ink3)}
+.t-dp.ok{border-style:solid;border-color:color-mix(in srgb,var(--a-ink) 16%,transparent);border-left-color:var(--c);background:var(--a-card)}
+/* T5 rettigheter */
+.t-rr.kommer{opacity:.62}
+.t-rr.kommer .t-sw{background:var(--a-line)}
+.t-kommer{font:700 9.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(26,111,212,.5);border-radius:999px;padding:3px 7px;margin-left:8px;font-style:normal;vertical-align:middle}
+.t-rr span{display:flex;align-items:center;flex-wrap:wrap;gap:4px 0}
+.t-to2{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;width:100%;align-items:start}
+.t-hs{display:flex;flex-direction:column;gap:12px}
+.t-rh{margin-bottom:8px}
+.t-rh .bebas{display:block;font-size:22px;margin-top:2px}
+.t-rh small{font-size:12px;color:var(--a-mute)}
+.t-rr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--a-line);font-size:13.5px;color:var(--a-ink3)}
+.t-sw{width:38px;height:22px;border-radius:999px;background:var(--a-line2);position:relative;flex:none;transition:background .25s;display:block}
+.t-sw b{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .25s}
+.t-sw.on{background:#28A86E}
+.t-sw.on b{left:18px}
+.t-rls{display:flex;gap:10px;align-items:center;margin-top:10px;padding:9px 12px;border-radius:10px;background:rgba(40,168,110,.1);border:1px solid rgba(40,168,110,.35);font-size:12.5px;color:var(--a-ink3)}
+.t-rls svg{width:16px;height:16px;color:#28A86E;flex:none}
+.t-tr2{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid var(--a-line);font-size:13px}
+.t-tr2:nth-of-type(2){border-top:0}
+.t-tr2 .k{font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mute)}
+.t-tr2 .v{font:400 18px/1 'Bebas Neue',sans-serif}
+.t-tr2 .v.dim{font:400 13px/1 'Barlow Condensed',sans-serif;color:var(--a-mute)}
+.t-kal .cap{display:block;margin-bottom:8px}
+.t-pille{display:flex;align-items:center;gap:8px;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:6px;border:1px solid color-mix(in srgb,var(--a-ink) 16%,transparent);background:var(--a-card2);border-left:3px solid #FF8C00}
+.t-pille.tr{border:1px dashed var(--blue);border-left:3px solid #FF8C00;background:transparent}
+.t-pille .kl{color:var(--a-mut);font-size:12px}
+.t-pille b{font-weight:600}
+.prikk-tr{width:6px;height:6px;border-radius:50%;background:var(--blue);flex:none}
+.t-chip{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(26,111,212,.5);border-radius:999px;padding:3px 7px;white-space:nowrap}
+.t-chip svg{width:11px;height:11px}
+.t-chip.endret{color:var(--a-mut);border-color:var(--a-line2)}
+@media (max-width:900px){
+  .t-app{padding:10px 10px}
+  .t-nav{display:none}
+  .t-to{grid-template-columns:1fr}
+  .t-mal .t-mr:nth-child(n+8){display:none}
+  .t-ul{grid-template-columns:1fr}
+  .t-ur:nth-child(n+6){display:none}
+  .t-graf{height:64px}
+  .t-nk{gap:10px;font-size:11.5px}
+  .t-sf .pil:nth-child(n+5){display:none}
+  .t-th,.t-tr{grid-template-columns:70px 1fr 1fr}
+  .t-lh span:nth-child(5),.t-lh span:nth-child(6),.t-lr .zo,.t-lr .sk{display:none}
+  .t-lh,.t-lr{grid-template-columns:10px 1.4fr .6fr 1fr .6fr}
+  .t-lr:nth-child(n+8){display:none}
+  .t-dt span:nth-child(n+5){display:none}
+  .t-dk{grid-template-columns:repeat(4,1fr)}
+  .t-dk div:nth-child(n+5){display:none}
+  .t-to2{grid-template-columns:1fr}
+  .t-tv{display:none}
+}
+</style>
+</head>
+<body>
+<div class="utkast"><span><b>Utkast</b> · Trener-bolken (samme motor som flyt-bolken)</span><button id="temaKnapp" type="button">Lys modus</button></div>
+<div class="stubb">↑ «Velg din disiplin» ligger over</div>
+
+<section class="fb" id="tflyt" aria-roledescription="karusell" aria-label="For trenere">
+  <div class="wrap">
+    <div class="fb-hd"><div>
+      <div class="label">For trenere</div>
+      <h2>HELE TROPPEN. <span class="b">ETT PANEL.</span></h2>
+      <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør - og alle trener-abonnement inkluderer full Athlete Pro til deg selv. La det gå, eller trykk deg til det du vil se. + åpner alt som ligger i kortet.</p>
+    </div></div>
+    <div class="fb-kap" role="tablist" id="tkap"></div>
+  </div>
+  <div class="fb-spor" id="tspor"></div>
+  <div class="wrap"><div class="fb-ktl"><div class="prikker" id="tprikker"></div><button class="rundknapp" id="tspill" type="button" aria-label="Pause"></button><div class="pilpar"><button class="rundknapp" id="tforr" type="button" aria-label="Forrige"></button><button class="rundknapp" id="tnest" type="button" aria-label="Neste"></button></div></div></div>
+</section>
+
+<div class="stubb">↓ Funksjoner · Hvorfor · Priser · FAQ står som i dag</div>
+
+<div class="notat"><div class="notat-inn">
+<h2>Notat - regler (bindende for CC-prompten)</h2>
+<ol>
+<li><b>Hva dette er:</b> erstatning for dagens <code>#trener</code> (flyt-scrolly med fire steg) og «TRENERPANEL»-blokken under. Samme motor, kontroller og kortoppsett som flyt-bolken og «Detaljene som avgjør» (autoavspilling, kapitler, prikker, pause, piler, markør, steg, «+ Alt i kortet»). Blå aksent på label, kick, steg og kapittel-linje - kontrollene er felles. Plass i rekkefølgen: etter «Velg din disiplin», der trener-seksjonen står i dag.</li>
+<li><b>Fem kort, alt verifisert mot koden 16. sep:</b> 1 Push til gruppa (<code>CoachPushModal.tsx:135-170</code>, <code>coach-push.ts:117-203, 644-720</code>, <code>TrenerPlanleggPage.tsx:92-96</code>) · 2 Kommenter i økta (<code>WorkoutModal.tsx:289-296</code>, <code>CommentSection.tsx</code>, <code>coach-comments.ts:88-183</code>) · 3 Sammenlign (<code>SammenligneLayout.tsx:46-54</code>, <code>SammenligneKolonner.tsx:67-113</code>) · 4 Troppen (<code>CoachAthleteList.tsx:26-40, 263-282</code>, <code>coach-dashboard.ts:85-91, 250-256</code>) · 5 Utøveren eier - NYTT kort (<code>CoachRelationSettings.tsx:178-219</code>, <code>phase59_coach_data_permissions.sql</code>, <code>phase92_helse_trener_flagg.sql:82-130</code>, <code>Calendar.tsx:630-651</code>, <code>EndretAvTrener.tsx</code>, <code>coach_audit_log</code>).</li>
+<li><b>Rettet mot dagens forside:</b> «Lav recovery»-flagget og «varsler ved høy belastning eller dårlig recovery» FINNES IKKE i koden og er tatt ut. Erstattet med det som finnes: rød/gul/grønn status etter dager siden siste logging, og HRV-pil mot 7-dagerssnitt. «I3-tid» heter «Hard I3+» i appen. «8 utøvere» er ikke en grense (Basic 10, Pro ubegrenset). «Soner regnet fra egne terskler» er omskrevet til «sonene lest mot egne terskler» - push regner ingenting per utøver, hver utøver ser sine egne pulsspenn fordi sonene er per bruker.</li>
+<li><b>Fiktive navn:</b> treneren Kari (samme som i flyt-bolken), utøverne Ola, Mari, Jonas, Emma, Sander, Ida, Even, Nora. Gruppene «Skiskyting U23» og «Langrenn». Alle tall er diktet, ingen er målt.</li>
+<li><b>Planlagt og vist som «Kommer» (Sverre 16. sep):</b> de tre nye bryterne i kort 5 - «Kan redigere dagboken», «Kan redigere soner og terskler», «Kan redigere utstyr og skitester» - er IKKE bygget. De hører til bolken «trener redigerer utøverdata» (femflagg-delingen: dagbok, <code>can_edit_innstillinger</code> for soner/terskler, <code>can_edit_skitest</code> for utstyr; standard nei, fail-closed, fase 129 er sporbarheten). På forsiden vises de dempet med «Kommer»-chip, samme mønster som <code>.badge-soon</code> på AI Coach - aldri som om de virker. Fjern chipen når bolken er pushet.</li>
+<li><b>Ikke bygget, ikke vist:</b> inaktivitets-påminnelser (lagres i innstillinger, sendes aldri), «Trener Pro AI» (venteliste), recovery-flagg, belastningsvarsler.</li>
+<li><b>I prod (regel 11):</b> flatene skal være de ekte komponentene med fiktive data. Der utkast og komponent spriker, vinner komponenten. Pill-design (radius 999). Aldri lang tankestrek (regel 31). <code>prefers-reduced-motion</code>: ingen autoavspilling, kortene står i sluttilstand.</li>
+</ol>
+</div></div>
+<script>
+const IK={"analyse": {"s": "M3.78 16.13H6.48Q6.88 16.13 6.88 16.53V20.73Q6.88 21.13 6.48 21.13H3.78Q3.38 21.13 3.38 20.73V16.53Q3.38 16.13 3.78 16.13ZM10.78 12.13H13.48Q13.88 12.13 13.88 12.53V20.73Q13.88 21.13 13.48 21.13H10.78Q10.38 21.13 10.38 20.73V12.53Q10.38 12.13 10.78 12.13ZM17.78 7.13H20.48Q20.88 7.13 20.88 7.53V20.73Q20.88 21.13 20.48 21.13H17.78Q17.38 21.13 17.38 20.73V7.53Q17.38 7.13 17.78 7.13ZM3.38 11.13 9.38 7.13 13.38 8.13 20.38 3.13M16.38 3.13H20.38V7.13", "f": "M3.78 16.13H6.48Q6.88 16.13 6.88 16.53V20.73Q6.88 21.13 6.48 21.13H3.78Q3.38 21.13 3.38 20.73V16.53Q3.38 16.13 3.78 16.13ZM10.78 12.13H13.48Q13.88 12.13 13.88 12.53V20.73Q13.88 21.13 13.48 21.13H10.78Q10.38 21.13 10.38 20.73V12.53Q10.38 12.13 10.78 12.13ZM17.78 7.13H20.48Q20.88 7.13 20.88 7.53V20.73Q20.88 21.13 20.48 21.13H17.78Q17.38 21.13 17.38 20.73V7.53Q17.38 7.13 17.78 7.13ZM19.89 2.44C20.27 2.17 20.8 2.25 21.07 2.64C21.34 3.02 21.26 3.55 20.87 3.82L13.87 8.82C13.67 8.97 13.41 9.01 13.17 8.95L9.54 8.05L3.85 11.84C3.46 12.1 2.93 11.99 2.67 11.6C2.41 11.21 2.52 10.68 2.91 10.42L8.91 6.42C9.11 6.29 9.35 6.25 9.59 6.31L13.21 7.21L19.89 2.44Z"}, "fellestrening": {"s": "M12 4C13.26 4 14.29 5.03 14.29 6.29C14.29 7.55 13.26 8.57 12 8.57C10.74 8.57 9.71 7.55 9.71 6.29C9.71 5.03 10.74 4 12 4ZM5.15 6.29C6.15 6.29 6.97 7.11 6.97 8.12C6.97 9.12 6.15 9.94 5.15 9.94C4.14 9.94 3.32 9.12 3.32 8.12C3.32 7.11 4.14 6.29 5.15 6.29ZM18.86 6.29C19.86 6.29 20.68 7.11 20.68 8.12C20.68 9.12 19.86 9.94 18.86 9.94C17.85 9.94 17.03 9.12 17.03 8.12C17.03 7.11 17.85 6.29 18.86 6.29ZM7.43 20V16.34C7.43 10.86 16.57 10.86 16.57 16.34V20H7.43ZM2.86 18.17V15.43Q2.86 11.77 5.6 11.77H6.52L5.15 18.17H2.86ZM17.48 11.77H18.4Q21.14 11.77 21.14 15.43V18.17H18.86L17.48 11.77Z", "f": "M12 4C13.26 4 14.29 5.03 14.29 6.29C14.29 7.55 13.26 8.57 12 8.57C10.74 8.57 9.71 7.55 9.71 6.29C9.71 5.03 10.74 4 12 4ZM5.15 6.29C6.15 6.29 6.97 7.11 6.97 8.12C6.97 9.12 6.15 9.94 5.15 9.94C4.14 9.94 3.32 9.12 3.32 8.12C3.32 7.11 4.14 6.29 5.15 6.29ZM18.86 6.29C19.86 6.29 20.68 7.11 20.68 8.12C20.68 9.12 19.86 9.94 18.86 9.94C17.85 9.94 17.03 9.12 17.03 8.12C17.03 7.11 17.85 6.29 18.86 6.29ZM7.43 20V16.34C7.43 10.86 16.57 10.86 16.57 16.34V20H7.43ZM2.86 18.17V15.43Q2.86 11.77 5.6 11.77H6.52L5.15 18.17H2.86ZM17.48 11.77H18.4Q21.14 11.77 21.14 15.43V18.17H18.86L17.48 11.77Z"}, "innboks": {"s": "M3.82 5.27H20.18Q21.14 5.27 21.14 6.23V17.77Q21.14 18.73 20.18 18.73H3.82Q2.86 18.73 2.86 17.77V6.23Q2.86 5.27 3.82 5.27ZM3.34 6.23 12 12 20.66 6.23", "f": "M3.82 5.27H20.18Q21.14 5.27 21.14 6.23V17.77Q21.14 18.73 20.18 18.73H3.82Q2.86 18.73 2.86 17.77V6.23Q2.86 5.27 3.82 5.27ZM4.3 6.03 12 12 19.7 6.03H18.25L12 10.36L5.75 6.03H4.3Z"}, "klokke": {"s": "M8 6V3H16V6H8ZM8 18V21H16V18H8ZM12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5ZM12 8.8V12L14.5 13.5", "f": "M8 6V3H16V6H8ZM8 18H16V21H8V18ZM12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5ZM12 7.5C9.51 7.5 7.5 9.51 7.5 12C7.5 14.49 9.51 16.5 12 16.5C14.49 16.5 16.5 14.49 16.5 12C16.5 9.51 14.49 7.5 12 7.5ZM12 7.95C12.23 7.95 12.44 8.04 12.6 8.2C12.76 8.36 12.85 8.58 12.85 8.8V11.52L14.94 12.77C15.34 13.01 15.47 13.54 15.23 13.94C14.99 14.34 14.46 14.47 14.06 14.23L11.56 12.73C11.31 12.57 11.15 12.3 11.15 12V8.8C11.15 8.58 11.24 8.36 11.4 8.2C11.56 8.04 11.77 7.95 12 7.95Z"}, "las": {"s": "M6.86 10.87V8.3C6.86 5.46 9.17 3.16 12 3.16C14.83 3.16 17.14 5.46 17.14 8.3V10.87M5.15 10.87H18.85Q19.71 10.87 19.71 11.72V20.28Q19.71 21.14 18.85 21.14H5.15Q4.29 21.14 4.29 20.28V11.72Q4.29 10.87 5.15 10.87ZM12 15.15V17.72", "f": "M12 2.13C15.39 2.13 18.16 4.91 18.16 8.3V10.87C18.16 11.43 17.7 11.89 17.14 11.89C16.57 11.89 16.11 11.43 16.11 10.87V8.3C16.11 6.01 14.29 4.19 12 4.19C9.71 4.19 7.89 6.01 7.89 8.3V10.87C7.89 11.43 7.43 11.89 6.86 11.89C6.3 11.89 5.84 11.43 5.84 10.87V8.3C5.84 4.91 8.61 2.13 12 2.13ZM5.15 10.87H18.85Q19.71 10.87 19.71 11.72V20.28Q19.71 21.14 18.85 21.14H5.15Q4.29 21.14 4.29 20.28V11.72Q4.29 10.87 5.15 10.87ZM12 13.86C11.29 13.86 10.72 14.44 10.72 15.15C10.72 15.86 11.29 16.43 12 16.43C12.71 16.43 13.28 15.86 13.28 15.15C13.28 14.44 12.71 13.86 12 13.86ZM11.14 15.15V18.57H12.86V15.15H11.14Z"}, "legg-til": {"s": "M12 4.01V19.99M4.01 12H19.99", "f": "M12 2.01C13.1 2.01 14 2.91 14 4.01V10H19.99C21.09 10 21.99 10.9 21.99 12C21.99 13.1 21.09 14 19.99 14H14V19.99C14 21.09 13.1 21.99 12 21.99C10.9 21.99 10 21.09 10 19.99V14H4.01C2.91 14 2.01 13.1 2.01 12C2.01 10.9 2.91 10 4.01 10H10V4.01C10 2.91 10.9 2.01 12 2.01Z"}, "maler": {"s": "M7.88 3.12H18.88Q20.88 3.12 20.88 5.12V17.12M4.28 6.12H16.48Q17.88 6.12 17.88 7.53V19.73Q17.88 21.12 16.48 21.12H4.28Q2.88 21.12 2.88 19.73V7.53Q2.88 6.12 4.28 6.12ZM5.88 11.12H13.88M5.88 16.12H11.88", "f": "M7.88 2.02H18.88C19.73 2.02 20.55 2.25 21.16 2.85C21.75 3.44 21.98 4.28 21.98 5.12V17.12C21.98 17.73 21.48 18.23 20.88 18.23C20.27 18.23 19.77 17.73 19.77 17.12V5.12C19.77 4.64 19.68 4.47 19.59 4.41C19.52 4.33 19.36 4.22 18.88 4.22H7.88C7.26 4.22 6.78 3.73 6.78 3.12C6.78 2.52 7.26 2.02 7.88 2.02ZM4.28 6.12H16.48Q17.88 6.12 17.88 7.53V19.73Q17.88 21.12 16.48 21.12H4.28Q2.88 21.12 2.88 19.73V7.53Q2.88 6.12 4.28 6.12ZM6.17 10.12Q5.88 10.12 5.88 10.43V11.53Q5.88 11.82 6.17 11.82H14.57Q14.88 11.82 14.88 11.53V10.43Q14.88 10.12 14.57 10.12H6.17ZM6.17 15.12Q5.88 15.12 5.88 15.43V16.52Q5.88 16.82 6.17 16.82H12.57Q12.88 16.82 12.88 16.52V15.43Q12.88 15.12 12.57 15.12H6.17Z"}, "oktbygger": {"s": "M3.45 14.6H6.05Q6.6 14.6 6.6 15.15V20.55Q6.6 21.1 6.05 21.1H3.45Q2.9 21.1 2.9 20.55V15.15Q2.9 14.6 3.45 14.6ZM10.75 9.6H13.35Q13.9 9.6 13.9 10.15V20.55Q13.9 21.1 13.35 21.1H10.75Q10.2 21.1 10.2 20.55V10.15Q10.2 9.6 10.75 9.6ZM18.05 16H20.55Q21.1 16 21.1 16.55V20.55Q21.1 21.1 20.55 21.1H18.05Q17.5 21.1 17.5 20.55V16.55Q17.5 16 18.05 16ZM18.45 3.7V8.9M15.85 6.3H21.05", "f": "M3.1 14H6.4Q7.2 14 7.2 14.8V20.8Q7.2 21.6 6.4 21.6H3.1Q2.3 21.6 2.3 20.8V14.8Q2.3 14 3.1 14ZM10.4 9H13.7Q14.5 9 14.5 9.8V20.8Q14.5 21.6 13.7 21.6H10.4Q9.6 21.6 9.6 20.8V9.8Q9.6 9 10.4 9ZM17.7 15.4H20.9Q21.7 15.4 21.7 16.2V20.8Q21.7 21.6 20.9 21.6H17.7Q16.9 21.6 16.9 20.8V16.2Q16.9 15.4 17.7 15.4ZM18.45 2.75C18.97 2.75 19.4 3.17 19.4 3.7V5.35H21.05C21.58 5.35 22 5.78 22 6.3C22 6.82 21.57 7.25 21.05 7.25H19.4V8.9C19.4 9.43 18.97 9.85 18.45 9.85C17.93 9.85 17.5 9.42 17.5 8.9V7.25H15.85C15.33 7.25 14.9 6.82 14.9 6.3C14.9 5.78 15.32 5.35 15.85 5.35H17.5V3.7C17.5 3.18 17.93 2.75 18.45 2.75Z"}, "skyting": {"s": "M12 5.34C15.68 5.34 18.66 8.32 18.66 12C18.66 15.68 15.68 18.66 12 18.66C8.32 18.66 5.34 15.68 5.34 12C5.34 8.32 8.32 5.34 12 5.34ZM12 3V4.8M19.2 12H21M12 19.2V21M3 12H4.8M12 9.57C13.34 9.57 14.43 10.66 14.43 12C14.43 13.34 13.34 14.43 12 14.43C10.66 14.43 9.57 13.34 9.57 12C9.57 10.66 10.66 9.57 12 9.57Z", "f": "M12 5.34C15.68 5.34 18.66 8.32 18.66 12C18.66 15.68 15.68 18.66 12 18.66C8.32 18.66 5.34 15.68 5.34 12C5.34 8.32 8.32 5.34 12 5.34ZM12 7.28C9.39 7.28 7.28 9.39 7.28 12C7.28 14.61 9.39 16.73 12 16.73C14.61 16.73 16.73 14.61 16.73 12C16.73 9.39 14.61 7.28 12 7.28ZM12 2.24C12.42 2.24 12.76 2.58 12.76 3V4.8C12.76 5.22 12.42 5.57 12 5.57C11.58 5.57 11.24 5.22 11.24 4.8V3C11.24 2.58 11.58 2.24 12 2.24ZM3 11.24H4.8C5.22 11.24 5.57 11.58 5.57 12C5.57 12.42 5.22 12.76 4.8 12.76H3C2.58 12.76 2.24 12.42 2.24 12C2.24 11.58 2.58 11.24 3 11.24ZM19.2 11.24H21C21.42 11.24 21.77 11.58 21.77 12C21.77 12.42 21.42 12.76 21 12.76H19.2C18.78 12.76 18.43 12.42 18.43 12C18.43 11.58 18.78 11.24 19.2 11.24ZM12 18.43C12.42 18.43 12.76 18.78 12.76 19.2V21C12.76 21.42 12.42 21.77 12 21.77C11.58 21.77 11.24 21.42 11.24 21V19.2C11.24 18.78 11.58 18.43 12 18.43ZM12 9.57C13.34 9.57 14.43 10.66 14.43 12C14.43 13.34 13.34 14.43 12 14.43C10.66 14.43 9.57 13.34 9.57 12C9.57 10.66 10.66 9.57 12 9.57Z"}, "trener": {"s": "M8.34 4.05C9.86 4.05 11.09 5.27 11.09 6.79C11.09 8.31 9.86 9.53 8.34 9.53C6.83 9.53 5.6 8.31 5.6 6.79C5.6 5.27 6.83 4.05 8.34 4.05ZM16.57 3.5C17.89 3.5 18.95 4.56 18.95 5.88C18.95 7.19 17.89 8.25 16.57 8.25C15.25 8.25 14.19 7.19 14.19 5.88C14.19 4.56 15.25 3.5 16.57 3.5ZM2.86 20.5V17.76C2.86 11.36 13.83 11.36 13.83 17.76V20.5H2.86ZM15.66 12.27C20.23 12.27 21.14 15.93 21.14 18.67H16.57V16.84Q16.57 14.1 15.66 12.27Z", "f": "M8.34 4.05C9.86 4.05 11.09 5.27 11.09 6.79C11.09 8.31 9.86 9.53 8.34 9.53C6.83 9.53 5.6 8.31 5.6 6.79C5.6 5.27 6.83 4.05 8.34 4.05ZM16.57 3.5C17.89 3.5 18.95 4.56 18.95 5.88C18.95 7.19 17.89 8.25 16.57 8.25C15.25 8.25 14.19 7.19 14.19 5.88C14.19 4.56 15.25 3.5 16.57 3.5ZM2.86 20.5V17.76C2.86 11.36 13.83 11.36 13.83 17.76V20.5H2.86ZM15.66 12.27C20.23 12.27 21.14 15.93 21.14 18.67H16.57V16.84Q16.57 14.1 15.66 12.27Z"}};
+
+/* ───────── Ikoner fra ikonsettet (design/ikoner/svg/ikoner.json) ───────── */
+function ik(n,v,st){v=v||'s';var p=IK[n]&&IK[n][v];if(!p)return'';
+  return v==='s'?'<svg viewBox="0 0 24 24" aria-hidden="true" style="'+(st||'')+'"><path d="'+p+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  :'<svg viewBox="0 0 24 24" aria-hidden="true" style="'+(st||'')+'"><path d="'+p+'" fill="currentColor"/></svg>';}
+function oktbyggerIkon(){var farger=['#1A6FD4','#E23A5A','#28A86E','#FF4500'];var d=IK.oktbygger.f.split(/(?=M)/);
+  return '<svg viewBox="0 0 24 24" aria-hidden="true">'+d.map(function(x,i){return'<path d="'+x+'" fill="'+farger[Math.min(i,3)]+'"/>'}).join('')+'</svg>';}
+var HAKE='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var Z={I1:'#28A86E',I2:'#1A6FD4',I3:'#E8B93C',I4:'#FF8C00',I5:'#E23A5A'};
+var MOBIL=matchMedia('(max-width:900px)');
+function erMobil(){return MOBIL.matches}
+
+/* ───────── ØKTA (én kilde for alle scenene) ───────── */
+var OKT=[
+ {t:'oppv',z:'I1',s:0,e:20},{t:'drag',z:'I3',s:20,e:30},{t:'sky',ls:'L',s:30,e:33},{t:'drag',z:'I3',s:33,e:43},{t:'sky',ls:'S',s:43,e:46},
+ {t:'drag',z:'I4',s:46,e:51},{t:'sky',ls:'L',s:51,e:53},{t:'drag',z:'I4',s:53,e:58},{t:'sky',ls:'S',s:58,e:60},{t:'drag',z:'I4',s:60,e:65},{t:'ned',z:'I1',s:65,e:80}];
+var TOT=80;
+var HOYDE={I1:.36,I2:.5,I3:.62,I4:.74,I5:.86};
+function blokkH(b){return b.t==='sky'?.18:HOYDE[b.z]}
+function blokkFarge(b){return b.t==='sky'?'#43434B':Z[b.z]}
+function stripe(h){return OKT.map(function(b){return'<i style="flex:'+(b.e-b.s)+';background:'+blokkFarge(b)+';opacity:'+(b.z==='I1'?.62:1)+(h?';height:'+(blokkH(b)*100)+'%;align-self:flex-end':'')+'"></i>'}).join('')}
+
+/* Pulsen (fiktiv, deterministisk) */
+var PULS=(function(){var hr=96,ut=[],seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
+  for(var m=0;m<=TOT;m+=.25){var b=OKT.filter(function(x){return m>=x.s&&m<x.e})[0]||OKT[OKT.length-1];var mal;
+    if(b.t==='oppv')mal=118+(m/20)*20;else if(b.t==='ned')mal=138-(m-65)*1.3;else if(b.t==='sky')mal=b.ls==='L'?122:128;else mal=(b.z==='I3'?160:174)+(m-b.s)*.35;
+    var k=b.t==='sky'?.22:.13;hr+=(mal-hr)*k+(rnd()-.5)*2.2;ut.push([m,hr])}return ut})();
+function pulsVed(m){var i=Math.round(m/.25);return PULS[Math.max(0,Math.min(PULS.length-1,i))][1]}
+
+/* ───────── Tidslinje-motor per scene ───────── */
+function Scene(def,rot){this.d=def;this.rot=rot;this.hend=[];this.id=[];}
+Scene.prototype.t=function(at,fn){this.hend.push([at,fn])};
+Scene.prototype.q=function(s){return this.rot.querySelector(s)};
+Scene.prototype.qa=function(s){return[].slice.call(this.rot.querySelectorAll(s))};
+Scene.prototype.render=function(){if(this.d.fart)this.rot.classList.add('fart');this.rot.innerHTML=this.d.html();this.hend=[];this.d.spill(this);this.hend.sort(function(a,b){return a[0]-b[0]});
+  var m=document.createElement('div');m.className='markor';this.rot.appendChild(m);this.mark=m};
+Scene.prototype.stopp=function(){this.id.forEach(clearTimeout);this.id=[]};
+Scene.prototype.kjor=function(fra){var s=this;this.stopp();this.hend.forEach(function(h){if(h[0]<=fra)h[1]();else s.id.push(setTimeout(h[1],h[0]-fra))})};
+Scene.prototype.slutt=function(){var kort=this.rot.closest('.sc');kort.classList.add('still');this.still=true;this.render();this.hend.forEach(function(h){h[1]()});this.still=false;if(this.d.rydd)this.d.rydd(this);
+  if(this.mark)this.mark.classList.remove('vis');void kort.offsetWidth;requestAnimationFrame(function(){kort.classList.remove('still')})};
+Scene.prototype.til=function(el,at,klikk,ms){ms=ms||750;var s=this;this.t(at,function(){var e=typeof el==='string'?s.q(el):el;if(!e)return;
+  var r=s.rot.getBoundingClientRect(),b=e.getBoundingClientRect();s.mark.style.left=(b.left-r.left+b.width/2)+'px';s.mark.style.top=(b.top-r.top+b.height/2)+'px';s.mark.classList.add('vis')});
+  if(klikk)this.t(at+ms,function(){s.mark.classList.add('klikk');setTimeout(function(){s.mark.classList.remove('klikk')},180)})};
+Scene.prototype.bort=function(at){var s=this;this.t(at,function(){s.mark.classList.remove('vis')})};
+Scene.prototype.steg=function(i,at){var s=this;this.t(at,function(){var li=s.rot.closest('.sc').querySelectorAll('.sc-steg li');
+  [].forEach.call(li,function(l,j){l.className=j<i?'ok':(j===i?'na':'')})})};
+Scene.prototype.inn=function(sel,at,kl){var s=this;this.t(at,function(){s.qa(sel).forEach(function(e){e.classList.add(kl||'inn')})})};
+Scene.prototype.tell=function(el,fra,til,ms,at,fmt){var s=this;this.t(at,function(){var e=s.q(el);if(!e)return;if(s.still){e.textContent=fmt?fmt(til):til;return}var t0=performance.now();
+  (function f(n){var p=Math.min(1,(n-t0)/ms),v=fra+(til-fra)*(1-Math.pow(1-p,3));e.textContent=fmt?fmt(v):Math.round(v);if(p<1&&!document.hidden)requestAnimationFrame(f);else e.textContent=fmt?fmt(til):til})(t0)})};
+var still=document.createElement('style');still.textContent='.sc.still *{transition:none!important;animation:none!important}';document.head.appendChild(still);
+
+/* ═════════════════ TRENER - HELE TROPPEN. ETT PANEL. - samme motor ═════════════════ */
+var KAP3=[{n:'Planlegg for gruppa',ik:'maler'},{n:'Følg opp i økta',ik:'innboks'},{n:'Sammenlign',ik:'analyse'},{n:'Troppen',ik:'trener'},{n:'Utøveren eier',ik:'las'}];
+var SC3=[];
+var UT=[['Ola','Skiskyting · U23','OL'],['Mari','Skiskyting · senior','MA'],['Jonas','Langrenn · U23','JO'],['Emma','Skiskyting · junior','EM'],['Sander','Langrenn · senior','SA'],['Ida','Skiskyting · U23','ID'],['Even','Løping · senior','EV'],['Nora','Skiskyting · junior','NO']];
+function av(u,st){return'<span class="t-av" style="'+(st||'')+'">'+u[2]+'</span>'}
+function trykk3(S,sel){var k=S.q(sel);if(!k)return;k.classList.add('trykk');setTimeout(function(){k.classList.remove('trykk')},220)}
+function zs(a){var f=['#28A86E','#1A6FD4','#E8B93C','#FF8C00','#E23A5A'];return'<span class="t-zs">'+a.map(function(v,i){return'<i style="flex:'+v+';background:'+f[i]+'"></i>'}).join('')+'</span>'}
+
+/* ── T1 · PUSH TIL GRUPPA ── */
+var MALRAD=[['Man','Langtur 2t I1','#28A86E'],['Tir','3 × 10 min I3 + skyting','#E8B93C'],['Tir','Styrke','#6E6E78'],['Ons','Rolig 1t 15','#28A86E'],['Tor','4 × 5 min I4','#FF8C00'],['Fre','Rolig 45 min','#28A86E'],['Søn','Langtur 2t 30','#28A86E']];
+SC3.push({kap:0,tittel:'ÉN MAL. HELE GRUPPA.',tekst:'Lag uka én gang som plan-mal. Velg gruppa, trykk push - og hver utøver får uka inn i sin egen plan, med sonene lest mot egne terskler.',
+ steg:['Velg plan-malen','Velg gruppe og utøvere','Push - hver får sin plan'],varighet:9500,
+ mer:['Fire faner under Planlegg: Øktmaler, Plan-maler, Årsplan-maler og Test-maler - alle kan pushes til én, flere eller en hel gruppe.','Startdatoen skalerer planen: er utøverens vindu kortere eller lengre enn malens, flyttes dagene lineært.','Fellestrening: én økt til hele gruppa i ett trykk, merket som fellestrening i alles kalender - og treneren melder oppmøte.','Grupper med roller (admin, trener, utøver), redigerbare når som helst. Utøveren får varsel med lenke rett inn i planen.','Trener Basic: inntil 10 utøvere. Trener Pro: ubegrenset, med fem Athlete Pro-lisenser inkludert.'],
+ html:function(){return'<div class="app t-app t-push"><div class="t-nav">'+['Hjem','Planlegg','Kalender','Utøvere','Sammenligne'].map(function(n,i){return'<span class="'+(i===1?'on':'')+'">'+n+'</span>'}).join('')+'</div>'+
+  '<div class="t-faner">'+['Øktmaler','Plan-maler','Årsplan-maler','Test-maler'].map(function(n,i){return'<span class="pil'+(i===1?' fylt':'')+'">'+n+'</span>'}).join('')+'</div>'+
+  '<div class="t-to"><div class="t-mal"><span class="cap" style="color:var(--blue)">Plan-mal · 7 dager</span><b class="bebas">Grunntrening 2 · Uke B</b><small>7 økter · 9t 05min · 2 hardøkter · 1 skyting</small>'+MALRAD.map(function(r){return'<div class="t-mr"><i style="background:'+r[2]+'"></i><span>'+r[0]+'</span>'+r[1]+'</div>'}).join('')+'<span class="pil fylt t-pushk">'+ik('trener','s')+'Push til utøvere</span></div>'+
+  '<div class="t-modal a"><div class="t-mh"><b class="bebas">Push «Grunntrening 2 · Uke B»</b><span class="x">×</span></div><span class="cap">Grupper</span><div class="t-grp"><span class="pil t-g">'+ik('fellestrening','s')+'Skiskyting U23 · 5</span><span class="pil t-g2">Langrenn · 2</span></div><div class="t-uh"><span class="cap">Utøvere</span><small class="t-valgt">0/8 valgt</small></div><div class="t-ul">'+UT.map(function(u,i){return'<div class="t-ur" data-i="'+i+'"><i class="t-cb"></i>'+av(u)+'<span class="nm">'+u[0]+'<small>'+u[1]+'</small></span><span class="t-ok">'+HAKE+' i planen</span></div>'}).join('')+'</div><div class="t-mf"><span>Start <b>man 21. sep</b></span><span class="pil fylt t-pushn">Push til <b class="t-ant">0</b></span></div></div></div>'+
+  '<div class="t-toast pop">'+ik('innboks','s')+'<span><b>8 varsler sendt</b> · «Ny plan fra Kari: Grunntrening 2 · Uke B»</span></div></div>'},
+ spill:function(S){S.steg(0,200);S.til('.t-mal .bebas',500);S.til('.t-pushk',1500,true);S.t(1900,function(){trykk3(S,'.t-pushk');S.q('.t-modal').classList.add('inn')});S.steg(1,2300);
+  S.til('.t-g',2900,true);S.t(3300,function(){trykk3(S,'.t-g');S.q('.t-g').classList.add('fylt')});
+  [0,1,3,5,7].forEach(function(i,j){S.t(3400+j*180,function(){S.q('[data-i="'+i+'"] .t-cb').classList.add('on');var n=S.qa('.t-cb.on').length;S.q('.t-valgt').textContent=n+'/8 valgt';S.q('.t-ant').textContent=n})});
+  S.til('.t-g2',4500,true);S.t(4900,function(){trykk3(S,'.t-g2');S.q('.t-g2').classList.add('fylt')});
+  [2,4].forEach(function(i,j){S.t(5000+j*180,function(){S.q('[data-i="'+i+'"] .t-cb').classList.add('on');var n=S.qa('.t-cb.on').length;S.q('.t-valgt').textContent=n+'/8 valgt';S.q('.t-ant').textContent=n})});
+  S.til('[data-i="6"] .t-cb',5500,true,300);S.t(5800,function(){S.q('[data-i="6"] .t-cb').classList.add('on');S.q('.t-valgt').textContent='8/8 valgt';S.q('.t-ant').textContent='8'});
+  S.steg(2,6000);S.til('.t-pushn',6200,true);S.t(6600,function(){trykk3(S,'.t-pushn')});
+  UT.forEach(function(_,i){S.t(6800+i*160,function(){S.q('[data-i="'+i+'"]').classList.add('ok')})});
+  S.bort(7200);S.t(8300,function(){S.q('.t-toast').classList.add('inn')});S.steg(3,9000)}
+});
+
+/* ── T2 · KOMMENTER I ØKTA ── */
+var KOM_T='Drag 3 lå 6 slag over de to første - legg deg på 165 neste gang, det er nok. Skytinga: ta 2 s ekstra på liggende, bommene er tidsbommer.';
+function oktGraf(){var W=300,H=90,s='';OKT.forEach(function(b){var x=b.s/TOT*W,w=(b.e-b.s)/TOT*W,h=blokkH(b)*(H-10);s+='<rect x="'+x+'" y="'+(H-h)+'" width="'+(w-.8)+'" height="'+h+'" rx="1.5" fill="'+blokkFarge(b)+'" opacity="'+(b.z==='I1'?.62:.9)+'"/>'});
+  var p=[];for(var m=0;m<=TOT;m+=.5)p.push((m/TOT*W).toFixed(1)+','+(H-8-(pulsVed(m)-90)/100*(H-14)).toFixed(1));s+='<polyline fill="none" stroke="#E23A5A" stroke-width="1.8" vector-effect="non-scaling-stroke" points="'+p.join(' ')+'"/>';
+  return'<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="t-graf">'+s+'</svg>'}
+SC3.push({kap:1,tittel:'KOMMENTER I ØKTA. IKKE I INNBOKSEN.',tekst:'Trenerens ord ligger på økta, rett under grafen. Utøveren får varsel med lenke rett inn, og svarer på samme sted.',
+ steg:['Kommentaren ligger på økta','Utøveren får varsel','Svarer samme sted'],varighet:9500,
+ mer:['Kommentarer på økt, dag, uke og måned - i planen, dagboken og årsplanen. Uke- og månedstrådene ligger over kalenderen.','Begge parter får varsel med dyplenke; lest-status vises på kommentaren.','Innboks felles for begge roller: meldingstråder, kommentar-feed og varsler, med uleste-merke i navigasjonen.','Retter treneren i utøverens egen økt, står «endret av trener» på økta - med logg utøveren kan lese.'],
+ html:function(){return'<div class="app t-app t-kom"><div class="t-wm"><div class="t-wmh"><span class="cap" style="color:#28A86E">Gjennomført · Garmin</span><b class="bebas">Terskel komb</b><span class="t-eier">'+av(UT[0])+'Ola · tir 15. sep</span></div>'+oktGraf()+'<div class="t-nk"><span><b>152</b> snitt</span><span><b>30</b> min I3-I4</span><span><b>18/20</b> treff</span><span><b>4,6</b> laktat</span></div></div>'+
+  '<div class="t-ks"><div class="t-ksh"><span class="strek"></span><span class="cap">Kommentarer · økta</span><small class="t-lest a">Lest av Ola ✓</small></div><div class="t-kb tr a"><span class="chip-t">Trener</span><p class="t-txt"></p><small>Kari · i dag 14:12</small></div>'+
+  '<div class="t-varsel pop">'+ik('innboks','s')+'<span><b>Ola</b> · varsel: «Ny kommentar fra Kari på Terskel komb» → åpner økta</span></div>'+
+  '<div class="t-kb sv a"><p>Kjente det på drag 3 ja. Prøver 165 torsdag 👍</p><small>Ola · 14:40</small></div>'+
+  '<div class="t-skriv"><span class="t-inn"><span class="t-typ"></span><i class="t-cur"></i></span><span class="pil fylt t-send">Send</span></div></div></div>'},
+ spill:function(S){S.steg(0,200);S.til('.t-inn',500);var n=KOM_T.length,ms=2600;
+  for(var i=1;i<=n;i+=3){(function(i){S.t(800+i/n*ms,function(){S.q('.t-typ').textContent=KOM_T.slice(0,i)})})(i)}
+  S.t(800+ms+50,function(){S.q('.t-typ').textContent=KOM_T});S.til('.t-send',800+ms+200,true);
+  S.t(800+ms+600,function(){trykk3(S,'.t-send');S.q('.t-typ').textContent='';S.q('.t-txt').textContent=KOM_T;S.q('.t-kb.tr').classList.add('inn')});
+  S.bort(4300);S.steg(1,4500);S.t(4700,function(){S.q('.t-varsel').classList.add('inn')});
+  S.steg(2,6400);S.t(6500,function(){S.q('.t-varsel').classList.remove('inn');S.q('.t-varsel').classList.add('bort')});S.t(6700,function(){S.q('.t-kb.sv').classList.add('inn');S.q('.t-lest').classList.add('inn')});S.steg(3,8600)}
+});
+
+/* ── T3 · SAMMENLIGN ── */
+var SAM=[['Timer',['11t 25','13t 40']],['Hard I3+',['1t 40','2t 05']],['% av plan',['92 %','78 %']],['Soner',[[74,9,11,6,0],[62,12,16,10,0]]],['CTL',['78','61']],['TSB',['+12','-9']],['HRV',['71 ▲','ikke delt']],['Treff %',['84','79']],['LT2',['165 / 4,1','171 / 3,8']]];
+SC3.push({kap:2,tittel:'TO UTØVERE. SAMME BILDE.',tekst:'Timer, hard tid, prosent av plan, soner, CTL, TSB, HRV, treff og terskler - side om side for samme periode. Belastningen over tid ligger ett trykk unna.',
+ steg:['Side om side','Sonefordeling','Belastning over tid'],varighet:9500,
+ mer:['Åtte faner: Side om side, Oversikt, Belastning, Per bevegelsesform, Helse, Konkurranser, Tester & PR og Årsplan.','Så mange utøvere du vil i samme bilde - én, to eller hele gruppa - med felles periode- og sportsvelger.','Hard tid regnes som I3 og oppover. LT2 vises som puls og laktat fra siste laktatprofil.','Helsekolonnene viser «ikke delt» til utøveren har sagt ja - treneren ser aldri tall utøveren ikke har delt.','Metrikk- og periodevalget huskes per trener.'],
+ html:function(){return'<div class="app t-app t-sam"><div class="t-faner t-sf">'+['Side om side','Oversikt','Belastning','Per bev.form','Helse','Konkurranser','Tester & PR','Årsplan'].map(function(n,i){return'<span class="pil'+(i===0?' fylt':'')+'" data-f="'+i+'">'+n+'</span>'}).join('')+'</div>'+
+  '<div class="t-sv"><span class="pil">Siste 4 uker</span><span class="pil">Alle sporter</span><span class="pil">'+ik('legg-til','s')+'Utøver</span></div>'+
+  '<div class="t-tab"><div class="t-th"><span></span><span>'+av(UT[0])+'Ola</span><span>'+av(UT[1])+'Mari</span></div>'+SAM.map(function(r,i){return'<div class="t-tr a" data-r="'+i+'"><span class="k">'+r[0]+'</span>'+r[1].map(function(v){return'<span class="v'+(typeof v==='string'&&v.indexOf('ikke')>-1?' dim':'')+(v==='-9'?' rod':'')+(v==='+12'?' gron':'')+'">'+(typeof v==='string'?v:zs(v))+'</span>'}).join('')+'</div>'}).join('')+'</div>'+
+  '<div class="t-bel a"><span class="cap">Belastning · CTL siste 12 uker</span><svg viewBox="0 0 300 80" preserveAspectRatio="none" class="t-graf"><polyline class="t-l1" fill="none" stroke="#FF4500" stroke-width="2" vector-effect="non-scaling-stroke" points="0,52 25,50 50,46 75,44 100,40 125,38 150,34 175,33 200,30 225,28 250,26 275,25 300,24"/><polyline class="t-l2" fill="none" stroke="#1A6FD4" stroke-width="2" vector-effect="non-scaling-stroke" points="0,66 25,64 50,62 75,58 100,57 125,52 150,50 175,46 200,44 225,42 250,38 275,36 300,34"/><g class="t-konk"><path d="M212 12l4 7h-8z" fill="#D4A017"/><path d="M262 8l4 7h-8z" fill="#D4A017"/></g></svg><div class="t-leg"><span><i style="background:#FF4500"></i>Ola · CTL 78</span><span><i style="background:#1A6FD4"></i>Mari · CTL 61</span><span><i style="background:#D4A017;border-radius:0"></i>Konkurranse</span></div></div></div>'},
+ spill:function(S){S.steg(0,200);SAM.forEach(function(_,i){if(i===3)return;S.t(400+i*220,function(){S.q('[data-r="'+i+'"]').classList.add('inn')})});
+  S.steg(1,2800);S.t(2900,function(){S.q('[data-r="3"]').classList.add('inn')});S.t(3000,function(){S.qa('.t-zs').forEach(function(z){z.classList.add('vis')})});
+  S.steg(2,5200);S.til('[data-f="2"]',5300,true);S.t(5700,function(){trykk3(S,'[data-f="2"]');S.qa('.t-sf .pil').forEach(function(p,i){p.classList.toggle('fylt',i===2)});S.q('.t-bel').classList.add('inn')});
+  S.bort(6300);S.t(6000,function(){S.q('.t-bel svg').classList.add('tegn')});S.steg(3,8800)}
+});
+
+/* ── T4 · TROPPEN ── */
+var TROPP=[[4,'rod','3t 10','34',[70,10,12,8,0],'0t 20','21/40 · 53 %','-','4 dager siden sist'],[5,'gul','6t 50','71',[68,12,12,8,0],'1t 05','38/50 · 76 %','ikke delt','2 dager siden sist'],[0,'gron','9t 20','92',[74,9,11,6,0],'1t 40','92/100 · 92 %','71 ▲',''],[1,'gron','11t 05','96',[62,12,16,10,0],'2t 05','86/110 · 78 %','ikke delt',''],[2,'gron','8t 40','88',[72,10,10,8,0],'1t 20','-','66 ▼',''],[3,'gron','7t 15','90',[76,8,10,6,0],'1t 00','44/50 · 88 %','74 ▲',''],[6,'gron','9t 00','85',[80,8,8,4,0],'0t 55','-','69 ▲',''],[7,'gron','5t 30','94',[78,9,9,4,0],'0t 45','30/40 · 75 %','ikke delt','']];
+SC3.push({kap:3,tittel:'HELE TROPPEN. DENNE UKA.',tekst:'Timer, prosent av plan, soner, skyting og HRV per utøver - og hvem som ikke har logget. Rødt øverst. Ett trykk, og du står i utøverens plan.',
+ steg:['Timer og % av plan','Hvem har ikke logget','Rett inn i utøveren'],varighet:9500,
+ mer:['Uke, måned eller år - samme liste. Rødt = ikke logget på over to dager, gult = to dager, grønt = i dag eller i går. Uleste kommentarer sorteres øverst.','Trener-hjem: neste konkurranse og fellestrening, aktivitetsfeed (loggede økter, sykdom, skade, hvile, mål nådd), grupper og plasser.','Trener-kalender på tvers av utøvere: konkurranser, økter du har meldt oppmøte på og egne notater.','Drilldown per utøver: Plan, Dagbok, Analyse, Årsplan, Historikk og Utstyr - faner du ikke har fått tilgang til er grå.','HRV, søvn og hvilepuls vises bare når utøveren har delt helsedata.'],
+ html:function(){return'<div class="app t-app t-tropp"><div class="t-hero"><span class="cap">God dag, Kari</span><b class="bebas">8 utøvere aktive · <span style="color:#FF4500">3</span> uleste</b><span class="t-seg"><span>Uke</span><span class="on">Uke 38</span><span>Måned</span><span>År</span></span></div>'+
+  '<div class="t-lh"><span></span><span>Utøver</span><span>Timer</span><span>% av plan</span><span>Soner · hard</span><span>Skudd · treff</span><span>HRV</span></div>'+
+  TROPP.map(function(r,i){var u=UT[r[0]];return'<div class="t-lr a" data-i="'+i+'"><i class="t-dot '+r[1]+'"></i><span class="nm">'+av(u)+'<span>'+u[0]+'<small>'+u[1]+'</small></span></span><span class="tm">'+r[2]+'</span><span class="pl"><i class="t-bar"><b style="--w:'+r[3]+'%"></b><em></em></i><small>'+r[3]+' %</small></span><span class="zo">'+zs(r[4])+'<small>'+r[5]+'</small></span><span class="sk">'+r[6]+'</span><span class="hr'+(r[7]==='ikke delt'?' dim':'')+'">'+r[7]+'</span>'+(r[8]?'<span class="t-tip pop">'+r[8]+'</span>':'')+'</div>'}).join('')+
+  '<div class="t-drill a"><div class="t-dh">'+av(UT[4])+'<b class="bebas">Sander</b><small>Langrenn · senior</small></div><div class="t-dt">'+['Plan','Dagbok','Analyse','Årsplan','Historikk','Utstyr'].map(function(n,i){return'<span class="'+(i===0?'on':'')+(i===3?' gra':'')+'">'+n+'</span>'}).join('')+'</div><div class="t-dk">'+[['Man','Rolig 1t 30','#28A86E',1],['Tir','Intervall 5×6','#FF8C00',0],['Ons','Rolig 1t','#28A86E',0],['Tor','Terskel 3×12','#E8B93C',0],['Fre','-','',0],['Lør','Langtur 2t 30','#1A6FD4',0],['Søn','Rolig 1t','#28A86E',0]].map(function(d){return'<div><small>'+d[0]+'</small>'+(d[2]?'<span class="t-dp'+(d[3]?' ok':'')+'" style="--c:'+d[2]+'">'+d[1]+'</span>':'<em>Hvile</em>')+'</div>'}).join('')+'</div></div></div>'},
+ spill:function(S){S.steg(0,200);TROPP.forEach(function(_,i){S.t(400+i*160,function(){S.q('[data-i="'+i+'"]').classList.add('inn')})});S.t(1900,function(){S.qa('.t-bar b').forEach(function(b){b.classList.add('vis')});S.qa('.t-zs').forEach(function(z){z.classList.add('vis')})});
+  S.steg(1,3200);S.til('[data-i="0"] .t-dot',3400);S.t(3900,function(){S.q('[data-i="0"] .t-tip').classList.add('inn')});S.til('[data-i="1"] .t-dot',5000);S.t(5400,function(){S.q('[data-i="0"] .t-tip').classList.remove('inn');S.q('[data-i="1"] .t-tip').classList.add('inn')});
+  S.steg(2,6300);S.til('[data-i="0"] .nm',6300,true);S.t(6700,function(){S.q('[data-i="1"] .t-tip').classList.remove('inn');S.q('.t-tropp').classList.add('drill');S.q('.t-drill').classList.add('inn')});S.bort(7000);S.steg(3,8800)}
+});
+
+/* ── T5 · UTØVEREN EIER ── */
+var RETT=[['Kan redigere planen',1],['Kan se dagboken',1],['Kan se analysen',1],['Kan redigere årsplanen',0],['Del helsedata (søvn, HRV, hvilepuls)',0],['Kan redigere dagboken',0,1],['Kan redigere soner og terskler',0,1],['Kan redigere utstyr og skitester',0,1]];
+SC3.push({kap:4,tittel:'UTØVEREN EIER DATAENE.',tekst:'Bryterne ligger hos utøveren: plan, dagbok, analyse, årsplan og helse - og snart egne brytere for å la treneren redigere dagbok, soner, terskler og utstyr. Helsedata er skjult for treneren til utøveren sier ja, håndhevet i databasen, ikke i menyen.',
+ steg:['Utøveren bestemmer','Helse bare med ja','Trenerens spor i kalenderen'],varighet:9500,
+ mer:['Fire rettigheter per trener-kobling pluss helsedeling, alle på utøverens side. Treneren setter sine standardvalg for nye koblinger.','Kommer: egne brytere for at treneren kan redigere dagboken, soner og terskler (puls, watt, HFmax, FTP) og utstyr og skitester - standard nei, håndhevet i databasen. Hver endring får «endret av trener» med hva som ble endret, «Sist endret av …» på terskelsida og utstyret, og varsel til utøveren. Treneren sletter aldri gjennomførte økter eller utstyr med historikk.','Helsedeling håndheves med radnivå-sikkerhet på søvn, HRV, hvilepuls og merkedata: uten ja finnes ikke tallene for treneren, uansett skjerm.','Økter treneren legger inn står blå og stiplet i utøverens kalender med trenerens navn. Retter treneren i utøverens egen økt, står «endret av trener» - med logg utøveren kan lese.','Kobling på to måter: utøveren lager en kode som varer i sju dager, eller treneren deler en plass-lenke der utøveren får Athlete Pro betalt av treneren.','Én konto, to roller: bryteren Utøver | Trener i menyen. Alle trener-abonnement inkluderer full Athlete Pro til deg selv.'],
+ html:function(){return'<div class="t-to2"><div class="app t-app t-rett"><div class="t-rh"><span class="cap">Innstillinger · Trener</span><b class="bebas">Kari Nordmann</b><small>aktiv siden aug 2026</small></div>'+RETT.map(function(r,i){return'<div class="t-rr'+(r[2]?' kommer':'')+'" data-i="'+i+'"><span>'+r[0]+(r[2]?'<em class="t-kommer">Kommer</em>':'')+'</span><i class="t-sw'+(r[1]?' on':'')+'"><b></b></i></div>'}).join('')+'<div class="t-rls a"><span>'+ik('las','s')+'</span><span>Håndhevet i databasen: uten ja finnes ikke helsetallene for treneren</span></div></div>'+
+  '<div class="t-hs"><div class="app t-app t-tv"><span class="cap">Kari ser · Sammenligne</span><div class="t-tr2"><span class="k">HRV</span><span class="v dim t-hrv">ikke delt</span></div><div class="t-tr2"><span class="k">Søvn</span><span class="v dim t-sov">ikke delt</span></div><div class="t-tr2"><span class="k">Hvilepuls</span><span class="v dim t-hp">ikke delt</span></div></div>'+
+  '<div class="app t-app t-kal a"><span class="cap">Olas kalender · tor 17. sep</span><div class="t-pille tr"><span class="prikk-tr"></span><span class="kl">09:30</span><b>Intervall 5×6</b><span class="t-chip">'+ik('trener','s')+'Kari</span></div><div class="t-pille ok"><span class="kl">16:00</span><b>Skyting stående</b><span class="t-chip endret">endret av trener · se logg</span></div></div></div></div>'},
+ spill:function(S){S.steg(0,200);RETT.slice(0,5).forEach(function(_,i){S.til('[data-i="'+i+'"] .t-sw',400+i*380)});S.steg(1,2600);S.til('[data-i="4"] .t-sw',2700,true);
+  S.t(3100,function(){S.q('[data-i="4"] .t-sw').classList.add('on')});S.t(3500,function(){S.q('.t-hrv').textContent='71 ▲';S.q('.t-sov').textContent='7t 02min';S.q('.t-hp').textContent='48';S.qa('.t-tv .v').forEach(function(v){v.classList.remove('dim');v.classList.add('gron')})});
+  S.t(4200,function(){S.q('.t-rls').classList.add('inn')});S.bort(4600);S.steg(2,5800);S.t(5900,function(){S.q('.t-kal').classList.add('inn')});S.til('.t-pille.tr .t-chip',6600);S.til('.t-chip.endret',7800);S.bort(8600);S.steg(3,8900)}
+});
+
+/* ═════════════════ KONTROLLEREN ═════════════════ */
+function karusell(SC,KAP,P){var $=function(id){return document.getElementById(P+id)};
+ var rolig=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var spor=$('spor'),kapEl=$('kap'),prikkEl=$('prikker'),spillK=$('spill');
+ var IKON_PAUSE='<svg viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/></svg>';
+ var IKON_SPILL='<svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8a1 1 0 0 0 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg>';
+ var IKON_IGJEN='<svg viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ $('forr').innerHTML='<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ $('nest').innerHTML='<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+ var kort=[],scener=[];
+ KAP.forEach(function(k,i){var b=document.createElement('button');b.className='kap';b.type='button';b.setAttribute('role','tab');b.innerHTML='<span class="kn">0'+(i+1)+'</span>'+ik(k.ik,'s')+k.n+'<i></i>';b.onclick=function(){gaTil(SC.findIndex(function(s){return s.kap===i}),true)};kapEl.appendChild(b)});
+ SC.forEach(function(d,i){var el=document.createElement('article');el.className='sc';el.setAttribute('aria-roledescription','lysbilde');el.setAttribute('aria-label',(i+1)+' av '+SC.length);
+  var nr=SC.filter(function(s,j){return j<i&&s.kap===d.kap}).length;
+  el.innerHTML='<div class="sc-tx"><div class="sc-kick">'+ik(KAP[d.kap].ik,'s')+'0'+(d.kap+1)+' · '+KAP[d.kap].n+'</div><h3>'+d.tittel+'</h3><p>'+d.tekst+'</p><ul class="sc-steg">'+d.steg.map(function(s){return'<li><b>'+HAKE+'</b>'+s+'</li>'}).join('')+'</ul></div><div class="sc-scene"></div>';
+  if(d.mer){el.insertAdjacentHTML('beforeend','<button class="sc-pluss" type="button" aria-label="Les mer"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><div class="sc-mer"><div class="sc-kick">'+ik(KAP[d.kap].ik,'s')+KAP[d.kap].n+'</div><h4>Alt i kortet</h4><ul>'+d.mer.map(function(m){return'<li>'+m+'</li>'}).join('')+'</ul></div>');
+   el.querySelector('.sc-pluss').addEventListener('click',function(e){e.stopPropagation();if(i!==idx)gaTil(i,true);var apen=el.classList.toggle('apen');if(apen){pause();brukerPause=true}else{brukerPause=false;fortsett()}oppdaterKnapp()})}
+  el.addEventListener('click',function(){if(i!==idx)gaTil(i,true)});
+  spor.appendChild(el);kort.push(el);var S=new Scene(d,el.querySelector('.sc-scene'));scener.push(S);
+  var p=document.createElement('button');p.className='prikk';p.type='button';p.setAttribute('aria-label','Scene '+(i+1)+': '+d.tittel.toLowerCase());p.innerHTML='<i></i>';p.onclick=function(){gaTil(i,true)};prikkEl.appendChild(p)});
+ var prikker=[].slice.call(prikkEl.children),kaps=[].slice.call(kapEl.children);
+
+ var idx=0,spiller=!rolig,synlig=false,brukerPause=false,t0=0,brukt=0,programScroll=0,ferdig=false;
+ function ferdigTilstand(i){var S=scener[i];S.stopp();if(S.d.rydd)S.d.rydd(S);S.slutt();[].forEach.call(kort[i].querySelectorAll('.sc-steg li'),function(l){l.className='ok'})}
+ scener.forEach(function(_,i){ferdigTilstand(i)});
+
+ function aktiver(i,scroll){var gammel=idx;kort.forEach(function(k){k.classList.remove('apen')});if(gammel!==i){ferdigTilstand(gammel)}idx=i;ferdig=false;brukt=0;
+  kort.forEach(function(k,j){k.classList.toggle('on',j===i)});prikker.forEach(function(p,j){p.classList.toggle('on',j===i);p.style.setProperty('--p','0%')});
+  kaps.forEach(function(k,j){k.classList.toggle('on',j===SC[i].kap)});
+  var sk=kaps[SC[i].kap];if(sk&&sk.scrollIntoView&&kapEl.scrollWidth>kapEl.clientWidth)kapEl.scrollTo({left:sk.offsetLeft-16,behavior:'smooth'});
+  if(scroll){programScroll=Date.now();spor.scrollTo({left:kort[i].offsetLeft-parseFloat(getComputedStyle(spor).paddingLeft),behavior:rolig?'auto':'smooth'})}
+  $('forr').disabled=i===0;$('nest').disabled=i===SC.length-1;
+  var S=scener[i];S.stopp();if(S.d.rydd)S.d.rydd(S);
+  if(rolig){ferdigTilstand(i);return}
+  S.render();[].forEach.call(kort[i].querySelectorAll('.sc-steg li'),function(l){l.className=''});
+  if(skalSpille()){t0=performance.now();S.kjor(0)}else{brukt=0}
+  oppdaterKnapp()}
+ function skalSpille(){return spiller&&synlig&&!brukerPause&&!rolig}
+ function gaTil(i,bruker){if(i<0||i>=SC.length)return;if(bruker&&!rolig){brukerPause=false;spiller=true}aktiver(i,true)}
+ function pause(){if(!skalSpille())return;brukt+=performance.now()-t0;var S=scener[idx];S.stopp();if(S.d.rydd)S.d.rydd(S)}
+ function fortsett(){if(!skalSpille()||ferdig)return;var S=scener[idx];t0=performance.now();
+  if(brukt>0){S.render();S.kjor(brukt)}else{S.render();[].forEach.call(kort[idx].querySelectorAll('.sc-steg li'),function(l){l.className=''});S.kjor(0)}}
+ function oppdaterKnapp(){if(rolig){spillK.style.display='none';return}
+  if(ferdig){spillK.innerHTML=IKON_IGJEN;spillK.setAttribute('aria-label','Spill av igjen')}
+  else if(brukerPause){spillK.innerHTML=IKON_SPILL;spillK.setAttribute('aria-label','Spill av')}
+  else{spillK.innerHTML=IKON_PAUSE;spillK.setAttribute('aria-label','Pause')}}
+ spillK.onclick=function(){if(ferdig){brukerPause=false;spiller=true;gaTil(0,true);return}
+  if(brukerPause){brukerPause=false;fortsett()}else{pause();brukerPause=true}oppdaterKnapp()};
+ $('forr').onclick=function(){gaTil(idx-1,true)};
+ $('nest').onclick=function(){gaTil(idx+1,true)};
+ $('flyt').addEventListener('keydown',function(e){if(e.key==='ArrowRight'){gaTil(idx+1,true);e.preventDefault()}if(e.key==='ArrowLeft'){gaTil(idx-1,true);e.preventDefault()}});
+
+ /* Fremdrift */
+ (function tick(){if(skalSpille()&&!ferdig){var d=SC[idx].varighet,p=Math.min(1,(brukt+performance.now()-t0)/d);
+   prikker[idx].style.setProperty('--p',(p*100)+'%');
+   var ik2=SC.filter(function(s){return s.kap===SC[idx].kap}),foran=SC.slice(0,idx).filter(function(s){return s.kap===SC[idx].kap}).length;
+   kaps[SC[idx].kap].style.setProperty('--kp',((foran+p)/ik2.length*100)+'%');
+   if(p>=1){if(idx<SC.length-1){aktiver(idx+1,true)}else{ferdig=true;oppdaterKnapp()}}}
+  requestAnimationFrame(tick)})();
+
+ /* Synlighet: spiller bare når seksjonen er på skjermen */
+ new IntersectionObserver(function(es){es.forEach(function(e){var var_=synlig;synlig=e.intersectionRatio>=.35;
+   if(synlig&&!var_){fortsett()}else if(!synlig&&var_){brukt+=performance.now()-t0;var S=scener[idx];S.stopp();if(S.d.rydd)S.d.rydd(S)}})},{threshold:[0,.35,.6]}).observe(spor);
+ document.addEventListener('visibilitychange',function(){if(document.hidden)pause();else fortsett()});
+
+ /* Sveip/tofinger: kortet man lander på blir aktivt */
+ var st;spor.addEventListener('scroll',function(){clearTimeout(st);st=setTimeout(function(){if(Date.now()-programScroll<900)return;
+  var pl=parseFloat(getComputedStyle(spor).paddingLeft),best=0,bd=1e9;kort.forEach(function(k,j){var d=Math.abs(k.offsetLeft-pl-spor.scrollLeft);if(d<bd){bd=d;best=j}});
+  if(best!==idx){brukerPause=false;spiller=true;aktiver(best,false)}},140)},{passive:true});
+
+ /* Bytter mellom mobil og PC: tegn scenene på nytt i riktig oppstilling */
+ MOBIL.addEventListener('change',function(){scener.forEach(function(_,i){if(i!==idx)ferdigTilstand(i)});aktiver(idx,true)});
+
+ if(rolig)spillK.style.display='none';
+ aktiver(0,false);
+}
+karusell(SC3,KAP3,'t');
+document.getElementById('temaKnapp').onclick=function(){var r=document.documentElement,l=r.dataset.tema==='lys';r.dataset.tema=l?'mork':'lys';this.textContent=l?'Lys modus':'Mørk modus'};
+</script>
+</body>
+</html>

@@ -372,7 +372,7 @@ h2 .o{color:var(--orange)}
 .okt-str{display:flex;gap:1.5px;height:9px;margin:8px 0 6px}
 .okt-str i{display:block;border-radius:2px;transition:opacity .5s}
 .okt small{font-size:12.5px;color:var(--a-mut);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.kchip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--a-mute);padding:1px 6px;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--a-mut)}
+.kchip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--a-mute);border-radius:999px;padding:1px 8px;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--a-mut)}
 .kchip svg{width:11px;height:11px}
 .flett-rad{display:flex;gap:8px;align-items:center;margin-top:10px}
 .gronn-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(40,168,110,.5);color:#28A86E;border-radius:999px;padding:0 10px;min-height:30px;font:700 11.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.08em}
@@ -468,6 +468,432 @@ h2 .o{color:var(--orange)}
   .lv-ramme{--sk:.62}
 }
 
+/* ── S1 tillegg: timer per måned, 10-dagers samling, peak ── */
+.sc-scene.fart .markor{transition-duration:.23s;transition-timing-function:linear}
+.ars .mnd{grid-template-columns:40px minmax(0,1fr) 58px}
+.mtim{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding-left:6px}
+.mtim b{font:400 20px/1 'Bebas Neue',sans-serif;letter-spacing:.02em;color:var(--a-ink)}
+.mtim small{font:600 9.5px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--a-mute)}
+.mtim.puls b{animation:mtpuls .3s}
+@keyframes mtpuls{50%{color:var(--orange);transform:scale(1.12)}}
+.ars-fot{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid var(--a-line);font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mut)}
+.ars-fot b{font:400 24px/1 'Bebas Neue',sans-serif;letter-spacing:.02em;color:var(--a-ink);margin-left:8px}
+.uke .band.start{left:auto;right:-4px;border-right:0;border-radius:4px 0 0 4px;overflow:visible;z-index:3}
+.uke .band.start span{white-space:nowrap}
+.uke .band.slutt{left:-4px;border-left:0;border-radius:0 4px 4px 0}
+.uke .nd span{max-width:86px;overflow:hidden;text-overflow:ellipsis}
+.uke .pk{position:absolute;left:4px;bottom:3px;color:#D4A017;display:flex}
+.uke .pk svg{width:13px;height:13px;filter:drop-shadow(0 0 4px rgba(212,160,23,.8))}
+.uke.peak{box-shadow:0 0 0 1px rgba(212,160,23,.7),0 0 14px rgba(212,160,23,.55)}
+
+/* ── S8 tillegg: vind og sikt per serie (VimpelIcon + FogIcon) ── */
+.vs{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 8px 0 4px;border-radius:8px;border:1px solid #E23A5A55;background:rgba(226,58,90,.08);font:700 11.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.04em;color:var(--a-ink);white-space:nowrap}
+.vs svg{flex:none}
+.vs em{font-style:normal;font-weight:500;color:var(--a-mut)}
+
+/* ── S10 Standardøkta over tid (SerieAnalyse.tsx) ── */
+.se{padding:16px 18px;background:var(--a-felt);border-color:var(--a-kant)}
+.se-t{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.se-u{font-size:13px;color:var(--a-mute);margin-bottom:4px}
+.se-g{position:relative;margin-top:8px}
+.se-plot{position:relative}
+.se-p{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;border:1.5px solid var(--a-felt)}
+.se-v{position:absolute;transform:translateX(-50%);font:700 10.5px 'Barlow Condensed',sans-serif;color:var(--a-ink3);white-space:nowrap}
+.se-best{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#E8B93C;border:1.5px solid var(--a-ink)}
+.se-bt{position:absolute;transform:translateX(-50%);font:700 11px 'Barlow Condensed',sans-serif;color:#E8B93C}
+.se-x{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:0 1.5%;font-size:10.5px;color:var(--a-mute)}
+.se-leg{display:flex;gap:12px;font-size:11.5px;color:var(--a-mut);margin:6px 0 8px}
+.se-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.se-tab{width:100%;border-collapse:collapse;font-size:13px}
+.se-tab th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-mute);font-weight:600;padding:5px 6px;border-bottom:1px solid var(--a-kant);white-space:nowrap}
+.se-tab td{padding:5px 6px;border-bottom:1px solid var(--a-kant);white-space:nowrap;font-variant-numeric:tabular-nums}
+.se-tab td small{font-size:10.5px;margin-left:4px;color:var(--a-mute)}
+.se-tab td small.g{color:#28A86E}
+.se-tab td small.r{color:#E23A5A}
+.se-tab tr.best{background:rgba(232,185,60,.1)}
+.se-tab tbody tr{opacity:0;transition:opacity .4s}
+.se-tab tbody tr.inn{opacity:1}
+.ck{display:inline-block;width:13px;height:13px;border-radius:3px;border:1.5px solid var(--a-line2);vertical-align:-2px}
+.ck.on{background:#FF4500;border-color:#FF4500}
+
+/* ── S11 Hjem (components/oversikt/*) ── */
+.hj-ytre{width:100%;overflow:hidden;border-radius:16px}
+.hj-ramme{padding:0;overflow:hidden;background:var(--a-flate)}
+.hj-skala{transform-origin:0 0}
+.hj-inn{padding:22px 24px 24px;font-family:'Barlow Condensed',sans-serif}
+.hj-hero .xp-eyebrow{display:flex;align-items:center;gap:10px;font:600 13px/1 'Barlow Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--a-mut)}
+.xp-beam{display:inline-block;width:22px;height:4px;border-radius:2px;background:#FF4500}
+.hj-hero h1{font:400 46px/1.02 'Bebas Neue',sans-serif;letter-spacing:.03em;margin-top:8px}
+.hj-hero p{font-size:17px;color:var(--a-mut);margin:2px 0 16px}
+.hj-hero p b{color:var(--a-ink);font-weight:600}
+.hj-r1{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.hj-r2{display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr;gap:14px;margin-top:14px}
+.hjk{background:var(--a-card);border:1px solid var(--a-line);border-radius:16px;padding:18px;min-width:0;transition:opacity .5s,transform .5s,box-shadow .5s}
+.hj-inn.mob .hjk{margin-top:12px}
+.hjk.glod{box-shadow:0 0 0 1px rgba(255,69,0,.5),0 10px 40px rgba(255,69,0,.12)}
+.xp-kh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.xp-kh h2{font:700 14px/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;margin:0;color:var(--a-ink)}
+.xp-kh .tag{margin-left:auto;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-mut)}
+.hjk[style*="--blaa"] .xp-beam{background:#1A6FD4}
+.hjk h3{font:400 24px/1.1 'Bebas Neue',sans-serif;letter-spacing:.03em;margin:4px 0 0}
+.hj-m{font-size:13.5px;color:var(--a-mut);margin:2px 0 0}
+.hj-st{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(40,168,110,.5);color:#28A86E;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.hj-st svg{width:13px;height:13px}
+.hj-nk3,.hj-sg,.hj-h4,.hj-nk6{display:grid;gap:1px;background:var(--a-line);border:1px solid var(--a-line);border-radius:11px;overflow:hidden;margin-top:12px}
+.hj-nk3,.hj-sg{grid-template-columns:repeat(3,1fr)}
+.hj-h4{grid-template-columns:1fr 1fr}
+.hj-nk6{grid-template-columns:repeat(3,1fr)}
+.hj-nk3>div,.hj-sg>div,.hj-h4>div,.hj-nk6>div{background:var(--a-card);padding:8px 10px}
+.hjk small{display:block;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--a-mute)}
+.hj-nk3 b,.hj-sg b,.hj-h4 b,.hj-nk6 b{display:block;font:400 26px/1.1 'Bebas Neue',sans-serif;letter-spacing:.02em;white-space:nowrap}
+.hj-sg b{font-size:30px}
+.hj-nk6 b{font-size:20px}
+.hj-h4 b i{font-style:normal;font-size:14px;color:var(--a-mut)}
+.hjk em{font-style:normal;font-size:11.5px;color:var(--a-mute)}
+.hjk em.g{color:#28A86E}
+.hj-neste{margin-top:12px;padding-top:10px;border-top:1px solid var(--a-line)}
+.hj-neste div{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:14px}
+.hj-zb{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--a-card2);margin-top:12px}
+.gro{display:block;width:0;transition:width .9s cubic-bezier(.3,.8,.2,1)}
+.gro.inn{width:var(--w)}
+.hj-zb .gro{height:100%}
+.hj-zl{display:flex;flex-wrap:wrap;gap:3px 12px;margin-top:7px;font-size:11px;color:var(--a-mut)}
+.hj-zl b{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:5px}
+.hj-skc{display:flex;align-items:center;gap:10px;margin-top:12px}
+.hj-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--a-line2);border-radius:999px;padding:4px 11px 4px 9px;font-size:12px;color:var(--a-mut);white-space:nowrap}
+.hj-pill svg{width:14px;height:14px}
+.hj-pill b{font:400 17px/1 'Bebas Neue',sans-serif;color:var(--a-ink)}
+.hj-meter{flex:1;height:8px;border-radius:999px;background:var(--a-card2);overflow:hidden}
+.hj-meter .gro{height:100%;background:#FF4500;border-radius:999px}
+.hj-fr{margin-top:10px}
+.hj-frt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--a-mute)}
+.hj-frt span:last-child{letter-spacing:0;text-transform:none;font-size:13px}
+.hj-frt b{color:var(--a-ink)}
+.hj-fb{height:6px;border-radius:999px;background:var(--a-card2);overflow:hidden;margin-top:4px}
+.hj-fb .gro{height:100%;border-radius:999px}
+.hj-und{font-size:12px;color:var(--a-mut);margin:3px 0 0}
+.hj-dager{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
+.hj-dager span{height:22px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--a-mut);border:1px dashed var(--a-line2)}
+.hj-dager span.ok{border:0;background:rgba(40,168,110,.25);color:#28A86E}
+.hj-dager span.hard{border:0;background:rgba(232,185,60,.28);color:#E8B93C}
+.hj-konk{background:linear-gradient(0deg,rgba(255,69,0,.04),rgba(255,69,0,.04)),var(--a-card);border-left:3px solid #D4A017;box-shadow:0 0 20px rgba(212,160,23,.15)}
+.hj-kh{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#D4A017;margin-bottom:6px}
+.hj-gb{width:16px;height:2px;background:#D4A017}
+.hj-kh .dt{margin-left:auto}
+.hj-kr{display:flex;justify-content:space-between;gap:14px}
+.hj-kr h3{font-size:26px}
+.hj-maal{font-size:13.5px;margin-top:8px}
+.hj-maal small{display:inline;margin-right:8px}
+.hj-fase{font-size:12.5px;color:#D4A017;margin-top:6px}
+.hj-ned{display:flex;flex-direction:column;align-items:flex-end}
+.hj-ned b{font:400 52px/.95 'Bebas Neue',sans-serif;letter-spacing:.04em;color:#D4A017}
+.hj-ned small{color:#D4A017;margin-top:4px}
+.hj-kl{margin-top:12px;border-top:1px solid var(--a-line)}
+.hj-kl>div{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--a-line)}
+.hj-kl b{display:block;font-size:14px}
+.hj-kl small{letter-spacing:0;text-transform:none;font-size:12px}
+.pri{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;flex:none}
+.pri.B{background:#1A6FD4}
+.pri.C{background:var(--a-card2);color:var(--a-mut)}
+.hj-hrv{width:100%;height:56px;display:block;margin-top:10px}
+.hj-kurve{height:90px;margin-top:10px}
+.hj-kurve svg{width:100%;height:100%;display:block}
+.hj-int{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#28A86E;border:1px solid rgba(40,168,110,.5);border-radius:999px;padding:2px 8px}
+.hj-tl{display:flex;gap:1px;height:10px;margin-top:12px;border-radius:4px;overflow:hidden}
+.hj-tl span{border-radius:2px}
+.hj-pl{margin-top:10px;border-top:1px solid var(--a-line)}
+.hj-pl div{display:grid;grid-template-columns:10px 1fr;gap:2px 9px;align-items:center;padding:6px 0;border-bottom:1px solid var(--a-line)}
+.hj-pl i{width:8px;height:8px;border-radius:50%}
+.hj-pl b{font-size:13.5px}
+.hj-pl small{grid-column:2;letter-spacing:0;text-transform:none;font-size:11.5px}
+.sstripe .gro2{flex-grow:0;transition:none}
+@media (max-width:900px){
+  .ars .mnd{grid-template-columns:28px minmax(0,1fr) 38px}
+  .mtim b{font-size:15px}
+  .mtim small{font-size:0}
+  .ars-fot b{font-size:20px}
+  .uke .band.start span,.uke .nd span{display:none}
+  .vs em{display:none}
+  .se{padding:12px}
+  .se-tab{font-size:12px}
+}
+.srad-vs{margin:6px 0 0 62px}
+@media (max-width:900px){.srad-vs{margin-left:54px}}
+
+/* ── S7 tillegg: kommentarer (CommentSection.tsx) ── */
+.kom{margin-top:10px;background:var(--a-card);border:1px solid var(--a-line);border-radius:12px;padding:10px 12px}
+.kom-h{display:flex;align-items:center;gap:8px;font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;color:var(--a-mut);margin-bottom:8px}
+.kom-h span{width:18px;height:3px;border-radius:2px;background:#1A6FD4}
+.kom-li{background:var(--a-card2);border-left:3px solid;padding:6px 10px;margin-top:5px}
+.kom-t{display:flex;justify-content:space-between;font:600 11px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.kom-t em{font-style:normal;letter-spacing:.04em;text-transform:none;color:var(--a-mute)}
+.kom-li p{font-size:13.5px;line-height:1.35;color:var(--a-ink);margin-top:2px}
+.kom-tr{display:none}
+.kom-tr.inn{display:block;animation:komInn .45s cubic-bezier(.3,.8,.2,1)}
+@keyframes komInn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kom-skriver{display:none;font:500 12px 'Barlow Condensed',sans-serif;color:#1A6FD4;margin-top:6px}
+.kom-skriver.inn{display:block}
+@media (max-width:900px){.kom{padding:8px 10px}.kom-li p{font-size:12.5px}.kom-li:not(.kom-tr){display:none}}
+
+/* ═════════ DETALJENE SOM AVGJØR - manuell rulle ═════════ */
+.drs{padding:40px 0 90px}
+.drs-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:26px}
+.drs-pil{display:flex;gap:10px}
+.drs-pil .rundknapp{width:44px;height:44px}
+.drs-pil .rundknapp:disabled{opacity:.35;cursor:default;transform:none}
+.dr-spor{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:6px max(28px,calc((100vw - 1180px)/2 + 28px)) 12px;scroll-padding:0 max(28px,calc((100vw - 1180px)/2 + 28px))}
+.dr-spor::-webkit-scrollbar{display:none}
+.dr{flex:0 0 380px;height:620px;scroll-snap-align:start;border-radius:28px;background:var(--tile);border:1px solid var(--tile-kant);position:relative;overflow:hidden;display:flex;flex-direction:column}
+:root[data-tema="lys"] .dr{box-shadow:0 18px 50px rgba(20,20,40,.07)}
+.dr-top{padding:28px 64px 0 26px}
+.dr-kick{display:flex;align-items:center;gap:8px;font:700 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--orange)}
+.dr-kick svg{width:15px;height:15px}
+.dr h3{font:400 30px/1 'Bebas Neue',sans-serif;letter-spacing:.012em;margin:12px 0 8px;color:var(--paper)}
+.dr-top p{color:var(--dim);font-size:14px;line-height:1.5}
+.dr-vis{flex:1;display:flex;align-items:flex-end;padding:16px 16px 0;min-height:0}
+.dr-app{padding:14px 14px 18px;border-radius:16px 16px 0 0;border-bottom:0;width:100%;font-size:12.5px;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+.dr-kt{font:700 11px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-ink)}
+.dr-ku{font:11px/1.3 'Barlow',sans-serif;color:var(--a-mute);margin:2px 0 6px}
+.dr-a{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.dr.vis .dr-a{opacity:1;transform:none}
+.dr-gro{display:block;height:100%;width:0;border-radius:999px;transition:width 1s cubic-bezier(.3,.8,.2,1)}
+.dr.vis .dr-gro{width:var(--w)}
+/* 1 skyting */
+.dr-rad{margin-top:8px}
+.dr-rad>b{display:block;font:600 11.5px 'Barlow Condensed',sans-serif;color:var(--a-mut);margin-bottom:3px}
+.dr-m{display:grid;grid-template-columns:52px 1fr 104px;gap:6px;align-items:center;margin-top:3px;font:11px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-m i{height:8px;border-radius:999px;background:#15151A;overflow:hidden}
+:root[data-tema="lys"] .dr-m i{background:#E4E4EA}
+.dr-m em{font-style:normal;text-align:right;color:var(--a-ink);white-space:nowrap}
+.dr-m em small{color:var(--a-mute)}
+.dr-sks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.dr-sk svg{width:100%;aspect-ratio:1;display:block;border-radius:6px}
+.dr-sk small{display:block;text-align:center;font:10.5px 'Barlow Condensed',sans-serif;color:var(--a-mut);margin-top:3px}
+.dr-hm{opacity:0;transition:opacity .5s}
+.dr.vis .dr-hm{opacity:1}
+/* 2 plan mot gjennomført */
+.dr-sefullfort{display:flex;align-items:center;justify-content:center;gap:7px;height:40px;border-radius:999px;background:#28A86E;color:#fff;font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 6px 24px rgba(40,168,110,.18)}
+.dr-sefullfort svg{width:16px;height:16px}
+.dr-pvf{margin-top:10px;padding:10px;border:1px solid var(--a-line);background:linear-gradient(135deg,#131318,#0E0E12)}
+:root[data-tema="lys"] .dr-pvf{background:var(--a-card2)}
+.dr-pvfh{display:flex;align-items:center;gap:8px;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#FF4500}
+.dr-pvfk{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;padding-bottom:3px;border-bottom:1px solid var(--a-line);font:11px 'Barlow Condensed',sans-serif;color:var(--a-mute)}
+.dr-pvfr{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:5px 0;border-bottom:1px solid var(--a-line)}
+.dr-pvfr div{display:flex;justify-content:space-between;gap:6px;font:12.5px 'Barlow Condensed',sans-serif;color:var(--a-ink)}
+.dr-pvfr b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-pvfr em{font:400 14px 'Bebas Neue',sans-serif;font-style:normal;color:#C0C0CC}
+.dr-pvfr em.g{color:#28A86E}.dr-pvfr em.o{color:#FF9500}
+.dr-leg{display:flex;gap:12px;margin-top:6px;font:10.5px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-leg i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+.dr-sam{display:flex;gap:6px;margin-top:10px}
+.dr-pl{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--a-line2);font:700 11.5px 'Barlow Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--a-mut);white-space:nowrap}
+.dr-pl.on{color:#FF4500;border-color:#FF4500;background:rgba(255,69,0,.08)}
+.dr-pl.sm{height:28px;padding:0 10px;font-size:10.5px}
+.dr-hj{font:11.5px 'Barlow Condensed',sans-serif;color:var(--a-mut);margin-top:6px}
+/* 3 prestasjon */
+.dr-app>svg{display:block;width:100%;height:auto}
+.dr-reg{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.2s .6s ease-out}
+.dr.vis .dr-reg{stroke-dashoffset:0}
+.dr-pk{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(0);transition:opacity .3s,transform .4s cubic-bezier(.3,1.6,.5,1)}
+.dr.vis .dr-pk{opacity:1;transform:none}
+.dr-mc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.dr-mc>div{background:var(--a-card2);border-left:3px solid var(--c);border-radius:10px;padding:6px 8px}
+.dr-mc small{display:block;font:600 9.5px 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--a-mut)}
+.dr-mc b{display:block;font:400 26px/1.05 'Bebas Neue',sans-serif}
+.dr-mc em{font-style:normal;font-size:10px;color:var(--a-mute)}
+/* 4 soner */
+.dr-tr{display:flex;justify-content:space-between;align-items:center}
+.dr-tr b{display:block;font:700 15px 'Barlow Condensed',sans-serif}
+.dr-tr small{font-size:11px;color:var(--a-mut)}
+.dr-egne{font:700 10.5px 'Barlow Condensed',sans-serif;color:#28A86E;border:1px solid #28A86E;border-radius:999px;padding:3px 9px;letter-spacing:.06em;text-transform:uppercase}
+.dr-tv{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--a-line);border:1px solid var(--a-line);border-radius:10px;overflow:hidden;margin-top:9px}
+.dr-tv>div{background:var(--a-card);padding:6px 8px}
+.dr-tv small{display:block;font:600 9.5px 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--a-mut)}
+.dr-tv b{font:400 19px 'Bebas Neue',sans-serif}
+.dr-hist{font:11px 'Barlow Condensed',sans-serif;color:var(--a-mut);margin:6px 0 8px}
+.dr-bryter{display:flex;align-items:center;gap:8px;font:12px 'Barlow Condensed',sans-serif;color:var(--a-ink);margin-bottom:6px}
+.dr-bryter i,.dr-bryt2{width:34px;height:19px;border-radius:999px;background:var(--a-line2);position:relative;flex:none}
+.dr-bryter i:after,.dr-bryt2:after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .3s}
+.dr-bryter i.on{background:#28A86E}.dr-bryter i.on:after{left:17px}
+.dr-sone{display:flex;align-items:center;gap:6px;margin-top:4px;font:12px 'Barlow Condensed',sans-serif;color:var(--a-mute)}
+.dr-sone span{width:30px;height:24px;border-radius:6px;display:grid;place-items:center;font:400 15px 'Bebas Neue',sans-serif;color:#fff}
+.dr-sone em{font-style:normal;width:56px;height:26px;border-radius:7px;border:1px solid var(--a-line2);background:var(--a-flate);display:grid;place-items:center;color:var(--a-ink);font-size:13px}
+.dr-i68{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid var(--a-line);font:12px 'Barlow Condensed',sans-serif;color:var(--a-ink)}
+.dr-i68 b{width:26px;height:20px;border-radius:5px;display:grid;place-items:center;font:400 13px 'Bebas Neue',sans-serif;color:#fff;opacity:.45;transition:opacity .4s 1.2s}
+.dr.vis .dr-i68 b{opacity:1}
+.dr.vis .dr-bryt2{background:#28A86E;transition:background .3s 1s}
+.dr.vis .dr-bryt2:after{left:17px;transition:left .3s 1s}
+/* 5 maler */
+.dr-tabs{display:flex;gap:5px;margin-bottom:8px}
+.dr-tabs span{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--a-line2);font:700 11px 'Barlow Condensed',sans-serif;color:var(--a-mut);white-space:nowrap}
+.dr-tabs span svg{width:12px;height:12px}
+.dr-tabs span.on{background:#FF4500;border-color:#FF4500;color:#fff}
+.dr-mal{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--a-line);border-radius:10px;background:var(--a-card);margin-top:6px}
+.dr-mal div{flex:1;min-width:0}
+.dr-mal b{display:flex;align-items:center;gap:5px;font:400 16px/1.1 'Bebas Neue',sans-serif;letter-spacing:.02em;white-space:nowrap;overflow:hidden}
+.dr-mal small{display:block;font:11px 'Barlow Condensed',sans-serif;color:var(--a-mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-fra{margin-top:10px;padding-top:8px;border-top:1px solid var(--a-line)}
+.dr-fra small{font:700 10px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-mute)}
+.dr-fra div{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0}
+.dr-fra span{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:999px;border:1px dashed var(--a-line2);font:600 11px 'Barlow Condensed',sans-serif;color:var(--a-mut);text-transform:uppercase}
+.dr-fra span svg{width:11px;height:11px}
+.dr-fra em{font-style:normal;font:11px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+/* 6 skipark */
+.dr-ski{border:1px solid var(--a-line);border-radius:12px;padding:10px 12px;background:var(--a-card)}
+.dr-skit{display:flex;align-items:center;gap:5px}
+.dr-skit b{font:700 15px 'Barlow Condensed',sans-serif;margin-right:4px}
+.dr-tag{display:inline-flex;align-items:center;gap:3px;font:700 10px 'Barlow Condensed',sans-serif;border-radius:5px;padding:2px 5px}
+.dr-tag svg{width:10px;height:10px}
+.dr-tag.g{color:#D4A017;border:1px solid rgba(212,160,23,.5)}.dr-tag.b{color:#1A6FD4;border:1px solid rgba(26,111,212,.5)}
+.dr-ski>small{display:block;font:11px 'Barlow Condensed',sans-serif;color:var(--a-mut);margin-top:3px}
+.dr-skikm{display:flex;align-items:baseline;gap:5px;margin-top:4px}
+.dr-skikm b{font:400 26px/1 'Bebas Neue',sans-serif}
+.dr-skikm span{font:700 11px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-skikm em{margin-left:auto;font-style:normal;font:11.5px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-bar{display:block;height:5px;border-radius:999px;background:var(--a-card2);overflow:hidden;margin:5px 0}
+.dr-bar .dr-gro{background:#FF4500}
+.dr-brak{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;align-items:center}
+.dr-brak>div{display:flex;flex-direction:column;gap:4px}
+.dr-brak small{font:700 10px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--a-mute)}
+.dr-brak span{display:flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--a-line2);font:600 11.5px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-brak span.w{background:rgba(40,168,110,.10);color:var(--a-ink);border-color:rgba(40,168,110,.4)}
+
+.dr-plott .sgr{margin-top:6px}
+.dr-plott .sgr:first-child{margin-top:0}
+.dr-plott .blinker{gap:8px;margin-top:6px}
+.dr-plott .skudd{transition-delay:var(--d)}
+.dr .dr-plott .skudd{transform:scale(0);opacity:0}
+.dr.vis .dr-plott .blink .skudd{transform:scale(1);opacity:1}
+.dr-plott .blink{--d:0ms}
+.dr-plott .blink .skudd{transition-delay:var(--d)}
+.dr-ser{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;font:12px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-ser b{color:var(--a-ink)}
+.dr-ser .ls{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-weight:700;color:#0A0A0B}
+.dr-ser .vs{height:26px;font-size:11px}
+.dr-sum{margin-top:8px;padding-top:6px;border-top:1px solid var(--a-line);font:12.5px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.dr-sum b{color:var(--a-ink)}
+/* «Alt i kortet» */
+.dr-mer{position:absolute;inset:0;background:var(--tile);padding:28px 26px;opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .35s,transform .35s;z-index:3;overflow:auto}
+.dr.apen .dr-mer{opacity:1;pointer-events:auto;transform:none}
+.dr-mer h4{font:400 30px/1 'Bebas Neue',sans-serif;margin:12px 0 12px;color:var(--paper)}
+.dr-mer ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.dr-mer li{position:relative;padding-left:18px;color:var(--dim);font-size:14px;line-height:1.45}
+.dr-mer li:before{content:'';position:absolute;left:0;top:8px;width:7px;height:7px;border-radius:50%;background:var(--orange)}
+.dr-pluss{position:absolute;right:16px;top:16px;width:40px;height:40px;border-radius:50%;background:var(--kontroll-ink);color:var(--tile);display:grid;place-items:center;z-index:4;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.dr-pluss svg{width:18px;height:18px}
+.dr.apen .dr-pluss{transform:rotate(45deg)}
+@media (max-width:900px){
+  .drs{padding:24px 0 70px}
+  .drs-pil{display:none}
+  .dr-spor{gap:12px;padding:4px 16px 8px;scroll-padding:0 16px}
+  .dr{flex-basis:calc(100vw - 48px);height:600px;border-radius:24px}
+  .dr-top{padding:22px 20px 0}
+  .dr h3{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){.dr-a,.dr-gro,.dr-hm,.dr-pk,.dr-reg,.dr-mer{transition:none!important}}
+/* ── Detaljene som avgjør i flyt-motoren ── */
+.dr-gro.inn{width:var(--w)}
+.dr-hm.inn{opacity:1}
+.dr-pk.inn{opacity:1;transform:none}
+.dr-reg.inn{stroke-dashoffset:0}
+.dr-a.inn{opacity:1;transform:none}
+.dr-reg{transition-delay:0s}
+.dr-bar2{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform .5s cubic-bezier(.3,.8,.2,1)}
+.dr-bar2.inn{transform:scaleY(1)}
+.p-pre .dr-mc>div{opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.p-pre .dr-mc>div.inn{opacity:1;transform:none}
+.dr-to{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;align-items:center}
+.dr-app2{padding:14px;width:100%;font-size:12.5px}
+.dr-app2>svg{display:block;width:100%;height:auto}
+.dr-chips{display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 6px}
+.dr-chip{font:600 11px 'Barlow Condensed',sans-serif;padding:0 12px;height:30px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--a-kant);background:var(--a-flate);color:var(--a-mut);transition:all .25s}
+.dr-chip.on{background:#FF4500;border-color:#FF4500;color:#fff}
+.dr-chip2{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;border-radius:999px;border:1px solid var(--a-kant);font:700 11px 'Barlow Condensed',sans-serif;color:var(--a-mute);opacity:.6;transition:all .3s}
+.dr-chip2:before{content:'';width:7px;height:7px;border-radius:2px;border:1.5px solid currentColor}
+.dr-chip2.on{opacity:1;color:var(--c);border-color:var(--c)}
+.dr-chip2.on:before{background:currentColor}
+.dr-ph{display:flex;align-items:center;justify-content:space-between}
+.dr-ph .bebas{font-size:22px;letter-spacing:.04em}
+.dr-status{font:12.5px 'Barlow Condensed',sans-serif;padding:4px 12px;border-radius:999px;border:1px solid #2A2A33;color:#8B8B95;transition:all .3s}
+.dr-status.ok{color:#28A86E;background:rgba(40,168,110,.12);border-color:rgba(40,168,110,.4)}
+.dr-mk{display:flex;gap:8px;margin-bottom:10px}
+.dr-mgj,.dr-live{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:42px;border-radius:12px;font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#fff;transition:transform .15s}
+.dr-mgj{background:#28A86E;box-shadow:0 6px 24px rgba(40,168,110,.18)}
+.dr-mgj svg{width:14px;height:14px}
+.dr-live{background:#FF4500;flex:.6}
+.dr-mgj.trykk{transform:scale(.96)}
+.dr-app2 .dr-sefullfort{margin-bottom:10px}
+.d6-dlg{position:absolute;left:50%;top:46%;width:280px;transform:translate(-50%,-44%) scale(.95);opacity:0;pointer-events:none;background:var(--a-card);border:1px solid var(--a-line2);border-radius:14px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);transition:all .35s cubic-bezier(.3,1.3,.5,1);z-index:5}
+.d6-dlg.inn{opacity:1;transform:translate(-50%,-50%)}
+.d6-dlg b{color:var(--a-ink)}
+.dr-rang{margin-top:10px;border:1px solid rgba(212,160,23,.45);background:rgba(212,160,23,.07);border-radius:10px;padding:8px 10px}
+.dr-rang small{font:700 10px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#D4A017}
+.dr-rang div{display:flex;align-items:center;gap:8px;font:600 12.5px 'Barlow Condensed',sans-serif;color:var(--a-ink);padding:2px 0}
+.dr-rang div b{font:400 17px 'Bebas Neue',sans-serif;color:#D4A017;width:14px}
+.dr-brak span{transition:background .3s,border-color .3s,color .3s}
+.glod2{box-shadow:inset 0 0 0 1px #FF4500}
+.dr-i68.on b{opacity:1}
+.dr-bryt2.on{background:#28A86E}
+.dr-bryt2.on:after{left:17px}
+.dr-i68 b{transition:opacity .4s}
+.dr-plott2 .dr-ser{margin-top:6px}
+.vimpelk{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--a-line2);background:var(--a-card2);opacity:.75}
+.dr-plott2 .vs.a{opacity:0;transform:translateY(4px)}
+.dr-plott2 .vs.a.inn{opacity:1;transform:none}
+@media (max-width:900px){.dr-to .dr-ski+.dr-ski{display:none}}
+.dr-plott2{position:relative}
+.vsm{position:absolute;left:50%;top:50%;width:calc(100% - 24px);max-width:470px;transform:translate(-50%,-46%) scale(.96);opacity:0;pointer-events:none;background:var(--a-card);border:1px solid var(--a-line2);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.55);transition:opacity .3s,transform .35s cubic-bezier(.3,1.3,.5,1);z-index:6;overflow:hidden}
+.vsm.inn{opacity:1;transform:translate(-50%,-50%)}
+.vsm-h{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--a-line)}
+.vsm-h .bebas{font-size:17px;letter-spacing:.1em}
+.vsm-s{font:13px 'Barlow Condensed',sans-serif;color:var(--a-mute)}
+.vsm-ik{display:flex}
+.vsm-cap{font:12px 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--a-mute);margin:10px 14px 6px}
+.vsm-rad{display:flex;gap:4px;padding:0 14px}
+.vsm-st{flex:1 1 0;min-width:0;border:1px solid var(--a-line);border-radius:10px;padding:5px 0 3px;display:flex;flex-direction:column;align-items:center;transition:all .25s}
+.vsm-st svg{width:100%;max-width:34px;height:auto}
+.vsm-st em{font:11px 'Barlow Condensed',sans-serif;font-style:normal;letter-spacing:.06em;color:var(--a-mute)}
+.vsm-st.on{border-color:#E23A5A;background:rgba(226,58,90,.10)}
+.vsm-st.on em{color:#E23A5A;font-weight:700}
+.vsm-val{text-align:center;font:15px 'Barlow Condensed',sans-serif;color:var(--a-mut);margin-top:6px}
+.vsm-sikt{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px}
+.vsm-si{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--a-line2);font:600 12.5px 'Barlow Condensed',sans-serif;color:var(--a-ink);transition:all .25s}
+.vsm-si.on{border-color:#1A6FD4;background:rgba(26,111,212,.12)}
+.vsm-kn{display:flex;justify-content:flex-end;gap:6px;padding:12px 14px}
+@media (max-width:900px){.vsm-st:nth-child(-n+2),.vsm-st:nth-child(n+10){display:none}.vsm-si:nth-child(n+3){display:none}}
+.sc.apen .markor{opacity:0!important}
+.d3-akth{display:flex;align-items:center;gap:8px;font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--a-ink);margin-bottom:6px}
+.d3-akth em{margin-left:auto;font-style:normal;letter-spacing:.06em;color:var(--a-mute)}
+.d3-akt .dr-sam{margin-top:0}
+.d3-split{position:relative;margin-top:8px;padding-left:24px}
+.d3-split:before{content:'';position:absolute;left:8px;top:4px;bottom:4px;width:2px;border-radius:2px;background:linear-gradient(#FF4500,rgba(255,69,0,.15))}
+.d3-r{display:grid;grid-template-columns:8px 90px 1fr;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--a-line);font:12.5px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.d3-r i{width:8px;height:8px;border-radius:2px}
+.d3-r b{color:var(--a-ink);font-weight:600}
+.d3-sam{margin-top:8px}
+.d3-g{padding:9px 0;border-bottom:1px solid var(--a-line);font:12.5px 'Barlow Condensed',sans-serif;color:var(--a-mut)}
+.d3-pill{display:inline-block;font:700 10.5px 'Barlow Condensed',sans-serif;letter-spacing:.06em;color:#FF4500;border:1px solid rgba(255,69,0,.5);background:rgba(255,69,0,.08);border-radius:999px;padding:2px 9px;margin-bottom:4px}
+.d3-gl{display:flex;align-items:center;justify-content:space-between}
+.d3-gl b{font:700 15px 'Barlow Condensed',sans-serif;color:var(--a-ink)}
+.d3-gl i{width:90px;height:5px;border-radius:3px}
+/* «+ Les mer» på kortet */
+.sc-pluss{position:absolute;right:18px;top:18px;width:40px;height:40px;border-radius:50%;background:var(--kontroll-ink);color:var(--tile);display:grid;place-items:center;z-index:6;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.sc-pluss svg{width:18px;height:18px}
+.sc.apen .sc-pluss{transform:rotate(45deg)}
+.sc-mer{position:absolute;inset:0;background:var(--tile);padding:40px 44px;opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .35s,transform .35s;z-index:5;overflow:auto}
+.sc.apen .sc-mer{opacity:1;pointer-events:auto;transform:none}
+.sc-mer h4{font:400 40px/1 'Bebas Neue',sans-serif;margin:14px 0 16px;color:var(--paper)}
+.sc-mer ul{list-style:none;display:flex;flex-direction:column;gap:12px;max-width:640px}
+.sc-mer li{position:relative;padding-left:20px;color:var(--dim);font-size:15.5px;line-height:1.5}
+.sc-mer li:before{content:'';position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:50%;background:var(--orange)}
+@media (max-width:900px){
+  .dr-to{grid-template-columns:1fr;gap:8px}
+  .dr-to>.app:first-child .dr-rad:nth-child(n+6){display:none}
+  .sc-mer{padding:24px 20px}
+  .sc-mer h4{font-size:30px}
+  .sc-pluss{right:14px;top:14px;width:36px;height:36px}
+  .dr-mk{gap:6px}
+}
 /* ═════════ MOBIL (egen oppstilling, ikke skalert PC) ═════════ */
 @media (max-width:900px){
   .wrap{padding:0 16px}
@@ -596,7 +1022,7 @@ h2 .o{color:var(--orange)}
 </style>
 </head>
 <body>
-<div class="utkast"><span><b>Utkast</b> · Flyt-bolken · erstatter «Planlegging på sekunder» + «Planen møter virkeligheten»</span><button id="temaKnapp" type="button">Lys modus</button></div>
+<div class="utkast"><span><b>Utkast</b> · Flyt-bolken + Detaljene som avgjør</span><button id="temaKnapp" type="button">Lys modus</button></div>
 
 <div class="stubb">↑ «Slik ser det faktisk ut» ligger over</div>
 
@@ -624,29 +1050,45 @@ h2 .o{color:var(--orange)}
   </div>
 </section>
 
-<div class="stubb">↓ Skiskyting-seksjonen ligger under</div>
+<section class="fb" id="dflyt" aria-roledescription="karusell" aria-label="Detaljene som avgjør" style="padding-top:20px">
+  <div class="wrap">
+    <div class="fb-hd"><div>
+      <div class="label">Verktøy for ski, skyting og sesong</div>
+      <h2>DETALJENE SOM <span class="o">AVGJØR.</span></h2>
+      <p class="lead">Sju verktøy som går et lag dypere. La det gå av seg selv, trykk deg til det du vil se - eller trykk + for alt som ligger i kortet.</p>
+    </div></div>
+    <div class="fb-kap" role="tablist" id="dkap"></div>
+  </div>
+  <div class="fb-spor" id="dspor"></div>
+  <div class="wrap"><div class="fb-ktl"><div class="prikker" id="dprikker"></div><button class="rundknapp" id="dspill" type="button" aria-label="Pause"></button><div class="pilpar"><button class="rundknapp" id="dforr" type="button" aria-label="Forrige"></button><button class="rundknapp" id="dnest" type="button" aria-label="Neste"></button></div></div></div>
+</section>
+<div class="stubb">↓ Trener-seksjonen («Hele troppen. Ett panel.») ligger under</div>
 
 <div class="notat"><div class="notat-inn">
 <h2>Notat - regler (fasit for CC)</h2>
 <ol>
-<li><b>Én bolk erstatter to.</b> <code>#nytt</code> («Planlegging på sekunder») og <code>#flyten</code> («Planen møter virkeligheten») slås sammen til denne. Rekkefølgen er flyt-stripa i heroen: Planlegg · Tren · Synk klokka · Før detaljer · Analyser, med samme ord og ikoner.</li>
+<li><b>Én bolk erstatter to.</b> <code>#nytt</code> («Planlegging på sekunder») og <code>#flyten</code> («Planen møter virkeligheten») slås sammen til denne. Rekkefølgen er flyt-stripa i heroen: Planlegg · Tren · Synk klokka · Før detaljer · Analyser, med samme ord og ikoner - og til slutt Hjem, der alt samles.</li>
 <li><b>Horisontal, ingen scroll-kapring.</b> Vanlig vertikal scroll går rett forbi seksjonen. Sporet er native <code>overflow-x</code> med <code>scroll-snap</code>, så sveip på mobil og tofinger-sveip på PC virker uten JS. Den gamle sticky-motoren (<code>.flyt-scrolly</code>, 4 × 100vh) brukes ikke her.</li>
 <li><b>Går av seg selv, men alt er trykkbart.</b> Autoavspilling starter når seksjonen er minst 35 % synlig og pauser når den forlater skjermen. Kapittelfanene, prikkene, pilene, klikk på et halvsynlig kort og piltastene hopper direkte. Sveiper man selv, blir kortet man lander på det aktive. Etter siste scene stopper den (ingen løkke), og knappen blir «Spill av igjen».</li>
 <li><b>Kontrollene er Apple-mønsteret:</b> glass-pille med prikker der den aktive strekkes og fylles med fremdrift, rund pause/spill ved siden av, piler til høyre på PC. Fanene over viser fremdrift per kapittel med rød-til-blå-gradienten.</li>
-<li><b>Ni scener, én og samme økt.</b> Øktbyggeren lager «2 × 10 min I3 / 3 min + 3 × 5 min I4 / 2 min» med skyting L-S-L-S, 1:20 totalt. Den samme økta synkes (Garmin), får skyting 18/20 (L 10/10 · S 8/10), laktat 2,8 → 4,6 og 40 g karbo. Skuddplottet viser de to første seriene (9/10). Styrkeøkta i scene 4 ender på 12 sett og 7 840 kg, og det er de tallene som står i dagboka. Tallene skal henge sammen på tvers av scenene - det var hele poenget med punkt 1 i runde 3.</li>
+<li><b>Ti scener, én og samme sesong.</b> Årsplan · øktbygger · mal · live styrke · helse · klokkesynk · økt-grafen · formkartet · standardøkta over tid · Hjem. Dagen er ons 16. sep (uke 38). Øktbyggeren lager «2 × 10 min I3 / 3 min + 3 × 5 min I4 / 2 min» med skyting L-S-L-S, 1:20 totalt. Økta er tir 15. sep og synkes (Garmin), får skyting 18/20 (L 10/10 · S 8/10), laktat 2,8 → 4,6 og 40 g karbo. Skuddplottet viser de to første seriene (9/10). Styrkeøkta i scene 4 ender på 12 sett og 7 840 kg, og det er de tallene som står i dagboka og på Hjem. Standardøkta «Terskel komb» har åtte gjennomføringer der den siste er denne økta (149 · 4,6 · 90 %). Årsplanen: Grunntrening U36-44 (dag 17 av 63 på Hjem), Livigno høydesamling tor 8.-lør 17. okt (10 dager), A-renn NC Simostranda lør 12. des med peak (87 dager igjen på Hjem), B Beitostølen 21. nov. Tallene skal henge sammen på tvers av scenene - det var hele poenget med punkt 1 i runde 3.</li>
 <li><b>Nyeste design fra koden, ikke fra de gamle fragmentene.</b> Scenene er tegnet etter app-koden på HEAD <code>011b6c3</code>: <code>SeasonCanvas.tsx</code> (pensel, belastning rolig/medium/hard, nøkkeldatoer), <code>IntervallBygger.tsx</code> + <code>PlanGraf.tsx</code>, <code>WorkoutForm.tsx</code> («Lagre som mal»), <code>KompaktHelseKort.tsx</code> + <code>HrvHvilepulsGraf.tsx</code>, <code>SynkArk.tsx</code> + <code>GlassTopp.tsx</code>, <code>WorkoutDetailChart.tsx</code> + <code>OktKurve.tsx</code>, <code>ShotPlotModal</code>/<code>PlottTreff.tsx</code>. Live styrke og formkartet er fra designutkastene (se punkt 8). Ikonene er fra ikonsettet (<code>design/ikoner/svg</code>), ingen emoji. Eksportfragmentene i <code>public/forside/</code> er fra 7. sep og er eldre enn ikonsettet - de skal eksporteres på nytt hvis de gjenbrukes.</li>
 <li><b>Regel 11 i prod:</b> flatene skal være de ekte komponentene eksportert med fiktive data, med animasjonslaget lagt oppå (klasser som slås på i tur og orden). Utkastet tegner dem for hånd for å vise bevegelsen - der utkastet og komponenten spriker, vinner komponenten.</li>
-<li><b>To scener viser utkast som IKKE er bygget ennå (Sverres valg 16. sep: nyeste design).</b> Scene 4 er live styrke v2 fra <code>design/xpulse-styrke-design.html</code> seksjon 2 (hvilering, trinnknapper, grå forrige-verdier, «Økta er ferdig» med nye rekorder). Scene 9 er <code>design/xpulse-formkart-design.html</code> (baner på én tidsakse). Forsiden skal aldri vise noe som ikke finnes i appen: bolken går ikke live før begge er bygget, eller så byttes de to scenene til dagens flater (LiveSessionView og custom belastningsgraf) til da. Resten er tegnet etter koden som den er. Mal dras ikke inn i årsplanen (finnes ikke). Stridee nevnes aldri. Garmin, COROS, Wahoo og Zepp merkes beta.</li>
+<li><b>To scener viser utkast som IKKE er bygget ennå (valgt 16. sep: nyeste design).</b> Scene 4 er live styrke v2 fra <code>design/xpulse-styrke-design.html</code> seksjon 2 (hvilering, trinnknapper, grå forrige-verdier, «Økta er ferdig» med nye rekorder). Scene 9 er <code>design/xpulse-formkart-design.html</code> (baner på én tidsakse). Forsiden skal aldri vise noe som ikke finnes i appen: bolken går ikke live før begge er bygget, eller så byttes de to scenene til dagens flater (LiveSessionView og custom belastningsgraf) til da. Resten er tegnet etter koden som den er. Mal dras ikke inn i årsplanen (finnes ikke). Stridee nevnes aldri. Garmin, COROS, Wahoo og Zepp merkes beta.</li>
+<li><b>Årsplanen:</b> planlagte timer per måned står ved enden av hver månedsrad og teller opp mens det males, med sum nederst. Dette er en NY plassering - tallene finnes i dag i «Månedsvolum» over lerretet. Peak settes sammen med A-rennene (avkrysningen «Form-topp-mål» i hendelsesvinduet), med gull-glød og peak-ikon. Rask animasjon: ca. 55 ms per uke, 10 s totalt. Øktbyggeren: 7,5 s totalt, felt og graf i samme tempo.</li>
+<li><b>Økt-grafen (scene 7):</b> kurvevalget Puls · Tempo · Watt · Kadens · Høyde vises (høyde som grått areal, tempo som kontekst-serie), i tillegg til Plan, Skyting, Laktat, Ernæring og Notat. Et notat settes rett på kurven («Tungt i bakken»), og treneren svarer i kommentarfeltet på økta (<code>CommentSection</code>: utøver oransje, trener blå). Treneren i utkastet er fiktiv («Kari»), aldri ekte navn. Detaljraden under grafen er tatt ut for å gi plass.</li>
+<li><b>Skuddplottet er flyttet ut av flyt-bolken</b> (16. sep) og er første kort i «Detaljene som avgjør», med vind (<code>VimpelIcon</code>) og sikt (<code>FogIcon</code>) per serie.</li>
+<li><b>Hjem</b> (siste scene) er <code>oversikt/page.tsx</code>: rad 1 I dag · Ukens totaler · Neste A-konkurranse, rad 2 Helse · Siste hardøkt (1.5fr) · Hovedmål · Periode. PC viser hele skjermen skalert ned; mobil viser toppen, I dag, Ukens totaler og Neste A. Standardøkta (scene 10) er <code>SerieAnalyse.tsx</code>: graf per variabel med beste markert, «Per drag», og tabellen med mot forrige.</li>
 <li><b>Animasjon:</b> kun <code>transform</code>, <code>opacity</code>, <code>clip-path</code> og farge. Ingen bibliotek. Markøren (den hvite sirkelen) viser hvor man trykker. <code>prefers-reduced-motion</code> → ingen autoavspilling, hver scene står i sluttilstand, kontrollene virker.</li>
 <li><b>Mobil er egen oppstilling, ikke skalert PC.</b> Under 900 px: kortet er full bredde minus 16 px, tekst over og scene under, fanene rulles vannrett, pilene skjules (sveip), og hver scene har egne regler (årsplanen viser bare ikoner på nøkkeldatoene, øktbyggeren smalere kolonner, synk viser bare Garmin-raden, økt-grafen skjuler kontekstteksten).</li>
 <li><b>Lys og mørk</b> (regel 23). Innholdet i scenene er ekte tekst i DOM (SEO), ikke bilder. Scenene som ikke er aktive tegnes i sluttilstand.</li>
-<li><b>Overlapp å avgjøre:</b> scene 8 (Plott treff) overlapper Skiskyting-seksjonen rett under. Enten kortes skyting-seksjonen ned, eller scene 8 tas ut.</li>
-<li><b>Sprik funnet i koden (ikke rettet her):</b> B-konkurranse er blå i lerretet, men gull i forklaringen i årsvisningen (<code>overlay.ts:33-35</code>). HRV er <code>#1A6FD4</code> på Hjem-grafen, men <code>#8B5CF6</code> i <code>HELSE_TREND_FARGER</code>. Utkastet følger lerretet og Hjem.</li>
-<li>Overskriften «FRA ÅRSPLAN TIL INNSIKT.» er et forslag. Alternativ: «ÉN SLØYFE. HELE SESONGEN.» Aldri lang tankestrek (regel 31).</li>
+<li><b>Avgjort:</b> Skiskyting-seksjonen fjernes. Skuddplott og skyteanalyse ligger i «Detaljene som avgjør».</li>
+<li><b>Sprik funnet i koden (ikke rettet her):</b> B-konkurranse er blå i lerretet, men gull i forklaringen i årsvisningen (<code>overlay.ts:33-35</code>). HRV er <code>#1A6FD4</code> på Hjem-grafen, men <code>#8B5CF6</code> i <code>HELSE_TREND_FARGER</code>. Hard periode er <code>#E11D48</code> i lerretet, men <code>#E23A5A</code> i <code>PeriodeKort</code> (og medium <code>#D4A017</code> mot <code>#E8B93C</code>). Utkastet følger lerretet og Hjem.</li>
+<li><b>«DETALJENE SOM AVGJØR.» (under flyt-bolken):</b> samme motor og stil som flyt-bolken - kapittelfaner, prikker, pause, piler, markør, steg-liste og autoavspilling når seksjonen er synlig. Seks kapitler, sju scener: Skyting (plott hvert skudd m/ vind og sikt · treff % i vind og heatmap) · Plan mot faktisk (marker som gjennomført → Se fullført økt, Plan vs faktisk, Splittet/Samlet) · Prestasjon og belastning (laktatprofil m/ LT1/LT2 → belastningsmodell TSS/CTL/ATL/TSB → FTP-estimat, W/kg, NP/IF, frakobling, EF, GAP) · Soner (terskel versjoneres, egne I1-I5, I6-I8) · Maler (økt- og testmaler, Bruk på dato, planmaler, 58 OLT-økter i «Fra mal») · Utstyr (skipark, parallelltest, rangering). «+» på hvert kort åpner «Alt i kortet» og pauser avspillingen. Ikke med: eFTP, kritisk effekt, W′ (krever MMP-kurven, ikke bygget). Ingen egen «Test-mal»-fane i appen; OLT-biblioteket vises i øktskjemaet.</li>\n<li>Overskriften «FRA ÅRSPLAN TIL INNSIKT.» er et forslag. Alternativ: «ÉN SLØYFE. HELE SESONGEN.» Aldri lang tankestrek (regel 31).</li>
 </ol>
 </div></div>
 <script>
-const IK={"planlegg": {"s": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM7 3.07V7.07M17 3.07V7.07M8 14.07H16M12 10.07V18.07", "f": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM10.85 9.88V12.92H7.8V15.22H10.85V18.27H13.15V15.22H16.2V12.92H13.15V9.88H10.85ZM7 2.07C7.55 2.07 8 2.52 8 3.07V7.07C8 7.62 7.55 8.07 7 8.07C6.45 8.07 6 7.62 6 7.07V3.07C6 2.52 6.45 2.07 7 2.07ZM17 2.07C17.55 2.07 18 2.52 18 3.07V7.07C18 7.62 17.55 8.07 17 8.07C16.45 8.07 16 7.62 16 7.07V3.07C16 2.52 16.45 2.07 17 2.07Z"}, "arsplan": {"s": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM7 3.07V7.07M17 3.07V7.07M6.4 10.07H9.6Q10 10.07 10 10.47V12.67Q10 13.07 9.6 13.07H6.4Q6 13.07 6 12.67V10.47Q6 10.07 6.4 10.07ZM14.4 10.07H17.6Q18 10.07 18 10.47V12.67Q18 13.07 17.6 13.07H14.4Q14 13.07 14 12.67V10.47Q14 10.07 14.4 10.07ZM6.4 15.07H9.6Q10 15.07 10 15.47V17.68Q10 18.07 9.6 18.07H6.4Q6 18.07 6 17.68V15.47Q6 15.07 6.4 15.07ZM14.4 15.07H17.6Q18 15.07 18 15.47V17.68Q18 18.07 17.6 18.07H14.4Q14 18.07 14 17.68V15.47Q14 15.07 14.4 15.07Z", "f": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM6.4 10.07Q6 10.07 6 10.47V12.67Q6 13.07 6.4 13.07H9.6Q10 13.07 10 12.67V10.47Q10 10.07 9.6 10.07H6.4ZM14.4 10.07Q14 10.07 14 10.47V12.67Q14 13.07 14.4 13.07H17.6Q18 13.07 18 12.67V10.47Q18 10.07 17.6 10.07H14.4ZM6.4 15.07Q6 15.07 6 15.47V17.68Q6 18.07 6.4 18.07H9.6Q10 18.07 10 17.68V15.47Q10 15.07 9.6 15.07H6.4ZM14.4 15.07Q14 15.07 14 15.47V17.68Q14 18.07 14.4 18.07H17.6Q18 18.07 18 17.68V15.47Q18 15.07 17.6 15.07H14.4ZM7 2.07C7.55 2.07 8 2.52 8 3.07V7.07C8 7.62 7.55 8.07 7 8.07C6.45 8.07 6 7.62 6 7.07V3.07C6 2.52 6.45 2.07 7 2.07ZM17 2.07C17.55 2.07 18 2.52 18 3.07V7.07C18 7.62 17.55 8.07 17 8.07C16.45 8.07 16 7.62 16 7.07V3.07C16 2.52 16.45 2.07 17 2.07Z"}, "live-styrke": {"s": "M5.43 6.6H7.77Q8.4 6.6 8.4 7.23V16.77Q8.4 17.4 7.77 17.4H5.43Q4.8 17.4 4.8 16.77V7.23Q4.8 6.6 5.43 6.6ZM16.23 6.6H18.57Q19.2 6.6 19.2 7.23V16.77Q19.2 17.4 18.57 17.4H16.23Q15.6 17.4 15.6 16.77V7.23Q15.6 6.6 16.23 6.6ZM8.4 12H15.6M3 9.3V14.7M21 9.3V14.7", "f": "M5.43 6.6H7.77Q8.4 6.6 8.4 7.23V16.77Q8.4 17.4 7.77 17.4H5.43Q4.8 17.4 4.8 16.77V7.23Q4.8 6.6 5.43 6.6ZM16.23 6.6H18.57Q19.2 6.6 19.2 7.23V16.77Q19.2 17.4 18.57 17.4H16.23Q15.6 17.4 15.6 16.77V7.23Q15.6 6.6 16.23 6.6ZM3 8.31C3.55 8.31 3.99 8.75 3.99 9.3V14.7C3.99 15.25 3.55 15.69 3 15.69C2.45 15.69 2.01 15.25 2.01 14.7V9.3C2.01 8.75 2.45 8.31 3 8.31ZM21 8.31C21.55 8.31 21.99 8.75 21.99 9.3V14.7C21.99 15.25 21.55 15.69 21 15.69C20.45 15.69 20.01 15.25 20.01 14.7V9.3C20.01 8.75 20.45 8.31 21 8.31ZM8.4 11.01H15.6C16.15 11.01 16.59 11.45 16.59 12C16.59 12.55 16.15 12.99 15.6 12.99H8.4C7.85 12.99 7.41 12.55 7.41 12C7.41 11.45 7.85 11.01 8.4 11.01Z"}, "synk": {"s": "M3.83 10.08C4.47 6.84 6.97 4.29 10.18 3.56C13.4 2.84 16.75 4.07 18.73 6.71M20.17 13.92C19.53 17.16 17.03 19.71 13.82 20.44C10.6 21.16 7.25 19.93 5.27 17.29M19.69 3.35V9.12L13.92 7.2L19.69 3.35ZM4.31 20.65V14.88L10.08 16.81L4.31 20.65Z", "f": "M12.56 2.02C15.25 2.16 17.94 3.42 19.81 5.91C20.25 6.5 20.13 7.35 19.54 7.79C18.94 8.23 18.09 8.12 17.65 7.52C15.81 5.05 13.02 4.3 10.48 4.88C7.94 5.45 5.75 7.32 5.15 10.35C5 11.07 4.29 11.55 3.56 11.4C2.84 11.25 2.36 10.54 2.51 9.81C3.32 5.74 6.42 3.03 9.89 2.25C10.76 2.05 11.66 1.98 12.56 2.02ZM20.44 12.61C21.16 12.75 21.64 13.46 21.49 14.19C20.68 18.26 17.58 20.97 14.11 21.75C10.64 22.54 6.67 21.42 4.19 18.1C3.75 17.5 3.87 16.65 4.46 16.21C5.06 15.77 5.91 15.88 6.35 16.48C8.19 18.95 10.98 19.7 13.52 19.12C16.06 18.56 18.25 16.68 18.85 13.65C19 12.93 19.71 12.45 20.44 12.61ZM19.69 3.35V9.12L13.92 7.2L19.69 3.35ZM4.31 20.65V14.88L10.08 16.81L4.31 20.65Z"}, "for-okt": {"s": ["M16 9V5Q16 3 14 3H5Q3 3 3 5V19Q3 21 5 21H10M15 21Q16 21 16 20", "M6 7H12M6 10.5H12M6 14H10", "M18 8L21 10.25L14.25 19.25L11 21L11.5 17.25ZM16.8 9.6L19.8 11.85"], "f": ["M5 3H14Q16 3 16 5V8L10 16V21H5Q3 21 3 19V5Q3 3 5 3ZM6 6.25Q5.25 6.25 5.25 7Q5.25 7.75 6 7.75H12Q12.75 7.75 12.75 7Q12.75 6.25 12 6.25ZM6 9.75Q5.25 9.75 5.25 10.5Q5.25 11.25 6 11.25H12Q12.75 11.25 12.75 10.5Q12.75 9.75 12 9.75ZM6 13.25Q5.25 13.25 5.25 14Q5.25 14.75 6 14.75H9Q9.75 14.75 9.75 14Q9.75 13.25 9 13.25Z", "M18 8L21 10.25L19.8 11.85L16.8 9.6ZM16.2 10.4L19.2 12.65L14.25 19.25L11 21L11.5 17.25Z"]}, "analyse": {"s": "M3.78 16.13H6.48Q6.88 16.13 6.88 16.53V20.73Q6.88 21.13 6.48 21.13H3.78Q3.38 21.13 3.38 20.73V16.53Q3.38 16.13 3.78 16.13ZM10.78 12.13H13.48Q13.88 12.13 13.88 12.53V20.73Q13.88 21.13 13.48 21.13H10.78Q10.38 21.13 10.38 20.73V12.53Q10.38 12.13 10.78 12.13ZM17.78 7.13H20.48Q20.88 7.13 20.88 7.53V20.73Q20.88 21.13 20.48 21.13H17.78Q17.38 21.13 17.38 20.73V7.53Q17.38 7.13 17.78 7.13ZM3.38 11.13 9.38 7.13 13.38 8.13 20.38 3.13M16.38 3.13H20.38V7.13", "f": "M3.78 16.13H6.48Q6.88 16.13 6.88 16.53V20.73Q6.88 21.13 6.48 21.13H3.78Q3.38 21.13 3.38 20.73V16.53Q3.38 16.13 3.78 16.13ZM10.78 12.13H13.48Q13.88 12.13 13.88 12.53V20.73Q13.88 21.13 13.48 21.13H10.78Q10.38 21.13 10.38 20.73V12.53Q10.38 12.13 10.78 12.13ZM17.78 7.13H20.48Q20.88 7.13 20.88 7.53V20.73Q20.88 21.13 20.48 21.13H17.78Q17.38 21.13 17.38 20.73V7.53Q17.38 7.13 17.78 7.13ZM19.89 2.44C20.27 2.17 20.8 2.25 21.07 2.64C21.34 3.02 21.26 3.55 20.87 3.82L13.87 8.82C13.67 8.97 13.41 9.01 13.17 8.95L9.54 8.05L3.85 11.84C3.46 12.1 2.93 11.99 2.67 11.6C2.41 11.21 2.52 10.68 2.91 10.42L8.91 6.42C9.11 6.29 9.35 6.25 9.59 6.31L13.21 7.21L19.89 2.44Z"}, "a-konkurranse": {"s": "M7.05 3.1H16.95V9.03Q16.95 13.98 12.99 14.97V18.92H16.95V20.9H7.05V18.92H11.01V14.97Q7.05 13.98 7.05 9.03V3.1ZM7.05 5.08H3.1V8.04Q3.1 12 8.04 12M16.95 5.08H20.9V8.04Q20.9 12 15.96 12", "f": "M7.05 3.1H16.95V9.03Q16.95 13.98 12.99 14.97V18.92H16.95V20.9H7.05V18.92H11.01V14.97Q7.05 13.98 7.05 9.03V3.1ZM3.1 4.24H7.05C7.52 4.24 7.9 4.61 7.9 5.08C7.9 5.54 7.52 5.92 7.05 5.92H3.94V8.04C3.94 9.19 4.25 9.86 4.86 10.36C5.47 10.84 6.51 11.16 8.04 11.16C8.51 11.16 8.88 11.54 8.88 12C8.88 12.46 8.51 12.84 8.04 12.84C6.28 12.84 4.85 12.49 3.81 11.66C2.77 10.83 2.26 9.54 2.26 8.04V5.08C2.26 4.61 2.63 4.24 3.1 4.24ZM16.95 4.24H20.9C21.37 4.24 21.74 4.61 21.74 5.08V8.04C21.74 9.54 21.23 10.83 20.19 11.66C19.15 12.49 17.72 12.84 15.96 12.84C15.49 12.84 15.12 12.46 15.12 12C15.12 11.54 15.49 11.16 15.96 11.16C17.49 11.16 18.53 10.84 19.14 10.36C19.75 9.86 20.06 9.19 20.06 8.04V5.92H16.95C16.48 5.92 16.1 5.54 16.1 5.08C16.1 4.61 16.48 4.24 16.95 4.24Z"}, "b-konkurranse": {"s": "M4.5 2.86H9.19L12 8.48L9.19 10.36L4.5 2.86ZM14.81 2.86H19.5L14.81 10.36L12 8.48L14.81 2.86ZM12 10.83C14.85 10.83 17.16 13.13 17.16 15.98C17.16 18.83 14.85 21.14 12 21.14C9.15 21.14 6.84 18.83 6.84 15.98C6.84 13.13 9.15 10.83 12 10.83Z", "f": "M4.5 2.86H9.19L12 8.48L9.19 10.36L4.5 2.86ZM14.81 2.86H19.5L14.81 10.36L12 8.48L14.81 2.86ZM12 10.83C14.85 10.83 17.16 13.13 17.16 15.98C17.16 18.83 14.85 21.14 12 21.14C9.15 21.14 6.84 18.83 6.84 15.98C6.84 13.13 9.15 10.83 12 10.83Z"}, "c-konkurranse": {"s": "M3.5 14H6.5Q7 14 7 14.5V20.5Q7 21 6.5 21H3.5Q3 21 3 20.5V14.5Q3 14 3.5 14ZM10.5 9H13.5Q14 9 14 9.5V20.5Q14 21 13.5 21H10.5Q10 21 10 20.5V9.5Q10 9 10.5 9ZM17.5 3H20.5Q21 3 21 3.5V20.5Q21 21 20.5 21H17.5Q17 21 17 20.5V3.5Q17 3 17.5 3Z", "f": "M3.5 14H6.5Q7 14 7 14.5V20.5Q7 21 6.5 21H3.5Q3 21 3 20.5V14.5Q3 14 3.5 14ZM10.5 9H13.5Q14 9 14 9.5V20.5Q14 21 13.5 21H10.5Q10 21 10 20.5V9.5Q10 9 10.5 9ZM17.5 3H20.5Q21 3 21 3.5V20.5Q21 21 20.5 21H17.5Q17 21 17 20.5V3.5Q17 3 17.5 3Z"}, "treningssamling": {"s": "M2.86 20.23 12 3.77 21.14 20.23H14.74L12 13.83L9.26 20.23H2.86Z", "f": "M2.86 20.23 12 3.77 21.14 20.23H14.74L12 13.83L9.26 20.23H2.86Z"}, "hoydesamling": {"s": "M2.86 18.65 9.51 5.35 13.66 12 16.15 8.68 21.14 18.65H2.86ZM7.43 9.51 9.51 11.17 11.17 8.68", "f": "M2.86 18.65 9.51 5.35 13.66 12 16.15 8.68 21.14 18.65H2.86Z"}, "intervallbygger": {"s": "M12.6 3.1 3.2 13.4H9.4L7.8 20.9L16.6 10.6H10.4L12.6 3.1ZM18.5 3.6V8.6M16 6.1H21", "f": "M12.6 3.1 10.4 10.6H16.6L7.8 20.9L9.4 13.4H3.2ZM12.62 2.88C12.68 2.88 12.75 2.91 12.79 2.97C12.82 3.03 12.84 3.1 12.82 3.16L10.7 10.38H16.6C16.69 10.37 16.77 10.43 16.8 10.51C16.84 10.59 16.83 10.68 16.77 10.75L7.97 21.05C7.9 21.12 7.79 21.15 7.7 21.1C7.61 21.06 7.56 20.95 7.58 20.85L9.12 13.62L3.2 13.63C3.11 13.63 3.03 13.57 2.99 13.49C2.96 13.41 2.97 13.31 3.03 13.25L12.43 2.95C12.48 2.9 12.55 2.87 12.62 2.88ZM12.11 3.97 10.18 10.54C10.16 10.61 10.18 10.68 10.22 10.73C10.26 10.79 10.33 10.82 10.4 10.82H16.11L8.21 20.08L9.62 13.45C9.63 13.38 9.62 13.31 9.57 13.26C9.53 13.21 9.47 13.18 9.4 13.18H3.71L12.11 3.97ZM18.5 2.6C19.05 2.6 19.5 3.05 19.5 3.6V5.1H21C21.55 5.1 22 5.55 22 6.1C22 6.65 21.55 7.1 21 7.1H19.5V8.6C19.5 9.15 19.05 9.6 18.5 9.6C17.95 9.6 17.5 9.15 17.5 8.6V7.1H16C15.45 7.1 15 6.65 15 6.1C15 5.55 15.45 5.1 16 5.1H17.5V3.6C17.5 3.05 17.95 2.6 18.5 2.6Z"}, "oktbygger": {"s": "M3.45 14.6H6.05Q6.6 14.6 6.6 15.15V20.55Q6.6 21.1 6.05 21.1H3.45Q2.9 21.1 2.9 20.55V15.15Q2.9 14.6 3.45 14.6ZM10.75 9.6H13.35Q13.9 9.6 13.9 10.15V20.55Q13.9 21.1 13.35 21.1H10.75Q10.2 21.1 10.2 20.55V10.15Q10.2 9.6 10.75 9.6ZM18.05 16H20.55Q21.1 16 21.1 16.55V20.55Q21.1 21.1 20.55 21.1H18.05Q17.5 21.1 17.5 20.55V16.55Q17.5 16 18.05 16ZM18.45 3.7V8.9M15.85 6.3H21.05", "f": "M3.1 14H6.4Q7.2 14 7.2 14.8V20.8Q7.2 21.6 6.4 21.6H3.1Q2.3 21.6 2.3 20.8V14.8Q2.3 14 3.1 14ZM10.4 9H13.7Q14.5 9 14.5 9.8V20.8Q14.5 21.6 13.7 21.6H10.4Q9.6 21.6 9.6 20.8V9.8Q9.6 9 10.4 9ZM17.7 15.4H20.9Q21.7 15.4 21.7 16.2V20.8Q21.7 21.6 20.9 21.6H17.7Q16.9 21.6 16.9 20.8V16.2Q16.9 15.4 17.7 15.4ZM18.45 2.75C18.97 2.75 19.4 3.17 19.4 3.7V5.35H21.05C21.58 5.35 22 5.78 22 6.3C22 6.82 21.57 7.25 21.05 7.25H19.4V8.9C19.4 9.43 18.97 9.85 18.45 9.85C17.93 9.85 17.5 9.42 17.5 8.9V7.25H15.85C15.33 7.25 14.9 6.82 14.9 6.3C14.9 5.78 15.32 5.35 15.85 5.35H17.5V3.7C17.5 3.18 17.93 2.75 18.45 2.75Z"}, "skyting": {"s": "M12 5.34C15.68 5.34 18.66 8.32 18.66 12C18.66 15.68 15.68 18.66 12 18.66C8.32 18.66 5.34 15.68 5.34 12C5.34 8.32 8.32 5.34 12 5.34ZM12 3V4.8M19.2 12H21M12 19.2V21M3 12H4.8M12 9.57C13.34 9.57 14.43 10.66 14.43 12C14.43 13.34 13.34 14.43 12 14.43C10.66 14.43 9.57 13.34 9.57 12C9.57 10.66 10.66 9.57 12 9.57Z", "f": "M12 5.34C15.68 5.34 18.66 8.32 18.66 12C18.66 15.68 15.68 18.66 12 18.66C8.32 18.66 5.34 15.68 5.34 12C5.34 8.32 8.32 5.34 12 5.34ZM12 7.28C9.39 7.28 7.28 9.39 7.28 12C7.28 14.61 9.39 16.73 12 16.73C14.61 16.73 16.73 14.61 16.73 12C16.73 9.39 14.61 7.28 12 7.28ZM12 2.24C12.42 2.24 12.76 2.58 12.76 3V4.8C12.76 5.22 12.42 5.57 12 5.57C11.58 5.57 11.24 5.22 11.24 4.8V3C11.24 2.58 11.58 2.24 12 2.24ZM3 11.24H4.8C5.22 11.24 5.57 11.58 5.57 12C5.57 12.42 5.22 12.76 4.8 12.76H3C2.58 12.76 2.24 12.42 2.24 12C2.24 11.58 2.58 11.24 3 11.24ZM19.2 11.24H21C21.42 11.24 21.77 11.58 21.77 12C21.77 12.42 21.42 12.76 21 12.76H19.2C18.78 12.76 18.43 12.42 18.43 12C18.43 11.58 18.78 11.24 19.2 11.24ZM12 18.43C12.42 18.43 12.76 18.78 12.76 19.2V21C12.76 21.42 12.42 21.77 12 21.77C11.58 21.77 11.24 21.42 11.24 21V19.2C11.24 18.78 11.58 18.43 12 18.43ZM12 9.57C13.34 9.57 14.43 10.66 14.43 12C14.43 13.34 13.34 14.43 12 14.43C10.66 14.43 9.57 13.34 9.57 12C9.57 10.66 10.66 9.57 12 9.57Z"}, "laktat": {"s": "M12 2.86C10.34 6.18 5.35 11.17 5.35 14.49C5.35 18.17 8.33 21.14 12 21.14C15.67 21.14 18.65 18.17 18.65 14.49C18.65 11.17 13.66 6.18 12 2.86Z", "f": "M12 2.86C13.66 6.18 18.65 11.17 18.65 14.49C18.65 18.17 15.67 21.14 12 21.14C8.33 21.14 5.35 18.17 5.35 14.49C5.35 11.17 10.34 6.18 12 2.86Z"}, "ernaering": {"s": "M12 8.47C7.45 4.83 1.99 8.47 3.81 14.85C5.63 23.04 9.27 21.22 12 20.31C14.73 21.22 18.37 23.04 20.19 14.85C22.01 8.47 16.55 4.83 12 8.47ZM12.91 6.65Q12.91 2.1 19.28 3.01Q18.37 7.56 12.91 6.65ZM12 9.38 10.18 3.92", "f": "M12 8.47C16.55 4.83 22.01 8.47 20.19 14.85C18.37 23.04 14.73 21.22 12 20.31C9.27 21.22 5.63 23.04 3.81 14.85C1.99 8.47 7.45 4.83 12 8.47ZM12.91 6.65Q12.91 2.1 19.28 3.01Q18.37 7.56 12.91 6.65ZM9.93 3.18C10.12 3.12 10.34 3.14 10.53 3.23C10.71 3.32 10.85 3.49 10.92 3.68L12.74 9.14C12.8 9.33 12.78 9.55 12.69 9.73C12.6 9.91 12.44 10.06 12.25 10.12C12.05 10.18 11.84 10.17 11.65 10.08C11.47 9.98 11.33 9.82 11.26 9.63L9.44 4.17C9.38 3.98 9.4 3.76 9.49 3.58C9.58 3.39 9.74 3.25 9.93 3.18Z"}, "klokke": {"s": "M8 6V3H16V6H8ZM8 18V21H16V18H8ZM12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5ZM12 8.8V12L14.5 13.5", "f": "M8 6V3H16V6H8ZM8 18H16V21H8V18ZM12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5ZM12 7.5C9.51 7.5 7.5 9.51 7.5 12C7.5 14.49 9.51 16.5 12 16.5C14.49 16.5 16.5 14.49 16.5 12C16.5 9.51 14.49 7.5 12 7.5ZM12 7.95C12.23 7.95 12.44 8.04 12.6 8.2C12.76 8.36 12.85 8.58 12.85 8.8V11.52L14.94 12.77C15.34 13.01 15.47 13.54 15.23 13.94C14.99 14.34 14.46 14.47 14.06 14.23L11.56 12.73C11.31 12.57 11.15 12.3 11.15 12V8.8C11.15 8.58 11.24 8.36 11.4 8.2C11.56 8.04 11.77 7.95 12 7.95Z"}, "fullfort": {"s": "M3.67 12.24 9.06 17.63 20.33 6.37", "f": "M19.15 5.19C19.8 4.54 20.86 4.54 21.5 5.19C22.15 5.84 22.15 6.89 21.5 7.54L10.24 18.81C9.59 19.46 8.53 19.46 7.88 18.81L2.5 13.42C1.85 12.77 1.85 11.72 2.5 11.07C3.14 10.42 4.2 10.42 4.85 11.07L9.06 15.28L19.15 5.19Z"}, "bokmerke": {"s": "M5.27 2.86H18.73V21.14L12 16.33L5.27 21.14V2.86Z", "f": "M5.27 2.86H18.73V21.14L12 16.33L5.27 21.14V2.86Z"}, "puls": {"s": "M12 20.36C9.26 17.62 2.86 13.05 2.86 7.56C2.86 2.99 9.26 2.08 12 6.65C14.74 2.08 21.14 2.99 21.14 7.56C21.14 13.05 14.74 17.62 12 20.36ZM5.6 12.13H8.34L10.17 8.48L12.91 15.79L14.74 12.13H18.4", "f": "M12 20.36C9.26 17.62 2.86 13.05 2.86 7.56C2.86 2.99 9.26 2.08 12 6.65C14.74 2.08 21.14 2.99 21.14 7.56C21.14 13.05 14.74 17.62 12 20.36ZM10.22 7.61C9.87 7.59 9.55 7.78 9.4 8.08L7.8 11.26H5.6C5.13 11.26 4.73 11.66 4.73 12.13C4.73 12.61 5.13 13 5.6 13H8.34C8.67 13 8.97 12.82 9.12 12.52L10.06 10.64L12.1 16.09C12.22 16.42 12.52 16.64 12.87 16.66C13.22 16.67 13.54 16.48 13.69 16.18L15.28 13H18.4C18.87 13 19.27 12.61 19.27 12.13C19.27 11.66 18.87 11.26 18.4 11.26H14.74C14.41 11.26 14.11 11.45 13.97 11.74L13.02 13.62L10.99 8.17C10.87 7.84 10.57 7.63 10.22 7.61Z"}, "helse": {"s": "M12 20.4C9.2 18.1 3.25 13.7 3.25 8.15C3.25 4.65 5.55 3 8.25 3C10 3 11.15 3.95 12 5.25C12.85 3.95 14 3 15.75 3C18.45 3 20.75 4.65 20.75 8.15C20.75 13.7 14.8 18.1 12 20.4Z", "f": "M12 20.4C9.2 18.1 3.25 13.7 3.25 8.15C3.25 4.65 5.55 3 8.25 3C10 3 11.15 3.95 12 5.25C12.85 3.95 14 3 15.75 3C18.45 3 20.75 4.65 20.75 8.15C20.75 13.7 14.8 18.1 12 20.4Z"}, "testlop": {"s": "M12 6.38C16.04 6.38 19.31 9.65 19.31 13.69C19.31 17.74 16.04 21.01 12 21.01C7.96 21.01 4.69 17.74 4.69 13.69C4.69 9.65 7.96 6.38 12 6.38ZM9.32 2.99H14.68M12 2.99V5.67M17.35 6.56 19.14 4.78M12 13.69 15.57 9.23", "f": "M12 6.38C16.04 6.38 19.31 9.65 19.31 13.69C19.31 17.74 16.04 21.01 12 21.01C7.96 21.01 4.69 17.74 4.69 13.69C4.69 9.65 7.96 6.38 12 6.38ZM12 8.79C9.29 8.79 7.09 10.98 7.09 13.69C7.09 16.41 9.29 18.6 12 18.6C14.71 18.6 16.91 16.41 16.91 13.69C16.91 10.98 14.71 8.79 12 8.79ZM9.32 2.23H12H14.68C15.1 2.23 15.43 2.57 15.43 2.99C15.43 3.41 15.1 3.75 14.68 3.75H12.76V5.67C12.76 6.09 12.42 6.43 12 6.43C11.58 6.43 11.24 6.09 11.24 5.67V3.75H9.32C8.9 3.75 8.57 3.41 8.57 2.99C8.57 2.57 8.9 2.23 9.32 2.23ZM18.6 4.24C18.74 4.1 18.93 4.02 19.14 4.02C19.34 4.02 19.53 4.1 19.67 4.24C19.81 4.38 19.89 4.57 19.89 4.78C19.89 4.98 19.81 5.17 19.67 5.31L17.89 7.09C17.74 7.24 17.56 7.32 17.35 7.32C17.15 7.32 16.96 7.24 16.82 7.09C16.67 6.95 16.59 6.76 16.59 6.56C16.59 6.35 16.67 6.17 16.82 6.02L18.6 4.24ZM15.49 8.48C15.68 8.46 15.89 8.51 16.04 8.65C16.37 8.9 16.42 9.38 16.16 9.71L12.59 14.17C12.33 14.5 11.86 14.55 11.53 14.28C11.2 14.02 11.14 13.55 11.41 13.22L14.98 8.76C15.1 8.6 15.28 8.5 15.49 8.48Z"}, "maler": {"s": "M7.88 3.12H18.88Q20.88 3.12 20.88 5.12V17.12M4.28 6.12H16.48Q17.88 6.12 17.88 7.53V19.73Q17.88 21.12 16.48 21.12H4.28Q2.88 21.12 2.88 19.73V7.53Q2.88 6.12 4.28 6.12ZM5.88 11.12H13.88M5.88 16.12H11.88", "f": "M7.88 2.02H18.88C19.73 2.02 20.55 2.25 21.16 2.85C21.75 3.44 21.98 4.28 21.98 5.12V17.12C21.98 17.73 21.48 18.23 20.88 18.23C20.27 18.23 19.77 17.73 19.77 17.12V5.12C19.77 4.64 19.68 4.47 19.59 4.41C19.52 4.33 19.36 4.22 18.88 4.22H7.88C7.26 4.22 6.78 3.73 6.78 3.12C6.78 2.52 7.26 2.02 7.88 2.02ZM4.28 6.12H16.48Q17.88 6.12 17.88 7.53V19.73Q17.88 21.12 16.48 21.12H4.28Q2.88 21.12 2.88 19.73V7.53Q2.88 6.12 4.28 6.12ZM6.17 10.12Q5.88 10.12 5.88 10.43V11.53Q5.88 11.82 6.17 11.82H14.57Q14.88 11.82 14.88 11.53V10.43Q14.88 10.12 14.57 10.12H6.17ZM6.17 15.12Q5.88 15.12 5.88 15.43V16.52Q5.88 16.82 6.17 16.82H12.57Q12.88 16.82 12.88 16.52V15.43Q12.88 15.12 12.57 15.12H6.17Z"}, "play": {"s": "M4 3 20 12 4 21V3Z", "f": "M4 3 20 12 4 21V3Z"}, "pause": {"s": "M5.8 3H9.2Q10 3 10 3.8V20.2Q10 21 9.2 21H5.8Q5 21 5 20.2V3.8Q5 3 5.8 3ZM14.8 3H18.2Q19 3 19 3.8V20.2Q19 21 18.2 21H14.8Q14 21 14 20.2V3.8Q14 3 14.8 3Z", "f": "M5.8 3H9.2Q10 3 10 3.8V20.2Q10 21 9.2 21H5.8Q5 21 5 20.2V3.8Q5 3 5.8 3ZM14.8 3H18.2Q19 3 19 3.8V20.2Q19 21 18.2 21H14.8Q14 21 14 20.2V3.8Q14 3 14.8 3Z"}, "neste": {"s": "M8 4 16 12 8 20", "f": "M8 2.35C8.44 2.35 8.86 2.52 9.17 2.83L17.17 10.83C17.81 11.48 17.81 12.52 17.17 13.17L9.17 21.17C8.52 21.81 7.48 21.81 6.83 21.17C6.19 20.52 6.19 19.48 6.83 18.83L13.67 12L6.83 5.17C6.19 4.52 6.19 3.48 6.83 2.83C7.14 2.52 7.56 2.35 8 2.35Z"}, "forrige": {"s": "M16 4 8 12 16 20", "f": "M16 2.35C16.44 2.35 16.86 2.52 17.17 2.83C17.81 3.48 17.81 4.52 17.17 5.17L10.33 12L17.17 18.83C17.81 19.48 17.81 20.52 17.17 21.17C16.52 21.81 15.48 21.81 14.83 21.17L6.83 13.17C6.19 12.52 6.19 11.48 6.83 10.83L14.83 2.83C15.14 2.52 15.56 2.35 16 2.35Z"}, "legg-til": {"s": "M12 4.01V19.99M4.01 12H19.99", "f": "M12 2.01C13.1 2.01 14 2.91 14 4.01V10H19.99C21.09 10 21.99 10.9 21.99 12C21.99 13.1 21.09 14 19.99 14H14V19.99C14 21.09 13.1 21.99 12 21.99C10.9 21.99 10 21.09 10 19.99V14H4.01C2.91 14 2.01 13.1 2.01 12C2.01 10.9 2.91 10 4.01 10H10V4.01C10 2.91 10.9 2.01 12 2.01Z"}, "standardokt-serie": {"s": "M5.45 4.63H13.63Q14.26 4.63 14.26 5.26V12.65Q14.26 13.28 13.63 13.28H5.45Q4.83 13.28 4.83 12.65V5.26Q4.83 4.63 5.45 4.63ZM7.97 3.06V6.2M11.9 3.06V6.2M15.83 8.56H18.98V16.42H11.12V14.85M7.97 16.42Q9.54 21.14 14.26 18.78M13.47 16.42 16.62 18.78 12.69 21.14 13.47 16.42ZM7.18 6.99H8.76M10.33 6.99H11.9M7.18 10.13H8.76M10.33 10.13H11.9", "f": "M5.45 4.63H13.63Q14.26 4.63 14.26 5.26V12.65Q14.26 13.28 13.63 13.28H5.45Q4.83 13.28 4.83 12.65V5.26Q4.83 4.63 5.45 4.63ZM7.26 6.99Q7.18 6.99 7.18 7.07V8.64Q7.18 8.72 7.26 8.72H8.84Q8.91 8.72 8.91 8.64V7.07Q8.91 6.99 8.84 6.99H7.26ZM10.41 6.99Q10.33 6.99 10.33 7.07V8.64Q10.33 8.72 10.41 8.72H11.98Q12.06 8.72 12.06 8.64V7.07Q12.06 6.99 11.98 6.99H10.41ZM7.26 10.13Q7.18 10.13 7.18 10.21V11.78Q7.18 11.86 7.26 11.86H8.84Q8.91 11.86 8.91 11.78V10.21Q8.91 10.13 8.84 10.13H7.26ZM10.41 10.13Q10.33 10.13 10.33 10.21V11.78Q10.33 11.86 10.41 11.86H11.98Q12.06 11.86 12.06 11.78V10.21Q12.06 10.13 11.98 10.13H10.41ZM7.97 2.39C8.34 2.39 8.64 2.69 8.64 3.06V6.2C8.64 6.57 8.34 6.87 7.97 6.87C7.6 6.87 7.3 6.57 7.3 6.2V3.06C7.3 2.69 7.6 2.39 7.97 2.39ZM11.9 2.39C12.27 2.39 12.57 2.69 12.57 3.06V6.2C12.57 6.57 12.27 6.87 11.9 6.87C11.53 6.87 11.23 6.57 11.23 6.2V3.06C11.23 2.69 11.53 2.39 11.9 2.39ZM15.83 7.89H18.98C19.35 7.89 19.65 8.19 19.65 8.56V16.42C19.65 16.79 19.35 17.09 18.98 17.09H11.12C10.75 17.09 10.45 16.79 10.45 16.42V14.85C10.45 14.48 10.75 14.18 11.12 14.18C11.49 14.18 11.78 14.48 11.78 14.85V15.75H18.31V9.23H15.83C15.46 9.23 15.16 8.93 15.16 8.56C15.16 8.19 15.46 7.89 15.83 7.89ZM7.76 15.79C7.92 15.73 8.11 15.75 8.27 15.83C8.43 15.9 8.55 16.05 8.61 16.21C9.09 17.67 9.76 18.44 10.57 18.75C11.37 19.05 12.48 18.92 13.96 18.18C14.29 18.02 14.69 18.15 14.86 18.48C15.02 18.81 14.89 19.21 14.56 19.38C12.89 20.21 11.38 20.48 10.09 19.99C8.8 19.51 7.9 18.32 7.33 16.63C7.28 16.47 7.29 16.28 7.37 16.12C7.45 15.97 7.59 15.84 7.76 15.79ZM13.47 16.42 16.62 18.78 12.69 21.14 13.47 16.42Z"}, "flytt": {"s": "M8 5.5H8M16 5.5H16M8 12H8M16 12H16M8 18.5H8M16 18.5H16", "f": "M8 3.85A1.65 1.65 0 1 1 8 7.15A1.65 1.65 0 1 1 8 3.85ZM16 3.85A1.65 1.65 0 1 1 16 7.15A1.65 1.65 0 1 1 16 3.85ZM8 10.35A1.65 1.65 0 1 1 8 13.65A1.65 1.65 0 1 1 8 10.35ZM16 10.35A1.65 1.65 0 1 1 16 13.65A1.65 1.65 0 1 1 16 10.35ZM8 16.85A1.65 1.65 0 1 1 8 20.15A1.65 1.65 0 1 1 8 16.85ZM16 16.85A1.65 1.65 0 1 1 16 20.15A1.65 1.65 0 1 1 16 16.85Z"}, "fjern": {"s": "M4 12H20", "f": "M4 10.35H20Q21 10.35 21 11.35V12.65Q21 13.65 20 13.65H4Q3 13.65 3 12.65V11.35Q3 10.35 4 10.35Z"}, "lagre": {"s": "M2.86 2.86H17.29L21.14 6.71V21.14H2.86V2.86ZM5.75 2.86V9.59H17.29V2.86M5.75 13.44H18.25V18.25H5.75V13.44Z", "f": "M2.86 2.86H17.29L21.14 6.71V21.14H2.86V2.86ZM6.03 13.44Q5.75 13.44 5.75 13.73V17.97Q5.75 18.25 6.03 18.25H17.97Q18.25 18.25 18.25 17.97V13.73Q18.25 13.44 17.97 13.44H6.03ZM13.64 3.82Q13.44 3.82 13.44 4.01V9.4Q13.44 9.59 13.64 9.59H16.14Q16.33 9.59 16.33 9.4V4.01Q16.33 3.82 16.14 3.82H13.64Z"}};
+const IK={"a-konkurranse": {"s": "M7.05 3.1H16.95V9.03Q16.95 13.98 12.99 14.97V18.92H16.95V20.9H7.05V18.92H11.01V14.97Q7.05 13.98 7.05 9.03V3.1ZM7.05 5.08H3.1V8.04Q3.1 12 8.04 12M16.95 5.08H20.9V8.04Q20.9 12 15.96 12", "f": "M7.05 3.1H16.95V9.03Q16.95 13.98 12.99 14.97V18.92H16.95V20.9H7.05V18.92H11.01V14.97Q7.05 13.98 7.05 9.03V3.1ZM3.1 4.24H7.05C7.52 4.24 7.9 4.61 7.9 5.08C7.9 5.54 7.52 5.92 7.05 5.92H3.94V8.04C3.94 9.19 4.25 9.86 4.86 10.36C5.47 10.84 6.51 11.16 8.04 11.16C8.51 11.16 8.88 11.54 8.88 12C8.88 12.46 8.51 12.84 8.04 12.84C6.28 12.84 4.85 12.49 3.81 11.66C2.77 10.83 2.26 9.54 2.26 8.04V5.08C2.26 4.61 2.63 4.24 3.1 4.24ZM16.95 4.24H20.9C21.37 4.24 21.74 4.61 21.74 5.08V8.04C21.74 9.54 21.23 10.83 20.19 11.66C19.15 12.49 17.72 12.84 15.96 12.84C15.49 12.84 15.12 12.46 15.12 12C15.12 11.54 15.49 11.16 15.96 11.16C17.49 11.16 18.53 10.84 19.14 10.36C19.75 9.86 20.06 9.19 20.06 8.04V5.92H16.95C16.48 5.92 16.1 5.54 16.1 5.08C16.1 4.61 16.48 4.24 16.95 4.24Z"}, "analyse": {"s": "M3.78 16.13H6.48Q6.88 16.13 6.88 16.53V20.73Q6.88 21.13 6.48 21.13H3.78Q3.38 21.13 3.38 20.73V16.53Q3.38 16.13 3.78 16.13ZM10.78 12.13H13.48Q13.88 12.13 13.88 12.53V20.73Q13.88 21.13 13.48 21.13H10.78Q10.38 21.13 10.38 20.73V12.53Q10.38 12.13 10.78 12.13ZM17.78 7.13H20.48Q20.88 7.13 20.88 7.53V20.73Q20.88 21.13 20.48 21.13H17.78Q17.38 21.13 17.38 20.73V7.53Q17.38 7.13 17.78 7.13ZM3.38 11.13 9.38 7.13 13.38 8.13 20.38 3.13M16.38 3.13H20.38V7.13", "f": "M3.78 16.13H6.48Q6.88 16.13 6.88 16.53V20.73Q6.88 21.13 6.48 21.13H3.78Q3.38 21.13 3.38 20.73V16.53Q3.38 16.13 3.78 16.13ZM10.78 12.13H13.48Q13.88 12.13 13.88 12.53V20.73Q13.88 21.13 13.48 21.13H10.78Q10.38 21.13 10.38 20.73V12.53Q10.38 12.13 10.78 12.13ZM17.78 7.13H20.48Q20.88 7.13 20.88 7.53V20.73Q20.88 21.13 20.48 21.13H17.78Q17.38 21.13 17.38 20.73V7.53Q17.38 7.13 17.78 7.13ZM19.89 2.44C20.27 2.17 20.8 2.25 21.07 2.64C21.34 3.02 21.26 3.55 20.87 3.82L13.87 8.82C13.67 8.97 13.41 9.01 13.17 8.95L9.54 8.05L3.85 11.84C3.46 12.1 2.93 11.99 2.67 11.6C2.41 11.21 2.52 10.68 2.91 10.42L8.91 6.42C9.11 6.29 9.35 6.25 9.59 6.31L13.21 7.21L19.89 2.44Z"}, "apne-fane": {"s": ["M10 5H5.5Q3.5 5 3.5 7V18.5Q3.5 20.5 5.5 20.5H16.5Q18.5 20.5 18.5 18.5V14", "M14 3.5H20.5V10M11 13L20.5 3.5"], "f": ["M10 3.5A1.5 1.5 0 0 1 10 6.5H5.5Q5 6.5 5 7V18.5Q5 19 5.5 19H16.5Q17 19 17 18.5V14A1.5 1.5 0 0 1 20 14V18.5Q20 22 16.5 22H5.5Q2 22 2 18.5V7Q2 3.5 5.5 3.5Z", "M14 2H20.5Q22 2 22 3.5V10A1.5 1.5 0 0 1 19 10V7.12L12.06 14.06A1.5 1.5 0 0 1 9.94 11.94L16.88 5H14A1.5 1.5 0 0 1 14 2Z"]}, "b-konkurranse": {"s": "M4.5 2.86H9.19L12 8.48L9.19 10.36L4.5 2.86ZM14.81 2.86H19.5L14.81 10.36L12 8.48L14.81 2.86ZM12 10.83C14.85 10.83 17.16 13.13 17.16 15.98C17.16 18.83 14.85 21.14 12 21.14C9.15 21.14 6.84 18.83 6.84 15.98C6.84 13.13 9.15 10.83 12 10.83Z", "f": "M4.5 2.86H9.19L12 8.48L9.19 10.36L4.5 2.86ZM14.81 2.86H19.5L14.81 10.36L12 8.48L14.81 2.86ZM12 10.83C14.85 10.83 17.16 13.13 17.16 15.98C17.16 18.83 14.85 21.14 12 21.14C9.15 21.14 6.84 18.83 6.84 15.98C6.84 13.13 9.15 10.83 12 10.83Z"}, "bibliotek": {"s": "M3.28 4.11H6.6Q7.01 4.11 7.01 4.52V18.65Q7.01 19.06 6.6 19.06H3.28Q2.86 19.06 2.86 18.65V4.52Q2.86 4.11 3.28 4.11ZM9.09 4.11H12.42Q12.83 4.11 12.83 4.52V18.65Q12.83 19.06 12.42 19.06H9.09Q8.68 19.06 8.68 18.65V4.52Q8.68 4.11 9.09 4.11ZM14.49 5.77 17.82 4.94 21.14 19.06 17.82 19.89 14.49 5.77ZM2.86 7.43H7.01M8.68 7.43H12.83M15.32 8.26 18.65 7.43M2.86 17.4H7.01M8.68 17.4H12.83", "f": "M3.28 4.11H6.6Q7.01 4.11 7.01 4.52V18.65Q7.01 19.06 6.6 19.06H3.28Q2.86 19.06 2.86 18.65V4.52Q2.86 4.11 3.28 4.11ZM9.09 4.11H12.42Q12.83 4.11 12.83 4.52V18.65Q12.83 19.06 12.42 19.06H9.09Q8.68 19.06 8.68 18.65V4.52Q8.68 4.11 9.09 4.11ZM14.49 5.77 17.82 4.94 21.14 19.06 17.82 19.89 14.49 5.77ZM4.19 6.6Q4.11 6.6 4.11 6.68V7.93Q4.11 8.01 4.19 8.01H5.69Q5.77 8.01 5.77 7.93V6.68Q5.77 6.6 5.69 6.6H4.19ZM10.01 6.6Q9.92 6.6 9.92 6.68V7.93Q9.92 8.01 10.01 8.01H11.5Q11.58 8.01 11.58 7.93V6.68Q11.58 6.6 11.5 6.6H10.01Z"}, "bokmerke": {"s": "M5.27 2.86H18.73V21.14L12 16.33L5.27 21.14V2.86Z", "f": "M5.27 2.86H18.73V21.14L12 16.33L5.27 21.14V2.86Z"}, "c-konkurranse": {"s": "M3.5 14H6.5Q7 14 7 14.5V20.5Q7 21 6.5 21H3.5Q3 21 3 20.5V14.5Q3 14 3.5 14ZM10.5 9H13.5Q14 9 14 9.5V20.5Q14 21 13.5 21H10.5Q10 21 10 20.5V9.5Q10 9 10.5 9ZM17.5 3H20.5Q21 3 21 3.5V20.5Q21 21 20.5 21H17.5Q17 21 17 20.5V3.5Q17 3 17.5 3Z", "f": "M3.5 14H6.5Q7 14 7 14.5V20.5Q7 21 6.5 21H3.5Q3 21 3 20.5V14.5Q3 14 3.5 14ZM10.5 9H13.5Q14 9 14 9.5V20.5Q14 21 13.5 21H10.5Q10 21 10 20.5V9.5Q10 9 10.5 9ZM17.5 3H20.5Q21 3 21 3.5V20.5Q21 21 20.5 21H17.5Q17 21 17 20.5V3.5Q17 3 17.5 3Z"}, "ernaering": {"s": "M12 8.47C7.45 4.83 1.99 8.47 3.81 14.85C5.63 23.04 9.27 21.22 12 20.31C14.73 21.22 18.37 23.04 20.19 14.85C22.01 8.47 16.55 4.83 12 8.47ZM12.91 6.65Q12.91 2.1 19.28 3.01Q18.37 7.56 12.91 6.65ZM12 9.38 10.18 3.92", "f": "M12 8.47C16.55 4.83 22.01 8.47 20.19 14.85C18.37 23.04 14.73 21.22 12 20.31C9.27 21.22 5.63 23.04 3.81 14.85C1.99 8.47 7.45 4.83 12 8.47ZM12.91 6.65Q12.91 2.1 19.28 3.01Q18.37 7.56 12.91 6.65ZM9.93 3.18C10.12 3.12 10.34 3.14 10.53 3.23C10.71 3.32 10.85 3.49 10.92 3.68L12.74 9.14C12.8 9.33 12.78 9.55 12.69 9.73C12.6 9.91 12.44 10.06 12.25 10.12C12.05 10.18 11.84 10.17 11.65 10.08C11.47 9.98 11.33 9.82 11.26 9.63L9.44 4.17C9.38 3.98 9.4 3.76 9.49 3.58C9.58 3.39 9.74 3.25 9.93 3.18Z"}, "favoritt": {"s": "M11.72 3.98Q12 3.4 12.28 3.98L14.39 8.33Q14.67 8.92 15.32 9.01L20.11 9.67Q20.75 9.76 20.28 10.21L16.8 13.56Q16.33 14.01 16.44 14.65L17.29 19.4Q17.41 20.04 16.83 19.74L12.57 17.46Q12 17.15 11.43 17.46L7.17 19.74Q6.59 20.04 6.71 19.4L7.56 14.65Q7.67 14.01 7.2 13.56L3.72 10.21Q3.25 9.76 3.89 9.67L8.68 9.01Q9.33 8.92 9.61 8.33Z", "f": "M11.72 3.98Q12 3.4 12.28 3.98L14.39 8.33Q14.67 8.92 15.32 9.01L20.11 9.67Q20.75 9.76 20.28 10.21L16.8 13.56Q16.33 14.01 16.44 14.65L17.29 19.4Q17.41 20.04 16.83 19.74L12.57 17.46Q12 17.15 11.43 17.46L7.17 19.74Q6.59 20.04 6.71 19.4L7.56 14.65Q7.67 14.01 7.2 13.56L3.72 10.21Q3.25 9.76 3.89 9.67L8.68 9.01Q9.33 8.92 9.61 8.33Z"}, "for-okt": {"s": ["M16 9V5Q16 3 14 3H5Q3 3 3 5V19Q3 21 5 21H10M15 21Q16 21 16 20", "M6 7H12M6 10.5H12M6 14H10", "M18 8L21 10.25L14.25 19.25L11 21L11.5 17.25ZM16.8 9.6L19.8 11.85"], "f": ["M5 3H14Q16 3 16 5V8L10 16V21H5Q3 21 3 19V5Q3 3 5 3ZM6 6.25Q5.25 6.25 5.25 7Q5.25 7.75 6 7.75H12Q12.75 7.75 12.75 7Q12.75 6.25 12 6.25ZM6 9.75Q5.25 9.75 5.25 10.5Q5.25 11.25 6 11.25H12Q12.75 11.25 12.75 10.5Q12.75 9.75 12 9.75ZM6 13.25Q5.25 13.25 5.25 14Q5.25 14.75 6 14.75H9Q9.75 14.75 9.75 14Q9.75 13.25 9 13.25Z", "M18 8L21 10.25L19.8 11.85L16.8 9.6ZM16.2 10.4L19.2 12.65L14.25 19.25L11 21L11.5 17.25Z"]}, "fullfort": {"s": "M3.67 12.24 9.06 17.63 20.33 6.37", "f": "M19.15 5.19C19.8 4.54 20.86 4.54 21.5 5.19C22.15 5.84 22.15 6.89 21.5 7.54L10.24 18.81C9.59 19.46 8.53 19.46 7.88 18.81L2.5 13.42C1.85 12.77 1.85 11.72 2.5 11.07C3.14 10.42 4.2 10.42 4.85 11.07L9.06 15.28L19.15 5.19Z"}, "hjem": {"s": "M2.86 10.51 12 3.06 21.14 10.51H18.95V20.94H14.48V13.99H9.52V20.94H5.05V10.51H2.86Z", "f": "M2.86 10.51 12 3.06 21.14 10.51H18.95V20.94H14.48V13.99H9.52V20.94H5.05V10.51H2.86Z"}, "hoyde": {"s": "M2.86 20 8.19 9.33 11.24 14.67 14.29 11.62 18.86 20H2.86ZM16.57 10.86V7.05H15.05L18.09 4L21.14 7.05H19.62V10.86H16.57Z", "f": "M2.86 20 8.19 9.33 11.24 14.67 14.29 11.62 18.86 20H2.86ZM16.57 10.86V7.05H15.05L18.09 4L21.14 7.05H19.62V10.86H16.57Z"}, "hoydesamling": {"s": "M2.86 18.65 9.51 5.35 13.66 12 16.15 8.68 21.14 18.65H2.86ZM7.43 9.51 9.51 11.17 11.17 8.68", "f": "M2.86 18.65 9.51 5.35 13.66 12 16.15 8.68 21.14 18.65H2.86Z"}, "intervallbygger": {"s": "M12.6 3.1 3.2 13.4H9.4L7.8 20.9L16.6 10.6H10.4L12.6 3.1ZM18.5 3.6V8.6M16 6.1H21", "f": "M12.6 3.1 10.4 10.6H16.6L7.8 20.9L9.4 13.4H3.2ZM12.62 2.88C12.68 2.88 12.75 2.91 12.79 2.97C12.82 3.03 12.84 3.1 12.82 3.16L10.7 10.38H16.6C16.69 10.37 16.77 10.43 16.8 10.51C16.84 10.59 16.83 10.68 16.77 10.75L7.97 21.05C7.9 21.12 7.79 21.15 7.7 21.1C7.61 21.06 7.56 20.95 7.58 20.85L9.12 13.62L3.2 13.63C3.11 13.63 3.03 13.57 2.99 13.49C2.96 13.41 2.97 13.31 3.03 13.25L12.43 2.95C12.48 2.9 12.55 2.87 12.62 2.88ZM12.11 3.97 10.18 10.54C10.16 10.61 10.18 10.68 10.22 10.73C10.26 10.79 10.33 10.82 10.4 10.82H16.11L8.21 20.08L9.62 13.45C9.63 13.38 9.62 13.31 9.57 13.26C9.53 13.21 9.47 13.18 9.4 13.18H3.71L12.11 3.97ZM18.5 2.6C19.05 2.6 19.5 3.05 19.5 3.6V5.1H21C21.55 5.1 22 5.55 22 6.1C22 6.65 21.55 7.1 21 7.1H19.5V8.6C19.5 9.15 19.05 9.6 18.5 9.6C17.95 9.6 17.5 9.15 17.5 8.6V7.1H16C15.45 7.1 15 6.65 15 6.1C15 5.55 15.45 5.1 16 5.1H17.5V3.6C17.5 3.05 17.95 2.6 18.5 2.6Z"}, "kadens": {"s": "M3.37 8.26Q9.92 2.65 17.4 8.26M17.4 4.52 21.14 9.19H15.53L17.4 4.52ZM11.79 12C13.86 12 15.53 13.67 15.53 15.74C15.53 17.81 13.86 19.48 11.79 19.48C9.72 19.48 8.05 17.81 8.05 15.74C8.05 13.67 9.72 12 11.79 12ZM3.37 14.81 8.05 15.74M15.53 15.74 20.2 18.55M11.79 14.06C12.72 14.06 13.47 14.81 13.47 15.74C13.47 16.67 12.72 17.42 11.79 17.42C10.86 17.42 10.11 16.67 10.11 15.74C10.11 14.81 10.86 14.06 11.79 14.06Z", "f": "M10.15 4.61C12.72 4.61 15.31 5.64 17.9 7.59C18.28 7.87 18.35 8.39 18.07 8.76C17.79 9.14 17.27 9.21 16.89 8.93C14.5 7.14 12.27 6.3 10.15 6.3C8.04 6.3 5.99 7.13 3.93 8.9C3.57 9.2 3.04 9.16 2.74 8.81C2.43 8.46 2.48 7.92 2.82 7.62C5.12 5.65 7.59 4.61 10.15 4.61ZM17.4 4.52 21.14 9.19H15.53L17.4 4.52ZM11.79 12C13.86 12 15.53 13.67 15.53 15.74C15.53 17.81 13.86 19.48 11.79 19.48C9.72 19.48 8.05 17.81 8.05 15.74C8.05 13.67 9.72 12 11.79 12ZM11.79 14.06C10.86 14.06 10.11 14.81 10.11 15.74C10.11 16.67 10.86 17.42 11.79 17.42C12.72 17.42 13.47 16.67 13.47 15.74C13.47 14.81 12.72 14.06 11.79 14.06ZM3.64 13.52 8.31 14.46C9.01 14.6 9.48 15.29 9.33 16C9.19 16.7 8.5 17.17 7.79 17.02L3.11 16.09C2.41 15.95 1.94 15.25 2.09 14.54C2.23 13.84 2.93 13.37 3.64 13.52ZM15.21 14.47C15.55 14.38 15.9 14.44 16.2 14.62L20.88 17.42C21.18 17.6 21.39 17.89 21.48 18.23C21.56 18.56 21.5 18.92 21.33 19.22C21.15 19.52 20.86 19.73 20.52 19.82C20.19 19.9 19.83 19.85 19.53 19.67L14.86 16.86C14.56 16.68 14.34 16.39 14.26 16.06C14.17 15.72 14.23 15.37 14.41 15.07C14.59 14.77 14.88 14.55 15.21 14.47Z"}, "klokke": {"s": "M8 6V3H16V6H8ZM8 18V21H16V18H8ZM12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5ZM12 8.8V12L14.5 13.5", "f": "M8 6V3H16V6H8ZM8 18H16V21H8V18ZM12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5ZM12 7.5C9.51 7.5 7.5 9.51 7.5 12C7.5 14.49 9.51 16.5 12 16.5C14.49 16.5 16.5 14.49 16.5 12C16.5 9.51 14.49 7.5 12 7.5ZM12 7.95C12.23 7.95 12.44 8.04 12.6 8.2C12.76 8.36 12.85 8.58 12.85 8.8V11.52L14.94 12.77C15.34 13.01 15.47 13.54 15.23 13.94C14.99 14.34 14.46 14.47 14.06 14.23L11.56 12.73C11.31 12.57 11.15 12.3 11.15 12V8.8C11.15 8.58 11.24 8.36 11.4 8.2C11.56 8.04 11.77 7.95 12 7.95Z"}, "koble-flett": {"s": "M10.35 8.29 13.65 4.99C17.77 0.87 23.54 6.64 19.42 10.76L16.12 14.06C13.65 16.53 11.18 14.88 10.35 13.24M13.65 9.94C12 8.29 9.53 8.29 7.88 9.94L4.58 13.24C0.46 17.36 6.23 23.13 10.35 19.01L13.65 15.71", "f": "M16.9 2.42C18.27 2.46 19.52 3.06 20.44 3.97C21.35 4.89 21.96 6.14 21.99 7.52C22.02 8.89 21.45 10.36 20.23 11.58L16.94 14.88C16.22 15.59 15.42 16.04 14.64 16.27C14.59 16.36 14.53 16.45 14.46 16.52L11.17 19.82C9.95 21.04 8.48 21.61 7.1 21.58C5.73 21.54 4.48 20.94 3.56 20.03C2.65 19.11 2.04 17.86 2.01 16.48C1.98 15.11 2.55 13.64 3.77 12.42L7.06 9.12C7.77 8.41 8.64 8.04 9.54 7.82C9.52 7.71 9.52 7.59 9.54 7.48L12.83 4.18C14.05 2.96 15.52 2.39 16.9 2.42ZM16.84 4.73C16.1 4.71 15.3 4.97 14.46 5.81L12.38 7.9C13.14 8.15 13.85 8.51 14.46 9.12C14.92 9.58 14.92 10.3 14.46 10.76C14.01 11.21 13.29 11.21 12.83 10.76C11.59 9.52 9.94 9.52 8.7 10.76L5.4 14.05C4.56 14.89 4.3 15.69 4.32 16.43C4.34 17.17 4.67 17.87 5.19 18.4C5.72 18.92 6.42 19.25 7.16 19.27C7.9 19.29 8.7 19.03 9.54 18.19L11.74 15.99C10.65 15.49 9.78 14.69 9.32 13.76C9.03 13.19 9.26 12.49 9.83 12.21C10.4 11.92 11.1 12.15 11.38 12.72C11.65 13.27 12.3 13.9 12.95 14.09C13.6 14.28 14.29 14.25 15.3 13.24L18.6 9.95C19.44 9.11 19.7 8.31 19.68 7.57C19.66 6.83 19.33 6.13 18.81 5.6C18.28 5.08 17.58 4.75 16.84 4.73Z"}, "konkurranse": {"s": "M3.5 3V21M7 4.5C9.7 3.7 12.5 3.7 14.25 4.5C16.6 5.55 18.7 5.15 20.8 4.45V16.85C18.7 17.55 16.6 17.95 14.25 16.9C12.5 16.1 9.7 16.1 7 16.9V4.5ZM7 10.7H20.8M13.9 4.25V17.1", "f": "M3.67 2.01C4.34 2.01 4.89 2.56 4.89 3.23V20.77C4.89 21.44 4.34 21.99 3.67 21.99C2.99 21.99 2.45 21.44 2.45 20.77V3.23C2.45 2.56 2.99 2.01 3.67 2.01ZM7.08 4.2Q10.98 3.23 13.9 4.2Q16.82 5.18 20.72 4.2V16.87Q16.82 17.85 13.9 16.87Q10.98 15.9 7.08 16.87V4.2ZM7.96 4.98Q7.86 4.98 7.86 5.08V9.76Q7.86 9.86 7.96 9.86H11.66Q11.76 9.86 11.76 9.76V5.08Q11.76 4.98 11.66 4.98H7.96ZM13.22 10.34Q13.12 10.34 13.12 10.44V15.12Q13.12 15.22 13.22 15.22H19.65Q19.75 15.22 19.75 15.12V10.44Q19.75 10.34 19.65 10.34H13.22Z"}, "laktat": {"s": "M12 2.86C10.34 6.18 5.35 11.17 5.35 14.49C5.35 18.17 8.33 21.14 12 21.14C15.67 21.14 18.65 18.17 18.65 14.49C18.65 11.17 13.66 6.18 12 2.86Z", "f": "M12 2.86C13.66 6.18 18.65 11.17 18.65 14.49C18.65 18.17 15.67 21.14 12 21.14C8.33 21.14 5.35 18.17 5.35 14.49C5.35 11.17 10.34 6.18 12 2.86Z"}, "live-styrke": {"s": "M5.43 6.6H7.77Q8.4 6.6 8.4 7.23V16.77Q8.4 17.4 7.77 17.4H5.43Q4.8 17.4 4.8 16.77V7.23Q4.8 6.6 5.43 6.6ZM16.23 6.6H18.57Q19.2 6.6 19.2 7.23V16.77Q19.2 17.4 18.57 17.4H16.23Q15.6 17.4 15.6 16.77V7.23Q15.6 6.6 16.23 6.6ZM8.4 12H15.6M3 9.3V14.7M21 9.3V14.7", "f": "M5.43 6.6H7.77Q8.4 6.6 8.4 7.23V16.77Q8.4 17.4 7.77 17.4H5.43Q4.8 17.4 4.8 16.77V7.23Q4.8 6.6 5.43 6.6ZM16.23 6.6H18.57Q19.2 6.6 19.2 7.23V16.77Q19.2 17.4 18.57 17.4H16.23Q15.6 17.4 15.6 16.77V7.23Q15.6 6.6 16.23 6.6ZM3 8.31C3.55 8.31 3.99 8.75 3.99 9.3V14.7C3.99 15.25 3.55 15.69 3 15.69C2.45 15.69 2.01 15.25 2.01 14.7V9.3C2.01 8.75 2.45 8.31 3 8.31ZM21 8.31C21.55 8.31 21.99 8.75 21.99 9.3V14.7C21.99 15.25 21.55 15.69 21 15.69C20.45 15.69 20.01 15.25 20.01 14.7V9.3C20.01 8.75 20.45 8.31 21 8.31ZM8.4 11.01H15.6C16.15 11.01 16.59 11.45 16.59 12C16.59 12.55 16.15 12.99 15.6 12.99H8.4C7.85 12.99 7.41 12.55 7.41 12C7.41 11.45 7.85 11.01 8.4 11.01Z"}, "lys": {"s": "M12 7.95C14.24 7.95 16.05 9.76 16.05 12C16.05 14.24 14.24 16.05 12 16.05C9.76 16.05 7.95 14.24 7.95 12C7.95 9.76 9.76 7.95 12 7.95ZM12 3V4.8M12 19.2V21M3 12H4.8M19.2 12H21M5.7 5.7 7.05 7.05M16.95 16.95 18.3 18.3M5.7 18.3 7.05 16.95M16.95 7.05 18.3 5.7", "f": "M12 7.95C14.24 7.95 16.05 9.76 16.05 12C16.05 14.24 14.24 16.05 12 16.05C9.76 16.05 7.95 14.24 7.95 12C7.95 9.76 9.76 7.95 12 7.95ZM12 2.24C12.42 2.24 12.76 2.58 12.76 3V4.8C12.76 5.22 12.42 5.57 12 5.57C11.58 5.57 11.24 5.22 11.24 4.8V3C11.24 2.58 11.58 2.24 12 2.24ZM5.16 5.16C5.3 5.02 5.49 4.94 5.7 4.94C5.91 4.94 6.1 5.02 6.24 5.16L7.59 6.51C7.73 6.65 7.82 6.84 7.82 7.05C7.82 7.26 7.73 7.45 7.59 7.59C7.45 7.73 7.26 7.82 7.05 7.82C6.84 7.82 6.65 7.73 6.51 7.59L5.16 6.24C5.02 6.1 4.94 5.91 4.94 5.7C4.94 5.49 5.02 5.3 5.16 5.16ZM17.76 5.16C17.9 5.02 18.09 4.94 18.3 4.94C18.51 4.94 18.7 5.02 18.84 5.16C18.98 5.3 19.06 5.49 19.06 5.7C19.06 5.91 18.98 6.1 18.84 6.24L17.49 7.59C17.35 7.73 17.16 7.82 16.95 7.82C16.74 7.82 16.55 7.73 16.41 7.59C16.27 7.45 16.18 7.26 16.18 7.05C16.18 6.84 16.27 6.65 16.41 6.51L17.76 5.16ZM3 11.24H4.8C5.22 11.24 5.57 11.58 5.57 12C5.57 12.42 5.22 12.76 4.8 12.76H3C2.58 12.76 2.24 12.42 2.24 12C2.24 11.58 2.58 11.24 3 11.24ZM19.2 11.24H21C21.42 11.24 21.77 11.58 21.77 12C21.77 12.42 21.42 12.76 21 12.76H19.2C18.78 12.76 18.43 12.42 18.43 12C18.43 11.58 18.78 11.24 19.2 11.24ZM6.51 16.41C6.65 16.27 6.84 16.18 7.05 16.18C7.26 16.18 7.45 16.27 7.59 16.41C7.73 16.55 7.82 16.74 7.82 16.95C7.82 17.16 7.73 17.35 7.59 17.49L6.24 18.84C6.1 18.98 5.91 19.06 5.7 19.06C5.49 19.06 5.3 18.98 5.16 18.84C5.02 18.7 4.94 18.51 4.94 18.3C4.94 18.09 5.02 17.9 5.16 17.76L6.51 16.41ZM16.41 16.41C16.55 16.27 16.74 16.18 16.95 16.18C17.16 16.18 17.35 16.27 17.49 16.41L18.84 17.76C18.98 17.9 19.06 18.09 19.06 18.3C19.06 18.51 18.98 18.7 18.84 18.84C18.7 18.98 18.51 19.06 18.3 19.06C18.09 19.06 17.9 18.98 17.76 18.84L16.41 17.49C16.27 17.35 16.18 17.16 16.18 16.95C16.18 16.74 16.27 16.55 16.41 16.41ZM12 18.43C12.42 18.43 12.76 18.78 12.76 19.2V21C12.76 21.42 12.42 21.77 12 21.77C11.58 21.77 11.24 21.42 11.24 21V19.2C11.24 18.78 11.58 18.43 12 18.43Z"}, "mork": {"s": "M14.96 3.15C10.43 1.99 5.75 4.44 4.12 8.84C2.5 13.24 4.47 18.14 8.67 20.21C12.88 22.26 17.96 20.82 20.44 16.85C17.62 16.13 15.3 14.1 14.22 11.39C13.13 8.68 13.41 5.62 14.96 3.15Z", "f": "M14.96 3.15C13.41 5.62 13.13 8.68 14.22 11.39C15.3 14.1 17.62 16.13 20.44 16.85C17.96 20.82 12.88 22.26 8.67 20.21C4.47 18.14 2.5 13.24 4.12 8.84C5.75 4.44 10.43 1.99 14.96 3.15Z"}, "neste": {"s": "M8 4 16 12 8 20", "f": "M8 2.35C8.44 2.35 8.86 2.52 9.17 2.83L17.17 10.83C17.81 11.48 17.81 12.52 17.17 13.17L9.17 21.17C8.52 21.81 7.48 21.81 6.83 21.17C6.19 20.52 6.19 19.48 6.83 18.83L13.67 12L6.83 5.17C6.19 4.52 6.19 3.48 6.83 2.83C7.14 2.52 7.56 2.35 8 2.35Z"}, "oktbygger": {"s": "M3.45 14.6H6.05Q6.6 14.6 6.6 15.15V20.55Q6.6 21.1 6.05 21.1H3.45Q2.9 21.1 2.9 20.55V15.15Q2.9 14.6 3.45 14.6ZM10.75 9.6H13.35Q13.9 9.6 13.9 10.15V20.55Q13.9 21.1 13.35 21.1H10.75Q10.2 21.1 10.2 20.55V10.15Q10.2 9.6 10.75 9.6ZM18.05 16H20.55Q21.1 16 21.1 16.55V20.55Q21.1 21.1 20.55 21.1H18.05Q17.5 21.1 17.5 20.55V16.55Q17.5 16 18.05 16ZM18.45 3.7V8.9M15.85 6.3H21.05", "f": "M3.1 14H6.4Q7.2 14 7.2 14.8V20.8Q7.2 21.6 6.4 21.6H3.1Q2.3 21.6 2.3 20.8V14.8Q2.3 14 3.1 14ZM10.4 9H13.7Q14.5 9 14.5 9.8V20.8Q14.5 21.6 13.7 21.6H10.4Q9.6 21.6 9.6 20.8V9.8Q9.6 9 10.4 9ZM17.7 15.4H20.9Q21.7 15.4 21.7 16.2V20.8Q21.7 21.6 20.9 21.6H17.7Q16.9 21.6 16.9 20.8V16.2Q16.9 15.4 17.7 15.4ZM18.45 2.75C18.97 2.75 19.4 3.17 19.4 3.7V5.35H21.05C21.58 5.35 22 5.78 22 6.3C22 6.82 21.57 7.25 21.05 7.25H19.4V8.9C19.4 9.43 18.97 9.85 18.45 9.85C17.93 9.85 17.5 9.42 17.5 8.9V7.25H15.85C15.33 7.25 14.9 6.82 14.9 6.3C14.9 5.78 15.32 5.35 15.85 5.35H17.5V3.7C17.5 3.18 17.93 2.75 18.45 2.75Z"}, "peak": {"s": "M11.72 3.98Q12 3.4 12.28 3.98L14.39 8.33Q14.67 8.92 15.32 9.01L20.11 9.67Q20.75 9.76 20.28 10.21L16.8 13.56Q16.33 14.01 16.44 14.65L17.29 19.4Q17.41 20.04 16.83 19.74L12.57 17.46Q12 17.15 11.43 17.46L7.17 19.74Q6.59 20.04 6.71 19.4L7.56 14.65Q7.67 14.01 7.2 13.56L3.72 10.21Q3.25 9.76 3.89 9.67L8.68 9.01Q9.33 8.92 9.61 8.33Z", "f": "M11.72 3.98Q12 3.4 12.28 3.98L14.39 8.33Q14.67 8.92 15.32 9.01L20.11 9.67Q20.75 9.76 20.28 10.21L16.8 13.56Q16.33 14.01 16.44 14.65L17.29 19.4Q17.41 20.04 16.83 19.74L12.57 17.46Q12 17.15 11.43 17.46L7.17 19.74Q6.59 20.04 6.71 19.4L7.56 14.65Q7.67 14.01 7.2 13.56L3.72 10.21Q3.25 9.76 3.89 9.67L8.68 9.01Q9.33 8.92 9.61 8.33Z"}, "plan": {"s": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM7 3.07V7.07M17 3.07V7.07M3 9.07H21", "f": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM5.9 9.07Q5.2 9.07 5.2 9.77V18.38Q5.2 19.07 5.9 19.07H18.1Q18.8 19.07 18.8 18.38V9.77Q18.8 9.07 18.1 9.07H5.9ZM7 2.07C7.55 2.07 8 2.52 8 3.07V7.07C8 7.62 7.55 8.07 7 8.07C6.45 8.07 6 7.62 6 7.07V3.07C6 2.52 6.45 2.07 7 2.07ZM17 2.07C17.55 2.07 18 2.52 18 3.07V7.07C18 7.62 17.55 8.07 17 8.07C16.45 8.07 16 7.62 16 7.07V3.07C16 2.52 16.45 2.07 17 2.07Z"}, "planlegg": {"s": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM7 3.07V7.07M17 3.07V7.07M8 14.07H16M12 10.07V18.07", "f": "M4.5 5.07H19.5Q21 5.07 21 6.57V19.57Q21 21.07 19.5 21.07H4.5Q3 21.07 3 19.57V6.57Q3 5.07 4.5 5.07ZM10.85 9.88V12.92H7.8V15.22H10.85V18.27H13.15V15.22H16.2V12.92H13.15V9.88H10.85ZM7 2.07C7.55 2.07 8 2.52 8 3.07V7.07C8 7.62 7.55 8.07 7 8.07C6.45 8.07 6 7.62 6 7.07V3.07C6 2.52 6.45 2.07 7 2.07ZM17 2.07C17.55 2.07 18 2.52 18 3.07V7.07C18 7.62 17.55 8.07 17 8.07C16.45 8.07 16 7.62 16 7.07V3.07C16 2.52 16.45 2.07 17 2.07Z"}, "puls": {"s": "M12 20.36C9.26 17.62 2.86 13.05 2.86 7.56C2.86 2.99 9.26 2.08 12 6.65C14.74 2.08 21.14 2.99 21.14 7.56C21.14 13.05 14.74 17.62 12 20.36ZM5.6 12.13H8.34L10.17 8.48L12.91 15.79L14.74 12.13H18.4", "f": "M12 20.36C9.26 17.62 2.86 13.05 2.86 7.56C2.86 2.99 9.26 2.08 12 6.65C14.74 2.08 21.14 2.99 21.14 7.56C21.14 13.05 14.74 17.62 12 20.36ZM10.22 7.61C9.87 7.59 9.55 7.78 9.4 8.08L7.8 11.26H5.6C5.13 11.26 4.73 11.66 4.73 12.13C4.73 12.61 5.13 13 5.6 13H8.34C8.67 13 8.97 12.82 9.12 12.52L10.06 10.64L12.1 16.09C12.22 16.42 12.52 16.64 12.87 16.66C13.22 16.67 13.54 16.48 13.69 16.18L15.28 13H18.4C18.87 13 19.27 12.61 19.27 12.13C19.27 11.66 18.87 11.26 18.4 11.26H14.74C14.41 11.26 14.11 11.45 13.97 11.74L13.02 13.62L10.99 8.17C10.87 7.84 10.57 7.63 10.22 7.61Z"}, "samling": {"s": "M12 21.14C9.39 17.66 5.04 13.31 5.04 9.82C5.04 5.98 8.15 2.86 12 2.86C15.85 2.86 18.96 5.98 18.96 9.82C18.96 13.31 14.61 17.66 12 21.14ZM12 7.21C13.44 7.21 14.61 8.38 14.61 9.82C14.61 11.27 13.44 12.44 12 12.44C10.56 12.44 9.39 11.27 9.39 9.82C9.39 8.38 10.56 7.21 12 7.21Z", "f": "M12 21.14C9.39 17.66 5.04 13.31 5.04 9.82C5.04 5.98 8.15 2.86 12 2.86C15.85 2.86 18.96 5.98 18.96 9.82C18.96 13.31 14.61 17.66 12 21.14ZM12 7.21C10.56 7.21 9.39 8.38 9.39 9.82C9.39 11.27 10.56 12.44 12 12.44C13.44 12.44 14.61 11.27 14.61 9.82C14.61 8.38 13.44 7.21 12 7.21Z"}, "ski": {"s": "M6.06 20.23V6.52Q6.06 2.86 7.89 2.86Q9.71 2.86 9.71 6.52V20.23Q9.71 21.14 7.89 21.14Q6.06 21.14 6.06 20.23ZM14.29 20.23V6.52Q14.29 2.86 16.11 2.86Q17.94 2.86 17.94 6.52V20.23Q17.94 21.14 16.11 21.14Q14.29 21.14 14.29 20.23ZM7.89 12V14.74M16.11 12V14.74", "f": "M6.06 20.23V6.52Q6.06 2.86 7.89 2.86Q9.71 2.86 9.71 6.52V20.23Q9.71 21.14 7.89 21.14Q6.06 21.14 6.06 20.23ZM14.29 20.23V6.52Q14.29 2.86 16.11 2.86Q17.94 2.86 17.94 6.52V20.23Q17.94 21.14 16.11 21.14Q14.29 21.14 14.29 20.23ZM7.38 12Q7.2 12 7.2 12.18V14.56Q7.2 14.74 7.38 14.74H8.39Q8.57 14.74 8.57 14.56V12.18Q8.57 12 8.39 12H7.38ZM15.61 12Q15.43 12 15.43 12.18V14.56Q15.43 14.74 15.61 14.74H16.62Q16.8 14.74 16.8 14.56V12.18Q16.8 12 16.62 12H15.61Z"}, "skyting": {"s": "M12 5.34C15.68 5.34 18.66 8.32 18.66 12C18.66 15.68 15.68 18.66 12 18.66C8.32 18.66 5.34 15.68 5.34 12C5.34 8.32 8.32 5.34 12 5.34ZM12 3V4.8M19.2 12H21M12 19.2V21M3 12H4.8M12 9.57C13.34 9.57 14.43 10.66 14.43 12C14.43 13.34 13.34 14.43 12 14.43C10.66 14.43 9.57 13.34 9.57 12C9.57 10.66 10.66 9.57 12 9.57Z", "f": "M12 5.34C15.68 5.34 18.66 8.32 18.66 12C18.66 15.68 15.68 18.66 12 18.66C8.32 18.66 5.34 15.68 5.34 12C5.34 8.32 8.32 5.34 12 5.34ZM12 7.28C9.39 7.28 7.28 9.39 7.28 12C7.28 14.61 9.39 16.73 12 16.73C14.61 16.73 16.73 14.61 16.73 12C16.73 9.39 14.61 7.28 12 7.28ZM12 2.24C12.42 2.24 12.76 2.58 12.76 3V4.8C12.76 5.22 12.42 5.57 12 5.57C11.58 5.57 11.24 5.22 11.24 4.8V3C11.24 2.58 11.58 2.24 12 2.24ZM3 11.24H4.8C5.22 11.24 5.57 11.58 5.57 12C5.57 12.42 5.22 12.76 4.8 12.76H3C2.58 12.76 2.24 12.42 2.24 12C2.24 11.58 2.58 11.24 3 11.24ZM19.2 11.24H21C21.42 11.24 21.77 11.58 21.77 12C21.77 12.42 21.42 12.76 21 12.76H19.2C18.78 12.76 18.43 12.42 18.43 12C18.43 11.58 18.78 11.24 19.2 11.24ZM12 18.43C12.42 18.43 12.76 18.78 12.76 19.2V21C12.76 21.42 12.42 21.77 12 21.77C11.58 21.77 11.24 21.42 11.24 21V19.2C11.24 18.78 11.58 18.43 12 18.43ZM12 9.57C13.34 9.57 14.43 10.66 14.43 12C14.43 13.34 13.34 14.43 12 14.43C10.66 14.43 9.57 13.34 9.57 12C9.57 10.66 10.66 9.57 12 9.57Z"}, "standardokt-serie": {"s": "M5.45 4.63H13.63Q14.26 4.63 14.26 5.26V12.65Q14.26 13.28 13.63 13.28H5.45Q4.83 13.28 4.83 12.65V5.26Q4.83 4.63 5.45 4.63ZM7.97 3.06V6.2M11.9 3.06V6.2M15.83 8.56H18.98V16.42H11.12V14.85M7.97 16.42Q9.54 21.14 14.26 18.78M13.47 16.42 16.62 18.78 12.69 21.14 13.47 16.42ZM7.18 6.99H8.76M10.33 6.99H11.9M7.18 10.13H8.76M10.33 10.13H11.9", "f": "M5.45 4.63H13.63Q14.26 4.63 14.26 5.26V12.65Q14.26 13.28 13.63 13.28H5.45Q4.83 13.28 4.83 12.65V5.26Q4.83 4.63 5.45 4.63ZM7.26 6.99Q7.18 6.99 7.18 7.07V8.64Q7.18 8.72 7.26 8.72H8.84Q8.91 8.72 8.91 8.64V7.07Q8.91 6.99 8.84 6.99H7.26ZM10.41 6.99Q10.33 6.99 10.33 7.07V8.64Q10.33 8.72 10.41 8.72H11.98Q12.06 8.72 12.06 8.64V7.07Q12.06 6.99 11.98 6.99H10.41ZM7.26 10.13Q7.18 10.13 7.18 10.21V11.78Q7.18 11.86 7.26 11.86H8.84Q8.91 11.86 8.91 11.78V10.21Q8.91 10.13 8.84 10.13H7.26ZM10.41 10.13Q10.33 10.13 10.33 10.21V11.78Q10.33 11.86 10.41 11.86H11.98Q12.06 11.86 12.06 11.78V10.21Q12.06 10.13 11.98 10.13H10.41ZM7.97 2.39C8.34 2.39 8.64 2.69 8.64 3.06V6.2C8.64 6.57 8.34 6.87 7.97 6.87C7.6 6.87 7.3 6.57 7.3 6.2V3.06C7.3 2.69 7.6 2.39 7.97 2.39ZM11.9 2.39C12.27 2.39 12.57 2.69 12.57 3.06V6.2C12.57 6.57 12.27 6.87 11.9 6.87C11.53 6.87 11.23 6.57 11.23 6.2V3.06C11.23 2.69 11.53 2.39 11.9 2.39ZM15.83 7.89H18.98C19.35 7.89 19.65 8.19 19.65 8.56V16.42C19.65 16.79 19.35 17.09 18.98 17.09H11.12C10.75 17.09 10.45 16.79 10.45 16.42V14.85C10.45 14.48 10.75 14.18 11.12 14.18C11.49 14.18 11.78 14.48 11.78 14.85V15.75H18.31V9.23H15.83C15.46 9.23 15.16 8.93 15.16 8.56C15.16 8.19 15.46 7.89 15.83 7.89ZM7.76 15.79C7.92 15.73 8.11 15.75 8.27 15.83C8.43 15.9 8.55 16.05 8.61 16.21C9.09 17.67 9.76 18.44 10.57 18.75C11.37 19.05 12.48 18.92 13.96 18.18C14.29 18.02 14.69 18.15 14.86 18.48C15.02 18.81 14.89 19.21 14.56 19.38C12.89 20.21 11.38 20.48 10.09 19.99C8.8 19.51 7.9 18.32 7.33 16.63C7.28 16.47 7.29 16.28 7.37 16.12C7.45 15.97 7.59 15.84 7.76 15.79ZM13.47 16.42 16.62 18.78 12.69 21.14 13.47 16.42Z"}, "synk": {"s": "M3.83 10.08C4.47 6.84 6.97 4.29 10.18 3.56C13.4 2.84 16.75 4.07 18.73 6.71M20.17 13.92C19.53 17.16 17.03 19.71 13.82 20.44C10.6 21.16 7.25 19.93 5.27 17.29M19.69 3.35V9.12L13.92 7.2L19.69 3.35ZM4.31 20.65V14.88L10.08 16.81L4.31 20.65Z", "f": "M12.56 2.02C15.25 2.16 17.94 3.42 19.81 5.91C20.25 6.5 20.13 7.35 19.54 7.79C18.94 8.23 18.09 8.12 17.65 7.52C15.81 5.05 13.02 4.3 10.48 4.88C7.94 5.45 5.75 7.32 5.15 10.35C5 11.07 4.29 11.55 3.56 11.4C2.84 11.25 2.36 10.54 2.51 9.81C3.32 5.74 6.42 3.03 9.89 2.25C10.76 2.05 11.66 1.98 12.56 2.02ZM20.44 12.61C21.16 12.75 21.64 13.46 21.49 14.19C20.68 18.26 17.58 20.97 14.11 21.75C10.64 22.54 6.67 21.42 4.19 18.1C3.75 17.5 3.87 16.65 4.46 16.21C5.06 15.77 5.91 15.88 6.35 16.48C8.19 18.95 10.98 19.7 13.52 19.12C16.06 18.56 18.25 16.68 18.85 13.65C19 12.93 19.71 12.45 20.44 12.61ZM19.69 3.35V9.12L13.92 7.2L19.69 3.35ZM4.31 20.65V14.88L10.08 16.81L4.31 20.65Z"}, "tempo": {"s": "M3.23 16.29C3.23 11.44 7.16 7.52 12 7.52C16.84 7.52 20.77 11.44 20.77 16.29M12 15.31 16.87 8.49M12 13.75C12.86 13.75 13.56 14.46 13.56 15.31C13.56 16.17 12.86 16.87 12 16.87C11.14 16.87 10.44 16.17 10.44 15.31C10.44 14.46 11.14 13.75 12 13.75Z", "f": "M12 6.3C17.51 6.3 21.99 10.78 21.99 16.29C21.99 16.96 21.44 17.51 20.77 17.51C20.1 17.51 19.55 16.96 19.55 16.29C19.55 12.1 16.19 8.73 12 8.73C7.81 8.73 4.45 12.1 4.45 16.29C4.45 16.96 3.9 17.51 3.23 17.51C2.56 17.51 2.01 16.96 2.01 16.29C2.01 10.78 6.49 6.3 12 6.3ZM16.7 7.43C16.98 7.39 17.26 7.46 17.5 7.62C17.97 7.97 18.09 8.63 17.74 9.12L12.87 15.94C12.53 16.42 11.86 16.53 11.38 16.18C10.9 15.84 10.78 15.18 11.13 14.69L16.01 7.87C16.16 7.63 16.42 7.48 16.7 7.43ZM12 13.75C12.86 13.75 13.56 14.46 13.56 15.31C13.56 16.17 12.86 16.87 12 16.87C11.14 16.87 10.44 16.17 10.44 15.31C10.44 14.46 11.14 13.75 12 13.75Z"}, "treningssamling": {"s": "M2.86 20.23 12 3.77 21.14 20.23H14.74L12 13.83L9.26 20.23H2.86Z", "f": "M2.86 20.23 12 3.77 21.14 20.23H14.74L12 13.83L9.26 20.23H2.86Z"}, "watt": {"s": "M12 3.23C16.84 3.23 20.77 7.16 20.77 12C20.77 16.84 16.84 20.77 12 20.77C7.16 20.77 3.23 16.84 3.23 12C3.23 7.16 7.16 3.23 12 3.23ZM12 12 17.85 6.15M6.15 6.15 7.61 7.61M12 3.23V5.18M17.85 5.18 16.87 6.15M12 10.44C12.86 10.44 13.56 11.14 13.56 12C13.56 12.86 12.86 13.56 12 13.56C11.14 13.56 10.44 12.86 10.44 12C10.44 11.14 11.14 10.44 12 10.44Z", "f": "M12 2.01C17.51 2.01 21.99 6.49 21.99 12C21.99 17.51 17.51 21.99 12 21.99C6.49 21.99 2.01 17.51 2.01 12C2.01 6.49 6.49 2.01 12 2.01ZM12 4.45C7.81 4.45 4.45 7.81 4.45 12C4.45 16.19 7.81 19.55 12 19.55C16.19 19.55 19.55 16.19 19.55 12C19.55 7.81 16.19 4.45 12 4.45ZM12 2.4C12.46 2.4 12.83 2.77 12.83 3.23V5.18C12.83 5.64 12.46 6.01 12 6.01C11.54 6.01 11.17 5.64 11.17 5.18V3.23C11.17 2.77 11.54 2.4 12 2.4ZM17.26 4.59C17.42 4.44 17.62 4.35 17.85 4.35C18.07 4.35 18.28 4.44 18.43 4.59C18.72 4.89 18.74 5.34 18.5 5.66C18.74 5.99 18.72 6.44 18.43 6.74L12.58 12.58C12.43 12.74 12.22 12.83 12 12.83C11.78 12.83 11.57 12.74 11.42 12.58C11.26 12.43 11.17 12.22 11.17 12C11.17 11.78 11.26 11.57 11.42 11.42L16.29 6.54C16.07 6.25 16.07 5.86 16.29 5.57L17.26 4.59ZM5.57 5.57C5.72 5.41 5.93 5.32 6.15 5.32C6.38 5.32 6.58 5.41 6.74 5.57L8.2 7.03C8.35 7.19 8.44 7.39 8.44 7.61C8.44 7.84 8.35 8.04 8.2 8.2C8.04 8.35 7.84 8.44 7.61 8.44C7.39 8.44 7.19 8.35 7.03 8.2L5.57 6.74C5.41 6.58 5.32 6.38 5.32 6.15C5.32 5.93 5.41 5.72 5.57 5.57ZM12 10.44C12.86 10.44 13.56 11.14 13.56 12C13.56 12.86 12.86 13.56 12 13.56C11.14 13.56 10.44 12.86 10.44 12C10.44 11.14 11.14 10.44 12 10.44Z"}};
 /* ───────── Ikoner fra ikonsettet (design/ikoner/svg/ikoner.json) ───────── */
 function ik(n,v,st){v=v||'s';var p=IK[n]&&IK[n][v];if(!p)return'';
   return v==='s'?'<svg viewBox="0 0 24 24" aria-hidden="true" style="'+(st||'')+'"><path d="'+p+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -680,15 +1122,15 @@ function Scene(def,rot){this.d=def;this.rot=rot;this.hend=[];this.id=[];}
 Scene.prototype.t=function(at,fn){this.hend.push([at,fn])};
 Scene.prototype.q=function(s){return this.rot.querySelector(s)};
 Scene.prototype.qa=function(s){return[].slice.call(this.rot.querySelectorAll(s))};
-Scene.prototype.render=function(){this.rot.innerHTML=this.d.html();this.hend=[];this.d.spill(this);this.hend.sort(function(a,b){return a[0]-b[0]});
+Scene.prototype.render=function(){if(this.d.fart)this.rot.classList.add('fart');this.rot.innerHTML=this.d.html();this.hend=[];this.d.spill(this);this.hend.sort(function(a,b){return a[0]-b[0]});
   var m=document.createElement('div');m.className='markor';this.rot.appendChild(m);this.mark=m};
 Scene.prototype.stopp=function(){this.id.forEach(clearTimeout);this.id=[]};
 Scene.prototype.kjor=function(fra){var s=this;this.stopp();this.hend.forEach(function(h){if(h[0]<=fra)h[1]();else s.id.push(setTimeout(h[1],h[0]-fra))})};
 Scene.prototype.slutt=function(){var kort=this.rot.closest('.sc');kort.classList.add('still');this.still=true;this.render();this.hend.forEach(function(h){h[1]()});this.still=false;if(this.d.rydd)this.d.rydd(this);
   if(this.mark)this.mark.classList.remove('vis');void kort.offsetWidth;requestAnimationFrame(function(){kort.classList.remove('still')})};
-Scene.prototype.til=function(el,at,klikk){var s=this;this.t(at,function(){var e=typeof el==='string'?s.q(el):el;if(!e)return;
+Scene.prototype.til=function(el,at,klikk,ms){ms=ms||750;var s=this;this.t(at,function(){var e=typeof el==='string'?s.q(el):el;if(!e)return;
   var r=s.rot.getBoundingClientRect(),b=e.getBoundingClientRect();s.mark.style.left=(b.left-r.left+b.width/2)+'px';s.mark.style.top=(b.top-r.top+b.height/2)+'px';s.mark.classList.add('vis')});
-  if(klikk)this.t(at+750,function(){s.mark.classList.add('klikk');setTimeout(function(){s.mark.classList.remove('klikk')},180)})};
+  if(klikk)this.t(at+ms,function(){s.mark.classList.add('klikk');setTimeout(function(){s.mark.classList.remove('klikk')},180)})};
 Scene.prototype.bort=function(at){var s=this;this.t(at,function(){s.mark.classList.remove('vis')})};
 Scene.prototype.steg=function(i,at){var s=this;this.t(at,function(){var li=s.rot.closest('.sc').querySelectorAll('.sc-steg li');
   [].forEach.call(li,function(l,j){l.className=j<i?'ok':(j===i?'na':'')})})};
@@ -698,36 +1140,40 @@ Scene.prototype.tell=function(el,fra,til,ms,at,fmt){var s=this;this.t(at,functio
 var still=document.createElement('style');still.textContent='.sc.still *{transition:none!important;animation:none!important}';document.head.appendChild(still);
 
 /* ═════════════════ SCENENE ═════════════════ */
-var KAP=[{n:'Planlegg',ik:'planlegg'},{n:'Tren',ik:'live-styrke'},{n:'Synk klokka',ik:'synk'},{n:'Før detaljer',ik:'for-okt'},{n:'Analyser',ik:'analyse'}];
+var KAP=[{n:'Planlegg',ik:'planlegg'},{n:'Tren',ik:'live-styrke'},{n:'Synk klokka',ik:'synk'},{n:'Før detaljer',ik:'for-okt'},{n:'Analyser',ik:'analyse'},{n:'Hjem',ik:'hjem'}];
 var SC=[];
 
 /* ── 1 · ÅRSPLAN ── */
-var MND=[['OKT',[40,41,42,43,44]],['NOV',[45,46,47,48]],['DES',[49,50,51,52]],['JAN',[1,2,3,4,5]],['FEB',[6,7,8,9]],['MAR',[10,11,12,13]]];
+var MND=[['SEP',[36,37,38,39]],['OKT',[40,41,42,43,44]],['NOV',[45,46,47,48]],['DES',[49,50,51,52]],['JAN',[1,2,3,4,5]],['FEB',[6,7,8,9]]];
 var BEL={rolig:'#28A86E',medium:'#D4A017',hard:'#E11D48'};
-var PER=[['rolig','Grunntrening',[40,41,42,43,44,45]],['medium','Oppbygging',[46,47,48,49]],['hard','Toppform 1',[50,51,52]],['rolig','Overgang',[1,2]],['medium','Spesifikk',[3,4,5,6,7,8]],['hard','Toppform 2',[9,10,11,12,13]]];
-SC.push({kap:0,tittel:'MAL SESONGEN.',tekst:'Velg Rolig, Medium eller Hard og dra over ukene. Samlinger i høyde og varme legges oppå, og A-, B- og C-konkurransene settes rett i kalenderen.',
- steg:['Mal periodene','Legg inn samlinger','Sett konkurransene'],varighet:12500,
- html:function(){var rader=MND.map(function(r){return'<div class="mnd"><span>'+r[0]+'</span><div class="uker">'+r[1].map(function(u){return'<div class="uke" data-u="'+u+'">U'+u+'</div>'}).join('')+'</div></div>'}).join('');
+/* [belastning, navn, uker, timer per uke] */
+var PER=[['rolig','Grunntrening',[36,37,38,39,40,41,42,43,44],12],['medium','Oppbygging',[45,46,47,48],14],['hard','Toppform 1',[49,50,51],10],['rolig','Overgang',[52,1],8],['medium','Spesifikk',[2,3,4,5],14],['hard','Toppform 2',[6,7,8,9],10]];
+function ukeMnd(u){for(var i=0;i<MND.length;i++)if(MND[i][1].indexOf(u)>=0)return i;return -1}
+SC.push({kap:0,tittel:'MAL SESONGEN.',tekst:'Mal periodene med pensel - rødt er hard. Legg inn samlinger i høyden, sett konkurransene og formtoppen, og se de planlagte timene per måned vokse mens du maler.',
+ steg:['Mal periodene','Samling i høyden','Konkurranser og peak'],varighet:9000,fart:1,
+ html:function(){var rader=MND.map(function(r,mi){return'<div class="mnd"><span>'+r[0]+'</span><div class="uker">'+r[1].map(function(u){return'<div class="uke" data-u="'+u+'">U'+u+'</div>'}).join('')+'</div><div class="mtim"><b data-m="'+mi+'">0</b><small>t plan</small></div></div>'}).join('');
   return'<div class="app ars"><div class="ars-hd"><span class="strek"></span><span class="bebas">Mal sesongen</span><span class="cap" style="margin-left:auto">2026/27</span></div>'+
-  '<div class="ars-hj">Velg pensel, dra over ukene (snapper man-søn).</div>'+
   '<div class="vlinje"><div class="vgr"><span class="cap">Belastning</span>'+['rolig','medium','hard'].map(function(b){return'<span class="vk" data-b="'+b+'"><i class="rute" style="background:'+BEL[b]+'"></i>'+b[0].toUpperCase()+b.slice(1)+'</span>'}).join('')+'</div>'+
   '<div class="vgr"><span class="cap">Markering</span><span class="vk" data-b="samling">'+ik('treningssamling','f')+ik('hoydesamling','f')+'<span>Samling/høyde</span></span></div>'+
-  '<div class="vgr"><span class="cap">Nøkkeldato</span><span class="vk" data-b="A">'+ik('a-konkurranse','f')+'A</span><span class="vk" data-b="B">'+ik('b-konkurranse','f')+'B</span><span class="vk" data-b="C">'+ik('c-konkurranse','f')+'C</span></div>'+
-  '<div class="vgr presis"><span class="cap">Presisjon</span><span class="vk on" style="background:var(--orange);box-shadow:none">Uke</span><span class="vk">Dag</span></div></div>'+rader+'</div>'},
- spill:function(S){var t=500;
-  function verktoy(b,at){S.t(at,function(){S.qa('.vk[data-b]').forEach(function(v){v.classList.remove('on');v.style.background=''});var v=S.q('.vk[data-b="'+b+'"]');if(v){v.classList.add('on');v.style.background=BEL[b]||'var(--a-card2)'}})}
-  S.steg(0,0);
-  PER.forEach(function(p,pi){S.til('.vk[data-b="'+p[0]+'"]',t,true);verktoy(p[0],t+750);t+=950;
-   p[2].forEach(function(u,ui){var at=t+ui*120;S.til('.uke[data-u="'+u+'"]',at-650);S.t(at,function(){var c=S.q('.uke[data-u="'+u+'"]'),f=BEL[p[0]];c.style.background='linear-gradient(90deg,'+f+'42,'+f+'42)';c.style.borderColor=f+'8C';
-     if(ui===0){var e=document.createElement('span');e.className='etk pop';e.style.borderColor=f+'80';e.style.color=f;e.textContent=p[1];c.appendChild(e);requestAnimationFrame(function(){e.classList.add('inn')})}})});
-   t+=p[2].length*120+250});
-  S.steg(1,t);S.til('.vk[data-b="samling"]',t,true);verktoy('samling',t+750);t+=900;
-  [[42,'hoydesamling','Livigno'],[1,'treningssamling','Gran Canaria']].forEach(function(s,i){S.til('.uke[data-u="'+s[0]+'"]',t+i*900,true);S.t(t+i*900+760,function(){var c=S.q('.uke[data-u="'+s[0]+'"]');var e=document.createElement('span');e.className='band pop';e.innerHTML=ik(s[1],'f')+s[2].toUpperCase();c.appendChild(e);requestAnimationFrame(function(){e.classList.add('inn')})})});
-  t+=1900;S.steg(2,t);
-  [['B',47,'b-konkurranse','#1A6FD4','Beito'],['A',50,'a-konkurranse','#D4A017','NC'],['B',6,'b-konkurranse','#1A6FD4','NC'],['A',11,'a-konkurranse','#D4A017','NM']].forEach(function(k,i){var at=t+i*900;
-   S.til('.vk[data-b="'+k[0]+'"]',at,true);verktoy(k[0],at+750);S.til('.uke[data-u="'+k[1]+'"]',at+300,true);
-   S.t(at+1060,function(){var c=S.q('.uke[data-u="'+k[1]+'"]');var e=document.createElement('span');e.className='nd pop';e.style.borderColor=k[3];e.style.color=k[3];e.innerHTML=ik(k[2],'f')+k[4];c.appendChild(e);requestAnimationFrame(function(){e.classList.add('inn')});if(k[0]==='A')c.classList.add('peak')})});
-  t+=3800;S.bort(t);S.t(t,function(){S.qa('.vk[data-b]').forEach(function(v){v.classList.remove('on');v.style.background=''})});S.steg(3,t+200)}
+  '<div class="vgr"><span class="cap">Nøkkeldato</span><span class="vk" data-b="A">'+ik('a-konkurranse','f')+'A</span><span class="vk" data-b="B">'+ik('b-konkurranse','f')+'B</span><span class="vk skjul-m" data-b="C">'+ik('c-konkurranse','f')+'C</span><span class="vk skjul-m" data-b="peak">'+ik('peak','f')+'<span>Peak</span></span></div></div>'+
+  rader+'<div class="ars-fot"><span>Planlagt · 6 mnd</span><b class="ars-sum">0</b><small>t</small></div></div>'},
+ spill:function(S){var mtim=[0,0,0,0,0,0],STEG=230,t0=350;
+  function verktoy(b){S.qa('.vk[data-b]').forEach(function(v){v.classList.remove('on');v.style.background=''});var v=S.q('.vk[data-b="'+b+'"]');if(v){v.classList.add('on');v.style.background=BEL[b]||'var(--a-card2)'}}
+  function bump(u,h){var mi=ukeMnd(u);mtim[mi]+=h;var e=S.q('.mtim b[data-m="'+mi+'"]');e.textContent=mtim[mi];e.parentNode.classList.remove('puls');void e.offsetWidth;e.parentNode.classList.add('puls');S.q('.ars-sum').textContent=mtim.reduce(function(a,b){return a+b},0)}
+  function leggTil(sel,cls,html,stil){var c=S.q(sel);var e=document.createElement('span');e.className=cls+' pop';e.innerHTML=html;if(stil)e.setAttribute('style',stil);c.appendChild(e);requestAnimationFrame(function(){e.classList.add('inn')});return e}
+  var KONK={47:['B','b-konkurranse','#1A6FD4','Beitostølen'],50:['A','a-konkurranse','#D4A017','Simostranda'],3:['B','b-konkurranse','#1A6FD4','NC'],8:['A','a-konkurranse','#D4A017','NM']};
+  var uker=[];MND.forEach(function(r){r[1].forEach(function(u){uker.push(u)})});
+  S.steg(0,0);S.t(t0-300,function(){verktoy('rolig')});
+  uker.forEach(function(u,n){var at=t0+n*STEG,p=PER.filter(function(x){return x[2].indexOf(u)>=0})[0],f=BEL[p[0]];
+   S.til('.uke[data-u="'+u+'"]',at-STEG);
+   S.t(at,function(){var c=S.q('.uke[data-u="'+u+'"]');c.style.background=f+'42';c.style.borderColor=f+'8C';bump(u,p[3]);
+    var k=KONK[u];verktoy(u===41||u===42?'samling':(k?k[0]:p[0]));
+    if(p[2][0]===u)leggTil('.uke[data-u="'+u+'"]','etk',p[1],'border-color:'+f+'80;color:'+f);
+    if(u===41)leggTil('.uke[data-u="41"]','band start',ik('treningssamling','f')+ik('hoydesamling','f')+'<span>Livigno · 10 dager</span>','left:calc(3/7*100% + 2px)');
+    if(u===42)leggTil('.uke[data-u="42"]','band slutt','','right:calc(1/7*100% + 2px)');
+    if(k){leggTil('.uke[data-u="'+u+'"]','nd',ik(k[1],'f')+'<span>'+k[3]+'</span>','border-color:'+k[2]+';color:'+k[2]);if(k[0]==='A'){c.classList.add('peak');leggTil('.uke[data-u="'+u+'"]','pk',ik('peak','f'))}}});
+   if(u===41)S.steg(1,at);if(u===47)S.steg(2,at)});
+  var slutt=t0+uker.length*STEG+250;S.bort(slutt);S.t(slutt,function(){S.qa('.vk[data-b]').forEach(function(v){v.classList.remove('on');v.style.background=''})});S.steg(3,slutt+150)}
 });
 
 /* ── 2 · ØKTBYGGER ── */
@@ -742,7 +1188,7 @@ function planGraf(W){var B=196,P=120,x0=6,bw=W-12;function X(m){return x0+m/TOT*
  s+='<line x1="'+x0+'" x2="'+(W-6)+'" y1="'+B+'" y2="'+B+'" stroke="var(--a-line2)"/><text x="'+x0+'" y="212" font-family="Inter" font-size="10.5" fill="var(--a-mut)">0:00</text><text x="'+(W-6)+'" y="212" text-anchor="end" font-family="Inter" font-size="10.5" fill="var(--a-mut)">1:20:00</text>';
  return'<svg viewBox="0 30 '+W+' 188">'+s+'</svg>'}
 SC.push({kap:0,tittel:'BYGG ØKTA PÅ SEKUNDER.',tekst:'Antall × dragtid × sone / pause. Skiskyttere velger skyting i pausene. Trykk Opprett, og økta tegner seg som graf med soner, klammer og nøkkeltall.',
- steg:['Fyll inn dragene','Skyting i pausene','Se økta før du gjør den'],varighet:12000,
+ steg:['Fyll inn dragene','Skyting i pausene','Se økta før du gjør den'],varighet:7500,fart:1,
  html:function(){function felt(v,cls){return'<div class="felt '+(cls||'')+'"><span class="v">'+v+'</span></div>'}
   function drag(i,a,t,z,p){return'<div class="drad" data-r="'+i+'">'+felt(a,'fa')+'<span>×</span><div class="tk"><span class="on">TID</span><span>KM</span></div>'+felt(t,'ft')+'<div class="felt fz"><span class="v sone" style="color:'+Z[z]+'">'+z+'</span></div><span>/</span>'+felt(p,'fp')+'</div>'}
   return'<div class="ob app"><div class="ob-top"><span class="bebas">Øktbygger</span><span class="pil fylt">Ferdig</span></div>'+
@@ -755,20 +1201,20 @@ SC.push({kap:0,tittel:'BYGG ØKTA PÅ SEKUNDER.',tekst:'Antall × dragtid × son
   '<div class="bygget" style="display:none"><div class="ib">'+[['2 × 10 min I3 / 3 min','0:23:00 · 4 rader · Skiskyting',0,5],['3 × 5 min I4 / 2 min','0:19:00 · 5 rader · Skiskyting',5,10]].map(function(r){return'<div class="mrad a" style="grid-template-columns:auto minmax(0,1fr) auto;margin-top:0;margin-bottom:6px"><span class="mstripe" style="width:110px;height:16px">'+OKT.slice(r[2],r[3]).map(function(b){return'<i style="flex:'+(b.e-b.s)+';background:'+blokkFarge(b)+'"></i>'}).join('')+'</span><b>'+r[0]+'<br><small style="display:block;font-weight:500">'+r[1]+'</small></b><span class="pil" style="min-height:28px">Endre</span></div>'}).join('')+'</div>'+
   '<div class="pg" style="margin-top:10px">'+planGraf(erMobil()?380:660)+'</div>'+
   '<div class="nkt a"><div><div class="k">Varighet</div><div class="t"><span class="n1">0</span><small>min</small></div></div><div><div class="k">Hovedsone</div><div class="t" style="color:#E8B93C">I3</div></div><div><div class="k">I3-tid</div><div class="t"><span class="n2">0</span><small>min</small></div></div><div><div class="k">Belastning</div><div class="t"><span class="n3">0</span><small>TSS</small></div></div><div><div class="k">Forventet</div><div class="t">7<small>/10</small></div></div></div></div></div>'},
- spill:function(S){S.steg(0,0);var t=500;
+ spill:function(S){S.steg(0,0);var t=300;
   [['[data-r="0"] .fa'],['[data-r="0"] .ft'],['[data-r="0"] .fz'],['[data-r="0"] .fp'],['[data-r="1"] .fa'],['[data-r="1"] .ft'],['[data-r="1"] .fz'],['[data-r="1"] .fp'],['.fsk',1],['.fon']].forEach(function(f,i){
-   if(f[1])S.steg(1,t);S.til(f[0],t-500);S.t(t,function(){S.qa('.felt').forEach(function(x){x.classList.remove('fokus')});var e=S.q(f[0]);e.classList.add('fokus');e.querySelector('.v').classList.add('inn')});t+=(i===7?520:380)});
-  S.t(t,function(){S.qa('.felt').forEach(function(x){x.classList.remove('fokus')})});S.inn('.ob-info',t);t+=500;
-  S.til('.opprett',t,true);S.t(t+750,function(){S.q('.opprett').classList.add('trykk')});t+=1100;S.steg(2,t);
+   if(f[1])S.steg(1,t);S.til(f[0],t-150);S.t(t,function(){S.qa('.felt').forEach(function(x){x.classList.remove('fokus')});var e=S.q(f[0]);e.classList.add('fokus');e.querySelector('.v').classList.add('inn')});t+=(i===7?260:160)});
+  S.t(t,function(){S.qa('.felt').forEach(function(x){x.classList.remove('fokus')})});S.inn('.ob-info',t);t+=300;
+  S.til('.opprett',t,true,300);S.t(t+300,function(){S.q('.opprett').classList.add('trykk')});t+=450;S.steg(2,t);
   S.bort(t);S.t(t,function(){S.q('.hurtig').style.display='none';S.q('.bygget').style.display='';requestAnimationFrame(function(){S.qa('.bygget .mrad').forEach(function(e){e.classList.add('inn')})})});t+=300;
-  OKT.forEach(function(b,i){S.t(t+i*170,function(){var e=S.q('.blk[data-i="'+i+'"]');if(e)e.classList.add('inn');S.qa('.lbl[data-i="'+i+'"]').forEach(function(l){l.classList.add('inn')})})});t+=OKT.length*170+300;
-  S.inn('.nkt',t);S.tell('.n1',0,80,900,t);S.tell('.n2',0,20,900,t);S.tell('.n3',0,96,900,t);S.steg(3,t+1000)}
+  OKT.forEach(function(b,i){S.t(t+i*80,function(){var e=S.q('.blk[data-i="'+i+'"]');if(e)e.classList.add('inn');S.qa('.lbl[data-i="'+i+'"]').forEach(function(l){l.classList.add('inn')})})});t+=OKT.length*80+200;
+  S.inn('.nkt',t);S.tell('.n1',0,80,600,t);S.tell('.n2',0,20,600,t);S.tell('.n3',0,96,600,t);S.steg(3,t+700)}
 });
 
 /* ── 3 · MAL ── */
 SC.push({kap:0,tittel:'LAGRE DEN SOM MAL.',tekst:'Én knapp i skjemaet. Neste gang ligger økta klar i Maler - sammen med 58 ferdige økter på Olympiatoppens skala.',
  steg:['Lagre som mal','Gi den et navn','Klar i Maler'],varighet:9000,
- html:function(){return'<div class="mal-wrap"><div class="app skj"><div class="skj-top"><span class="strek"></span><span class="bebas">Planlegg økt</span><span class="cap" style="margin-left:auto">Tor 3. sep</span></div>'+
+ html:function(){return'<div class="mal-wrap"><div class="app skj"><div class="skj-top"><span class="strek"></span><span class="bebas">Planlegg økt</span><span class="cap" style="margin-left:auto">Tir 15. sep</span></div>'+
   '<div class="skj-tit">Terskel komb - 2 × 10 I3 + 3 × 5 I4</div>'+
   '<div class="malrad"><span class="cap">Mal</span><span class="sel">Ingen mal valgt</span><span class="malpil">Lagre som mal</span></div>'+
   '<div class="okt-str" style="height:34px;align-items:flex-end;margin:4px 0 8px">'+stripe(true)+'</div>'+
@@ -856,12 +1302,12 @@ var MERKER=[['Garmin','G','var(--a-ink)',1,'Tilkoblet · synk automatisk · 6 t 
 SC.push({kap:2,tittel:'ØKTA KOMMER INN AV SEG SELV.',tekst:'Garmin, COROS, Wahoo og Zepp (beta), Polar og Strava - og .fit fra alle merker. Flett klokkeøkta med planen, så står plan og gjennomført i samme dagbok.',
  steg:['Klokka synker','Økta lander på planen','Flett med ett trykk'],varighet:11000,
  html:function(){return'<div class="sy-wrap"><div class="app" style="padding:10px">'+
-  '<div class="glass"><span class="logo"><svg viewBox="0 0 24 24"><path d="M5 4l14 16M19 4L5 20" stroke="var(--a-ink)" stroke-width="3.2" stroke-linecap="round"/><path d="M5 20l4.2-4.8" stroke="#FF4500" stroke-width="3.2" stroke-linecap="round"/></svg>PULSE</span><span class="synkk">'+ik('synk','s')+'SYNK<i class="dot"></i></span><span class="avatar">SG</span></div>'+
+  '<div class="glass"><span class="logo"><svg viewBox="0 0 24 24"><path d="M5 4l14 16M19 4L5 20" stroke="var(--a-ink)" stroke-width="3.2" stroke-linecap="round"/><path d="M5 20l4.2-4.8" stroke="#FF4500" stroke-width="3.2" stroke-linecap="round"/></svg>PULSE</span><span class="synkk">'+ik('synk','s')+'SYNK<i class="dot"></i></span><span class="avatar">O</span></div>'+
   '<div class="ark"><div class="over">KLOKKESYNK</div><div class="bebas">Synk</div><div class="sist">Sist synket 6 t siden</div>'+
   MERKER.map(function(m,i){var fl=m[2]==='var(--a-ink)'?'background:var(--a-ink);color:var(--a-flate)':'background:'+m[2];var tilk=m[4].indexOf('Tilkoblet')===0;
    return'<div class="mrk '+(i>1?'skjul-m':'')+'" data-m="'+i+'"><span class="fl" style="'+fl+'">'+m[1]+'</span><div><div class="nv">'+m[0]+(m[3]?'<span class="beta">BETA</span>':'')+'</div><div class="st '+(tilk?'':'graa')+'">'+m[4]+'</div></div><span class="hy">'+(tilk?ik('fullfort','s'):'<span style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--orange)">KOBLE TIL</span>')+'</span></div>'}).join('')+
   '<div class="hentet a">'+ik('neste','s','width:13px;height:13px')+'<b>1 ny økt</b> hentet i dag</div></div></div>'+
-  '<div class="app uk"><div class="uk-hd"><span class="bebas">Tor 3. sep</span><span class="cap">Uke 36 · plan</span></div>'+
+  '<div class="app uk"><div class="uk-hd"><span class="bebas">Tir 15. sep</span><span class="cap">Uke 38 · plan</span></div>'+
   '<div class="okt"><div class="okt-t"><span class="hake">'+ik('fullfort','s')+'</span><span>2 × 10 min I3 / 3 min + 3 × 5 min I4 / 2 min</span><span class="dur">1:20</span></div><div class="okt-str">'+stripe()+'</div>'+
   '<small><span>Skøyting · Skiskyting</span><span class="kchip pop">'+ik('klokke','s')+'GARMIN</span><span class="kinfo a">snittpuls 149 · 21,4 km · 18/20</span></small></div>'+
   '<div class="flett-rad a"><span class="malpil flett">'+ik('koble-flett','s')+'Flett med planen</span></div>'+
@@ -874,62 +1320,74 @@ SC.push({kap:2,tittel:'ØKTA KOMMER INN AV SEG SELV.',tekst:'Garmin, COROS, Waho
   S.t(6300,function(){var f=S.q('.flett');f.classList.remove('trykk');f.className='gronn-chip';f.innerHTML=ik('fullfort','s')+'Flettet med planen';S.q('.okt').classList.add('ferdig');S.q('.sammen').classList.add('inn')});S.bort(6400);S.steg(3,8200)}
 });
 
-/* ── 7 · ØKT-GRAFEN ── */
+/* ── 7 · ØKT-GRAFEN (WorkoutDetailChart.tsx + OktKurve.tsx + CommentSection.tsx) ── */
 function kurveSti(W,H){var min=90,max=190;return PULS.map(function(p,i){return(i?'L':'M')+(p[0]/TOT*W).toFixed(1)+' '+(H-(p[1]-min)/(max-min)*H).toFixed(1)}).join('')}
+/* Høyde (runde på ~2,5 km med to bakker) og tempo (min/km) - fiktive, samme tidsakse */
+var HOYDE_S=PULS.map(function(p){var m=p[0];return 612+20*Math.sin(m/7.5*Math.PI*2)+4*Math.sin(m/2.3*Math.PI*2+1)});
+var TEMPO_S=PULS.map(function(p){var m=p[0],b=OKT.filter(function(x){return m>=x.s&&m<x.e})[0]||OKT[OKT.length-1];var base=b.t==='sky'?9.5:(b.t==='drag'?(b.z==='I4'?3.05:3.35):4.2);return base+(HOYDE_S[Math.round(m/.25)]-612)*.006});
+function serieSti(a,min,max,W,H,inv){return a.map(function(v,i){var f=(v-min)/(max-min);if(inv)f=1-f;return(i?'L':'M')+(PULS[i][0]/TOT*W).toFixed(1)+' '+(H-f*H).toFixed(1)}).join('')}
 var PUNKT=[{m:20,k:'ernaering',c:'#28A86E',tx:'40 g',ctx:'drag 1 · 20:00',niv:0,grp:'ern'},{m:31.5,k:'skyting',c:'var(--a-mut)',tx:'L 5/5',ctx:'skyting 1',niv:0,grp:'sky'},{m:41,k:'laktat',c:'#E23A5A',tx:'2,8',ctx:'drag 2 · 41:00',niv:1,grp:'lak'},
- {m:44.5,k:'skyting',c:'var(--a-mut)',tx:'S 4/5',ctx:'skyting 2',niv:0,grp:'sky'},{m:52,k:'skyting',c:'var(--a-mut)',tx:'L 5/5',ctx:'skyting 3',niv:0,grp:'sky'},{m:59,k:'skyting',c:'var(--a-mut)',tx:'S 4/5',ctx:'skyting 4',niv:1,grp:'sky'},{m:64.5,k:'laktat',c:'#E23A5A',tx:'4,6',ctx:'drag 5 · 64:30',niv:0,grp:'lak'}];
-SC.push({kap:3,tittel:'FØR DET KLOKKA IKKE VET.',tekst:'Skyting, laktat og ernæring havner rett på kurven, der det skjedde. Planen ligger bak som spøkelse, så du ser avviket med en gang.',
- steg:['Kurven over planen','Skytingen på tidslinja','Laktat og ernæring'],varighet:11500,
- html:function(){var mob=erMobil(),PH=mob?150:200,TOPP=mob?52:64,W=1000;
-  var ghost=OKT.map(function(b){return'<rect x="'+(b.s/TOT*W+1)+'" y="'+(PH-PH*blokkH(b))+'" width="'+((b.e-b.s)/TOT*W-2)+'" height="'+(PH*blokkH(b))+'" fill="'+blokkFarge(b)+'" opacity="'+(b.t==='sky'?.35:.1)+'" stroke="'+blokkFarge(b)+'" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>'}).join('');
+ {m:44.5,k:'skyting',c:'var(--a-mut)',tx:'S 4/5',ctx:'skyting 2',niv:0,grp:'sky'},{m:52,k:'skyting',c:'var(--a-mut)',tx:'L 5/5',ctx:'skyting 3',niv:0,grp:'sky'},{m:59,k:'skyting',c:'var(--a-mut)',tx:'S 4/5',ctx:'skyting 4',niv:0,grp:'sky'},{m:62,k:'for-okt',c:'#A6A6AF',tx:'Tungt i bakken',ctx:'drag 5 · 62:00',niv:1,grp:'not'},{m:64.5,k:'laktat',c:'#E23A5A',tx:'4,6',ctx:'drag 5 · 64:30',niv:2,grp:'lak'}];
+SC.push({kap:3,tittel:'FØR DET KLOKKA IKKE VET.',tekst:'Skyting, laktat, ernæring og notater havner rett på kurven, der det skjedde. Velg puls, tempo, watt, kadens eller høyde - og treneren svarer rett på økta.',
+ steg:['Pulsen over planen og høyden','Skyting, laktat, ernæring og tempo','Notat og svar fra treneren'],varighet:14000,
+ html:function(){var mob=erMobil(),PH=mob?140:150,TOPP=mob?52:84,W=1000;
+  var ghost=OKT.map(function(b){return'<rect x="'+(b.s/TOT*W+1)+'" y="'+(PH-PH*blokkH(b))+'" width="'+((b.e-b.s)/TOT*W-2)+'" height="'+(PH*blokkH(b))+'" fill="'+blokkFarge(b)+'" opacity="'+(b.t==='sky'?.4:.2)+'" stroke="'+blokkFarge(b)+'" stroke-opacity=".7" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>'}).join('');
   var vind=OKT.filter(function(b){return b.t==='sky'}).map(function(b){return'<div class="a skyv" style="position:absolute;top:'+TOPP+'px;height:'+PH+'px;left:'+(b.s/TOT*100)+'%;width:'+((b.e-b.s)/TOT*100)+'%;background:#43434B24;border:1.5px solid #43434B;border-radius:6px"></div>'}).join('');
-  var pil=PUNKT.map(function(p,i){var y=TOPP+PH-(pulsVed(p.m)-90)/100*PH,ly=(mob?i%2:p.niv)*(mob?24:28);var ikon=p.k==='skyting'?ik('skyting','f','width:13px;height:13px;color:var(--a-mut)'):ik(p.k,'f','width:13px;height:13px;color:'+p.c);
+  var hoyAreal=serieSti(HOYDE_S,560,700,W,PH)+'L'+W+' '+PH+'L0 '+PH+'Z';
+  var pil=PUNKT.map(function(p,i){if(mob&&p.grp==='sky'&&(i===4))return'';var y=TOPP+PH-(pulsVed(p.m)-90)/100*PH,ly=(mob?[0,1,0,1,0,1,0,1][i]:p.niv)*(mob?24:28);var ikon=p.k==='skyting'?ik('skyting','f','width:13px;height:13px;color:var(--a-mut)'):ik(p.k,'f','width:13px;height:13px;color:'+p.c);
+   var tx=(mob&&p.grp==='not')?'Notat':p.tx,off=mob?20:34;
    return'<div class="pille" data-g="'+p.grp+'" style="position:absolute;left:'+(p.m/TOT*100)+'%;top:0;width:0;height:100%;pointer-events:none">'+
-   '<div style="position:absolute;top:'+ly+'px;left:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;white-space:nowrap"><span style="display:inline-flex;align-items:center;gap:4px;background:var(--a-graf);border:1px solid '+(p.k==='skyting'?'var(--a-line2)':p.c)+';border-radius:999px;padding:2px 8px;font:700 11px/1.3 Barlow Condensed,sans-serif;color:var(--a-ink)">'+ikon+p.tx+'</span>'+(mob?'':'<span style="font-size:10px;color:var(--a-mute);line-height:1.2">'+p.ctx+'</span>')+'</div>'+
-   (p.k==='skyting'?'':'<div style="position:absolute;left:0;top:'+(ly+(mob?20:34))+'px;height:'+(y-ly-(mob?20:34))+'px;border-left:1px dashed '+p.c+';opacity:.7"></div><div style="position:absolute;left:-4.5px;top:'+(y-4.5)+'px;width:9px;height:9px;background:'+p.c+';border:1.5px solid #0A0A0B;'+(p.k==='laktat'?'border-radius:50%':'transform:rotate(45deg)')+'"></div>')+'</div>'}).join('');
+   '<div style="position:absolute;top:'+ly+'px;left:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;white-space:nowrap"><span style="display:inline-flex;align-items:center;gap:4px;background:var(--a-graf);border:1px solid '+(p.k==='skyting'?'var(--a-line2)':p.c)+';border-radius:999px;padding:2px 8px;font:700 11px/1.3 Barlow Condensed,sans-serif;color:var(--a-ink)">'+ikon+tx+'</span>'+(mob?'':'<span style="font-size:10px;color:var(--a-mute);line-height:1.2">'+p.ctx+'</span>')+'</div>'+
+   (p.k==='skyting'?'':'<div style="position:absolute;left:0;top:'+(ly+off)+'px;height:'+(y-ly-off)+'px;border-left:1px dashed '+p.c+';opacity:.7"></div><div style="position:absolute;left:-4.5px;top:'+(y-4.5)+'px;width:9px;height:9px;background:'+p.c+';border:1.5px solid #0A0A0B;'+(p.k==='laktat'?'border-radius:50%':p.k==='for-okt'?'border-radius:2px':'transform:rotate(45deg)')+'"></div>')+'</div>'}).join('');
   var seg=OKT.map(function(b){var f=b.t==='oppv'?'#BBAA55':b.t==='ned'?'#64748B':b.t==='sky'?'#43434B':'#1E2AA8';var tx=b.t==='sky'?(mob?b.ls:ik('skyting','f','width:10px;height:10px;margin-right:2px')+b.ls):(b.t==='drag'?(mob?'':(b.e-b.s)+' MIN'):(mob?'':(b.t==='oppv'?'OPPV':'NEDJ')));
    return'<i style="flex:'+(b.e-b.s)+';background:'+f+'">'+tx+'</i>'}).join('');
-  var ymerk=[180,150,120].map(function(v){var y=TOPP+PH-(v-90)/100*PH;return'<div style="position:absolute;left:0;right:0;top:'+y+'px;border-top:1px solid var(--a-kant);opacity:.5"></div><span style="position:absolute;left:2px;top:'+(y-7)+'px;font-size:10.5px;color:var(--a-mute);background:var(--a-graf);padding:0 2px;line-height:1">'+v+'</span>'}).join('');
-  return'<div class="app og"><div class="og-t">ØKT-GRAF<span style="margin-left:auto;font-weight:500;letter-spacing:.02em;font-size:12px;color:var(--a-mute)">Tor 3. sep · Garmin</span></div>'+
-  '<div class="chiprad"><span class="cap" style="font-size:10px">På grafen</span><span class="chip on" style="--c:#E23A5A"><i class="r"></i>'+ik('puls','s')+'Puls</span><span class="chip on" style="--c:#FF4500"><i class="r"></i>Vis plan</span><span class="chip c-sky" style="--c:#38BDF8"><i class="r"></i>'+ik('skyting','s')+'Skyting</span><span class="chip c-lak" style="--c:#E23A5A"><i class="r"></i>'+ik('laktat','s')+'Laktat</span><span class="chip c-ern" style="--c:#28A86E"><i class="r"></i>'+ik('ernaering','s')+'Ernæring</span><span class="chip skjul-m" style="--c:#1E2AA8"><i class="r"></i>Segmenter</span></div>'+
+  var ymerk=[180,150,120].map(function(v){var y=TOPP+PH-(v-90)/100*PH;return'<div style="position:absolute;left:0;right:0;top:'+y+'px;border-top:1px solid var(--a-kant);opacity:.5"></div><span style="position:absolute;left:2px;top:'+(y-7)+'px;font-size:10.5px;color:var(--a-mute);background:var(--a-graf);padding:0 2px;line-height:1;z-index:2">'+v+'</span>'}).join('');
+  function chip(kl,c,ikn,navn,on,skj){return'<span class="chip '+kl+(on?' on':'')+(skj?' skjul-m':'')+'" style="--c:'+c+'"><i class="r"></i>'+(ikn?ik(ikn,'s'):'')+navn+'</span>'}
+  return'<div class="app og"><div class="og-t">ØKT-GRAF<span style="margin-left:auto;font-weight:500;letter-spacing:.02em;font-size:12px;color:var(--a-mute)">Tir 15. sep · Garmin</span></div>'+
+  '<div class="chiprad"><span class="cap skjul-m" style="font-size:10px">Kurver</span>'+chip('c-puls fokus','#E23A5A','puls','Puls',1)+chip('c-tem','#28A86E','tempo','Tempo')+chip('c-watt','#E8B93C','watt','Watt',0,1)+chip('c-kad','#1A6FD4','kadens','Kadens',0,1)+chip('c-hoy','#8A8A96','hoyde','Høyde')+
+   '<span class="cap skjul-m" style="font-size:10px;margin-left:6px">På grafen</span>'+chip('','#FF4500','','Plan',1,1)+chip('c-sky','#38BDF8','skyting','Skyting')+chip('c-lak','#E23A5A','laktat','Laktat')+chip('c-ern','#28A86E','ernaering','Ernæring',0,1)+chip('c-not','#A6A6AF','for-okt','Notat',0,1)+'</div>'+
   '<div style="position:relative;height:'+(TOPP+PH+18)+'px">'+ymerk+
+  '<svg class="hoy" viewBox="0 0 '+W+' '+PH+'" preserveAspectRatio="none" style="position:absolute;left:0;top:'+TOPP+'px;width:100%;height:'+PH+'px;opacity:0;transition:opacity .6s"><path d="'+hoyAreal+'" fill="#8A8A96" opacity=".3"/><path d="'+serieSti(HOYDE_S,560,700,W,PH)+'" fill="none" stroke="#A6A6AF" stroke-width="1.5" opacity=".8" vector-effect="non-scaling-stroke"/></svg>'+
   '<svg class="ghost a" viewBox="0 0 '+W+' '+PH+'" preserveAspectRatio="none" style="position:absolute;left:0;top:'+TOPP+'px;width:100%;height:'+PH+'px">'+ghost+'</svg>'+vind+
-  '<div class="klipp" style="position:absolute;left:0;right:0;top:'+TOPP+'px;height:'+PH+'px;clip-path:inset(0 100% 0 0);transition:clip-path 2s cubic-bezier(.45,.05,.25,1)"><svg viewBox="0 0 '+W+' '+PH+'" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible"><path d="'+kurveSti(W,PH)+'" fill="none" stroke="#E23A5A" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg></div>'+pil+
+  '<svg class="tem" viewBox="0 0 '+W+' '+PH+'" preserveAspectRatio="none" style="position:absolute;left:0;top:'+TOPP+'px;width:100%;height:'+PH+'px;opacity:0;transition:opacity .6s"><path d="'+serieSti(TEMPO_S,2.6,10,W,PH,1)+'" fill="none" stroke="#28A86E" stroke-width="1.3" opacity=".32" vector-effect="non-scaling-stroke"/></svg>'+
+  '<div class="klipp" style="position:absolute;left:0;right:0;top:'+TOPP+'px;height:'+PH+'px;clip-path:inset(0 100% 0 0);transition:clip-path 1.8s cubic-bezier(.45,.05,.25,1)"><svg viewBox="0 0 '+W+' '+PH+'" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible"><path d="'+kurveSti(W,PH)+'" fill="none" stroke="#E23A5A" stroke-width="2.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(226,58,90,.45))"/></svg></div>'+pil+
   '<div style="position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;font-size:11px;color:var(--a-mute)"><span>0:00</span><span>20:00</span><span>40:00</span><span>1:00:00</span><span>1:20:00</span></div></div>'+
   '<div class="segb a">'+seg+'</div>'+
-  '<div class="knrad"><span class="kn skjul-m" style="--c:var(--a-ink)">'+oktbyggerIkon()+'ØKTBYGGER</span><span class="kn k-plott" style="--c:#E23A5A">'+ik('skyting','s')+'PLOTT TREFF</span><span class="kn k-lak" style="--c:#8A8A96">'+ik('laktat','s')+'SETT LAKTAT</span><span class="kn skjul-m" style="--c:#8A8A96">'+ik('for-okt','s')+'NOTAT</span></div>'+
-  '<div class="detalj"><div class="a d-lak"><div class="k">LAKTAT</div><div class="t">2,8 → 4,6 <small>mmol</small></div></div><div class="a d-ern"><div class="k">ERNÆRING</div><div class="t">40 g <small>karbo</small></div></div><div class="a d-sky"><div class="k">SKYTING</div><div class="t">18/20</div><small>L 10/10 · S 8/10</small></div></div></div>'},
- spill:function(S){S.steg(0,0);S.inn('.ghost',300);S.t(800,function(){S.q('.klipp').style.clipPath='inset(0 0 0 0)'});S.inn('.segb',2600);
-  S.steg(1,3300);S.til('.k-plott',3300,true);S.t(4050,function(){S.q('.k-plott').classList.add('trykk');setTimeout(function(){var k=S.q('.k-plott');k&&k.classList.remove('trykk')},250);S.q('.c-sky').classList.add('on')});S.inn('.skyv',4200);
-  S.t(4500,function(){S.qa('.pille[data-g="sky"]').forEach(function(e,i){setTimeout(function(){e.classList.add('inn')},i*260)})});S.inn('.d-sky',5500);
-  S.steg(2,6200);S.til('.k-lak',6200,true);S.t(6950,function(){S.q('.k-lak').classList.add('trykk');setTimeout(function(){var k=S.q('.k-lak');k&&k.classList.remove('trykk')},250);S.q('.c-lak').classList.add('on')});
-  S.t(7200,function(){S.qa('.pille[data-g="lak"]').forEach(function(e,i){setTimeout(function(){e.classList.add('inn')},i*300)})});S.inn('.d-lak',7800);S.bort(7900);
-  S.t(8500,function(){S.q('.c-ern').classList.add('on');S.q('.pille[data-g="ern"]').classList.add('inn')});S.inn('.d-ern',8900);S.steg(3,9600)}
+  '<div class="knrad"><span class="kn skjul-m" style="--c:var(--a-ink)">'+oktbyggerIkon()+'ØKTBYGGER</span><span class="kn k-plott" style="--c:#E23A5A">'+ik('skyting','s')+'PLOTT TREFF</span><span class="kn k-lak" style="--c:#8A8A96">'+ik('laktat','s')+'SETT LAKTAT</span><span class="kn k-not" style="--c:#8A8A96">'+ik('for-okt','s')+'NOTAT</span></div>'+
+  '<div class="kom a"><div class="kom-h"><span></span>KOMMENTARER (<b class="kom-n">1</b>)</div>'+
+  '<div class="kom-li" style="border-left-color:#FF4500"><div class="kom-t"><span style="color:#FF4500">Utøver · Ola</span><em>i går 18:12</em></div><p>Tung i beina på siste drag, og måtte kjempe inn skuddene på skyting 4.</p></div>'+
+  '<div class="kom-skriver">Trener skriver…</div>'+
+  '<div class="kom-li kom-tr" style="border-left-color:#1A6FD4"><div class="kom-t"><span style="color:#1A6FD4">Trener · Kari</span><em>i dag 07:40</em></div><p>Bra kontroll på pulsen inn. Neste gang: roligere første to minutter av I4-dragene.</p></div></div></div>'},
+ spill:function(S){function trykk(sel){var k=S.q(sel);if(!k)return;k.classList.add('trykk');setTimeout(function(){k.classList.remove('trykk')},250)}
+  S.steg(0,0);S.inn('.ghost',300);S.t(700,function(){S.q('.klipp').style.clipPath='inset(0 0 0 0)'});S.inn('.segb',2300);
+  S.til('.c-hoy',2500,true,400);S.t(2900,function(){S.q('.c-hoy').classList.add('on');S.q('.hoy').style.opacity=1});
+  S.til('.c-tem',7900,true,400);S.t(8300,function(){S.q('.c-tem').classList.add('on');S.q('.tem').style.opacity=1});
+  S.steg(1,3700);S.til('.k-plott',3700,true,450);S.t(4150,function(){trykk('.k-plott');S.q('.c-sky').classList.add('on')});S.inn('.skyv',4250);
+  S.t(4400,function(){S.qa('.pille[data-g="sky"]').forEach(function(e,i){setTimeout(function(){e.classList.add('inn')},i*200)})});
+  S.til('.k-lak',5500,true,450);S.t(5950,function(){trykk('.k-lak');S.q('.c-lak').classList.add('on')});
+  S.t(6100,function(){S.qa('.pille[data-g="lak"]').forEach(function(e,i){setTimeout(function(){e.classList.add('inn')},i*250)})});
+  S.t(6900,function(){S.q('.c-ern').classList.add('on');S.q('.pille[data-g="ern"]').classList.add('inn')});
+  S.steg(2,9000);S.til('.k-not',9000,true,450);S.t(9450,function(){trykk('.k-not');S.q('.c-not').classList.add('on');S.q('.pille[data-g="not"]').classList.add('inn')});
+  S.inn('.kom',10000);S.bort(10100);S.t(10800,function(){S.q('.kom-skriver').classList.add('inn')});
+  S.t(11900,function(){S.q('.kom-skriver').classList.remove('inn');S.q('.kom-tr').classList.add('inn');S.q('.kom-n').textContent='2'});S.steg(3,13000)}
 });
 
 /* ── 8 · PLOTT TREFF ── */
-var SERIER=[{ls:'L',navn:'LIGGENDE',gc:'#38BDF8',sc:'#1A6FD4',plass:'30:00-33:00',skudd:[[.02,-.04],[-.06,.03],[.05,.05],[.01,.08],[-.03,-.07]],tid:'27,9',puls:164,treff:5},
- {ls:'S',navn:'STÅENDE',gc:'#FF4500',sc:'#E23A5A',plass:'43:00-46:00',skudd:[[.18,-.12],[-.22,.1],[.61,.2],[.05,.24],[-.15,-.2]],tid:'29,0',puls:158,treff:4}];
+function vimpelSvg(r,l,sz){var flag=l<=0?'<path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/>':(l>=5?'<path d="M32,10 c8,-3 13,3 21,0 c8,-3 13,3 21,0 l0,13 c-8,3 -13,-3 -21,0 c-8,3 -13,-3 -21,0 Z" fill="#E23A5A"/>':'<g transform="rotate('+(-{1:15,2:35,3:55,4:75}[l])+' 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g>');
+ var inner='<line x1="32" y1="12" x2="32" y2="84" stroke="var(--a-mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--a-mut)"/>'+flag;
+ return'<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 92 92">'+(r==='V'?'<g transform="translate(92 0) scale(-1 1)">'+inner+'</g>':inner)+'</svg>'}
+function taakeSvg(f){if(!f)return'<svg width="18" height="14" viewBox="0 0 18 14"><circle cx="9" cy="7" r="5" fill="none" stroke="#28A86E" stroke-width="2"/></svg>';var s='';for(var i=0;i<f;i++)s+='<path d="M2,'+(3+i*4)+' c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="var(--a-mut)" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="'+(.5+.17*i)+'"/>';return'<svg width="18" height="14" viewBox="0 0 18 14">'+s+'</svg>'}
+
+var SERIER=[{ls:'L',navn:'LIGGENDE',gc:'#38BDF8',sc:'#1A6FD4',plass:'30:00-33:00',vind:['H',2,'H2',0,'God sikt'],skudd:[[.02,-.04],[-.06,.03],[.05,.05],[.01,.08],[-.03,-.07]],tid:'27,9',puls:164,treff:5},
+ {ls:'S',navn:'STÅENDE',gc:'#FF4500',sc:'#E23A5A',plass:'43:00-46:00',vind:['V',1,'V1',1,'Lett tåke'],skudd:[[.18,-.12],[-.22,.1],[.61,.2],[.05,.24],[-.15,-.2]],tid:'29,0',puls:158,treff:4}];
 function blinkSvg(ser,i){var s=ser.skudd[i];return'<svg viewBox="0 0 62 62"><circle class="skive" cx="31" cy="31" r="26" fill="#F2F2F0" stroke="var(--a-line2)" stroke-width="2" style="transition:fill .4s"/>'+(ser.ls==='L'?'<circle cx="31" cy="31" r="12" fill="none" stroke="#8A8A96" stroke-width="1" stroke-dasharray="4 3"/>':'')+
  '<g class="skudd"><circle cx="'+(31+s[0]*52)+'" cy="'+(31+s[1]*52)+'" r="8" fill="'+ser.sc+'" stroke="#0A0A0B" stroke-width="1"/><text x="'+(31+s[0]*52)+'" y="'+(31+s[1]*52+3.3)+'" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="9.5" fill="#fff">'+(i+1)+'</text></g></svg>'}
-SC.push({kap:3,tittel:'PLOTT HVERT SKUDD.',tekst:'Plott treff per serie, liggende og stående. Pulsen inn på standplass leses fra kurven, og alt slår gjennom i skytestatistikken.',
- steg:['Liggende','Stående','Serien er ført'],varighet:10000,
- html:function(){return'<div class="app sp"><div class="sp-hd">'+ik('skyting','s')+'<span class="bebas">Skuddplott</span><span class="sum">Sum <b class="sumt">0/10</b> · snitt tid <b>28,4 s</b></span></div>'+
-  SERIER.map(function(s,si){return'<div class="sgr" data-s="'+si+'"><div class="sgr-h"><i class="kv" style="background:'+s.gc+'"></i><span style="color:'+s.gc+'">'+s.navn+'</span><span class="pl">· '+(si+1)+'. skyting · '+ik('klokke','s')+s.plass+'</span><span class="s">Treff <b class="st">0/5</b></span></div>'+
-   '<div class="blinker">'+s.skudd.map(function(_,i){return'<div class="blink">'+blinkSvg(s,i)+'</div>'}).join('')+'</div>'+
-   '<div class="srad"><span style="text-align:center;font-weight:700">'+(si+1)+'</span><span class="ls" style="background:'+(s.ls==='L'?'#1A6FD4':'#FF8C00')+'">'+s.ls+'</span><span class="f"><small>SKUDD</small>5</span><span class="f"><small>TREFF</small><b class="ft">-</b></span><span class="f"><small>TID S</small>'+s.tid+'</span><span class="f skjul-m"><small>PULS</small>'+s.puls+'</span><span class="auto">AUTO '+s.puls+'</span></div></div>'}).join('')+'</div>'},
- spill:function(S){var tot=0;SERIER.forEach(function(s,si){var t0=500+si*3300;S.steg(si,t0);
-   S.t(t0,function(){S.qa('[data-s="'+si+'"] .skive').forEach(function(k){k.style.fill='var(--a-card)'})});
-   s.skudd.forEach(function(p,i){var at=t0+300+i*480;S.til(S.qa?'[data-s="'+si+'"] .blink:nth-child('+(i+1)+') .skudd':'',at-560);S.t(at+200,function(){var g=S.qa('[data-s="'+si+'"] .skudd')[i];g.classList.add('inn');
-    var treff=Math.hypot(p[0],p[1])<=(s.ls==='L'?.23:.5);if(treff){tot++;}var st=S.q('[data-s="'+si+'"] .st');var n=S.qa('[data-s="'+si+'"] .skudd.inn').filter(function(x,j){var q=s.skudd[j];return Math.hypot(q[0],q[1])<=(s.ls==='L'?.23:.5)}).length;st.textContent=n+'/5';S.q('.sumt').textContent=(si===0?n:5+n)+'/10'})});
-   S.t(t0+300+5*480+300,function(){S.q('[data-s="'+si+'"] .ft').textContent=s.treff})});
-  S.bort(7300);S.steg(2,7400);S.t(7400,function(){S.q('.sumt').parentNode.style.color='var(--a-ink)'});S.steg(3,8400)}
-});
+/* Scene «Plott hvert skudd» er flyttet til «Detaljene som avgjør» (16. sep). */
 
 /* ── 9 · FORMKARTET (design/xpulse-formkart-design.html - utkastet, ikke bygget ennå) ── */
 var FK=(function(){var seed=11;function r(){seed=(seed*9301+49297)%233280;return seed/233280}var d=[],ctl=52,atl=50;
- for(var i=0;i<60;i++){var hvile=(i%7===6),syk=i>=33&&i<=37,konk=i===52,uke=Math.floor(i/7);var hard=!hvile&&!syk&&(i%7===1||i%7===3||(i%7===5&&uke%2===0));
-  var t=hvile||syk?0:(konk?1.1:(hard?1.5+r()*.6:0.8+r()*.9));if(i%7===5&&!hard&&!syk)t=2.2+r()*.6;if(i>=45&&i<52)t*=.45;
+ for(var i=0;i<60;i++){var hvile=(i%7===6),syk=i>=33&&i<=37,konk=i===56,uke=Math.floor(i/7);var hard=!hvile&&!syk&&(i%7===1||i%7===3||(i%7===5&&uke%2===0));
+  var t=hvile||syk?0:(konk?1.1:(hard?1.5+r()*.6:0.8+r()*.9));if(i%7===5&&!hard&&!syk)t=2.2+r()*.6;if(i>=49&&i<56)t*=.45;
   var z=t?{I1:t*(hard?.45:.8),I2:t*(hard?.18:.17),I3:hard?t*.2:t*.03,I4:hard?t*.12:0,I5:hard||konk?t*.05:0}:null;if(konk)z={I1:.55,I2:.1,I3:.1,I4:.2,I5:.15};
   var tss=t*(hard?85:52);ctl+=(tss-ctl)/42*2.2;atl+=(tss-atl)/7*1.6;
   var hrv=syk?-16+r()*3:(hard?-2:3)+(r()-.5)*5-(atl-ctl)*.2,hvp=syk?12+r()*3:(r()-.5)*4+(atl-ctl)*.12;
@@ -951,33 +1409,288 @@ SC.push({kap:4,tittel:'SE HELE FORMEN PÅ ÉN AKSE.',tekst:'Sonetid per dag, for
   var OH=mob?24:30;function oy(v){return OH-(v-1)/9*(OH-4)-2}
   var fol='<path d="'+sti(D.map(function(x){return x.fol}),oy)+'" fill="none" stroke="var(--a-mute)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
   var prikker=D.map(function(x,i){return'<i style="left:'+((i+.5)/n*100)+'%;top:'+oy(x.fol)+'px"></i>'}).join('');
-  var ki=mob?22:52,kx=(ki+.5)/n*100,kd=D[ki];
+  var ki=mob?26:56,kx=(ki+.5)/n*100,kd=D[ki];
   return'<div class="app fk"><div class="fk-t">Formkartet</div><div class="fk-u">Belastning, soner, restitusjon og følelse på én delt tidsakse</div>'+
   '<div class="fk-k"><span class="fk-seg"><span class="'+(mob?'on':'')+'">30 dager</span><span class="'+(mob?'':'on')+'">60 dager</span><span class="skjul-m">180 dager</span></span><span class="fk-seg"><span class="on">I1-I5</span><span>Lav / Med / Høy</span></span></div>'+
   '<div class="fk-leg">'+['I1','I2','I3','I4','I5'].map(function(k){return'<span><i style="background:'+Z[k]+'"></i>'+k+'</span>'}).join('')+'<span><i class="l" style="background:var(--a-ink)"></i>Form (CTL)</span><span><i class="l" style="background:#8A8A96"></i>Tretthet (ATL)</span><span><i class="l" style="background:#8B5CF6"></i>HRV</span><span><i class="l" style="background:#E23A5A"></i>Hvilepuls</span><span class="skjul-m"><i style="background:#E11D48"></i>Sykdom</span><span class="skjul-m"><i style="background:#D4A017"></i>Konkurranse</span></div>'+
   '<div class="fk-graf">'+bane('Dagen',16,dagen,'b0')+bane('Sonetid',SH,sone,'b1')+bane('Form',FH,form,'b2')+bane('Restitusjon',RH,rest,'b3')+
   '<div class="fkb b4"><div class="fkb-n">Følelse</div><div class="fkb-g fol" style="height:'+OH+'px"><svg viewBox="0 0 '+W+' '+OH+'" preserveAspectRatio="none">'+fol+'</svg>'+prikker+'</div></div>'+
-  '<div class="fk-lese" style="left:'+kx+'%"><div class="fk-lese-l"></div><div class="fk-lese-p"><b>Lør 13. sep · Konkurranse</b><span>1:05 · I4 12 min · I5 9 min</span><span>Form '+Math.round(kd.ctl)+' · TSB <em style="color:#1A6FD4">+'+Math.max(1,Math.round(kd.tsb))+'</em></span><span>HRV <em style="color:#8B5CF6">+6 %</em> · hvilepuls <em style="color:#E23A5A">-3 %</em></span><span>Følelse 8/10</span></div></div>'+
+  '<div class="fk-lese" style="left:'+kx+'%"><div class="fk-lese-l"></div><div class="fk-lese-p"><b>Søn 13. sep · Konkurranse</b><span>1:05 · I4 12 min · I5 9 min</span><span>Form '+Math.round(kd.ctl)+' · TSB <em style="color:#1A6FD4">+'+Math.max(1,Math.round(kd.tsb))+'</em></span><span>HRV <em style="color:#8B5CF6">+6 %</em> · hvilepuls <em style="color:#E23A5A">-3 %</em></span><span>Følelse 8/10</span></div></div>'+
   '</div><div class="fk-akse"><span>'+(mob?'17. aug':'18. jul')+'</span><span>'+(mob?'1. sep':'15. aug')+'</span><span>i dag</span></div></div>'},
  spill:function(S){S.steg(0,0);S.inn('.b0',300,'vis');S.inn('.b1',800,'vis');S.steg(1,2700);S.inn('.b2',2700,'vis');S.steg(2,4800);S.inn('.b3',4800,'vis');S.inn('.b4',5700,'vis');
   S.til('.fk-lese',7200);S.inn('.fk-lese',7900);S.bort(8200);S.steg(3,9200)}
 });
 
+/* ── 10 · STANDARDØKTA OVER TID (components/analysis/SerieAnalyse.tsx) ── */
+var SERIE=[
+ {d:'12. jun',p:154,l:5.8,tr:78,st:32.1,o:8,drag:[5.1,5.8,5.2]},{d:'26. jun',p:153,l:5.5,tr:80,st:31.4,o:8,drag:[4.9,5.5,5.0]},{d:'10. jul',p:152,l:5.6,tr:75,st:30.8,o:7,drag:[4.8,5.6,5.1]},{d:'24. jul',p:152,l:5.1,tr:85,st:30.2,o:7,drag:[4.5,5.1,4.7]},
+ {d:'7. aug',p:151,l:5.0,tr:83,st:29.5,o:7,drag:[4.4,5.0,4.5],k:1},{d:'21. aug',p:150,l:4.9,tr:88,st:28.9,o:7,drag:[4.2,4.9,4.3]},{d:'1. sep',p:150,l:4.8,tr:85,st:28.6,o:6,drag:[4.1,4.8,4.2]},{d:'15. sep',p:149,l:4.6,tr:90,st:27.9,o:7,drag:[3.9,4.6,4.0]}];
+var SVAR=[{id:'p',navn:'Snittpuls',fmt:function(v){return String(Math.round(v))},min:146,max:156,lav:1},{id:'l',navn:'Laktat maks',fmt:function(v){return v.toFixed(1).replace('.',',')},min:3.6,max:6.2,lav:1},{id:'tr',navn:'Treff %',fmt:function(v){return Math.round(v)+' %'},min:70,max:95,lav:0},{id:'st',navn:'Skytetid',fmt:function(v){return v.toFixed(1).replace('.',',')+' s'},min:26,max:33,lav:1},{id:'o',navn:'Opplevd',fmt:function(v){return String(v)},min:4,max:10,lav:1}];
+function serieGraf(vid,perDrag,H){var W=1000,n=SERIE.length,v=SVAR.filter(function(x){return x.id===vid})[0];function X(i){return 30+i*(W-60)/(n-1)}function Y(x){return 10+(1-(x-v.min)/(v.max-v.min))*(H-20)}
+ var s=[.25,.5,.75].map(function(f){return'<line x1="0" x2="'+W+'" y1="'+(H*f)+'" y2="'+(H*f)+'" stroke="var(--a-line)" vector-effect="non-scaling-stroke"/>'}).join('');
+ if(perDrag){var F=['#FF4500','#1A6FD4','#28A86E'];[0,1,2].forEach(function(j){s+='<path d="'+SERIE.map(function(r,i){return(i?'L':'M')+X(i)+' '+Y(r.drag[j])}).join('')+'" fill="none" stroke="'+F[j]+'" stroke-width="2" vector-effect="non-scaling-stroke"/>'});return{svg:s,pkt:SERIE.map(function(r,i){return[0,1,2].map(function(j){return{x:X(i)/W*100,y:Y(r.drag[j]),c:F[j]}})}).reduce(function(a,b){return a.concat(b)},[])}}
+ var best=0;SERIE.forEach(function(r,i){if(v.lav?r[vid]<SERIE[best][vid]:r[vid]>SERIE[best][vid])best=i});
+ s+='<path d="'+SERIE.map(function(r,i){return(i?'L':'M')+X(i)+' '+Y(r[vid])}).join('')+'" fill="none" stroke="#FF4500" stroke-width="2.5" vector-effect="non-scaling-stroke"/>';
+ return{svg:s,best:{x:X(best)/W*100,y:Y(SERIE[best][vid])},pkt:SERIE.map(function(r,i){return{x:X(i)/W*100,y:Y(r[vid]),c:'#FF4500',t:v.fmt(r[vid])}})}}
+SC.push({kap:4,tittel:'SAMME ØKT. ÅTTE GANGER.',tekst:'Merk en økt som standardøkt, så følger appen hver gjennomføring: puls, laktat, treff og skytetid - drag for drag, mot forrige og mot beste.',
+ steg:['Laktat over tid','Skytingen på samme serie','Drag for drag'],varighet:10500,
+ html:function(){var mob=erMobil(),H=mob?130:170;
+  var kol=mob?['p','l','tr']:['p','l','tr','st','o'];
+  var tab='<table class="se-tab"><thead><tr><th></th><th>Dato</th>'+kol.map(function(k){return'<th>'+SVAR.filter(function(v){return v.id===k})[0].navn+'</th>'}).join('')+'</tr></thead><tbody>'+
+   SERIE.slice(mob?5:3).reverse().map(function(r,ri){var idx=SERIE.indexOf(r),f=SERIE[idx-1];return'<tr class="'+(idx===7?'best':'')+'"><td><i class="ck on"></i></td><td>'+(idx===7?ik('peak','f','width:12px;height:12px;color:#E8B93C;margin-right:3px'):'')+r.d+(r.k?ik('konkurranse','s','width:12px;height:12px;margin-left:3px'):'')+'</td>'+
+    kol.map(function(k){var v=SVAR.filter(function(x){return x.id===k})[0],val=r[k],dl=f?val-f[k]:null;var bra=dl==null?0:(v.lav?dl<0:dl>0);return'<td>'+v.fmt(val)+(dl!=null&&dl!==0?'<small class="'+(bra?'g':'r')+'">'+(dl>0?'+':'−')+v.fmt(Math.abs(dl)).replace(' %','').replace(' s','')+'</small>':'')+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table>';
+  return'<div class="app se"><div class="se-t">Terskel komb - over tid</div><div class="se-u">Standardøkt · 8 gjennomføringer · 2 × 10 I3 + 3 × 5 I4 m/ skyting</div>'+
+  '<div class="chiprad"><span class="cap" style="font-size:10px">Gjennomføringer</span><span class="chip on" style="--c:#FF4500">Siste 5</span><span class="chip skjul-m" style="--c:#FF4500">Beste 5</span><span class="chip skjul-m" style="--c:#E23A5A">Konkurranser</span></div>'+
+  '<div class="chiprad"><span class="cap" style="font-size:10px">Variabel</span>'+SVAR.map(function(v){return'<span class="chip sv '+(v.id==='o'||v.id==='st'?'skjul-m':'')+'" data-v="'+v.id+'" style="--c:#FF4500">'+v.navn+'</span>'}).join('')+'<span class="chip perdrag" style="--c:#1A6FD4">Per drag</span></div>'+
+  '<div class="se-g" style="height:'+(H+18)+'px"><div class="se-plot" style="height:'+H+'px"></div><div class="se-x">'+SERIE.map(function(r){return'<span>'+r.d+'</span>'}).join('')+'</div></div>'+
+  '<div class="se-leg"></div>'+tab+'</div>'},
+ spill:function(S){var mob=erMobil(),H=mob?130:170;
+  function tegn(vid,perDrag){var g=serieGraf(vid,perDrag,H),p=S.q('.se-plot');
+   p.innerHTML='<div class="klipp" style="position:absolute;inset:0;clip-path:inset(0 100% 0 0);transition:clip-path 1.1s cubic-bezier(.45,.05,.25,1)"><svg viewBox="0 0 1000 '+H+'" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible">'+g.svg+'</svg>'+
+    g.pkt.map(function(k){return'<i class="se-p" style="left:'+k.x+'%;top:'+k.y+'px;background:'+k.c+'"></i>'+(k.t&&!mob?'<b class="se-v" style="left:'+k.x+'%;top:'+(k.y-19)+'px">'+k.t+'</b>':'')}).join('')+
+    (g.best?'<i class="se-best" style="left:'+g.best.x+'%;top:'+g.best.y+'px"></i><b class="se-bt" style="left:'+g.best.x+'%;top:'+(g.best.y+10)+'px">beste</b>':'')+'</div>';
+   requestAnimationFrame(function(){requestAnimationFrame(function(){var k=p.querySelector('.klipp');if(k)k.style.clipPath='inset(0 0 0 0)'})});
+   if(S.still){var k=p.querySelector('.klipp');k.style.clipPath='inset(0 0 0 0)'}
+   S.qa('.sv').forEach(function(c){c.classList.toggle('on',c.dataset.v===vid);c.classList.toggle('fokus',c.dataset.v===vid)});S.q('.perdrag').classList.toggle('on',!!perDrag);
+   S.q('.se-leg').innerHTML=perDrag?'<span><i style="background:#FF4500"></i>Drag 1</span><span><i style="background:#1A6FD4"></i>Drag 2</span><span><i style="background:#28A86E"></i>Drag 3</span>':'<span><i style="background:#FF4500"></i>'+SVAR.filter(function(x){return x.id===vid})[0].navn+'</span><span><i style="background:#E8B93C;border-radius:50%"></i>Beste</span>'}
+  S.steg(0,0);S.t(300,function(){tegn('l')});S.qa?S.t(600,function(){S.qa('.se-tab tbody tr').forEach(function(tr,i){tr.style.transitionDelay=(i*60)+'ms';tr.classList.add('inn')})}):0;
+  S.steg(1,3300);S.til('.sv[data-v="tr"]',3300,true);S.t(3700,function(){tegn('tr')});
+  S.til('.sv[data-v="'+(mob?'p':'st')+'"]',5200,true);S.t(5600,function(){tegn(mob?'p':'st')});
+  S.steg(2,7000);S.til('.perdrag',7000,true);S.t(7400,function(){tegn('l',true)});S.bort(7700);S.steg(3,9300)}
+});
+
+/* ── 11 · HJEM (app/app/(authed)/oversikt/page.tsx + components/oversikt/*) ── */
+function hjKort(tittel,tag,innhold,kl,stil){return'<section class="hjk a '+(kl||'')+'" style="'+(stil||'')+'"><div class="xp-kh"><span class="xp-beam"></span><h2>'+tittel+'</h2>'+(tag?'<span class="tag">'+tag+'</span>':'')+'</div>'+innhold+'</section>'}
+function hjSone(z,leg){var tot=0;for(var k in z)tot+=z[k];return'<div class="hj-zb">'+Object.keys(z).map(function(k){return'<span class="gro" style="--w:'+(z[k]/tot*100)+'%;background:'+Z[k]+'"></span>'}).join('')+'</div>'+(leg?'<div class="hj-zl">'+Object.keys(z).map(function(k){var m=z[k];return'<span><b style="background:'+Z[k]+'"></b>'+k+' '+(m>=60?Math.floor(m/60)+'t '+(m%60?m%60+'m':''):m+'m')+'</span>'}).join('')+'</div>':'')}
+function hjBar(navn,v,maal,vt,mt,farge){return'<div class="hj-fr"><div class="hj-frt"><span>'+navn+'</span><span><b>'+vt+'</b> / '+mt+'</span></div><div class="hj-fb"><i class="gro" style="--w:'+Math.min(100,v/maal*100)+'%;background:'+farge+'"></i></div></div>'}
+var HJ={
+ idag:function(){return hjKort('I dag','Ons 16. sep','<span class="hj-st">'+ik('fullfort','s')+'Gjennomført</span><h3>Styrke basis</h3><p class="hj-m">48 min · 12 sett · 7 840 kg · 2 PR</p>'+
+  '<div class="hj-nk3"><div><small>Tid</small><b>48m</b></div><div><small>Sett</small><b>12</b></div><div><small>Tonnasje</small><b>7 840</b></div></div>'+
+  '<div class="hj-neste"><small>Neste økt · tor 17. sep</small><div><span class="mstripe" style="width:70px;height:9px"><i style="flex:1;background:#28A86E;opacity:.62"></i></span><b>Rolig 60 min · I1</b></div></div>')},
+ uke:function(){return hjKort('Ukens totaler','Uke 38','<div class="hj-sg"><div><small>Tid</small><b class="hj-c" data-til="380" data-f="t">0t</b><em class="g">↑ 12% vs forrige</em></div><div><small>Distanse</small><b>58,4 km</b><em class="g">↑ 8% vs forrige</em></div><div><small>Økter</small><b>4</b></div></div>'+
+  hjSone({I1:258,I2:52,I3:40,I4:30},true)+'<div class="hj-skc"><span class="hj-pill">'+ik('skyting','s')+'<b>180/200</b> treff · 90 %</span><span class="hj-meter"><i class="gro" style="--w:90%"></i></span></div>'+
+  hjBar('Timer',6.3,11,'6t 20m','11t','#28A86E')+hjBar('Hard I3+',70,90,'1t 10m','1t 30m','#28A86E')+
+  '<div class="hj-dager">'+['M','T','O','T','F','L','S'].map(function(d,i){var k=i<3?(i===1?'hard':'ok'):(i===2?'':'plan');return'<span class="'+(i===0?'ok':i===1?'hard':i===2?'ok':'plan')+'">'+d+'</span>'}).join('')+'</div>')},
+ konk:function(){return'<section class="hjk a hj-konk"><div class="hj-kh"><span class="hj-gb"></span><span>Neste A-konkurranse</span><span class="dt">lør 12. des</span></div><div class="hj-kr"><div><h3>NC Simostranda</h3><p class="hj-m">Simostranda · Skiskyting · Sprint 7,5 km</p><p class="hj-maal"><small>Mål</small>Topp 10</p><p class="hj-fase">Grunntrening · uke 3 av 9</p></div><div class="hj-ned"><b class="hj-c" data-til="87">87</b><small>dager igjen</small></div></div>'+
+  '<div class="hj-kl">'+[['C','Sjusjøen testløp','lør 14. nov · Sjusjøen'],['B','Beitostølen','lør 21. nov · Beitostølen · Sprint'],['B','NC Lillehammer','lør 23. jan · Lillehammer · Jaktstart']].map(function(r){return'<div><span class="pri '+r[0]+'">'+r[0]+'</span><div><b>'+r[1]+'</b><small>'+r[2]+'</small></div></div>'}).join('')+'</div></section>'},
+ helse:function(){return hjKort('Helse','i natt','<div class="hj-h4"><div><small>Hvilepuls</small><b>48</b><em>snitt 50</em></div><div><small>HRV</small><b>62</b><em>snitt 58</em></div><div><small>Søvn</small><b>7:32</b><em>score 84</em></div><div><small>Følelse</small><b>4<i>/5</i></b><em>ført</em></div></div><div class="sstripe" style="margin-top:10px"><i class="gro2" style="flex-basis:21%;background:#1A6FD4"></i><i class="gro2" style="flex-basis:52%;background:#38BDF8"></i><i class="gro2" style="flex-basis:23%;background:#8B5CF6"></i><i class="gro2" style="flex-basis:3%;background:#E8B93C"></i></div>'+
+  '<svg class="hj-hrv" viewBox="0 0 320 70" preserveAspectRatio="none"><path d="'+linjeSti(HRV,44,70,320,70)+'" fill="none" stroke="#1A6FD4" stroke-width="1.8" vector-effect="non-scaling-stroke"/><path d="'+linjeSti(HVP,44,58,320,70)+'" fill="none" stroke="#E23A5A" stroke-width="1.8" vector-effect="non-scaling-stroke"/></svg>')},
+ hard:function(){var W=1000,H=90;return hjKort('Siste hardøkt','Tir 15. sep','<h3 style="font-size:17px">2 × 10 min I3 + 3 × 5 min I4</h3><p class="hj-m">Skøyting · Skiskyting · Garmin</p>'+
+  '<div class="hj-kurve"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+OKT.map(function(b){return'<rect x="'+(b.s/TOT*W+1)+'" y="'+(H-H*blokkH(b))+'" width="'+((b.e-b.s)/TOT*W-2)+'" height="'+(H*blokkH(b))+'" fill="'+blokkFarge(b)+'" opacity="'+(b.t==='sky'?.35:.12)+'"/>'}).join('')+'<path d="'+kurveSti(W,H)+'" fill="none" stroke="#E23A5A" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg></div>'+
+  '<div class="segb" style="height:10px;margin-top:4px">'+OKT.map(function(b){return'<i style="flex:'+(b.e-b.s)+';background:'+(b.t==='oppv'?'#BBAA55':b.t==='ned'?'#64748B':b.t==='sky'?'#43434B':'#1E2AA8')+'"></i>'}).join('')+'</div>'+
+  '<div class="hj-nk6">'+[['Varighet','1t 20'],['Snittpuls','149'],['Laktat maks','4,6'],['Skyting','18/20'],['Belastning','96 TSS'],['Opplevd','7/10']].map(function(x){return'<div><small>'+x[0]+'</small><b>'+x[1]+'</b></div>'}).join('')+'</div>','hj-hardk')},
+ maal:function(){return hjKort('Hovedmål','2026/27','<h3>Topp 10 i NM</h3><p class="hj-m">226 dager til sesongslutt · 30. apr</p>'+hjBar('Timer hittil',38,620,'38 t','620 t · 6 %','#28A86E')+'<p class="hj-und">i rute · plan 6 % · 12,7 t/uke snitt</p>'+hjBar('Skudd hittil',1240,12000,'1 240','12 000 · 10 %','#28A86E')+'<p class="hj-und">i rute · plan 6 % · treff 88 %</p>')},
+ periode:function(){return hjKort('Periode','uke 3 av 9','<div style="display:flex;gap:8px;align-items:center"><h3 style="margin:0">Grunntrening</h3><span class="hj-int">Rolig</span></div><p class="hj-m">31. aug - 1. nov · 46 dager igjen</p><div class="hj-fb" style="margin-top:8px"><i class="gro" style="--w:26%;background:#1A6FD4"></i></div><p class="hj-und">Dag 17 av 63 · volum 12,7 t/uke snitt hittil</p>'+
+  '<div class="hj-tl">'+PER.map(function(p,i){return'<span style="flex:'+p[2].length+';background:'+(p[0]==='rolig'?'#28A86E':p[0]==='medium'?'#E8B93C':'#E23A5A')+';opacity:'+(i?.55:1)+(i?'':';outline:2px solid var(--a-ink);outline-offset:-1px')+'"></span>'}).join('')+'</div>'+
+  '<div class="hj-pl"><div><i style="background:#D4A017;border-radius:2px"></i><b>Livigno</b><small>8.-17. okt · høyde · 10 dager</small></div><div><i style="background:#E8B93C"></i><b>Oppbygging</b><small>2.-29. nov · 4 uker · Medium</small></div></div>','','--blaa:1')}
+};
+SC.push({kap:5,tittel:'ALT SAMLET PÅ HJEM.',tekst:'Dagens økt, uka mot planen, nedtelling til neste A-renn, formen fra natta, siste hardøkt, hovedmålet og perioden - ett blikk når du åpner appen.',
+ steg:['Dagen og uka','Konkurransen og målet','Formen og perioden'],varighet:9000,
+ html:function(){var mob=erMobil(),bredde=mob?380:1180;
+  var innhold=mob?(HJ.idag()+HJ.uke()+HJ.konk()):('<div class="hj-r1">'+HJ.idag()+HJ.uke()+HJ.konk()+'</div><div class="hj-r2">'+HJ.helse()+HJ.hard()+HJ.maal()+HJ.periode()+'</div>');
+  return'<div class="hj-ytre"><div class="app hj-ramme"><div class="hj-skala" style="width:'+bredde+'px"><div class="hj-inn '+(mob?'mob':'')+'">'+
+  '<div class="hj-hero a"><div class="xp-eyebrow"><span class="xp-beam"></span>Onsdag 16. september · Uke 38</div><h1>God morgen, Ola</h1><p>Uke 38 · <b>4 økter</b> · <b>6t 20min</b></p></div>'+innhold+'</div></div></div></div>'},
+ spill:function(S){function skaler(){var y=S.q('.hj-ytre'),sk=S.q('.hj-skala');if(!y||!sk)return;var bredde=parseFloat(sk.style.width),s=Math.min(1,y.clientWidth/bredde);sk.style.transform='scale('+s+')';var maxH=erMobil()?470:560;sk.parentNode.style.height=Math.min(sk.offsetHeight*s,maxH)+'px'}
+  S.t(0,skaler);S.steg(0,0);var kort=function(){return S.qa('.hjk,.hj-hero')};
+  S.t(150,function(){kort().forEach(function(k,i){k.style.transitionDelay=(i*110)+'ms';k.classList.add('inn')})});
+  S.t(700,function(){S.qa('.gro,.gro2').forEach(function(g){g.classList.add('inn')})});
+  S.tell('.hj-c[data-til="380"]',0,380,1000,700,function(v){v=Math.round(v);return Math.floor(v/60)+'t '+(v%60)+'m'});S.tell('.hj-konk .hj-c',140,87,1100,900);
+  S.steg(1,2800);S.t(2800,function(){var k=S.q('.hj-konk');if(k)k.classList.add('glod')});S.steg(2,5200);S.t(5200,function(){var h=S.q('.hj-hardk');if(h)h.classList.add('glod')});S.steg(3,7600)}
+});
+
+/* ═════════════════ DETALJENE SOM AVGJØR - samme motor som flyt-bolken ═════════════════ */
+var KAP2=[{n:'Skyting',ik:'skyting'},{n:'Plan mot faktisk',ik:'fullfort'},{n:'Prestasjon og belastning',ik:'laktat'},{n:'Soner',ik:'puls'},{n:'Maler',ik:'standardokt-serie'},{n:'Utstyr',ik:'ski'}];
+var SC2=[];
+function drStolpe(navn,pct,farge,skudd,lite){return'<div class="dr-m"><span>'+navn+'</span><i><b class="dr-gro" style="--w:'+(lite?0:pct)+'%;background:'+farge+'"></b></i><em>'+(lite?'for lite data · '+skudd:pct.toFixed(1).replace('.',',')+' % <small>· '+skudd+' skudd</small>')+'</em></div>'}
+function drSkive(stilling,farge,treff,tekst){var celler='';treff.forEach(function(c,i){celler+='<rect class="dr-hm" style="transition-delay:'+(i*25)+'ms" x="'+(c[0]*10)+'" y="'+(c[1]*10)+'" width="10" height="10" fill="'+farge+'" fill-opacity="'+(.15+.85*c[2])+'"/>'});
+ return'<div class="dr-sk"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="var(--a-flate)"/>'+celler+'<circle cx="50" cy="50" r="42" fill="none" stroke="#8A8A96" stroke-width="1"/>'+(stilling==='L'?'<circle cx="50" cy="50" r="19.3" fill="none" stroke="var(--a-ink)" stroke-width=".8" stroke-dasharray="2 2"/>':'')+'<path d="M50 4V96M4 50H96" stroke="var(--a-kant)" stroke-width=".4"/></svg><small>'+tekst+'</small></div>'}
+var HM_L=[[4,4,1],[5,4,.8],[4,5,.9],[5,5,.7],[3,4,.3],[5,3,.35],[4,3,.25],[6,5,.2],[3,5,.2]],HM_S=[[4,4,.6],[5,4,.7],[4,5,.5],[5,5,1],[6,5,.55],[6,4,.4],[3,4,.3],[5,6,.45],[4,6,.25],[6,6,.3],[7,5,.2],[3,3,.15]];
+var HM_L30=[[4,4,1],[5,4,.6],[4,5,.7],[5,5,.9],[4,3,.2],[6,4,.2]],HM_S30=[[4,4,.5],[5,4,.8],[5,5,1],[6,5,.7],[6,4,.5],[7,4,.3],[5,6,.3],[6,6,.35]];
+function drPil(tekst,kl,stil){return'<span class="dr-pl '+(kl||'')+'" style="'+(stil||'')+'">'+tekst+'</span>'}
+function trykk(S,sel){var k=S.q(sel);if(!k)return;k.classList.add('trykk');setTimeout(function(){k.classList.remove('trykk')},220)}
+
+/* ── D1 · PLOTT HVERT SKUDD ── */
+SC2.push({kap:0,tittel:'PLOTT HVERT SKUDD.',tekst:'Treff og bom der skuddet satt, per serie, liggende og stående. Vind og sikt føres for hver serie, og pulsen inn leses fra kurven.',
+ steg:['Liggende','Stående','Velg vimpel og sikt'],varighet:11500,
+ html:function(){return'<div class="app sp dr-plott2">'+'<div class="sp-hd">'+ik('skyting','s')+'<span class="bebas">Skuddplott</span><span class="sum">Sum <b class="sumt">0/10</b> · snitt tid <b>28,4 s</b></span></div>'+
+  SERIER.map(function(s,si){return'<div class="sgr" data-s="'+si+'"><div class="sgr-h"><i class="kv" style="background:'+s.gc+'"></i><span style="color:'+s.gc+'">'+s.navn+'</span><span class="pl">· '+(si+1)+'. skyting · '+ik('klokke','s')+s.plass+'</span><span class="s">Treff <b class="st">0/5</b></span></div>'+
+   '<div class="blinker">'+s.skudd.map(function(_,i){return'<div class="blink">'+blinkSvg(s,i)+'</div>'}).join('')+'</div>'+
+   '<div class="dr-ser"><span class="ls" style="background:'+(s.ls==='L'?'#1A6FD4':'#FF8C00')+'">'+s.ls+'</span><span>Tid <b>'+s.tid+' s</b></span><span class="auto">AUTO '+s.puls+'</span><span class="vimpelk">'+vimpelSvg(null,0,22)+'</span><span class="vs a">'+vimpelSvg(s.vind[0],s.vind[1],22)+s.vind[2]+' '+taakeSvg(s.vind[3])+s.vind[4]+'</span></div></div>'}).join('')+'<div class="vsm"><div class="vsm-h"><span class="vsm-ik">'+vimpelSvg(null,0,22)+'</span><span class="bebas">VIND &amp; SIKT</span><span class="vsm-s">Serie 1 · Liggende</span></div>'+'<p class="vsm-cap">Vimpel - trykk den som ligner</p><div class="vsm-rad">'+[['V',5],['V',4],['V',3],['V',2],['V',1],[null,0],['H',1],['H',2],['H',3],['H',4],['H',5]].map(function(st,i){return'<span class="vsm-st" data-i="'+i+'">'+vimpelSvg(st[0],st[1],38)+'<em>'+(st[1]?st[0]+st[1]:'0')+'</em></span>'}).join('')+'</div>'+'<p class="vsm-val">Ingen vind valgt</p><p class="vsm-cap">Sikt</p><div class="vsm-sikt">'+[['God sikt',0],['Lett tåke',1],['Tåke',2],['Tett tåke',3]].map(function(x,i){return'<span class="vsm-si" data-i="'+i+'">'+taakeSvg(x[1])+x[0]+'</span>'}).join('')+'</div>'+'<div class="vsm-kn"><span class="dr-pl sm">Avbryt</span><span class="dr-pl sm vsm-lagre" style="background:#FF4500;border-color:#FF4500;color:#fff">Lagre</span></div></div>'+'</div>'},
+ spill:function(S){var tot=0;SERIER.forEach(function(s,si){var t0=300+si*2600;S.steg(si,t0);S.t(t0,function(){S.qa('[data-s="'+si+'"] .skive').forEach(function(k){k.style.fill='var(--a-card)'})});
+   s.skudd.forEach(function(p,i){var at=t0+250+i*400;S.til(S.qa?'[data-s="'+si+'"] .blink:nth-child('+(i+1)+') svg':'',at-300);S.t(at+120,function(){S.qa('[data-s="'+si+'"] .skudd')[i].classList.add('inn');
+    var n=S.qa('[data-s="'+si+'"] .skudd.inn').filter(function(x,j){var q=s.skudd[j];return Math.hypot(q[0],q[1])<=(s.ls==='L'?.23:.5)}).length;S.q('[data-s="'+si+'"] .st').textContent=n+'/5';S.q('.sumt').textContent=(si===0?n:5+n)+'/10'})})});
+  S.steg(2,5700);S.til('[data-s="0"] .vimpelk',5700,true,400);S.t(6100,function(){S.q('.vsm').classList.add('inn')});
+  S.til('.vsm-st[data-i="7"]',6600,true,400);S.t(7000,function(){S.q('.vsm-st[data-i="7"]').classList.add('on');S.q('.vsm-val').innerHTML='Vimpel <b style="color:#E23A5A">H2</b> · fra høyre';S.q('.vsm-ik').innerHTML=vimpelSvg('H',2,22)});
+  S.til('.vsm-si[data-i="0"]',7500,true,400);S.t(7900,function(){S.q('.vsm-si[data-i="0"]').classList.add('on')});
+  S.til('.vsm-lagre',8400,true,400);S.t(8800,function(){S.q('.vsm').classList.remove('inn');S.q('[data-s="0"] .vimpelk').style.display='none';S.q('[data-s="0"] .vs').classList.add('inn')});
+  S.til('[data-s="1"] .vimpelk',9200,true,350);S.t(9550,function(){S.q('[data-s="1"] .vimpelk').style.display='none';S.q('[data-s="1"] .vs').classList.add('inn')});
+  S.bort(9800);S.steg(3,10000)}
+});
+
+/* ── D2 · SKYTEANALYSE ── */
+SC2.push({kap:0,tittel:'SE HVA VINDEN GJØR MED TREFFET.',tekst:'Treff % i vind og sikt, liggende og stående side om side. Og hvor på skiva du treffer - hele perioden, siste 30 dager eller i konkurranse.',
+ steg:['Treff % i vind','Hvor du treffer','Siste 30 dager'],varighet:9000,
+ html:function(){return'<div class="dr-to"><div class="app dr-app2"><div class="dr-kt">Treff% i vind og sikt</div><div class="dr-ku">Under 20 førte skudd står det «for lite data»</div>'+
+  '<div class="dr-chips"><span class="dr-chip on">Sider hver for seg</span><span class="dr-chip">Slått sammen</span></div>'+
+  '<div class="dr-rad"><b>V3 ← venstre</b>'+drStolpe('Liggende',84.0,'#38BDF8',132)+drStolpe('Stående',71.3,'#FF4500',128)+'</div>'+
+  '<div class="dr-rad"><b>Vindstille</b>'+drStolpe('Liggende',93.8,'#38BDF8',210)+drStolpe('Stående',86.1,'#FF4500',206)+'</div>'+
+  '<div class="dr-rad"><b>H2 → høyre</b>'+drStolpe('Liggende',88.2,'#38BDF8',94)+drStolpe('Stående',76.0,'#FF4500',96)+'</div>'+
+  '<div class="dr-rad"><b>H4 → høyre</b>'+drStolpe('Liggende',0,'#38BDF8',12,1)+drStolpe('Stående',0,'#FF4500',10,1)+'</div></div>'+
+  '<div class="app dr-app2"><div class="dr-kt">Skuddplott - hvor treffer du</div><div class="dr-ku">Tetthet per stilling · stiplet ring = liggende-sonen</div>'+
+  '<div class="dr-chips"><span class="dr-chip on" data-p="hele">Hele perioden</span><span class="dr-chip" data-p="30">Siste 30 d</span><span class="dr-chip skjul-m">Konkurranse</span></div>'+
+  '<div class="dr-sks hm-hele">'+drSkive('L','#38BDF8',HM_L,'Liggende · 48 skudd · 44 treff')+drSkive('S','#FF4500',HM_S,'Stående · 48 skudd · 39 treff')+'</div>'+
+  '<div class="dr-sks hm-30" style="display:none">'+drSkive('L','#38BDF8',HM_L30,'Liggende · 20 skudd · 19 treff')+drSkive('S','#FF4500',HM_S30,'Stående · 20 skudd · 17 treff')+'</div></div></div>'},
+ spill:function(S){S.steg(0,0);S.t(300,function(){S.qa('.dr-gro').forEach(function(g,i){g.style.transitionDelay=(i*70)+'ms';g.classList.add('inn')})});
+  S.steg(1,2800);S.t(2900,function(){S.qa('.hm-hele .dr-hm').forEach(function(g){g.classList.add('inn')})});
+  S.steg(2,5200);S.til('.dr-chip[data-p="30"]',5200,true,450);S.t(5650,function(){S.q('.dr-chip[data-p="hele"]').classList.remove('on');S.q('.dr-chip[data-p="30"]').classList.add('on');S.q('.hm-hele').style.display='none';var h=S.q('.hm-30');h.style.display='';requestAnimationFrame(function(){requestAnimationFrame(function(){h.querySelectorAll('.dr-hm').forEach(function(g){g.classList.add('inn')})})});if(S.still)h.querySelectorAll('.dr-hm').forEach(function(g){g.classList.add('inn')})});
+  S.bort(6200);S.steg(3,7600)}
+});
+
+/* ── D3 · PLAN MOT GJENNOMFØRT ── */
+var D3_SPLIT=[['#28A86E','Oppvarming','20:12 · 5,1 km · 128 bpm'],['#E8B93C','Drag 1','10:04 · 3,2 km · 163 bpm'],['#43434B','Skyting L','5/5 · 27,9 s'],['#E8B93C','Drag 2','10:11 · 3,2 km · 165 bpm'],['#43434B','Skyting S','4/5 · 29,0 s'],['#FF8C00','Drag 3','5:02 · 1,7 km · 174 bpm'],['#FF8C00','Drag 4','4:58 · 1,7 km · 176 bpm'],['#FF8C00','Drag 5','5:04 · 1,7 km · 178 bpm'],['#28A86E','Nedjogg','17:40 · 3,9 km · 131 bpm']];
+var D3_SAM=[['','Oppvarming','0:20:12 · 5,1 km · 128 bpm','#28A86E'],['2 × 10 min I3 · 3 min pause','Drag','0:26:15 · 6,4 km · 164 bpm · 9/10 treff','#E8B93C'],['3 × 5 min I4 · 2 min pause','Drag','0:19:04 · 5,1 km · 176 bpm · 9/10 treff','#FF8C00'],['','Nedjogg','0:17:40 · 3,9 km · 131 bpm','#28A86E']];
+SC2.push({kap:1,tittel:'PLANEN STÅR. SANNHETEN VED SIDEN AV.',tekst:'Marker planen som gjennomført med ett trykk - eller flett klokkeøkta inn. Plan og faktisk leses rad for rad, og aktivitetene vises splittet eller samlet.',
+ steg:['Marker som gjennomført','Plan mot faktisk','Splittet og samlet'],varighet:11500,
+ html:function(){return'<div class="app dr-app2" style="max-width:520px">'+
+  '<div class="dr-ph"><span class="bebas">Terskel komb</span><span class="dr-status">Planlagt</span></div><p class="dr-hj" style="margin:0 0 10px">Tir 15. sep · Skiskyting · 1:20</p>'+
+  '<div class="dr-mk"><span class="dr-mgj">'+ik('fullfort','s')+'Marker som gjennomført</span><span class="dr-live">Start live</span></div>'+
+  '<span class="dr-sefullfort" style="display:none">'+ik('fullfort','s')+'Se fullført økt</span>'+
+  '<div class="dr-pvf"><div class="dr-pvfh"><span class="strek" style="width:16px;height:2px"></span>Plan vs faktisk</div><div class="dr-pvfk"><span>Planlagt</span><span>Faktisk</span></div>'+
+  [['Oppvarming','20:00','20:12','g'],['2 × 10 min I3','23:00','23:15','g'],['3 × 5 min I4','19:00','19:04','g'],['Nedjogg','15:00','17:40','o']].map(function(r){return'<div class="dr-pvfr dr-a"><div><b>'+r[0]+'</b><em>'+r[1]+'</em></div><div><b>'+r[0]+'</b><em class="'+r[3]+'">'+r[2]+'</em></div></div>'}).join('')+
+  '<div class="dr-leg"><span><i style="background:#28A86E"></i>innenfor 10%</span><span><i style="background:#FF9500"></i>&gt;10% avvik</span></div></div>'+
+  '<div class="d3-akt" style="display:none"><div class="d3-akth"><span class="strek" style="width:16px;height:2px"></span>Aktiviteter<em class="d3-modus">Kronologisk</em></div>'+
+  '<div class="dr-sam"><span class="dr-pl on" data-m="split">Splittet</span><span class="dr-pl" data-m="sam">Samlet</span><span class="dr-pl skjul-m">Samle alt</span></div><p class="dr-hj dr-hjt">Hver rad for seg.</p>'+
+  '<div class="d3-split">'+D3_SPLIT.map(function(r){return'<div class="d3-r dr-a"><i style="background:'+r[0]+'"></i><b>'+r[1]+'</b><span>'+r[2]+'</span></div>'}).join('')+'</div>'+
+  '<div class="d3-sam" style="display:none">'+D3_SAM.map(function(r){return'<div class="d3-g dr-a">'+(r[0]?'<span class="d3-pill">'+r[0]+'</span>':'')+'<div class="d3-gl"><b>'+r[1]+'</b><i style="background:'+r[3]+'"></i></div><span>'+r[2]+'</span></div>'}).join('')+'</div></div></div>'},
+ spill:function(S){function vis(el){el.style.display='';var run=function(){el.querySelectorAll('.dr-a').forEach(function(r,i){r.style.transitionDelay=(i*70)+'ms';r.classList.add('inn')})};if(S.still)run();else requestAnimationFrame(function(){requestAnimationFrame(run)})}
+  S.steg(0,0);S.til('.dr-mgj',400,true,450);S.t(850,function(){trykk(S,'.dr-mgj')});
+  S.t(1150,function(){S.q('.dr-mk').style.display='none';S.q('.dr-sefullfort').style.display='';var s=S.q('.dr-status');s.textContent='Gjennomført';s.classList.add('ok')});S.bort(1300);
+  S.steg(1,1700);S.t(1800,function(){S.qa('.dr-pvfr').forEach(function(r,i){r.style.transitionDelay=(i*140)+'ms';r.classList.add('inn')})});
+  S.steg(2,4300);S.t(4300,function(){S.q('.dr-pvf').style.display='none';vis(S.q('.d3-akt'));vis(S.q('.d3-split'))});
+  S.til('.dr-pl[data-m="sam"]',6600,true,450);S.t(7050,function(){S.q('.dr-pl[data-m="split"]').classList.remove('on');S.q('.dr-pl[data-m="sam"]').classList.add('on');S.q('.dr-hjt').textContent='Like rader vises som én - dataene er fortsatt splittet.';S.q('.d3-modus').textContent='Samlet';
+   var sp=S.q('.d3-split');sp.querySelectorAll('.dr-a').forEach(function(r){r.classList.remove('inn')});setTimeout(function(){sp.style.display='none';vis(S.q('.d3-sam'))},S.still?0:260);if(S.still){sp.style.display='none';vis(S.q('.d3-sam'))}});
+  S.bort(7400);S.steg(3,9500)}
+});
+
+/* ── D4 · PRESTASJON OG BELASTNING ── */
+var LAK=[[1.2,128],[1.5,134],[1.9,141],[2.1,146],[2.6,152],[2.9,156],[3.3,161],[3.8,167],[4.2,172],[4.6,175],[5.4,181],[6.1,186]];
+function drLakGraf(){var W=300,H=160;function x(v){return 26+v/7*(W-36)}function y(v){return H-18-(v-120)/75*(H-30)}
+ var s='<svg viewBox="0 0 '+W+' '+H+'">';[130,150,170,190].forEach(function(v){s+='<line x1="26" x2="'+(W-10)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--a-line)"/><text x="22" y="'+(y(v)+3)+'" text-anchor="end" font-size="8" fill="var(--a-mute)" font-family="Barlow">'+v+'</text>'});
+ [1,2,3,4,5,6].forEach(function(v){s+='<text x="'+x(v)+'" y="'+(H-5)+'" text-anchor="middle" font-size="8" fill="var(--a-mute)" font-family="Barlow">'+v+'</text>'});
+ s+='<line x1="'+x(2)+'" x2="'+x(2)+'" y1="8" y2="'+(H-18)+'" stroke="#28A86E" stroke-dasharray="3 3"/><text x="'+x(2)+'" y="8" text-anchor="middle" font-size="9" font-weight="700" fill="#28A86E" font-family="Barlow Condensed">LT1</text>';
+ s+='<line x1="'+x(4)+'" x2="'+x(4)+'" y1="8" y2="'+(H-18)+'" stroke="#E23A5A" stroke-dasharray="3 3"/><text x="'+x(4)+'" y="8" text-anchor="middle" font-size="9" font-weight="700" fill="#E23A5A" font-family="Barlow Condensed">LT2</text>';
+ s+='<line class="dr-reg" x1="'+x(.5)+'" y1="'+y(122)+'" x2="'+x(6.5)+'" y2="'+y(191)+'" stroke="#38BDF8" stroke-width="2" pathLength="1"/>';
+ LAK.forEach(function(p,i){s+='<circle class="dr-pk" style="transition-delay:'+(i*60)+'ms" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="3.4" fill="#FF4500"/>'});return s+'</svg>'}
+function drBelGraf(){var W=300,H=150,n=20,bw=(W-10)/n;var c=46,a=50,C=[],A=[],T=[],TSS=[];for(var i=0;i<n;i++){var t=380+i*14+((i%4===3)?-160:40)+(i%2?30:-10);TSS.push(t);c+=(t/7-c)*.22;a+=(t/7-a)*.55;C.push(c);A.push(a);T.push(c-a+50)}
+ function y(v){return H-14-(v/110)*(H-24)}function sti(arr){return arr.map(function(v,i){return(i?'L':'M')+(5+(i+.5)*bw).toFixed(1)+' '+y(v).toFixed(1)}).join('')}
+ var s='<svg viewBox="0 0 '+W+' '+H+'">'+TSS.map(function(t,i){var h=(t/7)/190*(H-24);return'<rect class="dr-bar2" style="transition-delay:'+(i*30)+'ms" x="'+(5+i*bw+bw*.2)+'" y="'+(H-14-h)+'" width="'+(bw*.6)+'" height="'+h+'" fill="#E8B93C" opacity=".35"/>'}).join('')+
+  '<line x1="5" x2="'+(W-5)+'" y1="'+y(50)+'" y2="'+y(50)+'" stroke="#555560" stroke-dasharray="2 2"/>';
+ [[C,'#38BDF8',2],[A,'#E23A5A',1.5],[T,'#28A86E',2]].forEach(function(l,i){s+='<path class="dr-reg" style="transition-delay:'+(i*.25)+'s" d="'+sti(l[0])+'" fill="none" stroke="'+l[1]+'" stroke-width="'+l[2]+'" pathLength="1"/>'});
+ return s+'</svg>'}
+SC2.push({kap:2,tittel:'LAKTAT, TERSKEL OG BELASTNING.',tekst:'Laktat mot puls regner ut terskelen for hver økt og følger den over tid. Belastningsmodellen viser form, tretthet og overskudd - og FTP-estimat, NP/IF og frakobling ligger under.',
+ steg:['Laktatprofil og terskel','Form, tretthet og overskudd','Watt og aerob form'],varighet:11000,
+ html:function(){return'<div class="app dr-app2" style="max-width:520px"><div class="dr-tabs"><span class="on" data-t="lak">Terskel</span><span data-t="bel">Belastning</span><span data-t="pre">Prestasjon</span></div>'+
+  '<div class="p-lak"><div class="dr-kt">Laktatprofil - mmol/L vs puls</div><div class="dr-ku">Hver måling er ett punkt · blå linje = regresjon</div>'+drLakGraf()+
+  '<div class="dr-mc"><div style="--c:#28A86E"><small>LT1 (2 mmol)</small><b class="d4-lt1">0</b><em>aerob terskel</em></div><div style="--c:#E23A5A"><small>LT2 (4 mmol)</small><b class="d4-lt2">0</b><em>anaerob terskel</em></div><div style="--c:#38BDF8"><small>Datapunkter</small><b>12</b><em>R² = 97%</em></div></div></div>'+
+  '<div class="p-bel" style="display:none"><div class="dr-kt">Custom belastningsgraf</div><div class="dr-ku">TSS per uke · CTL form · ATL tretthet · TSB overskudd</div>'+
+  '<div class="dr-chips"><span class="dr-chip2" style="--c:#E8B93C">TSS</span><span class="dr-chip2" style="--c:#38BDF8">CTL</span><span class="dr-chip2" style="--c:#E23A5A">ATL</span><span class="dr-chip2" style="--c:#28A86E">TSB</span></div>'+drBelGraf()+
+  '<div class="dr-mc"><div style="--c:#38BDF8"><small>CTL nå</small><b>78</b><em>form</em></div><div style="--c:#E23A5A"><small>ATL</small><b>66</b><em>tretthet</em></div><div style="--c:#28A86E"><small>TSB</small><b>+12</b><em>overskudd</em></div></div></div>'+
+  '<div class="p-pre" style="display:none"><div class="dr-kt">Watt og aerob form</div><div class="dr-ku">Beregnet fra øktene - estimater skrives aldri automatisk</div>'+
+  '<div class="dr-mc" style="grid-template-columns:1fr 1fr"><div style="--c:#E8B93C"><small>FTP-estimat</small><b>312 W</b><em>beste 20 min × 0,95</em></div><div style="--c:#1A6FD4"><small>Watt per kg</small><b>4,21</b><em>FTP 310 W · 73,6 kg</em></div><div style="--c:#FF4500"><small>NP · IF</small><b>286 · 0,92</b><em>siste terskeløkt</em></div><div style="--c:#28A86E"><small>Frakobling</small><b>3,1 %</b><em>god (&lt; 5 %)</em></div><div style="--c:#3DD68C"><small>Effektivitet (EF)</small><b>1,62 ↑</b><em>rolige økter</em></div><div style="--c:#1F8F5C"><small>GAP-tempo</small><b>4:12</b><em>stigningsjustert</em></div></div></div></div>'},
+ spill:function(S){function fane(t){S.qa('.dr-tabs span').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['lak','bel','pre'].forEach(function(k){S.q('.p-'+k).style.display=k===t?'':'none'})}
+  S.steg(0,0);S.t(300,function(){S.qa('.p-lak .dr-pk').forEach(function(g){g.classList.add('inn')})});S.t(900,function(){S.q('.p-lak .dr-reg').classList.add('inn')});
+  S.tell('.d4-lt1',100,146,900,1800);S.tell('.d4-lt2',100,171,900,1800);
+  S.steg(1,4000);S.til('.dr-tabs [data-t="bel"]',4000,true,450);S.t(4450,function(){fane('bel');var run=function(){S.qa('.p-bel .dr-bar2,.p-bel .dr-reg').forEach(function(g){g.classList.add('inn')});S.qa('.p-bel .dr-chip2').forEach(function(g){g.classList.add('on')})};if(S.still)run();else requestAnimationFrame(function(){requestAnimationFrame(run)})});
+  S.steg(2,7600);S.til('.dr-tabs [data-t="pre"]',7600,true,450);S.t(8050,function(){fane('pre');S.qa('.p-pre .dr-mc>div').forEach(function(d,i){d.style.transitionDelay=(i*90)+'ms';d.classList.add('inn')})});S.bort(8300);S.steg(3,10000)}
+});
+
+/* ── D5 · TERSKLER OG SONER ── */
+var SONER=[['I1','#28A86E','106','136'],['I2','#1A6FD4','136','155'],['I3','#E8B93C','155','164'],['I4','#FF8C00','164','174'],['I5','#E23A5A','174','184']];
+SC2.push({kap:3,tittel:'DINE SONER. PER BEVEGELSESFORM.',tekst:'Terskelpuls, terskelfart og FTP per bevegelsesform og underkategori, versjonert per dato. Egne soner der du vil - Olympiatoppens standard ellers.',
+ steg:['Terskel per bevegelsesform','Egne soner','Utvidet skala I6-I8'],varighet:9000,
+ html:function(){return'<div class="app dr-app2" style="max-width:500px"><div class="dr-tr"><div><b>Langrenn · Skøyting</b><small>underkategori av langrenn</small></div><span class="dr-egne" style="opacity:0">Egne soner</span></div>'+
+  '<div class="dr-tv"><div><small>Terskelpuls</small><b class="d5-tp">168</b></div><div><small>Terskelfart</small><b>-</b></div><div><small>FTP</small><b>-</b></div><div><small>Gjelder fra</small><b class="d5-gf">3. mar</b></div></div>'+
+  '<p class="dr-hist">Historikk: 168 ▲ 3. mar - terskelen overskrives aldri, den versjoneres.</p>'+
+  '<div class="dr-bryter"><i class="d5-b1"></i>Egne soner for denne bevegelsesformen</div>'+
+  SONER.map(function(z){return'<div class="dr-sone dr-a"><span style="background:'+z[1]+'">'+z[0]+'</span><em>'+z[2]+'</em>-<em>'+z[3]+'</em><small>bpm</small></div>'}).join('')+
+  '<div class="dr-i68"><i class="dr-bryt2 d5-b2"></i><span>Utvidet skala</span><b style="background:#7C3AED">I6</b><b style="background:#E879F9">I7</b><b style="background:#881337">I8</b></div></div>'},
+ spill:function(S){S.steg(0,0);S.til('.d5-tp',400,true,450);S.t(850,function(){var e=S.q('.d5-tp');e.textContent='172';e.parentNode.classList.add('glod2');S.q('.d5-gf').textContent='1. sep';S.q('.dr-hist').textContent='Historikk: 168 → 172 ▲ 1. sep - terskelen overskrives aldri, den versjoneres.'});
+  S.steg(1,2600);S.til('.d5-b1',2600,true,450);S.t(3050,function(){S.q('.d5-b1').classList.add('on');S.q('.dr-egne').style.opacity=1;S.qa('.dr-sone').forEach(function(r,i){r.style.transitionDelay=(i*110)+'ms';r.classList.add('inn')})});
+  S.steg(2,5400);S.til('.d5-b2',5400,true,450);S.t(5850,function(){S.q('.d5-b2').classList.add('on');S.q('.dr-i68').classList.add('on')});S.bort(6100);S.steg(3,7600)}
+});
+
+/* ── D6 · MALER ── */
+SC2.push({kap:4,tittel:'BYGG ÉN GANG. BRUK HELE SESONGEN.',tekst:'Øktmaler, testmaler og planmaler du legger rett inn på en dato - og standardøkter du følger over tid. 58 økter på Olympiatoppens skala ligger klare i øktskjemaet.',
+ steg:['Økt- og testmaler','Bruk på dato','Planmaler'],varighet:9500,
+ html:function(){return'<div class="app dr-app2" style="max-width:520px;position:relative"><div class="dr-tabs"><span class="on" data-t="okt">Økt-maler</span><span data-t="plan">Plan-maler</span><span data-t="std">'+ik('standardokt-serie','s')+'Standardøkter</span></div>'+
+  '<div class="d6-okt">'+[['Terskel komb 2×10 I3 + 3×5 I4','Terskel · Skiskyting · Brukt 8× · Sist: 15. sep','',1],['Terskeltest 3 × 10 min','Test · Test-mal · Løping · Brukt 3×','laktat',0],['Hard komb 5 × 4 min','Intervall · Skiskyting · Brukt 5×','',0]].map(function(m,i){return'<div class="dr-mal dr-a" data-i="'+i+'"><div><b>'+(m[2]?ik(m[2],'s','width:14px;height:14px;color:#D4A017'):'')+(m[3]?ik('standardokt-serie','s','width:14px;height:14px;color:#FF8A5C'):'')+m[0]+'</b><small>'+m[1]+'</small></div><span class="dr-pl sm">Bruk på dato</span></div>'}).join('')+'</div>'+
+  '<div class="d6-plan" style="display:none">'+[['Grunnuke - 12 t','Plan-mal · 7 dager · 9 økter'],['Høydesamling 10 dager','Plan-mal · 10 dager · 16 økter'],['Konkurranseuke A','Plan-mal · 7 dager · 6 økter']].map(function(m){return'<div class="dr-mal dr-a"><div><b>'+m[0]+'</b><small>'+m[1]+'</small></div><span class="dr-pl sm">Bruk på dato</span></div>'}).join('')+'</div>'+
+  '<div class="dr-fra"><small>Fra mal i øktskjemaet</small><div>'+['6 × 6 min / 2 min','Hard komb 5 × 4 min','30/15 × 3 serier'].map(function(x){return'<span>'+ik('bibliotek','s')+x+'</span>'}).join('')+'</div><em>58 økter på Olympiatoppens skala - alt kan endres etter valg</em></div>'+
+  '<div class="d6-dlg"><div class="dr-pvfh" style="margin-bottom:6px"><span class="strek" style="width:16px;height:2px"></span>Bruk mal på dato</div><p class="dr-hj" style="margin:0 0 8px">Sett inn <b>Terskel komb</b> som planlagt økt på valgt dato i din Plan-kalender.</p><div class="felt" style="justify-content:flex-start;padding:0 10px;height:34px;font-size:14px">Tor 24. sep</div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px"><span class="dr-pl sm">Avbryt</span><span class="dr-pl sm d6-bekreft" style="background:#FF4500;border-color:#FF4500;color:#fff">Bekreft</span></div></div>'+
+  '<div class="toast">'+ik('fullfort','s')+'Lagt inn tor 24. sep</div></div>'},
+ spill:function(S){S.steg(0,0);S.t(250,function(){S.qa('.d6-okt .dr-mal').forEach(function(m,i){m.style.transitionDelay=(i*110)+'ms';m.classList.add('inn')})});
+  S.steg(1,2000);S.til('.d6-okt .dr-mal[data-i="0"] .dr-pl',2000,true,450);S.t(2450,function(){S.q('.d6-dlg').classList.add('inn')});
+  S.til('.d6-bekreft',3300,true,450);S.t(3750,function(){S.q('.d6-dlg').classList.remove('inn');S.q('.toast').classList.add('inn')});S.t(5200,function(){S.q('.toast').classList.remove('inn')});
+  S.steg(2,5600);S.til('.dr-tabs [data-t="plan"]',5600,true,450);S.t(6050,function(){S.qa('.dr-tabs span').forEach(function(x){x.classList.toggle('on',x.dataset.t==='plan')});S.q('.d6-okt').style.display='none';var p=S.q('.d6-plan');p.style.display='';var run=function(){p.querySelectorAll('.dr-mal').forEach(function(m,i){m.style.transitionDelay=(i*110)+'ms';m.classList.add('inn')})};if(S.still)run();else requestAnimationFrame(function(){requestAnimationFrame(run)})});
+  S.bort(6300);S.steg(3,8200)}
+});
+
+/* ── D7 · SKITEST OG SKIPARK ── */
+SC2.push({kap:5,tittel:'VIT HVILKE SKI SOM GÅR.',tekst:'Skiparken med km, slip og smøring per par. Tidtaker-, lengde- og parallelltester med forholdene registrert - og alt annet utstyr, fra sko til båt.',
+ steg:['Skiparken','Parallelltesten','Rangeringen'],varighet:9500,
+ html:function(){return'<div class="dr-to"><div class="app dr-app2"><div class="dr-ski"><div class="dr-skit"><b>Redline 3.0 #2</b><span class="dr-tag g">'+ik('konkurranse','s')+'KONK</span><span class="dr-tag b">SKØYTING</span></div><small>Madshus Redline · 187 cm · Slip: S1-7 kald (2026)</small>'+
+  '<div class="dr-skikm"><b class="d7-km">0</b><span>KM</span><em>Smøring: HF7</em></div><i class="dr-bar"><b class="dr-gro" style="--w:78%"></b></i><small>312 KM SIDEN SISTE SLIP · 42 ØKTER</small></div>'+
+  '<div class="dr-ski" style="margin-top:8px"><div class="dr-skit"><b>Speedmax #1</b><span class="dr-tag g">'+ik('konkurranse','s')+'KONK</span><span class="dr-tag b">SKØYTING</span></div><small>Fischer Speedmax · 187 cm · Slip: P5-1 (2025)</small>'+
+  '<div class="dr-skikm"><b class="d7-km2">0</b><span>KM</span><em>Smøring: HF7</em></div><i class="dr-bar"><b class="dr-gro" style="--w:52%"></b></i><small>188 KM SIDEN SISTE SLIP · 29 ØKTER</small></div></div>'+
+  '<div class="app dr-app2"><div class="dr-kt">Parallelltesten - to og to · vinneren videre</div><p class="dr-hj" style="margin:2px 0 6px">Sjusjøen · klart · hardpakket · luft -8° · snø -10°</p><div class="dr-brak">'+
+  '<div><small>Runde 1</small><span class="p1a">#2 Redline</span><span class="p1b">#4 Redline</span><span class="p2a">#1 Speedmax</span><span class="p2b">#3 Speedmax</span></div>'+
+  '<div><small>Finale</small><span class="f1 dr-a">#2 Redline</span><span class="f2 dr-a">#1 Speedmax</span></div></div>'+
+  '<div class="dr-rang dr-a"><small>Rangering</small><div><b>1</b>Redline 3.0 #2 '+ik('favoritt','f','width:12px;height:12px;color:#D4A017')+'</div><div><b>2</b>Speedmax #1</div><div><b>3</b>Redline #4</div><div><b>4</b>Speedmax #3</div></div></div></div>'},
+ spill:function(S){S.steg(0,0);S.tell('.d7-km',0,812,1000,300);S.tell('.d7-km2',0,540,1000,300);S.t(300,function(){S.qa('.dr-gro').forEach(function(g){g.classList.add('inn')})});
+  S.steg(1,2600);S.til('.p1a',2600,true,400);S.t(3000,function(){S.q('.p1a').classList.add('w')});S.til('.p2a',3700,true,400);S.t(4100,function(){S.q('.p2a').classList.add('w')});
+  S.t(4600,function(){S.q('.f1').classList.add('inn');S.q('.f2').classList.add('inn')});
+  S.steg(2,5600);S.til('.f1',5600,true,400);S.t(6000,function(){S.q('.f1').classList.add('w')});S.inn('.dr-rang',6700);S.bort(6900);S.steg(3,8200)}
+});
+var MER2=[
+ ['Skuddplott per serie: hvert skudd der det satt, nummerert og farget per serie','Liggende og stående, L/S-bryter per serie','Vind (vimpel, 11 tilstander) og sikt ført per serie - forrige series verdi foreslås','Puls inn merket AUTO er lest fra pulskurven - manuelt ført (M) vinner alltid','Samme serier som skyting-kortene og statistikken - endringer slår gjennom overalt'],
+ ['Treff % i vind og sikt - under 20 førte skudd står det «for lite data», ikke et tall','Vindretning: sider hver for seg, slått sammen, fra venstre eller fra høyre','Skuddplott-heatmap per stilling: hele perioden, siste 30 eller 90 dager, konkurranse','Bom-retning over tid - høyre, venstre, over og under per måned','Treff mot puls inn og mot skytetid, treff % per stilling over tid'],
+ ['«Marker som gjennomført» - planen står urørt, dagboka får sannheten','«Se fullført økt» og «Se planen» - bytt mellom de to','Flett klokkeøkta: bytt ut aktivitetene med klokkas runder, eller legg klokka bak','Plan vs faktisk rad for rad - grønt innenfor 10 %, oransje over','Splittet, Samlet eller Samle alt - og angre flett når som helst'],
+ ['Laktatkrysning per økt: puls ved 4 mmol fra minst tre målinger, plottet over tid mot terskelen som gjaldt den dagen','Laktatprofil med LT1 og LT2, laktat ved samme fart eller watt, laktat-respons per mal','Belastningsmodell: TSS, CTL (form), ATL (tretthet) og TSB (overskudd) - mot følelse, HRV, hvilepuls, søvn eller laktat','Terskel over tid per bevegelsesform - estimater foreslås, men skrives aldri automatisk','FTP-estimat fra beste 20 min × 0,95, watt per kg, watt-soner per uke, NP og IF per økt','Aerob frakobling, effektivitetsfaktor, GAP-tempo, fart eller watt ved terskelpuls og sesong mot sesong'],
+ ['Terskler per bevegelsesform og underkategori - arves fra globalt nivå når ikke annet er satt','Terskelen versjoneres: en økt bruker terskelen som gjaldt på øktas dato','Egne I1-I5 per bevegelsesform, eller Olympiatoppens standard fra terskel og makspuls','Utvidet skala I6-I8 for planlegging og føring - treneren ser samme skala','FTP for NP og IF'],
+ ['Øktmaler og planmaler med «Bruk på dato» rett inn i planen','Testmaler - merket for tester, med eget hurtigfilter','58 ferdige økter på Olympiatoppens skala i øktskjemaet («Fra mal»)','«Lagre som mal» nederst i enhver økt','Standardøkt-serier: koble økter til serien og sammenlign gjennomføringene i analysen'],
+ ['Min skipark: km, tid og økter per par, km siden siste slip, sliphistorikk','Skitester: tidtaker-glid, lengde-glid, parallelltest og egen test - med forholdene registrert','Rangering og beste forhold per par','Utstyr: ski, rulleski, sko, staver, sykkel, båt og klokke','Km og tid telles først når økta er markert gjennomført']];
+SC2.forEach(function(s,i){s.mer=MER2[i]});
+var MER1={
+ 'MAL SESONGEN.':['Mal belastning Rolig, Medium eller Hard med pensel over uker - eller dag for dag','Periodene får eget navn og fokus, og fokuset vises i Plan','Samlinger og høydeopphold som egne bånd, med sted og moh','Nøkkeldatoer: A-, B- og C-konkurranser, testløp, test og peak (formtopp-mål med gull-glød)','Månedsvolum og planlagt årstotal','Planen står urørt når dagboka fylles'],
+ 'BYGG ØKTA PÅ SEKUNDER.':['Hurtigoppsett: antall × dragtid eller km × sone / pause, flere rader stables','Kortintervaller 50/10, 45/15 og 20/10, og fartsspenn per drag','Skiskyttere velger skyting i pausene (L-S-L-S og flere mønstre)','Plan-grafen: blokker per sone, klammer, etiketter og skyting','Nøkkeltall: varighet, hovedsone, sonetid, belastning og forventet 1-10','Etter klokkesynk kuttes den samme økta opp i segmentbåndet'],
+ 'LAGRE DEN SOM MAL.':['«Lagre som mal» fra skjemaet på enhver økt','Maler er struktur - aldri datoer, puls eller resultater','«Bruk på dato» legger malen rett inn i planen','58 ferdige økter på Olympiatoppens skala under «Fra mal»','Plan-maler for hele uker og samlinger'],
+ 'LØFT MED ÉN HÅND.':['Store trinnknapper for reps og kilo - ingen tastatur','Forrige økt i grått, beste og plan som chips','Hvilen teller ned mellom settene','«Stopp» fryser klokka, «Fortsett» tar deg tilbake','Nye rekorder og tonnasje når økta er ferdig, rett i dagboka','NB: dette er designutkastet for live styrke v2 - ikke bygget ennå'],
+ 'FORMEN KOMMER INN OM NATTA.':['Hvilepuls, HRV, søvn og følelse på helsekortet','Søvnstadier: dyp, lett, REM og våken','HRV og hvilepuls mot 30-dagers snitt, med hardøktene merket','Manuelt ført vinner alltid over klokka (M)','Helsedata deles med treneren bare hvis du har sagt ja'],
+ 'ØKTA KOMMER INN AV SEG SELV.':['Garmin, COROS, Wahoo og Zepp (beta), Polar og Strava','.fit-filer fra alle merker kan lastes opp','Flett klokkeøkta med planen: bytt ut aktivitetene eller legg klokka bak','Klokkas originale runder beholdes alltid','Synk automatisk, eller trykk Synk når du vil'],
+ 'FØR DET KLOKKA IKKE VET.':['Puls, tempo, watt, kadens og høyde på én tidsakse','Planen som spøkelse bak kurven','Skyting, laktat, ernæring og notater som punkter der det skjedde','Zoom og segmentbånd med klammer per bolk','Treneren svarer i kommentarfeltet på økta','Stillestand kan gjøres om til pause automatisk'],
+ 'SE HELE FORMEN PÅ ÉN AKSE.':['Sonetid per dag, form (CTL), tretthet (ATL) og overskudd (TSB)','Restitusjon: HRV og hvilepuls som avvik fra ditt eget grunnivå','Følelse og dagstatus (hviledag, sykdom, konkurranse) på samme akse','Les én dag, eller se 30, 60 og 180 dager','NB: formkartet er designutkast - ikke bygget ennå'],
+ 'SAMME ØKT. ÅTTE GANGER.':['Merk en økt som standardøkt, så følges hver gjennomføring','Velg variabel: snittpuls, laktat maks, treff %, skytetid, opplevd og mer','Per drag - én linje per drag-indeks','Beste gjennomføring markert, og hver verdi mot forrige og mot beste','Vær og føre i tabellen'],
+ 'ALT SAMLET PÅ HJEM.':['I dag: dagens økt og neste økt','Ukens totaler mot planen, med soner og skudd','Nedtelling til neste A-konkurranse','Helse, siste hardøkt, hovedmål og periode','Alt hentes i én samlet henting - ingen kort som laster etter']};
+SC.forEach(function(s){if(MER1[s.tittel])s.mer=MER1[s.tittel]});
+
+
 /* ═════════════════ KONTROLLEREN ═════════════════ */
-(function(){
+function karusell(SC,KAP,P){var $=function(id){return document.getElementById(P+id)};
  var rolig=matchMedia('(prefers-reduced-motion: reduce)').matches;
- var spor=document.getElementById('spor'),kapEl=document.getElementById('kap'),prikkEl=document.getElementById('prikker'),spillK=document.getElementById('spill');
+ var spor=$('spor'),kapEl=$('kap'),prikkEl=$('prikker'),spillK=$('spill');
  var IKON_PAUSE='<svg viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/></svg>';
  var IKON_SPILL='<svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8a1 1 0 0 0 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg>';
  var IKON_IGJEN='<svg viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4h4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
- document.getElementById('forr').innerHTML='<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
- document.getElementById('nest').innerHTML='<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ $('forr').innerHTML='<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ $('nest').innerHTML='<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
  var kort=[],scener=[];
  KAP.forEach(function(k,i){var b=document.createElement('button');b.className='kap';b.type='button';b.setAttribute('role','tab');b.innerHTML='<span class="kn">0'+(i+1)+'</span>'+ik(k.ik,'s')+k.n+'<i></i>';b.onclick=function(){gaTil(SC.findIndex(function(s){return s.kap===i}),true)};kapEl.appendChild(b)});
  SC.forEach(function(d,i){var el=document.createElement('article');el.className='sc';el.setAttribute('aria-roledescription','lysbilde');el.setAttribute('aria-label',(i+1)+' av '+SC.length);
   var nr=SC.filter(function(s,j){return j<i&&s.kap===d.kap}).length;
   el.innerHTML='<div class="sc-tx"><div class="sc-kick">'+ik(KAP[d.kap].ik,'s')+'0'+(d.kap+1)+' · '+KAP[d.kap].n+'</div><h3>'+d.tittel+'</h3><p>'+d.tekst+'</p><ul class="sc-steg">'+d.steg.map(function(s){return'<li><b>'+HAKE+'</b>'+s+'</li>'}).join('')+'</ul></div><div class="sc-scene"></div>';
+  if(d.mer){el.insertAdjacentHTML('beforeend','<button class="sc-pluss" type="button" aria-label="Les mer"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><div class="sc-mer"><div class="sc-kick">'+ik(KAP[d.kap].ik,'s')+KAP[d.kap].n+'</div><h4>Alt i kortet</h4><ul>'+d.mer.map(function(m){return'<li>'+m+'</li>'}).join('')+'</ul></div>');
+   el.querySelector('.sc-pluss').addEventListener('click',function(e){e.stopPropagation();if(i!==idx)gaTil(i,true);var apen=el.classList.toggle('apen');if(apen){pause();brukerPause=true}else{brukerPause=false;fortsett()}oppdaterKnapp()})}
   el.addEventListener('click',function(){if(i!==idx)gaTil(i,true)});
   spor.appendChild(el);kort.push(el);var S=new Scene(d,el.querySelector('.sc-scene'));scener.push(S);
   var p=document.createElement('button');p.className='prikk';p.type='button';p.setAttribute('aria-label','Scene '+(i+1)+': '+d.tittel.toLowerCase());p.innerHTML='<i></i>';p.onclick=function(){gaTil(i,true)};prikkEl.appendChild(p)});
@@ -987,12 +1700,12 @@ SC.push({kap:4,tittel:'SE HELE FORMEN PÅ ÉN AKSE.',tekst:'Sonetid per dag, for
  function ferdigTilstand(i){var S=scener[i];S.stopp();if(S.d.rydd)S.d.rydd(S);S.slutt();[].forEach.call(kort[i].querySelectorAll('.sc-steg li'),function(l){l.className='ok'})}
  scener.forEach(function(_,i){ferdigTilstand(i)});
 
- function aktiver(i,scroll){var gammel=idx;if(gammel!==i){ferdigTilstand(gammel)}idx=i;ferdig=false;brukt=0;
+ function aktiver(i,scroll){var gammel=idx;kort.forEach(function(k){k.classList.remove('apen')});if(gammel!==i){ferdigTilstand(gammel)}idx=i;ferdig=false;brukt=0;
   kort.forEach(function(k,j){k.classList.toggle('on',j===i)});prikker.forEach(function(p,j){p.classList.toggle('on',j===i);p.style.setProperty('--p','0%')});
   kaps.forEach(function(k,j){k.classList.toggle('on',j===SC[i].kap)});
   var sk=kaps[SC[i].kap];if(sk&&sk.scrollIntoView&&kapEl.scrollWidth>kapEl.clientWidth)kapEl.scrollTo({left:sk.offsetLeft-16,behavior:'smooth'});
   if(scroll){programScroll=Date.now();spor.scrollTo({left:kort[i].offsetLeft-parseFloat(getComputedStyle(spor).paddingLeft),behavior:rolig?'auto':'smooth'})}
-  document.getElementById('forr').disabled=i===0;document.getElementById('nest').disabled=i===SC.length-1;
+  $('forr').disabled=i===0;$('nest').disabled=i===SC.length-1;
   var S=scener[i];S.stopp();if(S.d.rydd)S.d.rydd(S);
   if(rolig){ferdigTilstand(i);return}
   S.render();[].forEach.call(kort[i].querySelectorAll('.sc-steg li'),function(l){l.className=''});
@@ -1009,9 +1722,9 @@ SC.push({kap:4,tittel:'SE HELE FORMEN PÅ ÉN AKSE.',tekst:'Sonetid per dag, for
   else{spillK.innerHTML=IKON_PAUSE;spillK.setAttribute('aria-label','Pause')}}
  spillK.onclick=function(){if(ferdig){brukerPause=false;spiller=true;gaTil(0,true);return}
   if(brukerPause){brukerPause=false;fortsett()}else{pause();brukerPause=true}oppdaterKnapp()};
- document.getElementById('forr').onclick=function(){gaTil(idx-1,true)};
- document.getElementById('nest').onclick=function(){gaTil(idx+1,true)};
- document.getElementById('flyt').addEventListener('keydown',function(e){if(e.key==='ArrowRight'){gaTil(idx+1,true);e.preventDefault()}if(e.key==='ArrowLeft'){gaTil(idx-1,true);e.preventDefault()}});
+ $('forr').onclick=function(){gaTil(idx-1,true)};
+ $('nest').onclick=function(){gaTil(idx+1,true)};
+ $('flyt').addEventListener('keydown',function(e){if(e.key==='ArrowRight'){gaTil(idx+1,true);e.preventDefault()}if(e.key==='ArrowLeft'){gaTil(idx-1,true);e.preventDefault()}});
 
  /* Fremdrift */
  (function tick(){if(skalSpille()&&!ferdig){var d=SC[idx].varighet,p=Math.min(1,(brukt+performance.now()-t0)/d);
@@ -1036,7 +1749,10 @@ SC.push({kap:4,tittel:'SE HELE FORMEN PÅ ÉN AKSE.',tekst:'Sonetid per dag, for
 
  if(rolig)spillK.style.display='none';
  aktiver(0,false);
-})();
+}
+karusell(SC,KAP,'');
+karusell(SC2,KAP2,'d');
+
 
 /* Tema-bryter (kun utkastet) */
 document.getElementById('temaKnapp').onclick=function(){var r=document.documentElement,l=r.dataset.tema==='lys';r.dataset.tema=l?'mork':'lys';this.textContent=l?'Lys modus':'Mørk modus'};

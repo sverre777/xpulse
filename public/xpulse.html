@@ -2096,6 +2096,7 @@ section[id],header[id]{scroll-margin-top:108px}
 <script defer src="/forside/scener-flyt.js"></script>
 <script defer src="/forside/scener-detaljene.js"></script>
 <script defer src="/forside/faktisk-ut.js"></script>
+<script defer src="/forside/scener-trener.js"></script>
 
 <!-- ═══════════ FORSIDE v7 bolk 1: DU FORTJENER ÉN APP. IKKE TRE. - rett under heroen, scrolldrevet (bolk 0-motoren) ═══════════ -->
 <section id="problem" style="padding:0 0 40px"><div class="flyt-scrolly prob-scrolly" data-n="4" style="height:calc(4 * 60vh + 30vh)">
@@ -2444,61 +2445,19 @@ section[id],header[id]{scroll-margin-top:108px}
 
 
 <!-- ═══════════ FORSIDE v7 bolk 4 (+ hero-fix a): HELE TROPPEN. ETT PANEL. - rett under «Planen møter virkeligheten» ═══════════ -->
-<section id="trener" style="padding:0">
-  <div class="flyt-scrolly" data-n="4">
-    <div class="flyt-sticky">
-      <div class="hd">
-        <div class="label blue">For trenere</div>
-        <h2>HELE TROPPEN. <span class="b">ETT PANEL.</span></h2>
-        <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør - og alle trener-abonnement inkluderer full Athlete Pro til deg selv.</p>
-      </div>
-      <div class="stegliste"><button class="sl on" data-i="0"><span class="fnum">01</span><span class="slt"><b>LAG MALEN - PUSH TIL HELE GRUPPA</b><small>Én uke-mal, åtte utøvere. Hver får sin egen versjon i planen - med soner regnet fra egne terskler.</small></span><i class="bar"><s></s></i></button>
-<button class="sl" data-i="1"><span class="fnum">02</span><span class="slt"><b>KOMMENTER I ØKTA - IKKE I INNBOKSEN</b><small>Trenerens ord ligger på økta, ved siden av grafen og radene. Utøveren svarer samme sted.</small></span><i class="bar"><s></s></i></button>
-<button class="sl" data-i="2"><span class="fnum">03</span><span class="slt"><b>SAMMENLIGN SIDE OM SIDE</b><small>Belastning, soner, tester og treff - to eller flere utøvere i samme bilde, samme periode.</small></span><i class="bar"><s></s></i></button>
-<button class="sl" data-i="3"><span class="fnum">04</span><span class="slt"><b>HELE TROPPEN - DENNE UKA</b><small>% av plan, timer, lav recovery. Alt du trenger for å vite hvem du skal ringe i dag.</small></span><i class="bar"><s></s></i></button><div data-tnote style="margin:10px 12px 0;font-size:12px;color:var(--dim)">Varsler ved høy belastning eller dårlig recovery · Helsedata deles kun når utøveren sier ja - håndhevet i databasen.</div></div>
-      <div class="paneler"><div class="pan on" data-i="0"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Planlegg · gruppe</h4><span class="aux">Uke 37 · 8 utøvere</span></div><div class="app-b"><div class="pushgrid">
-  <div class="mal"><div class="mal-h"><span class="label" style="color:var(--blue)">Uke-mal</span><b>GRUNNTRENING 2 · UKE B</b><small>7 økter · 9t 05m · 2 hardøkter · 1 skyting</small></div>
-    <div class="malrad"><i style="background:#28A86E"></i>Man · Langtur 2t I1</div><div class="malrad"><i style="background:#E8B93C"></i>Tir · 3 × 10 min I3 + skyting</div><div class="malrad"><i style="background:#6E6E78"></i>Tir · Styrke</div><div class="malrad"><i style="background:#28A86E"></i>Ons · Rolig 1t15</div><div class="malrad"><i style="background:#FF8C00"></i>Tor · 4 × 5 min I4</div><div class="malrad"><i style="background:#28A86E"></i>Fre · Rolig 45 min</div><div class="malrad"><i style="background:#28A86E"></i>Søn · Langtur 2t30</div>
-    <div class="pushbtn"><span>Push til 8 utøvere</span><i></i></div>
+<section class="fb" id="tflyt" aria-roledescription="karusell" aria-label="For trenere">
+  <div class="wrap">
+    <div class="fb-hd"><div>
+      <div class="label">For trenere</div>
+      <h2>HELE TROPPEN. <span class="b">ETT PANEL.</span></h2>
+      <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør - og alle trener-abonnement inkluderer full Athlete Pro til deg selv. La det gå, eller trykk deg til det du vil se. + åpner alt som ligger i kortet.</p>
+    </div></div>
+    <div class="fb-kap" role="tablist" id="tkap"></div>
   </div>
-  <div class="pil"><svg viewBox="0 0 60 200" preserveAspectRatio="none"><path d="M2 100 C 30 100, 30 12, 58 12 M2 100 C 30 100, 30 60, 58 60 M2 100 C 30 100, 30 100, 58 100 M2 100 C 30 100, 30 140, 58 140 M2 100 C 30 100, 30 188, 58 188" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 4"/></svg></div>
-  <div class="atl"><div class="pa" style="--d:0.35s"><span class="av">AH</span><span class="nm">Utøver A<small>Skiskyting · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.53s"><span class="av">MB</span><span class="nm">Utøver B<small>Langrenn · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.71s"><span class="av">SK</span><span class="nm">Utøver C<small>Skiskyting · junior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:0.89s"><span class="av">EL</span><span class="nm">Utøver D<small>Løping · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.07s"><span class="av">JN</span><span class="nm">Utøver E<small>Skiskyting · senior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.25s"><span class="av">TR</span><span class="nm">Utøver F<small>Langrenn · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.43s"><span class="av">KS</span><span class="nm">Utøver G<small>Skiskyting · junior</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div><div class="pa" style="--d:1.61s"><span class="av">OL</span><span class="nm">Utøver H<small>Løping · U23</small></span><span class="pchk">✓ Uke 37 lagt i planen</span></div></div>
-</div>
-<div class="hint" style="margin-top:10px;color:var(--dim);font-size:12px">Soner og terskler regnes per utøver. Malen lagres i biblioteket - endre én gang, push på nytt.</div></div></div></div>
-<div class="pan" data-i="1"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Utøver A · tirsdag 2. sep</h4><span class="aux">Kommentar på økta</span></div><div class="app-b"><div class="oktkort" style="border-left-color:#E8B93C"><div class="ok-h"><span class="ok-t">3 × 10 min I3 / 2 min + skyting</span><span class="ok-d">1t 11 · Utøver A</span></div><div class="ok-m">Rulleski · Skøyting · Garmin · gjennomført tirsdag</div>
-<div class="minig"><i style="flex:20;height:6px;background:#28A86E"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:2;height:5px;background:#43434B"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:2;height:5px;background:#43434B"></i><i style="flex:10;height:12px;background:#E8B93C"></i><i style="flex:15;height:6px;background:#64748B"></i></div>
-<div class="nk"><span><b>152</b> snitt</span><span><b>30</b> min I3</span><span><b>17/20</b> treff</span><span><b>7</b>/10 opplevd</span></div></div>
-<div class="komm">
-  <div class="kb trener"><span class="chip-t">Trener</span><p>Drag 3 var 6 slag høyere enn de to første - legg deg på 165 neste gang, det er nok til effekten vi er ute etter. Skytinga: ta 2 s ekstra på liggende, bommene er tidsbommer.</p><small>Ola · i dag 14:12</small></div>
-  <div class="kb svar"><p>Kjente det på drag 3 ja. Prøver 165 torsdag 👍</p><small>Utøver A · 14:40</small></div>
-  <div class="kb skriv"><span>Skriv kommentar …</span><b>Send</b></div>
-</div></div></div></div>
-<div class="pan" data-i="2"><div class="app"><div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>Sammenlign</h4><span class="aux">A vs C · siste 4 uker</span></div><div class="app-b"><div class="samm"><div class="scol"><div class="sh"><span class="av">UT</span><b>Utøver A</b><small>Skiskyting · U23</small></div>
-<div class="sk"><small>CTL</small><b>78</b></div><div class="sk"><small>TSB</small><b style="color:var(--green)">+12</b></div><div class="sk"><small>I3+ / uke</small><b>1t 40</b></div><div class="sk"><small>Treff %</small><b>84</b></div><div class="sk"><small>LT2</small><b>165 / 4,1</b></div>
-<div class="sbar"><i style="--w:82%"></i></div><small class="sbl">Belastning siste 4 uker</small></div><div class="scol"><div class="sh"><span class="av">UT</span><b>Utøver C</b><small>Skiskyting · junior</small></div>
-<div class="sk"><small>CTL</small><b>61</b></div><div class="sk"><small>TSB</small><b style="color:var(--red)">-9</b></div><div class="sk"><small>I3+ / uke</small><b>2t 05</b></div><div class="sk"><small>Treff %</small><b>79</b></div><div class="sk"><small>LT2</small><b>171 / 3,8</b></div>
-<div class="sbar"><i style="--w:95%"></i></div><small class="sbl">Belastning siste 4 uker</small></div></div>
-<div class="sonecmp"><small>Sonefordeling · 4 uker</small><div class="srow"><span>A</span><div class="zs"><i style="flex:74;background:#28A86E"></i><i style="flex:9;background:#1A6FD4"></i><i style="flex:11;background:#E8B93C"></i><i style="flex:6;background:#FF8C00"></i></div></div><div class="srow"><span>C</span><div class="zs"><i style="flex:62;background:#28A86E"></i><i style="flex:12;background:#1A6FD4"></i><i style="flex:16;background:#E8B93C"></i><i style="flex:10;background:#FF8C00"></i></div></div></div>
-<div class="hint" style="color:var(--dim);font-size:12px;margin-top:8px">Utøver C: mer hard tid, lavere form, treff ned - og TSB −9 to uker før Sjusjøen. Det er samtalen.</div></div></div></div>
-<div class="pan" data-i="3"><div class="app">
-        <div class="app-h"><span class="beam" style="background:var(--blue)"></span><h4>UTØVERE · DENNE UKA</h4><span class="aux">8 i troppen</span></div>
-        <div class="app-b" style="padding:8px 10px">
-          <div class="trow"><span class="av">AH</span><span class="nm"><b>Utøver A</b><span>Skiskyting · U23</span></span><span class="hrs">9:20 t</span><span class="st" style="color:var(--green)">92 % AV PLAN</span></div>
-          <div class="trow"><span class="av">MB</span><span class="nm"><b>Utøver B</b><span>Langrenn · senior</span></span><span class="hrs">7:05 t</span><span class="st" style="color:var(--green)">88 % AV PLAN</span></div>
-          <div class="trow"><span class="av">SK</span><span class="nm"><b>Utøver C</b><span>Skiskyting · junior</span></span><span class="hrs">3:10 t</span><span class="st" style="color:var(--i4)">LAV RECOVERY</span></div>
-          <div class="trow"><span class="av">EL</span><span class="nm"><b>Utøver D</b><span>Løping · senior</span></span><span class="hrs">6:40 t</span><span class="st" style="color:var(--green)">PÅ PLAN</span></div>
-        </div>
-      </div></div></div>
-      <div class="flyt-hint"><i></i>Bla for neste steg</div>
-    </div>
-  </div>
-  
+  <div class="fb-spor" id="tspor"></div>
+  <div class="wrap"><div class="fb-ktl"><div class="prikker" id="tprikker"></div><button class="rundknapp" id="tspill" type="button" aria-label="Pause"></button><div class="pilpar"><button class="rundknapp" id="tforr" type="button" aria-label="Forrige"></button><button class="rundknapp" id="tnest" type="button" aria-label="Neste"></button></div></div></div>
 </section>
 
-<!-- ═══════════ NYTT I V1.3 ═══════════ -->
-<!-- problem - beholdt fra dagens side, strammet -->
-
-<!-- funksjoner - beholdt liste, oppdatert med de nye -->
 <section id="features" style="padding-top:20px">
   <div class="wrap">
     <div class="label">Funksjoner</div>
@@ -2522,7 +2481,6 @@ section[id],header[id]{scroll-margin-top:108px}
 </section>
 
 
-<!-- ═══════════ TRENERPANEL - NY PÅ FORSIDEN ═══════════ -->
 
 
 <!-- ═══════════ HVORFOR X-PULSE - beholdt, ny stil, oppdaterte rader ═══════════ -->
@@ -2963,7 +2921,7 @@ section[id],header[id]{scroll-margin-top:108px}
     {id:'flyt',navn:'Fra årsplan til innsikt',ik:'<rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M8 12h8M13 9l3 3-3 3"/>'},
     {id:'dflyt',navn:'Detaljene som avgjør',ik:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/>'},
     {id:'sports',navn:'Idretter',ik:'<path d="M4 19.5l14-13M7.5 21l14-13"/><circle cx="15.5" cy="4.5" r="1.6"/>'},
-    {id:'trener',navn:'For trenere',ik:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 14.5c2.8.2 4.5 1.9 4.5 4.5"/>'},
+    {id:'tflyt',navn:'For trenere',ik:'<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 14.5c2.8.2 4.5 1.9 4.5 4.5"/>'},
     {id:'features',navn:'Funksjoner',ik:'<path d="M4 20V4M4 20h16"/><rect x="7.5" y="11" width="3" height="6" rx=".8"/><rect x="12.5" y="7" width="3" height="10" rx=".8"/><rect x="17.5" y="13" width="3" height="4" rx=".8"/>'},
     {id:'hvorfor',navn:'Hvorfor',ik:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 013.9-2c1.6 1 1.2 2.6.1 3.4-.8.6-1.5 1-1.5 2.1M12 17v.01"/>'},
     {id:'testimonials',navn:'Utøverne',ik:'<path d="M5 12.5l4.5 4.5L19 7.5"/>'},

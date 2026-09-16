@@ -13,7 +13,11 @@
 
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
 
-type Sett = Record<string, { strek?: string; fyll?: string }>
+// En path kan ligge som liste av delstier i settet (flerfargede ikoner som
+// oktbygger). Da settes de sammen til en streng; oktbyggerIkon() deler pa M.
+type Sti = string | string[]
+type Sett = Record<string, { strek?: Sti; fyll?: Sti }>
+const str = (v: Sti | undefined) => (Array.isArray(v) ? v.join(' ') : v)
 const sett = JSON.parse(readFileSync('design/ikoner/svg/ikoner.json', 'utf8')) as Sett
 const nokler = new Set(Object.keys(sett))
 
@@ -36,7 +40,7 @@ if (ukjente.length) {
 
 const navn = [...brukt].sort()
 const ut: Record<string, { s?: string; f?: string }> = {}
-for (const n of navn) { const v = sett[n]; ut[n] = { ...(v.strek ? { s: v.strek } : {}), ...(v.fyll ? { f: v.fyll } : {}) } }
+for (const n of navn) { const v = sett[n]; ut[n] = { ...(v.strek ? { s: str(v.strek)! } : {}), ...(v.fyll ? { f: str(v.fyll)! } : {}) } }
 const js = `/* GENERERT av scripts/forside-ikoner.ts fra design/ikoner/svg/ikoner.json - IKKE REDIGER.\n   ${navn.length} ikoner forsiden bruker (${filer.join(', ')}). Kjør npm run forside-ikoner når settet endres. */\nconst IK=${JSON.stringify(ut)};\n`
 writeFileSync('public/forside/ikoner.js', js)
 console.log(`ikoner.js: ${navn.length} ikoner fra ${filer.length} fil(er): ${navn.join(' ')}`)

@@ -1,10 +1,8 @@
 import Link from 'next/link'
-import { after } from 'next/server'
 import {
   getConversations,
   getThreadHeader,
   getThreadMessages,
-  markThreadRead,
   getInboxViewer,
 } from '@/app/actions/inbox'
 import { ConversationList } from '@/components/inbox/ConversationList'
@@ -55,10 +53,9 @@ export default async function InboxMessagesPage({ searchParams }: Props) {
       )
     }
 
-    // Markér som lest etter at responsen er sendt — `markThreadRead` kaller
-    // revalidatePath, som ikke kan kjøres under render i Next.js 16.
-    after(() => markThreadRead(activeKey))
-
+    // Merkingen gjøres av MessageThread, ikke her: den må skje FØR
+    // telleren i layouten hentes på nytt, og en after()-oppgave gir ingen
+    // slik rekkefølge. Se kommentaren i MessageThread.
     const messages = 'error' in messagesRes ? [] : messagesRes
     const messagesError = 'error' in messagesRes ? messagesRes.error : null
 

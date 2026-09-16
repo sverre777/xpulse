@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { sendMessage, type ThreadHeader, type ThreadMessage } from '@/app/actions/inbox'
+import { markThreadRead, sendMessage, type ThreadHeader, type ThreadMessage } from '@/app/actions/inbox'
 
 const COACH_BLUE = '#1A6FD4'
 const ATHLETE_ORANGE = '#FF4500'
@@ -72,6 +72,29 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
   }, [messages.length])
+
+  // TELLEREN SKAL GÅ NED MENS DU STÅR HER (Erik Jørstad 16. sep: «jeg har
+  // åpnet meldinger men tallet går ikke ned»).
+  //
+  // Tallet i innboks-ikonet tegnes av LAYOUTEN over denne siden. Merkingen
+  // lå i en after()-oppgave på sida - altså ETTER at svaret var sendt - så
+  // ingenting fortalte layouten at noe hadde endret seg. Meldingene var
+  // lest, men ikke regnet før neste navigering.
+  //
+  // Nå merker VI, og refresher FØRST når merkingen er bekreftet. Rekkefølgen
+  // er hele poenget: en refresh som kappløper med en after()-oppgave kan
+  // hente det gamle tallet og se helt riktig ut mens den gjør det.
+  //
+  // Én gang, og bare når det var noe ulest: etterpå er betingelsen falsk, så
+  // vi går ikke i ring.
+  const haddeUleste = messages.some(m => m.senderId !== viewerId && !m.isRead)
+  const merket = useRef(false)
+  useEffect(() => {
+    if (!haddeUleste || merket.current) return
+    merket.current = true
+    markThreadRead(header.key).then(() => router.refresh())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [haddeUleste])
 
   const myColor = viewerIsCoach ? COACH_BLUE : ATHLETE_ORANGE
   const headerAccent = header.kind === 'dm'

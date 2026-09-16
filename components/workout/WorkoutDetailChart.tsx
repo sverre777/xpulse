@@ -1142,7 +1142,8 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
   const knappRader: Array<DetaljKnapp | false | undefined> = [
     // Øktbyggeren bærer sitt eget merke, ikke lynet. eget: true tegner
     // OktbyggerIkon i stedet for <Ikon> - fargene bor i ikonet.
-    handlinger?.onOktbygger && { navn: 'Øktbygger', ikon: 'oktbygger', eget: true, farge: 'var(--accent)', kall: handlinger.onOktbygger, id: 'oktbygger' },
+    // Hvit tekst og hvit ring - fargene bor i merket, ikke i ramma.
+    handlinger?.onOktbygger && { navn: 'Øktbygger', ikon: 'oktbygger', eget: true, farge: 'var(--tekst-1-app)', kall: handlinger.onOktbygger, id: 'oktbygger' },
     handlinger?.onPlottTreff && { navn: 'Plott treff', ikon: 'skyting', farge: '#E23A5A', kall: handlinger.onPlottTreff, id: 'plott' },
     handlinger?.onSettLaktat && { navn: 'Sett laktat', ikon: 'laktat', farge: 'var(--tekst-5-app)', kall: handlinger.onSettLaktat, id: 'laktat' },
     handlinger?.onNotat && { navn: 'Notat', ikon: 'for-okt', farge: 'var(--tekst-5-app)', kall: handlinger.onNotat, id: 'notat' },
@@ -1184,7 +1185,7 @@ export function Detaljrad({ rpe = null, onRpe, lactate = [], nutrition = [], seg
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11.5, letterSpacing: '0.12em',
                 textTransform: 'uppercase', border: `1px solid ${b.farge}`, borderRadius: 999, padding: '8px 13px',
-                minHeight: 36, color: b.farge, background: b.id === 'oktbygger' ? 'rgba(255,69,0,.06)' : 'transparent', cursor: 'pointer',
+                minHeight: 36, color: b.farge, background: 'transparent', cursor: 'pointer',
               }}>
               {b.eget
                 ? <OktbyggerIkon variant="fyll" storrelse={14} style={{ marginRight: 5 }} />

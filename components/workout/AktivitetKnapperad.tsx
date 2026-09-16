@@ -72,7 +72,8 @@ export function AktivitetKnapperad({
       )}
       {visBygger && (
         <button type="button" onClick={onOktbygger} className={PILL_KLASSE}
-          style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
+          // Hvit tekst og hvit ring - fargene bor i merket, ikke i ramma.
+          style={{ ...PILL_BASE, border: '1.5px solid var(--tekst-1-app)', color: 'var(--tekst-1-app)' }}>
           {/* Samme merke som ellers - fargene bor i ikonet. */}
           <OktbyggerIkon variant="fyll" storrelse={18} /> Øktbygger
         </button>

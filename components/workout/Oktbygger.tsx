@@ -72,8 +72,10 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
       className="text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-        color: 'var(--accent)', background: 'rgba(255,69,0,.08)',
-        border: '1px solid var(--accent)', borderRadius: 999,
+        // Hvit tekst og hvit ring (svart i lysmodus) - fargene bor i
+        // MERKET, ikke i ramma. Samme som knappen i skjemaet fikk 14. sep.
+        color: 'var(--tekst-1-app)', background: 'transparent',
+        border: '1.5px solid var(--tekst-1-app)', borderRadius: 999,
         padding: '6px 14px', cursor: 'pointer', minHeight: 32,
         display: 'inline-flex', alignItems: 'center', gap: 6,
       }}>

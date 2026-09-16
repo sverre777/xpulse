@@ -32,9 +32,9 @@ import { createClient } from '@/lib/supabase/server'
 import { isShootingActivityType } from '@/lib/activity-summary'
 import {
   finnStillestand, stillestandSum, fartProver, utenSkytingOverlapp,
-  stillestandRader, ikkeStillestandRader,
   STILLESTAND_MERKE, type StillestandResultat,
 } from '@/lib/stillestand'
+import { splittForStillestand, angreSplitt, type SplittRad } from '@/lib/stillestand-splitt'
 
 // MERK: denne fila kan BARE eksportere async funksjoner. STILLESTAND_MERKE
 // og StillestandResultat bor derfor i lib/stillestand - en konstant eller en
@@ -54,6 +54,55 @@ interface Rad {
   window_duration_seconds: number | null
   lap_notes: string | null
   auto_pause: boolean | null
+  split_parent_id: string | null
+  split_backup: Record<string, unknown> | null
+  movement_name: string | null
+  movement_subcategory: string | null
+  distance_meters: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  zones: Record<string, number> | null
+}
+
+const RAD_FELTER = 'id, activity_type, sort_order, duration_seconds, window_start_seconds,'
+  + ' window_duration_seconds, lap_notes, auto_pause, split_parent_id, split_backup,'
+  + ' movement_name, movement_subcategory, distance_meters, avg_heart_rate, max_heart_rate, zones'
+
+/**
+ * Sett økta tilbake slik den var før pausene ble laget.
+ *
+ * Gjenoppretter hver splittet original FULLT fra split_backup og sletter
+ * barna. Brukes både av «angre» og som FØRSTE STEG i en ny kjøring - se
+ * kommentaren i gjorStillestandTilPause om hvorfor delete-og-lag-nytt
+ * ikke holder når raden er splittet.
+ */
+async function syttSammenIgjen(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rader: Rad[],
+): Promise<{ rader: Rad[] } | { error: string }> {
+  const resultat = angreSplitt(rader as unknown as SplittRad[])
+  if (resultat.slettede.length > 0) {
+    const { error } = await supabase.from('workout_activities').delete().in('id', resultat.slettede)
+    if (error) return { error: error.message }
+  }
+  for (const r of resultat.rader) {
+    const original = rader.find(x => x.id === r.id)
+    if (!original?.split_backup) continue
+    const { split_backup: _b, ...felter } = r as unknown as Record<string, unknown>
+    const { error } = await supabase.from('workout_activities')
+      .update({ ...felter, split_backup: null, split_parent_id: null })
+      .eq('id', r.id)
+    if (error) return { error: error.message }
+  }
+  // Rydd også bort rader fra den gamle oppå-varianten, som aldri ble
+  // splittet: de er auto_pause uten forelder.
+  const gamleOppaa = resultat.rader.filter(r =>
+    (r as unknown as Rad).auto_pause === true && !r.split_backup).map(r => r.id)
+  if (gamleOppaa.length > 0) {
+    const { error } = await supabase.from('workout_activities').delete().in('id', gamleOppaa)
+    if (error) return { error: error.message }
+  }
+  return { rader: resultat.rader.filter(r => !gamleOppaa.includes(r.id)) as unknown as Rad[] }
 }
 
 interface Grunnlag {
@@ -92,11 +141,11 @@ export async function forhandsvisStillestand(
   if (!prover) return { error: 'Økta har ingen fartsdata' }
 
   const { data: rader } = await supabase.from('workout_activities')
-    .select('id, activity_type, sort_order, duration_seconds, window_start_seconds, window_duration_seconds, lap_notes, auto_pause')
+    .select(RAD_FELTER)
     .eq('workout_id', workoutId).order('sort_order', { ascending: true })
 
   const alle = finnStillestand(prover)
-  const { beholdt, hoppetOver } = utenSkytingOverlapp(alle, skytevinduer((rader ?? []) as Rad[]))
+  const { beholdt, hoppetOver } = utenSkytingOverlapp(alle, skytevinduer((rader ?? []) as unknown as Rad[]))
   const tider = prover.map(p => p.t)
   return {
     antall: beholdt.length,
@@ -133,20 +182,21 @@ export async function gjorStillestandTilPause(
   if (!prover) return { error: 'Økta har ingen fartsdata' }
 
   const { data: raderRaa, error: lesFeil } = await supabase.from('workout_activities')
-    .select('id, activity_type, sort_order, duration_seconds, window_start_seconds, window_duration_seconds, lap_notes, auto_pause')
+    .select(RAD_FELTER)
     .eq('workout_id', workoutId).order('sort_order', { ascending: true })
   if (lesFeil) return { error: lesFeil.message }
-  const rader = (raderRaa ?? []) as Rad[]
+  const rader = (raderRaa ?? []) as unknown as Rad[]
 
-  // Idempotens: rydd bort forrige kjørings rader før vi teller på nytt.
-  // Samme nøkkel som angre - auto_pause, ikke navnet. Ellers ville en
-  // omdøpt pause blitt liggende igjen og fått en ny pause oppå seg.
-  const gamle = stillestandRader(rader).map(r => r.id)
-  if (gamle.length > 0) {
-    const { error } = await supabase.from('workout_activities').delete().in('id', gamle)
-    if (error) return { error: error.message }
-  }
-  const beholdteRader = ikkeStillestandRader(rader)
+  // IDEMPOTENS: ANGRE FØRST, SÅ SPLITT FRA HEL RAD.
+  //
+  // Den gamle veien slettet bare pause-radene og laget dem på nytt. Med
+  // splitten holder ikke det: sletter vi pausen, blir halvdelene stående
+  // som halvdeler og originalen kommer aldri tilbake. Andre kjøring ville
+  // gitt et annet tall enn den første - nøyaktig feilen ingen ser før en
+  // utøver melder den.
+  const syttSammen = await syttSammenIgjen(supabase, rader)
+  if ('error' in syttSammen) return { error: syttSammen.error }
+  const beholdteRader = syttSammen.rader
 
   // TREDJE VAKT, server-side: aldri pauser på en økt UTEN aktivitetsrader.
   // Uke- og månedstallene leser radene når økta HAR rader, og faller
@@ -167,27 +217,59 @@ export async function gjorStillestandTilPause(
     return { antall: 0, sumSek: 0, timerTimeSek: null, elapsedSek, hoppetOverSkyting: hoppetOver }
   }
 
-  const nye = beholdt.map(p => ({
+  // SPLITTEN: raden stoppet ligger i deles, den får ikke pausen oppå seg.
+  // Uten dette summerer radene mer enn økta varte, og ren treningstid står
+  // stille - se lib/stillestand-splitt.
+  const splitt = splittForStillestand(beholdteRader as unknown as SplittRad[], beholdt)
+
+  // Originalene er kortet og har fått backup: oppdater dem der de står.
+  for (const r of splitt.rader) {
+    if (!r.split_backup) continue
+    const { error } = await supabase.from('workout_activities').update({
+      activity_type: r.activity_type,
+      window_start_seconds: r.window_start_seconds,
+      window_duration_seconds: r.window_duration_seconds,
+      duration_seconds: r.duration_seconds,
+      distance_meters: r.distance_meters,
+      avg_heart_rate: r.avg_heart_rate,
+      max_heart_rate: r.max_heart_rate,
+      zones: r.zones,
+      split_backup: r.split_backup,
+      auto_pause: r.activity_type === 'pause',
+      ...(r.activity_type === 'pause' ? { lap_notes: STILLESTAND_MERKE } : {}),
+    }).eq('id', r.id)
+    if (error) return { error: error.message }
+  }
+
+  // Barna er nye rader. Pausene merkes auto_pause; aktivitetsdelene er
+  // utøverens egen tid og skal ALDRI merkes som maskinskapte.
+  const nye = splitt.rader.filter(r => r.split_parent_id).map(r => ({
     workout_id: workoutId,
-    activity_type: 'pause',
-    movement_name: null,
-    movement_subcategory: null,
-    lap_notes: STILLESTAND_MERKE,
-    auto_pause: true,
-    duration_seconds: p.tilSek - p.fraSek,
-    window_start_seconds: p.fraSek,
-    window_duration_seconds: p.tilSek - p.fraSek,
-    zones: null,
+    activity_type: r.activity_type,
+    movement_name: r.activity_type === 'pause' ? null : (r as unknown as Rad).movement_name,
+    movement_subcategory: r.activity_type === 'pause' ? null : (r as unknown as Rad).movement_subcategory,
+    lap_notes: r.activity_type === 'pause' ? STILLESTAND_MERKE : null,
+    auto_pause: r.activity_type === 'pause',
+    split_parent_id: r.split_parent_id,
+    duration_seconds: r.duration_seconds,
+    window_start_seconds: r.window_start_seconds,
+    window_duration_seconds: r.window_duration_seconds,
+    distance_meters: r.distance_meters,
+    avg_heart_rate: r.avg_heart_rate,
+    max_heart_rate: r.max_heart_rate,
+    zones: r.zones,
     sort_order: 0,
   }))
-  const { data: innsatte, error: skriveFeil } = await supabase
-    .from('workout_activities').insert(nye).select('id, window_start_seconds')
+  const { data: innsatte, error: skriveFeil } = nye.length > 0
+    ? await supabase.from('workout_activities').insert(nye).select('id, window_start_seconds')
+    : { data: [], error: null }
   if (skriveFeil) return { error: skriveFeil.message }
 
   // sort_order er ren visning: sorter ALLE radene etter tid så pausene havner
   // mellom radene og ikke sist. Ingen annen kolonne på de gamle radene røres.
   const iRekkefolge = [
-    ...beholdteRader.map(r => ({ id: r.id, t: r.window_start_seconds, s: r.sort_order ?? 0 })),
+    ...splitt.rader.filter(r => !r.split_parent_id)
+      .map(r => ({ id: r.id, t: r.window_start_seconds, s: 0 })),
     ...((innsatte ?? []) as { id: string; window_start_seconds: number | null }[])
       .map(r => ({ id: r.id, t: r.window_start_seconds, s: Number.MAX_SAFE_INTEGER })),
   ].sort((a, b) => (a.t ?? Number.MAX_SAFE_INTEGER) - (b.t ?? Number.MAX_SAFE_INTEGER) || a.s - b.s)
@@ -208,24 +290,50 @@ export async function gjorStillestandTilPause(
 }
 
 /**
- * Angre: sletter nøyaktig radene denne handlingen laget.
+ * Angre: syr økta sammen igjen.
  *
- * Kjennetegnet er auto_pause = true. Raden er borte selv om utøveren har
- * døpt den om, og en rad han SELV har kalt «Stillestand» røres aldri.
+ * IKKE «slett pause-radene». Med splitten ville det etterlatt halvdelene
+ * som halvdeler og originalen aldri kommet tilbake. Her gjenopprettes hver
+ * splittet original FULLT fra split_backup - alle felter, også de splitten
+ * aldri rørte - og barna slettes.
+ *
+ * REGEL 40 PÅ ANGRE-SIDEN: «radene er borte» er ikke «tallet er tilbake».
+ * Kontrakten er at ren treningstid etter angre er lik den før splitten,
+ * og den er testet i scripts/stillestand-utfall-selftest.
+ *
+ * Har utøveren ENDRET TYPEN på en av delene - gjort pausen om til aktiv
+ * pause, veksling eller skyting - blir den endringen borte. Det er riktig
+ * for en handling som heter «angre», men han skal få vite det FØR han
+ * trykker: knappen spør når en del er rørt (StillestandKnapp), og denne
+ * funksjonen rapporterer hvor mange deler som var endret, så dialogen kan
+ * si det konkret.
  */
 export async function angreStillestandPauser(
   workoutId: string,
-): Promise<{ slettet: number } | { error: string }> {
+): Promise<{ slettet: number; endredeDeler: number } | { error: string }> {
   const g = await hentGrunnlag(workoutId)
   if (g.feil) return { error: g.feil }
   const { supabase, brukerId } = g
 
-  const { data, error } = await supabase.from('workout_activities')
-    .delete().eq('workout_id', workoutId).eq('auto_pause', true).select('id')
-  if (error) return { error: error.message }
+  const { data: raderRaa, error: lesFeil } = await supabase.from('workout_activities')
+    .select(RAD_FELTER).eq('workout_id', workoutId).order('sort_order', { ascending: true })
+  if (lesFeil) return { error: lesFeil.message }
+  const rader = (raderRaa ?? []) as unknown as Rad[]
+
+  // En del utøveren har gjort om til noe annet enn pause er ikke lenger
+  // maskinens rad. Vi teller dem, så dialogen kan si hva som forsvinner.
+  const endredeDeler = rader.filter(r =>
+    (r.split_parent_id || r.split_backup) && r.auto_pause !== true && r.activity_type === 'pause'
+      ? false
+      : !!r.split_parent_id && r.activity_type !== 'pause' && r.auto_pause !== true).length
+
+  const syttSammen = await syttSammenIgjen(supabase, rader)
+  if ('error' in syttSammen) return { error: syttSammen.error }
+  const slettet = rader.length - syttSammen.rader.length
 
   updateTag(`user-workouts-${brukerId}`)
   revalidatePath('/app/dagbok')
   revalidatePath('/app/oversikt')
-  return { slettet: (data ?? []).length }
+  return { slettet, endredeDeler }
 }
+

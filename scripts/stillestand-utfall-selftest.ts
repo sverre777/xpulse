@@ -190,5 +190,43 @@ console.log('\nAngre gjenoppretter originalen FULLT')
   sjekk('og ingenting slettes', ut.slettede.length, 0)
 }
 
+console.log('\nDOBBELTKJØRING - kontrakten handlingen må følge')
+// Kjøres knappen to ganger, må andre kjøring gi NØYAKTIG samme tall som
+// første. Den gamle idempotensen slettet bare pause-radene; med splitten
+// ville halvdelene blitt stående som halvdeler og originalen aldri kommet
+// tilbake. Derfor: ANGRE først, så splitt fra hel rad.
+//
+// En dobbeltkjøring som gir 3540 første gang og 3480 andre gang er
+// nøyaktig feilen ingen ser før en utøver melder den.
+function dobbelt(navn: string, rader: Rad[], stopp: Stillestand[]) {
+  const en = splittForStillestand(rader, stopp)
+  // Slik handlingen MÅ gjøre det: angre, så splitt på nytt.
+  const to = splittForStillestand(angreSplitt(en.rader).rader, stopp)
+  ok(`${navn}: samme REN TRENINGSTID andre gang`,
+    renTid(to.rader) === renTid(en.rader), `${renTid(en.rader)} -> ${renTid(to.rader)}`)
+  ok(`${navn}: samme antall rader andre gang`,
+    to.rader.length === en.rader.length, `${en.rader.length} -> ${to.rader.length}`)
+  ok(`${navn}: samme totaltid andre gang`,
+    sumVarighet(to.rader) === sumVarighet(en.rader), `${sumVarighet(en.rader)} -> ${sumVarighet(to.rader)}`)
+  // Og en tredje gang, for sikkerhets skyld.
+  const tre = splittForStillestand(angreSplitt(to.rader).rader, stopp)
+  ok(`${navn}: og tredje gang`, renTid(tre.rader) === renTid(en.rader) && tre.rader.length === en.rader.length,
+    `${renTid(en.rader)}/${en.rader.length} -> ${renTid(tre.rader)}/${tre.rader.length}`)
+}
+dobbelt('ett stopp', [rad('aktivitet', 0, 3600)], [{ fraSek: 600, tilSek: 660 }])
+dobbelt('to stopp', [rad('aktivitet', 0, 3600)],
+  [{ fraSek: 600, tilSek: 660 }, { fraSek: 2400, tilSek: 2520 }])
+dobbelt('over to rader', [rad('oppvarming', 0, 900), rad('aktivitet', 900, 2700)],
+  [{ fraSek: 850, tilSek: 1000 }])
+{
+  // UTEN angre først - slik den gamle idempotensen gjorde det. Dette er
+  // feilen kontrakten over finnes for å hindre.
+  const en = splittForStillestand([rad('aktivitet', 0, 3600)], [{ fraSek: 600, tilSek: 660 }])
+  const utenAngre = splittForStillestand(en.rader, [{ fraSek: 600, tilSek: 660 }])
+  ok('uten angre først: splitten nekter i stedet for å lage halvdeler',
+    utenAngre.alleredeSplittet.length > 0 && utenAngre.rader.length === en.rader.length,
+    JSON.stringify(utenAngre.rader.map(r => [r.activity_type, r.window_duration_seconds])))
+}
+
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

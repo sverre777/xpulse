@@ -26,11 +26,34 @@ import { join, dirname, normalize } from 'path'
 
 const les = (p: string) => { try { return readFileSync(p, 'utf8') } catch { return '' } }
 
-/** Flatene som er UTØVERENS - de har en egen rute under trenerpanelet. */
+/** Flatene som er UTØVERENS og HAR en tvilling under trenerpanelet.
+    Disse skal PREFIKSES. */
 function utoverFlater(): string[] {
   const rot = 'app/app/trener/[athleteId]'
   if (!existsSync(rot)) return []
   return readdirSync(rot).filter(n => statSync(join(rot, n)).isDirectory())
+}
+
+/**
+ * Flatene som er ATHLETE-ONLY: de ligger under (authed) og har INGEN
+ * tvilling under trenerpanelet. Middleware sender en trener i coach-modus
+ * bort fra dem, så en lenke dit fører ingensteds - den skal GATES på
+ * targetUserId.
+ *
+ * Funnet av strukturen, ikke av en liste: legges det til en trenerrute for
+ * en av dem, flytter den seg selv over i prefiks-gruppa.
+ *
+ * Trenerens EGNE flater holdes utenfor - de er riktige uten prefiks og
+ * uten gate.
+ */
+const EGNE_FLATER = new Set(['innstillinger', 'abonnement'])
+function athleteOnlyFlater(): string[] {
+  const rot = 'app/app/(authed)'
+  if (!existsSync(rot)) return []
+  const medTvilling = new Set(utoverFlater())
+  return readdirSync(rot)
+    .filter(n => statSync(join(rot, n)).isDirectory())
+    .filter(n => !medTvilling.has(n) && !EGNE_FLATER.has(n))
 }
 
 /** Alle filer som kan nås fra en side under /app/trener. */
@@ -75,23 +98,70 @@ const naabare = [...naabareFraTrener()].filter(f => f.startsWith('components/'))
 // Importstier ('@/app/actions/...') treffes ikke av dette mønsteret.
 const NAV = /(?:router\.push\(\s*|href=\{?\s*)[`'"](\/app\/([a-zæøå0-9-]+))/g
 
+const kunAthlete = athleteOnlyFlater()
+
+/**
+ * Er lenka gatet? TO FORMER GODTAS, og bare de to:
+ *
+ *   1  JSX-gate:      {!targetUserId && <Link href="/app/okt/..." />}
+ *                     {kanLive && !targetUserId && ( ... )}
+ *                     !targetUserId ? <Link ... /> : <span ... />
+ *   2  Tidlig retur:  if (targetUserId) { ...; return }
+ *                     router.push(`/app/okt/${id}`)
+ *
+ * Markøren må stå på lenkelinja eller de tre linjene før. En TREDJE form
+ * gjør vakten rød med vilje: da skal den som skriver den enten bruke en av
+ * de to - så ser vakten alle likt - eller utvide lista her bevisst. Det er
+ * poenget med en vakt framfor en konvensjon.
+ *
+ * Kallstedet kan også gate (DagbokPageView gjør det for ResumeSessionBanner),
+ * og da nevner filen targetUserId ikke i det hele tatt - derfor ser vi bare
+ * på filer som FAKTISK bygger lenka OG kjenner targetUserId.
+ */
+function gatetIKontekst(linjer: string[], nr: number): boolean {
+  const vindu = linjer.slice(Math.max(0, nr - 3), nr + 1)
+  return vindu.some(l => /!targetUserId/.test(l))
+      || vindu.some(l => /if\s*\(\s*targetUserId\s*\)/.test(l) && /\breturn\b/.test(l))
+}
+
 const funn: { fil: string; flate: string; harTarget: boolean }[] = []
+const ugatet: { fil: string; flate: string }[] = []
 for (const f of naabare) {
   const s = les(f)
   const harTarget = s.includes('targetUserId')
+  const linjer = s.split('\n')
   const sett = new Set<string>()
   for (const m of s.matchAll(NAV)) if (flater.includes(m[2])) sett.add(m[2])
   for (const flate of [...sett].sort()) funn.push({ fil: f, flate, harTarget })
+  // Athlete-only: lenka må være gatet der den skrives, når komponenten i
+  // det hele tatt kjenner targetUserId.
+  if (!harTarget) continue
+  linjer.forEach((linje, i) => {
+    const m = [...linje.matchAll(NAV)]
+    for (const t of m) {
+      if (!kunAthlete.includes(t[2])) continue
+      if (!gatetIKontekst(linjer, i)) ugatet.push({ fil: f, flate: t[2] })
+    }
+  })
 }
 
 console.log('\nFLATE-PREFIKS - trener skal aldri havne hos seg selv\n')
 console.log(`utøverflater (fra app/app/trener/[athleteId]/): ${flater.join(', ')}`)
 console.log(`komponenter som kan tegnes i trenerkontekst:    ${naabare.length}\n`)
 
-if (funn.length === 0) {
-  console.log('ALT OK - ingen rå utøverflate-lenker i trenerkontekst\n')
+console.log(`athlete-only-flater (ingen trenerrute):           ${kunAthlete.join(', ')}\n`)
+
+if (funn.length === 0 && ugatet.length === 0) {
+  console.log('ALT OK - flate-lenker er prefikset, athlete-only er gatet\n')
   process.exit(0)
 }
+if (ugatet.length > 0) {
+  console.log(`${ugatet.length} lenke(r) til en ATHLETE-ONLY-flate er ikke gatet på targetUserId:\n`)
+  for (const u of ugatet) console.log(`  ${u.fil.replace('components/', '')}  -> /app/${u.flate}`)
+  console.log('\nMiddleware sender treneren bort fra disse - lenka fører ingensteds.')
+  console.log('Gate den: {!targetUserId && ...}\n')
+}
+if (funn.length === 0) { console.log(`\n${ugatet.length} FEIL\n`); process.exit(1) }
 const perFil = new Map<string, { flater: string[]; harTarget: boolean }>()
 for (const f of funn) {
   const e = perFil.get(f.fil) ?? { flater: [], harTarget: f.harTarget }
@@ -104,5 +174,5 @@ for (const [fil, e] of [...perFil.entries()].sort()) {
   console.log(`      -> ${e.flater.map(x => '/app/' + x).join(', ')}`)
 }
 console.log('\nBruk flatePrefiks(targetUserId) fra lib/flate-prefiks.')
-console.log(`\n${perFil.size} FEIL\n`)
+console.log(`\n${perFil.size + ugatet.length} FEIL\n`)
 process.exit(1)

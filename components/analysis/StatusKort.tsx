@@ -185,7 +185,7 @@ function OktTittel({ tekst }: { tekst: string }) {
 }
 
 /** Siste hardøkt: tittel, nøkkeltall og sonestripa — samme tall som øktkortene på Hjem. */
-function SisteHardBoks({ status }: { status: OversiktStatus | null }) {
+function SisteHardBoks({ status, targetUserId }: { status: OversiktStatus | null; targetUserId?: string }) {
   const o = status?.okter?.sisteHard ?? null
   const siste = status?.okter?.sisteOkt ?? null
   return (
@@ -203,11 +203,14 @@ function SisteHardBoks({ status }: { status: OversiktStatus | null }) {
             { etikett: 'Laktat maks', verdi: o.laktatMaks != null ? String(o.laktatMaks).replace('.', ',') : '-' },
             { etikett: 'Opplevd', verdi: o.opplevd != null ? `${o.opplevd}` : '-', under: o.opplevd != null ? '/10' : null },
           ]} />
-          <a href={`/app/okt/${o.id}`} className="inline-flex items-center gap-1"
+          {/* LIVE-ØKT ER ATHLETE-ONLY: middleware sender en trener i coach-modus
+              bort fra /app/okt. Gaten fjerner en lenke som fører ingensteds -
+              RYDDIGHET, IKKE VERN. Middleware er sikkerheten. */}
+          {!targetUserId && <a href={`/app/okt/${o.id}`} className="inline-flex items-center gap-1"
             style={{ marginTop: 8, fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: ORANSJE, textDecoration: 'none' }}>
             Åpne økta
             <Ikon navn="neste" variant="strek" storrelse={14} />
-          </a>
+          </a>}
         </>
       )}
     </Boks>
@@ -476,7 +479,7 @@ export interface StatusKortProps {
   targetUserId?: string
 }
 
-export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealthData = true }: StatusKortProps) {
+export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealthData = true, targetUserId }: StatusKortProps) {
   const kollapset = useSyncExternalStore(abonner, lesKollapset, () => false)
   const n = overview.current
 
@@ -536,7 +539,7 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
       </div>
 
       {!kollapset && (
-        <StatusBokser status={status} harSkiskyting={harSkiskyting} canSeeHealthData={canSeeHealthData}
+        <StatusBokser status={status} harSkiskyting={harSkiskyting} canSeeHealthData={canSeeHealthData} targetUserId={targetUserId}
           bevform={overview.current.movement_breakdown} konkurranser={konkurranser} />
       )}
     </section>
@@ -545,7 +548,9 @@ export function StatusKort({ overview, status, range, harSkiskyting, canSeeHealt
 
 /** De åtte boksene alene. Trenerens detaljpanel under en utøverrad (bolk B1)
  *  bruker NØYAKTIG de samme boksene — ingen egen variant (regel 11). */
-export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, bevform = [], konkurranser = [], visStjerner = true }: {
+export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, bevform = [], konkurranser = [], visStjerner = true, targetUserId }: {
+  /** Trenerkontekst: live-lenker skjules (se gaten i SisteHardBoks). */
+  targetUserId?: string
   status: OversiktStatus | null
   harSkiskyting: boolean
   canSeeHealthData?: boolean
@@ -557,7 +562,7 @@ export function StatusBokser({ status, harSkiskyting, canSeeHealthData = true, b
   return (
     <StjerneKontekst.Provider value={visStjerner}>
     <div data-status-bokser className="xp-status-bokser" style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-      <SisteHardBoks status={status} />
+      <SisteHardBoks status={status} targetUserId={targetUserId} />
       <NesteBoks status={status} />
       <BelastningBoks status={status} konkurranser={konkurranser} />
       <HelseBoks status={status} canSeeHealthData={canSeeHealthData} />

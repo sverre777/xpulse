@@ -160,7 +160,12 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
 
       <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
         <button type="button" onClick={onTilbake} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="forrige" variant="strek" storrelse={14} /> TILBAKE</button>
-        <Link href={`/app/health/${idagIso}`} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="for-okt" variant="strek" storrelse={14} /> FØR MANUELT</Link>
+{/* HELSESKJEMAET SKJULES FOR TRENEREN: helse er art. 9, og
+                can_see_health_data er et LESE-flagg. Å føre utøverens
+                helsetall er nøyaktig det treneren ikke skal ha (338ff3e,
+                07f3c51). Gaten er ryddighet - RLS og
+                resolveHealthTargetUser er vernet. */}
+        {!targetUserId && <Link href={`/app/health/${idagIso}`} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="for-okt" variant="strek" storrelse={14} /> FØR MANUELT</Link>}
       </div>
     </>
   )

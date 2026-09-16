@@ -2169,7 +2169,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, helse = null,
                                 </div>
                               )}
                             </div>
-                            {isStrengthRow && (
+                            {/* LIVE-ØKT ER ATHLETE-ONLY: /app/okt ligger under (authed), og
+                                middleware sender en trener i coach-modus bort. Gaten her fjerner
+                                en knapp som fører ingensteds - RYDDIGHET, IKKE VERN. Middleware er
+                                sikkerheten; fjernes den, er det den grensa som ryker, ikke denne. */}
+                            {isStrengthRow && !targetUserId && (
                               <button type="button"
                                 onClick={() => router.push(`/app/okt/${w.id}`)}
                                 className="w-full inline-flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"

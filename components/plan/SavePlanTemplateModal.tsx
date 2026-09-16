@@ -14,7 +14,7 @@ interface Props {
   onClose: () => void
 }
 
-export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onClose }: Props) {
+export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onClose, targetUserId }: Props & { targetUserId?: string }) {
   const router = useRouter()
   const [mode, setMode] = useState<RangeMode>('week')
   const [customFrom, setCustomFrom] = useState(isoWeekStart)
@@ -51,7 +51,10 @@ export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onCl
         plan_data: built.data,
       })
       if (res.error) { setError(res.error); return }
-      router.push('/app/maler?tab=plan')
+      // OMDIRIGERING, IKKE GATE: lagrer treneren en planmal mens han står i
+      // utøverens plan, er det HANS mal, og den hører hjemme i hans maler.
+      // Å skjule knappen ville tatt bort noe som virker.
+      router.push(targetUserId ? '/app/trener/planlegg?tab=plan' : '/app/maler?tab=plan')
       onClose()
     })
   }

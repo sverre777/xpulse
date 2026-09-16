@@ -564,6 +564,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     const res = await saveWorkout(payload, workoutId, targetUserId)
     const id = workoutId ?? res.id
     if (res.error || !id) { setStartingLive(false); void xpAlert(res.error ?? 'Kunne ikke lagre økta'); return }
+    // LIVE-ØKT ER ATHLETE-ONLY (se gaten på knappen): middleware sender en
+    // trener bort fra /app/okt. Lagrer treneren for en utøver, blir han
+    // stående i skjemaet i stedet for å kastes ut.
+    if (targetUserId) { setStartingLive(false); return }
     router.push(`/app/okt/${id}`)
   }
 

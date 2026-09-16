@@ -206,6 +206,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
                  rett på kortet; de andre lenker til dagens føringsskjema. ── */}
           <FolelseRad dager={dager} foringsDato={foring} snitt={snitt('day_form')}
             kanFore={!targetUserId && !forside} sisteDato={anker} forside={forside}
+            targetUserId={targetUserId}
             onFort={v => setSvar(s => {
               // Optimistisk: patch dagen lokalt — ALDRI nullstill svaret
               // (det ville re-hentet og fått hele kortet til å blinke).
@@ -227,7 +228,12 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
           {/* ── Handlingsrad (ikke på forsiden - knappene er døde der) ── */}
           {!forside && <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
             <button type="button" onClick={() => setVisDybde(true)} style={btnPrimar}>VIS MER</button>
-            <Link href={`/app/health/${foring}`} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="for-okt" variant="strek" storrelse={14} /> FØR MANUELT</Link>
+{/* HELSESKJEMAET SKJULES FOR TRENEREN: helse er art. 9, og
+                can_see_health_data er et LESE-flagg. Å føre utøverens
+                helsetall er nøyaktig det treneren ikke skal ha (338ff3e,
+                07f3c51). Gaten er ryddighet - RLS og
+                resolveHealthTargetUser er vernet. */}
+            {!targetUserId && <Link href={`/app/health/${foring}`} style={{ ...btnGhost, display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ikon navn="for-okt" variant="strek" storrelse={14} /> FØR MANUELT</Link>}
           </div>}
         </>
       )}
@@ -241,7 +247,8 @@ function sisteDatoer(n: number, tilDato: string): string[] {
   return ut
 }
 
-function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, forside = false }: {
+function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, forside = false, targetUserId }: {
+  targetUserId?: string
   dager: HelseDag[]
   foringsDato: string
   snitt: number | null
@@ -269,21 +276,31 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, for
         {sisteDatoer(14, sisteDato).map(dato => {
           const v = dager.find(x => x.date === dato)?.day_form ?? null
           const erForing = dato === foringsDato
-          return (
-            <Link key={dato} href={`/app/health/${dato}`} title={`${dato}${v != null ? ` · ${v}` : ''}`}
-              style={{
-                width: 26, height: 26, borderRadius: '50%', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontSize: 11,
-                textDecoration: 'none',
-                background: v != null ? '#28A86E' : 'var(--card)',
-                border: `1px solid ${v != null ? '#28A86E' : 'var(--line2)'}`,
-                color: v != null ? '#08231a' : 'var(--tekst-8-app)',
-                fontWeight: v != null ? 700 : 400,
-                outline: erForing ? '2px solid #FF4500' : undefined,
-                outlineOffset: 2,
-              }}>
+          const stil = {
+            width: 26, height: 26, borderRadius: '50%', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', fontSize: 11,
+            textDecoration: 'none',
+            background: v != null ? '#28A86E' : 'var(--card)',
+            border: `1px solid ${v != null ? '#28A86E' : 'var(--line2)'}`,
+            color: v != null ? '#08231a' : 'var(--tekst-8-app)',
+            fontWeight: v != null ? 700 : 400,
+            outline: erForing ? '2px solid #FF4500' : undefined,
+            outlineOffset: 2,
+          } as const
+          const tittel = `${dato}${v != null ? ` · ${v}` : ''}`
+          // TALLET STÅR, LENKA GJØR IKKE: /app/health er athlete-only (ingen
+          // tvilling under /app/trener/[athleteId]), og middleware sender en
+          // trener i coach-modus bort. Treneren skal LESE dagsformen - det er
+          // can_see_health_data - men prikken må ikke være en lenke som fører
+          // ingensteds. Gaten er RYDDIGHET, IKKE VERN: middleware og
+          // resolveHealthTargetUser er sikkerheten, og ryker en av dem, er det
+          // den grensa som ryker - ikke denne.
+          return !targetUserId ? (
+            <Link key={dato} href={`/app/health/${dato}`} title={tittel} style={stil}>
               {v != null ? v : '-'}
             </Link>
+          ) : (
+            <span key={dato} title={tittel} style={stil}>{v != null ? v : '-'}</span>
           )
         })}
         {snitt != null && (

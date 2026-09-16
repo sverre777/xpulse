@@ -124,7 +124,11 @@ function NesteOektLinje({ w, todayISO, liten = false, harSki = true, targetUserI
         <div style={{ width: 120, flexShrink: 0 }}><Blokkgraf w={w} hoyde={34} harSki={harSki} /></div>
       )}
     </Link>
-    {live && <Link href={`/app/okt/${w.id}`} data-neste-live={w.id} title="Start live styrke" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: GRONN, border: `1px solid ${GRONN}`, borderRadius: 999, padding: '3px 9px', textDecoration: 'none', flexShrink: 0 }}><Ikon navn="play" storrelse={14} /> Live</Link>}
+    {/* LIVE-ØKT ER ATHLETE-ONLY: /app/okt har ingen trenerrute, og
+        middleware sender en trener i coach-modus bort. Gaten fjerner en
+        knapp som fører ingensteds - RYDDIGHET, IKKE VERN. Middleware er
+        sikkerheten; fjernes den, er det den grensa som ryker, ikke denne. */}
+    {live && !targetUserId && <Link href={`/app/okt/${w.id}`} data-neste-live={w.id} title="Start live styrke" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: GRONN, border: `1px solid ${GRONN}`, borderRadius: 999, padding: '3px 9px', textDecoration: 'none', flexShrink: 0 }}><Ikon navn="play" storrelse={14} /> Live</Link>}
     </div>
   )
 }
@@ -237,7 +241,9 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO, targetUs
               <>
                 <Link href={flateSti('dagbok', targetUserId, `?edit=${hoved.id}`)} className="xp-hbtn" data-idag-knapp="logg" style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)' }}>Logg økta</Link>
                 <Link href={flateSti('plan', targetUserId, `?edit=${hoved.id}`)} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="plan" style={{ color: BLAA }}>Åpne i plan</Link>
-                {erPlanlagtStyrke(hoved) && <Link href={`/app/okt/${hoved.id}`} className="xp-hbtn" data-idag-knapp="live" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: GRONN, color: 'var(--tekst-1-ren)' }}><Ikon navn="play" storrelse={14} /> Start live</Link>}
+                {/* Athlete-only, samme som «Live» på neste-økt-linja over:
+                    treneren skal ikke få en knapp middleware kaster ham ut av. */}
+                {erPlanlagtStyrke(hoved) && !targetUserId && <Link href={`/app/okt/${hoved.id}`} className="xp-hbtn" data-idag-knapp="live" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, backgroundColor: GRONN, color: 'var(--tekst-1-ren)' }}><Ikon navn="play" storrelse={14} /> Start live</Link>}
               </>
             )}
           </div>

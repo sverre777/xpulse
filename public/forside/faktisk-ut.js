@@ -278,6 +278,8 @@ document.addEventListener('click',function(e){
   var s=e.target.closest('.fv-seg span');if(s){var st=e.target.closest('#fv-mob')?STATE.mob:STATE.pc;if(s.dataset.vis){st.visning=s.dataset.vis}else if(s.dataset.modus){st.modus=s.dataset.modus}else return;AAPEN=null;tegn();return}
   var k=e.target.closest('.fv-k');if(k){VALGT=k.dataset.dag;BEHOLD=true;tegn();BEHOLD=false}
 });
+/* «i»-knappen under ramma: trykk = apne/lukke (hover og fokus gar via CSS). */
+document.addEventListener('click',function(e){var i=e.target.closest('.fv-info');var w=document.querySelector('.fv-info-wrap');if(!w)return;if(i){var ap=w.classList.toggle('apen');i.setAttribute('aria-expanded',ap?'true':'false')}else if(!e.target.closest('.fv-info-wrap')){w.classList.remove('apen');var k=w.querySelector('.fv-info');if(k)k.setAttribute('aria-expanded','false')}});
 function start(){if(window.matchMedia('(max-width:900px)').matches)STATE.vis='mob';tegn()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 window.FV={tegn:tegn,STATE:STATE,OKTER:OKTER};

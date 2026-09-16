@@ -14,12 +14,12 @@ document.documentElement.classList.add('js');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>X-PULSE - Treningsdagbok og planlegger for utholdenhetsutøvere</title>
-<meta name="description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere - langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
+<meta name="description" content="Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.">
 <link rel="canonical" href="https://x-pulse.no/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="X-PULSE">
 <meta property="og:title" content="X-PULSE - Treningsdagbok og planlegger for utholdenhetsutøvere">
-<meta property="og:description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere - langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
+<meta property="og:description" content="Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.">
 <meta property="og:url" content="https://x-pulse.no/">
 <meta property="og:image" content="https://x-pulse.no/x-pulse-icon-1024.png">
 <meta property="og:locale" content="nb_NO">
@@ -271,13 +271,7 @@ section{padding:88px 0}
 /* Hero v5: ÉN chip - «Treningsdagbok for utholdenhet · V1.3 · Hva er nytt →», gull på versjonsdelen. */
 .hchip{display:inline-flex;align-items:center;gap:0;font:600 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5);text-decoration:none}
 .hchip-v{color:var(--gold);font-weight:700}
-/* Flyt-stripa i heroen: fem på én rad ≥880 (maks 1000 bred), 3 + 2 mellom 560 og 880, ikoner + titler under 560. */
-.hero-flow{width:100%;max-width:1000px;margin:0 auto}
-.hero-flow .iflow{overflow:visible;padding-bottom:0}
 .hstjerner{margin:36px auto 0;text-align:center;font-size:15px;letter-spacing:.34em;color:var(--gold);text-shadow:0 2px 14px rgba(0,0,0,.7)}
-/* px, ikke ch: ch-enheten maales i den aktive fonten, saa boksen endret bredde
-   naar fonten kom - og det var det siste skiftet i heroen. */
-.hquote{margin:10px auto 0;max-width:min(720px,100%);font:italic 400 clamp(15px,1.35vw,17px)/1.55 'Inter',system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.92);text-shadow:0 2px 18px rgba(0,0,0,.6)}
 .hero .hacts{margin-top:38px}
 .htag{font:600 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}
 .hver{font:700 12px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.16em;color:var(--gold);border:1px solid rgba(212,160,23,.4);border-radius:999px;padding:8px 13px}
@@ -798,7 +792,6 @@ footer a:hover{color:var(--paper)}
   .hero-tags{margin-bottom:30px}
   .hero h1{margin-bottom:22px}
   .hstjerner{margin-top:30px;font-size:14px}
-  .hquote{margin-top:8px;font-size:15px}
   .hero .hacts{margin-top:32px}
   .hfree{margin-top:20px}
   .proof{margin-top:36px}
@@ -1171,48 +1164,8 @@ nav {
    det telles. Suffikser finnes ikke i dagens tall. */
 .proof .n{font-variant-numeric:tabular-nums}
 
-/* Flyt-stripa */
-.iflow{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:8px}
-.istep{flex:1;min-width:130px;text-align:center;position:relative;transition:opacity .35s}
-html.js .istep{opacity:.28}
-html.js .istep.vis{opacity:1}
-/* Segmentene MELLOM sirklene stopper for hver sirkel - aldri en strek bak dem.
-   Hvert segment tar sin bit av gradienten rod -> oransje -> lilla -> bla, sa raden
-   samlet leser som en overgang. */
-.istep::before{content:'';position:absolute;top:23px;left:calc(50% + 26px);right:calc(-50% + 26px);height:2px;border-radius:2px;opacity:.9}
-.istep:last-child::before{display:none}
-.istep:nth-child(1)::before{background:linear-gradient(90deg,#E23A5A,#FF4500)}
-.istep:nth-child(2)::before{background:linear-gradient(90deg,#FF4500,#A85BC4)}
-.istep:nth-child(3)::before{background:linear-gradient(90deg,#A85BC4,#6E6BE6)}
-.istep:nth-child(4)::before{background:linear-gradient(90deg,#6E6BE6,#2E7FE0)}
-/* Glassfylte sirkler - ingen boks rundt raden; lesbarheten kommer fra vignetten
-   pluss text-shadow pa tittel og tekst. */
-.idot{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.30);
-  background:linear-gradient(150deg,rgba(255,255,255,.20),rgba(255,255,255,.06));
-  -webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 24px rgba(0,0,0,.45);
-  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative;z-index:1;
-  transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease}
-.istep:hover .idot{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 14px 30px rgba(0,0,0,.5)}
-.idot svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.istep h4{font:700 15px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.12em;margin:0 0 3px;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.75)}
-.istep p{color:rgba(255,255,255,.8);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0;text-shadow:0 2px 14px rgba(0,0,0,.8)}
-/* Smal skjerm: to rader (3+2, sentrert) i stedet for horisontal scroll.
-   Forbindelseslinjene skjules - de gir ikke mening på tvers av radbrudd. */
-/* Under 1000 px stables stegene i EN kolonne - ikon til venstre, tittel over
-   tekst - og segmentene blir korte LODDRETTE koblinger med sin bit av samme
-   gradient (fasitens mobilblokk). */
 @media (max-width: 1000px){
   .hero h1{font-size:clamp(34px,9.5vw,58px)}
-  .hero-flow{max-width:460px;padding:0 22px}
-  .iflow{flex-direction:column;overflow-x:visible;gap:16px;padding-bottom:0}
-  .istep{flex:0 0 auto;min-width:0;display:grid;grid-template-columns:44px 1fr;column-gap:14px;row-gap:2px;align-items:center;text-align:left}
-  .idot{width:44px;height:44px;margin:0;grid-row:1 / span 2;align-self:center}
-  .idot svg{width:18px;height:18px}
-  .istep h4{margin:0;font-size:13px;letter-spacing:.16em}
-  .istep p{padding:0;font-size:12px}
-  .istep::before{left:21px;right:auto;top:calc(50% + 26px);width:2px;height:20px}
-  .istep:last-child::before{display:none}
 }
 @media (max-width: 560px){
   .hchip-txt{display:none}
@@ -1229,10 +1182,43 @@ html.js .istep.vis{opacity:1}
 
 
 @media (prefers-reduced-motion: reduce){
-  .istep,.idot,.hero .btn{transition:none !important}
+  .hero .btn{transition:none !important}
   .hero .btn:hover{transform:none}
   .hero .btn:hover::after{animation:none;opacity:0}
-  html.js .istep{opacity:1}
+}
+
+/* ═══ HERO v7 (16. sep) - variant B. Kilde: design/xpulse-hero-v7-design.html ═══
+   Flyt-stripa er ute av heroen (fortelles i #flyt). Overskrift Barlow Condensed 700,
+   setningsform; undertittel Inter 400; piller; stjernene rett under knappene med
+   Gustavs linje som kilde. Heroen ligger på fotoet og er alltid mørk. */
+.hero{min-height:100vh}
+.hero-in.h7{padding:132px 0 40px}
+.h7 .hero-tags{margin-bottom:38px}
+.h7 h1.h7-b{font:700 clamp(50px,7.6vw,112px)/.98 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:-.005em;color:#fff;margin-bottom:34px;text-shadow:0 4px 30px rgba(0,0,0,.45)}
+.h7-sub{max-width:min(820px,100%);margin:0 auto;font:400 clamp(18px,1.75vw,25px)/1.45 'Inter',system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.94);text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.h7 .hacts{margin-top:44px;gap:14px}
+.h7 .btn{border-radius:999px;padding:17px 32px;font-size:15.5px}
+.h7 .btn.sec{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.h7 .hfree{margin-top:20px}
+.h7-stjerner{margin-top:104px}
+.h7 .hstjerner{margin:0;font-size:16px;letter-spacing:.36em}
+.h7-sitat{display:block;margin:12px auto 0;max-width:600px;font:italic 400 15px/1.5 'Inter',system-ui,sans-serif;color:rgba(255,255,255,.8);text-shadow:0 2px 14px rgba(0,0,0,.7);text-decoration:none}
+.h7-sitat:hover{color:#fff}
+.h7-sitat span{display:block;font-style:normal;font:600 11.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:8px}
+.h7 .proof{margin-top:100px;padding-top:0}
+.hero .syncrow{margin-top:56px;padding-top:26px}
+@media (max-width:640px){
+  .hero-in.h7{padding:104px 0 36px}
+  .h7 .hero-tags{margin-bottom:26px}
+  .h7 h1.h7-b{font-size:clamp(46px,13vw,58px);margin-bottom:22px}
+  .h7-sub{font-size:17px;padding:0 6px}
+  .h7 .hacts{margin-top:30px;gap:10px;justify-content:center}
+  .h7 .btn{padding:13px 22px;font-size:14px}
+  .h7 .hfree{margin-top:16px;font-size:13px}
+  .h7-stjerner{margin-top:64px}
+  .h7-br{display:none}
+  .h7 .proof{margin-top:60px}
+  .hero .syncrow{margin-top:36px}
 }
 
 /* ═══ FORSIDE v6 (4. sep) - nye flater. Kilde: design/xpulse-forside-v6-design.html ═══ */
@@ -2446,44 +2432,19 @@ section[id],header[id]{scroll-margin-top:108px}
 <header class="hero" id="topp">
   <div class="hero-bg"></div>
   <div class="hero-fade"></div>
-  <div class="wrap hero-in">
-    <div class="hero-tags">
-      <a class="hchip" href="/nytt"><span class="hchip-txt">Treningsdagbok for utholdenhet · </span><span class="hchip-v">V1.3 · Hva er nytt →</span></a>
-    </div>
-    <h1>BYGGET FOR<br><span class="o">ELITEN.</span><br>ENKEL FOR <span class="b">ALLE.</span></h1>
-    <!-- Flyt-stripa (hero v5): hele sløyfa, fem steg, rett under overskriften.
-         Én plass i sida (regel 11) - den gamle seksjonen under folden er slettet. -->
-    <div class="hero-flow" aria-label="Slik henger det sammen">
-<div class="iflow" id="flowSec">
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
-        <h4>PLANLEGG</h4><p>Årsplan, uker og økter - maler eller egne.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/></svg></div>
-        <h4>TREN</h4><p>Gjennomfør. Live styrke om du vil.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2M12 2v3M12 19v3"/></svg></div>
-        <h4>SYNK KLOKKA</h4><p>Økta kommer inn av seg selv - puls, runder, søvn.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
-        <h4>FØR DETALJER</h4><p>Følelse, skyting, laktat - det klokka ikke vet.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16v-4M11 16V8M16 16v-6M21 16V5"/></svg></div>
-        <h4>ANALYSER</h4><p>Én dagbok. Analysen ser hele bildet.</p>
-      </div>
-    </div>
-    </div>
-    <div class="hstjerner" aria-label="5 av 5 stjerner">★★★★★</div>
-    <p class="hquote">«Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.»</p>
+  <div class="wrap hero-in h7">
+    <div class="hero-tags"><a class="hchip" href="/nytt"><span class="hchip-txt">Treningsdagbok for utholdenhet · </span><span class="hchip-v">V1.3 · Hva er nytt →</span></a></div>
+    <h1 class="h7-b">Bygget for eliten.<br>Enkel for alle.</h1>
+    <p class="h7-sub">Én plattform for hele treningsåret. Alt samlet på ett sted. <br class="h7-br">For utholdenhetsutøvere og trenere.</p>
     <div class="hacts">
       <a class="btn pri" href="#priser">Start gratis prøve</a>
       <a class="btn sec" href="#inside">Se innsiden ↓</a>
     </div>
     <div class="hfree"><b>30 dager gratis</b> · Ingen bindingstid</div>
+    <div class="h7-stjerner">
+      <div class="hstjerner" aria-label="5 av 5 stjerner">★★★★★</div>
+      <a class="h7-sitat" href="#testimonials">«Har rett og slett gjort treningshverdagen enklere» <span>Gustav Heldal, langløper</span></a>
+    </div>
     <div class="proof">
       <div><div class="n" data-mal="58">58</div><div class="t">Øktmaler</div></div>
       <div><div class="n" data-mal="287">287</div><div class="t">Styrkeøvelser</div></div>
@@ -3789,24 +3750,6 @@ section[id],header[id]{scroll-margin-top:108px}
     fuBpc.addEventListener('click',function(){settVis(true)});
     fuBmob.addEventListener('click',function(){settVis(false)});
   }
-
-  /* Scroll-avsløringer - én gang per seksjon */
-  function stagger(el,sel,gap){
-    var items=el.querySelectorAll(sel);
-    items.forEach(function(it,i){setTimeout(function(){it.classList.add('vis')},i*gap)});
-  }
-  var io=new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      if(!e.isIntersecting) return;
-      var el=e.target;
-      io.unobserve(el);
-      if(el.id==='flowSec') stagger(el,'.istep',180);
-    });
-  },{threshold:.35});
-  ['flowSec'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el) io.observe(el);
-  });
 
   /* Tall-opptellingen - ~900 ms, kubisk ease-out, én gang, threshold 0.5.
      Sluttallet står i markupen fra før (synlig uten JS); reduced motion

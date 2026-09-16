@@ -597,9 +597,11 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSa
   const fordeling = fmtSoneFordeling(gruppe)
   const alt = gruppe.nokkel === 'alt'
   const skudd = alt ? skuddSum(gruppe) : { skudd: 0, treff: 0 }
-  // Etter 14. sep samler SAMLET på underkategori, så én gruppe kan romme
-  // flere aktivitetstyper (oppvarming + drag + nedjogg med samme underlag).
-  // Da navngis gruppa etter underlaget, ikke etter typen til første rad.
+  // Etter 16. sep nøkler SAMLET på underkategori OG aktivitetstype, så en
+  // gruppe har alltid én type - oppvarming, drag og nedjogg med samme
+  // underlag er tre grupper, og gruppa heter typen («Oppvarming») med
+  // underlaget bak. enType er derfor alltid sann utenfor «Samle alt»;
+  // gruppeNavn-grenen står igjen for den.
   const enType = gruppe.rader.every(r => r.activity_type === forste.activity_type)
   const typeNavn = [...new Set(gruppe.rader.map(r => ACTIVITY_TYPES.find(t => t.value === r.activity_type)?.label ?? r.activity_type))]
   const gruppeNavn = forste.movement_subcategory || forste.movement_name || (meta?.label ?? forste.activity_type)

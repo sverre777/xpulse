@@ -25,29 +25,41 @@ import { isStrengthMovement, type ActivityRow } from './types'
 import { parseActivityDuration } from './activity-duration'
 import { bevFelterFor } from './bevform-felter'
 import { parseDecimal } from './parse-decimal'
-import { segmentTypeFor, fmtVarighetKort } from './segmenter'
+import { segmentTypeFor, erPauseSegment, fmtVarighetKort } from './segmenter'
 
 /** Tre valg (pkt 17, Sverre 4. sep): splittet · samlet (grupper) · alt (ÉN rad for hele økta). */
 export type Visning = 'samlet' | 'splittet' | 'alt'
 
 const erSkyting = (t: string) => t.startsWith('skyting')
+/** REN pause. Aktiv pause er treningstid og er IKKE med her - se erAktivRad. */
 const erPause = (a: ActivityRow) => segmentTypeFor(a.activity_type, a.movement_name ?? '') === 'pause'
+/** PAUSERAD i bolk-forstand - ren OG aktiv (Sverre 16. sep). Brukes der
+    spørsmålet er «ligger dette mellom dragene?»: nøkkelen og mønsteret. */
+const erPauserad = (a: ActivityRow) => erPauseSegment(segmentTypeFor(a.activity_type, a.movement_name ?? ''))
 const SONE_REKKEFOLGE = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
 
-/** Nøkkelen som avgjør hvilken bolk raden havner i (Sverre 14. sep 2026).
+/** Nøkkelen som avgjør hvilken bolk raden havner i (Sverre 14. sep 2026,
+    presisert 16. sep: «lik bev.form eller underkat, men det må også være
+    lik aktivitetstype. pauser samles for seg»).
     Skyting og pause får nøkler ingen aktivitetsrad kan dele. */
 export function samleNokkel(a: ActivityRow): string {
   // Skyting samles PER MARKERING (Sverre 4. sep): hard komb-seriene i én
   // bolk, rolig komb i én, basis i én. Umarkerte skytinger deler nøkkelen
   // '' og havner dermed i samme bolk.
   if (erSkyting(a.activity_type)) return `skyting|${a.shooting_type ?? ''}`
-  // Alle pauser i én bolk - pause og aktiv pause hører sammen.
-  if (erPause(a)) return 'pause'
-  // Ellers: underkategorien av bev.form, eller bev.form når underlag ikke
-  // er valgt. Uten bev.form (styrke uten øvelse, veksling ...) faller vi
-  // tilbake på aktivitetstypen, så radene ikke smelter sammen med alt annet.
+  // REN OG AKTIV PAUSE HVER FOR SEG (Sverre 16. sep). Ikke fordi de ser
+  // ulike ut, men fordi de TELLER ulikt: aktiv pause er treningstid, ren
+  // pause er det ikke (IKKE_TRENINGSTID_TYPER). Én felles bolk ga én sumSek
+  // som blandet de to uten at noe sa hvor skillet gikk.
+  if (erPauserad(a)) return `pause|${a.activity_type}`
+  // Ellers: underkategorien av bev.form (eller bev.form uten underlag) OG
+  // aktivitetstypen. Uten typen smeltet oppvarming, drag og nedjogg med
+  // samme underlag til ÉN bolk - målt på «5x5 Holmenkollen»: 11 rader, én
+  // gruppe, 4380 s. Fasitens konvensjonslinje sa hele tida «samme type +
+  // bev.form + underkat»; koden hadde divergert.
+  // Uten bev.form (styrke uten øvelse, veksling ...) bærer typen alene.
   const bev = (a.movement_subcategory ?? '').trim() || (a.movement_name ?? '').trim()
-  return bev ? `bev|${bev}` : `type|${a.activity_type}`
+  return bev ? `bev|${bev}|${a.activity_type}` : `type|${a.activity_type}`
 }
 
 /** Intervallmønsteret i et sett med gruppe_id. */
@@ -105,8 +117,11 @@ function lesMonster(rader: ActivityRow[], alle: ActivityRow[]): Monster | null {
   // Mønster bare når alle radene hører til SAMME sett (gruppe_id).
   const gid = rader[0]?.gruppe_id
   if (!gid || rader.some(a => a.gruppe_id !== gid)) return null
-  const drag = rader.filter(a => !erPause(a))
-  const pauser = alle.filter(a => a.gruppe_id === gid && erPause(a))
+  // Begge pausetypene er «mellom dragene» her. Med bare ren pause ble en
+  // aktiv pause i settet talt som DRAG, og byggerens sett (aktive pauser
+  // som standard) leste ikke lenger som «3 × 10 min».
+  const drag = rader.filter(a => !erPauserad(a))
+  const pauser = alle.filter(a => a.gruppe_id === gid && erPauserad(a))
   if (drag.length < 2) return null
   const sek = drag.map(radSek)
   const ref = sek[0]

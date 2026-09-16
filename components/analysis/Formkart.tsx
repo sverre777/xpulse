@@ -32,6 +32,7 @@ import { HELSE_TREND_FARGER } from '@/lib/helse-farger'
 import { STATUS_ROD, KONKURRANSE_GULL, TRENER_BLAA } from '@/lib/status-farger'
 import type { DateRange } from './date-range'
 import { StarButton } from './StarButton'
+import { FormkartDagvisning } from './FormkartDagvisning'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ORANSJE = '#FF4500'
@@ -67,12 +68,12 @@ const fmtTsb = (v: number | null) => v == null ? '-' : `${v > 0 ? '+' : ''}${Mat
 interface Props {
   range: DateRange
   targetUserId?: string
-  /** Bolk 3: dagvisningen monteres under kartet av OverviewTab. */
-  onVelgDag?: (dag: FormkartDag | null) => void
-  valgtDato?: string | null
 }
 
-export function Formkart({ range, targetUserId, onVelgDag, valgtDato = null }: Props) {
+export function Formkart({ range, targetUserId }: Props) {
+  // Bolk 3: valgt dag åpner dagvisningen rett under kartet (samme lager, ingen ny henting).
+  const [valgtDato, setValgtDato] = useState<string | null>(null)
+  const onVelgDag = (dag: FormkartDag | null) => setValgtDato(dag?.dato ?? null)
   // Svaret bærer nøkkelen det gjelder for - «laster» er at nøkkelen ikke
   // matcher, ikke en egen tilstand som må nullstilles i effekten.
   const nokkel = `${range.from}|${range.to}|${targetUserId ?? ''}`
@@ -99,7 +100,9 @@ export function Formkart({ range, targetUserId, onVelgDag, valgtDato = null }: P
     return () => { live = false }
   }, [range.from, range.to, targetUserId])
 
+  const valgtDag = data && valgtDato ? data.dager.find(d => d.dato === valgtDato) ?? null : null
   return (
+    <>
     <section data-formkart style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: '18px 18px 16px' }}>
       <div className="flex items-start gap-3 flex-wrap" style={{ marginBottom: 4 }}>
         <div style={{ minWidth: 0 }}>
@@ -139,6 +142,11 @@ export function Formkart({ range, targetUserId, onVelgDag, valgtDato = null }: P
           valgtDato={valgtDato} onVelgDag={onVelgDag} />
       )}
     </section>
+    {data && valgtDag && (
+      <FormkartDagvisning dag={valgtDag} historikk={data.dager.filter(d => d.dato <= valgtDag.dato)} helseInkludert={data.helseInkludert}
+        harSkyting={data.harSkyting} targetUserId={targetUserId} onLukk={() => setValgtDato(null)} />
+    )}
+    </>
   )
 }
 

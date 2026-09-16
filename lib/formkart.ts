@@ -67,6 +67,17 @@ export interface FormkartOkt {
   tittel: string
   gjennomfort: boolean
   importert: string | null
+  /** Ren treningstid (sek) og sonetid per økt - til sonestripa i dagvisningen. */
+  sek: number
+  soneSek: Record<ExtendedZoneName, number>
+}
+
+/** Avvik mot snittet av de 30 siste dagene med verdi (dagvisningen). null under tre verdier. */
+export function avvikMot30(serie: (number | null | undefined)[], verdi: number | null | undefined): number | null {
+  if (!erTall(verdi)) return null
+  const v = serie.slice(-30).filter(erTall)
+  if (v.length < 3) return null
+  return verdi - v.reduce((a, b) => a + b, 0) / v.length
 }
 
 export interface FormkartDag {

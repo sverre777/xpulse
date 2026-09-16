@@ -26,7 +26,7 @@ import { minusDager } from '@/lib/helse-vindu'
 import { harSkiskyting, sporterFraProfil } from '@/lib/har-skiskyting'
 import {
   erHviledag, pctAvTerskel, skytingForDag, snittOgSd, GRUNNIVAA_DAGER,
-  type Formkart, type FormkartDag, type FormkartHelse, type FormkartLaktat, type SerieInn,
+  type Formkart, type FormkartDag, type FormkartHelse, type FormkartLaktat, type FormkartOkt, type SerieInn,
 } from '@/lib/formkart'
 
 const KONKURRANSE_TYPER = new Set(['competition', 'testlop'])
@@ -112,15 +112,19 @@ export async function getFormkart(
     let treningSek = 0, planlagtSek = 0, hardOkt = false, terskelHr: number | null = null
     const serier: SerieInn[] = []
     const laktat: FormkartLaktat[] = []
+    const oktUt: FormkartOkt[] = []
     for (const o of okter) {
       const akt = o.workout_activities ?? []
+      const ut: FormkartOkt = { id: o.id, tittel: o.title ?? '', gjennomfort: o.is_completed, importert: o.imported_from ?? o.merged_source ?? null, sek: 0, soneSek: emptyZoneSeconds() }
+      oktUt.push(ut)
       if (o.is_completed) {
         const t = computeActivityTotals(akt.map(a => ({
           activity_type: a.activity_type ?? '', duration_seconds: a.duration_seconds, distance_meters: a.distance_meters,
           avg_heart_rate: a.avg_heart_rate, zones: a.zones,
         })), heartZones)
         treningSek += t.totalSeconds
-        for (const k of Object.keys(soneSek) as (keyof typeof soneSek)[]) soneSek[k] += t.zoneSeconds[k] ?? 0
+        ut.sek = t.totalSeconds
+        for (const k of Object.keys(soneSek) as (keyof typeof soneSek)[]) { soneSek[k] += t.zoneSeconds[k] ?? 0; ut.soneSek[k] = t.zoneSeconds[k] ?? 0 }
         // Hard = tid i I3 eller høyere - samme definisjon som «Status nå».
         if ((t.zoneSeconds.I3 ?? 0) + hoyIntensitetSek(t.zoneSeconds) > 0) hardOkt = true
         const dom = dominantBevegelse(akt)
@@ -157,7 +161,7 @@ export async function getFormkart(
       skyting: skytingForDag(serier),
       laktat,
       terskelHr,
-      okter: okter.map(o => ({ id: o.id, tittel: o.title ?? '', gjennomfort: o.is_completed, importert: o.imported_from ?? o.merged_source ?? null })),
+      okter: oktUt,
     }
     if (helseInkludert) {
       const h = helsePerDag.get(dato)

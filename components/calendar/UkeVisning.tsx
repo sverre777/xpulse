@@ -9,6 +9,7 @@
 // via okt-lager (øvelser/sett). Én henting per uke som før; ingen egen action
 // per klikk ut over klokkedata.
 
+import { FormkartDagvisningSelvhentende } from '@/components/analysis/FormkartDagvisning'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { flateSti } from '@/lib/flate-prefiks'
 import { useRouter } from 'next/navigation'
@@ -571,6 +572,8 @@ export function UkeVisning({
               {valgtOkter.map(w => <UkeOktKort key={w.id} w={w} dateStr={valgt} mode={mode} readOnly={readOnly} targetUserId={targetUserId} onEdit={onEditWorkout} />)}
             </div>
           )}
+          {/* FORMKARTET bolk 3: samme dagvisning som under kartet på Oversikt - ett sted i koden, to monteringspunkter. */}
+          <div style={{ marginTop: 12 }}><FormkartDagvisningSelvhentende dato={valgt} targetUserId={targetUserId} /></div>
         </section>
       </div>
       <DragOverlay>

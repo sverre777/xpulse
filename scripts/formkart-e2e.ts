@@ -28,7 +28,7 @@ type Side = {
   setDefaultTimeout: (n: number) => void; goto: (u: string, o?: unknown) => Promise<unknown>
   fill: (s: string, v: string) => Promise<void>; waitForTimeout: (n: number) => Promise<void>
   getByRole: (r: string, o?: unknown) => Element; locator: (s: string) => Element
-  mouse: { move: (x: number, y: number) => Promise<void> }
+  mouse: { move: (x: number, y: number) => Promise<void>; click: (x: number, y: number) => Promise<void> }
 }
 type Nettleser = { newContext: (o: unknown) => Promise<{ newPage: () => Promise<Side> }>; close: () => Promise<void> }
 
@@ -56,7 +56,7 @@ async function loggInn(b: Nettleser, epost: string, bredde = 1400): Promise<Side
 
 const dagerSiden = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10) }
 
-export async function seedFormkart(uid: string): Promise<{ oktDato: string }> {
+export async function seedFormkart(uid: string): Promise<{ oktDato: string; helseDato: string }> {
   // Terskel 180 fra lenge siden - % av terskel skal regnes mot den.
   maa(await admin.from('user_thresholds').insert({ user_id: uid, movement_name: '', movement_subcategory: '', threshold_hr: 180, valid_from: '2024-01-01' }), 'terskel')
   // Fullført økt for 3 dager siden: I1 1 t + I3 20 min (hardøkt), skyting L 5/5 og S 5/3, laktat 2,5 på rad med puls 160.
@@ -87,7 +87,7 @@ export async function seedFormkart(uid: string): Promise<{ oktDato: string }> {
   helse.push({ user_id: uid, date: dagerSiden(2), hrv_ms: 60, resting_hr: 45, sources: { hrv_ms: 'manual', resting_hr: 'manual' } })
   maa(await admin.from('health_metrics').insert(helse), 'helse')
   maa(await admin.from('daily_health').insert({ user_id: uid, date: dagerSiden(2), day_form: 4 }), 'dagsform')
-  return { oktDato }
+  return { oktDato, helseDato: dagerSiden(2) }
 }
 
 async function main() {
@@ -97,7 +97,7 @@ try {
   const ut = await lagBruker(PREFIKS, 'ut', 'CC Formkart', UTOVER_META)
   await girAbonnement(ut.uid, 'athlete_pro')
   console.log('FØR :', await status([ut.uid]))
-  await seedFormkart(ut.uid)
+  const { oktDato, helseDato } = await seedFormkart(ut.uid)
 
   b = await hentNettleser()
   const p = await loggInn(b, ut.epost)
@@ -144,10 +144,42 @@ try {
   sjekk('tooltip: følelse 4 / 5', tip2.includes('4 / 5'), tip2)
   sjekk('krysshår tegnes gjennom banene', await antall('line[data-krysshaar]') === 1)
 
+  // BOLK 3: klikk på øktdagen -> dagvisningen under kartet.
+  await p.mouse.click(bb.x + px / 1100 * bb.width, bb.y + 120)
+  const dagv = p.locator(`[data-formkart-dag="${oktDato}"]`)
+  await dagv.waitFor({ timeout: 10000 })
+  const dvt = (await dagv.textContent()) ?? ''
+  sjekk('dagvisning: økta med tid og sonestripe', await p.locator('[data-formkart-dag-okt]').count() === 1 && dvt.includes('CC formkart-økt') && dvt.includes('1 t 20 min'), dvt.slice(0, 160))
+  sjekk('dagvisning: «Se økta» går til dagboka med ?edit= (WorkoutModal, ingen ny modal)', ((await p.locator('[data-formkart-dag-se]').first().getAttribute('href')) ?? '').includes('/app/dagbok?edit='))
+  const skt = (await p.locator('[data-formkart-dag-skyting]').textContent()) ?? ''
+  sjekk('dagvisning: standplass 100 % / 60 % / puls inn 155 / skytetid 32,0 s', skt.includes('100 %') && skt.includes('60 %') && skt.includes('155') && skt.includes('32,0 s'), skt)
+  const lak = (await p.locator('[data-formkart-dag-laktat]').textContent()) ?? ''
+  sjekk('dagvisning: laktat 2,5 mmol ved 160 bpm = 88,9 % av terskel (180)', lak.includes('2,5 mmol') && lak.includes('ved 160 bpm') && lak.includes('88,9 % av terskel (180)'), lak)
+  // Helsedagen: HRV 60 med M og avvik mot 30 d ((11×50+60)/12 = 50,8 -> +9,2).
+  await p.mouse.click(bb.x + (56 + i2 * bw + bw / 2) / 1100 * bb.width, bb.y + 120)
+  const dagv2 = p.locator(`[data-formkart-dag="${helseDato}"]`)
+  await dagv2.waitFor({ timeout: 10000 })
+  const hel = (await p.locator('[data-formkart-dag-helse]').textContent()) ?? ''
+  sjekk('dagvisning: HRV 60 ms merket M, ↑ 9,2 mot 30 d; hvilepuls 45 ↓ mot 30 d', /60 msM.*↑ 9,[0-9] mot 30 d/.test(hel) && /45M.*↓ 4,[0-9] mot 30 d/.test(hel), hel)
+  sjekk('dagvisning: følelse 4 / 5 med «for lite data» mot 30 d (bare én verdi)', hel.includes('4 / 5') && hel.includes('for lite data'), hel)
+  await p.locator('[data-formkart-dag-lukk]').click()
+  await p.waitForTimeout(300)
+  sjekk('Lukk fjerner dagvisningen', await p.locator('[data-formkart-dag]').count() === 0)
+
   // Bryteren: Lav / Med / Høy
   await p.locator('[data-formkart] button[data-sonemodus="tre"]').click()
   await p.waitForTimeout(300)
   sjekk('Lav/Med/Høy: lav- og høy-segment, ingen I1', await antall('rect[data-sone="lav"]') === 1 && await antall('rect[data-sone="med"]') === 1 && await antall('rect[data-sone="I1"]') === 0)
+
+  // BOLK 3, monteringspunkt 2: samme dagvisning i ukevisningens dagdetalj i dagboka.
+  await p.goto(`${BASE}/app/dagbok?cv=uke&cd=${oktDato}`, { waitUntil: 'domcontentloaded' })
+  await p.locator(`[data-uke-dag="${oktDato}"]`).waitFor({ timeout: 60000 })
+  await p.locator(`[data-uke-dag="${oktDato}"]`).click()
+  const dagbokDag = p.locator(`[data-uke-dagdetalj] [data-formkart-dag="${oktDato}"]`)
+  await dagbokDag.waitFor({ timeout: 60000 })
+  const dbt = (await dagbokDag.textContent()) ?? ''
+  sjekk('dagboka: dagvisningen (samme komponent) står i dagdetaljen med økt, standplass og laktat', dbt.includes('CC formkart-økt') && dbt.includes('88,9 % av terskel') && dbt.includes('32,0 s'), dbt.slice(0, 200))
+  sjekk('dagboka: ingen lukk-knapp (dagen velges i uka)', await p.locator('[data-uke-dagdetalj] [data-formkart-dag-lukk]').count() === 0)
 
   // Mobil: Lav/Med/Høy er standard under 640 px.
   const pm = await loggInn(b, ut.epost, 390)

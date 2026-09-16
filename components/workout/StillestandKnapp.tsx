@@ -86,6 +86,20 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
   const endretType = endredeDelerRader[0]?.activity_type ?? null
   const harFart = fartProver(klokke.data?.samples ?? null) != null
 
+  // ══════════════════════════════════════════════════════════════════
+  // SKJULT IGJEN (Sverre 16. sep, etter tre forsøk på en ekte Garmin-økt).
+  //
+  // Knappen kjører uten feil og lager ingen rader. Dialogen sier «fant 2
+  // perioder» og ingenting skjer. Årsaken er under utredning - skrivingen,
+  // ikke visningen.
+  //
+  // Skjult FØR årsaken er funnet, med vilje: en knapp som lover en nedgang
+  // og ikke leverer er verre enn ingen knapp. Én linje ut igjen når det er
+  // rettet OG bevist på en ekte økt.
+  // ══════════════════════════════════════════════════════════════════
+  const SPLITT_VIRKER = false
+  if (!SPLITT_VIRKER) return null
+
   // Ingenting å tilby: ikke tegn noe som helst.
   if (!workoutId || !erKlokkeokt) return null
   if (klokke.loading) return null

@@ -247,17 +247,15 @@ section{padding:88px 0}
 /* ── HERO ── */
 .hero{position:relative;min-height:88vh;display:flex;flex-direction:column;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background:url('/photos/hero-bg.jpg') center/cover no-repeat}
-/* Sloret bygges i lag (design/xpulse-hero-topp-design.html): rod oppe til venstre,
-   bla nede til hoyre, vignett, topp/bunn, sider og gradient-fasiten. Kantene blir
-   tydelig morkere hele veien rundt, midten star omtrent som for. Ingen ekstra
-   metning pa selve fotoet - filter:saturate() er fjernet med vilje. */
+/* Sloret bygges i lag: vignett, topp/bunn og sider. Kantene blir tydelig
+   morkere hele veien rundt, midten star omtrent som for. Ingen ekstra metning
+   pa selve fotoet - filter:saturate() er fjernet med vilje.
+   16. sep (Sverre): den rode og bla fargen i hjornene er tatt bort - fotoet
+   star i sine egne farger. */
 .hero-bg::after{content:'';position:absolute;inset:0;background:
-  radial-gradient(46% 44% at 6% 6%, rgba(255,69,0,.30), transparent 68%),
-  radial-gradient(52% 48% at 96% 96%, rgba(26,111,212,.32), transparent 70%),
   radial-gradient(92% 70% at 50% 46%, transparent 18%, rgba(8,8,10,.55) 52%, rgba(8,8,10,.86) 78%, rgba(8,8,10,1) 100%),
   linear-gradient(180deg,rgba(8,8,10,.94) 0%,rgba(8,8,10,.4) 22%,rgba(8,8,10,.3) 52%,rgba(8,8,10,.96) 100%),
-  linear-gradient(90deg,rgba(8,8,10,.8) 0%,transparent 18%,transparent 82%,rgba(8,8,10,.8) 100%),
-  linear-gradient(115deg,rgba(255,69,0,.09),rgba(26,111,212,.11) 72%)}
+  linear-gradient(90deg,rgba(8,8,10,.8) 0%,transparent 18%,transparent 82%,rgba(8,8,10,.8) 100%)}
 /* Faden toner ut i NØYAKTIG samme fixed gradient som body - samme
    viewport-koordinater gjør overgangen sømløs. En flat --bg her ga en
    synlig linje mot den tonede bakgrunnen. */
@@ -1192,7 +1190,7 @@ nav {
    setningsform; undertittel Inter 400; piller; stjernene rett under knappene med
    Gustavs linje som kilde. Heroen ligger på fotoet og er alltid mørk. */
 .hero{min-height:100vh}
-.hero-in.h7{padding:132px 0 40px}
+.hero-in.h7{padding:168px 0 72px}
 .h7 .hero-tags{margin-bottom:38px}
 .h7 h1.h7-b{font:700 clamp(50px,7.6vw,112px)/.98 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:-.005em;color:#fff;margin-bottom:34px;text-shadow:0 4px 30px rgba(0,0,0,.45)}
 .h7-sub{max-width:min(820px,100%);margin:0 auto;font:400 clamp(18px,1.75vw,25px)/1.45 'Inter',system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.94);text-shadow:0 2px 18px rgba(0,0,0,.6)}
@@ -1205,10 +1203,10 @@ nav {
 .h7-sitat{display:block;margin:12px auto 0;max-width:600px;font:italic 400 15px/1.5 'Inter',system-ui,sans-serif;color:rgba(255,255,255,.8);text-shadow:0 2px 14px rgba(0,0,0,.7);text-decoration:none}
 .h7-sitat:hover{color:#fff}
 .h7-sitat span{display:block;font-style:normal;font:600 11.5px/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:8px}
-.h7 .proof{margin-top:100px;padding-top:0}
-.hero .syncrow{margin-top:56px;padding-top:26px}
+.h7 .proof{margin-top:120px;padding-top:0}
+.hero .syncrow{margin-top:84px;padding-top:26px}
 @media (max-width:640px){
-  .hero-in.h7{padding:104px 0 36px}
+  .hero-in.h7{padding:120px 0 52px}
   .h7 .hero-tags{margin-bottom:26px}
   .h7 h1.h7-b{font-size:clamp(46px,13vw,58px);margin-bottom:22px}
   .h7-sub{font-size:17px;padding:0 6px}
@@ -1217,8 +1215,8 @@ nav {
   .h7 .hfree{margin-top:16px;font-size:13px}
   .h7-stjerner{margin-top:64px}
   .h7-br{display:none}
-  .h7 .proof{margin-top:60px}
-  .hero .syncrow{margin-top:36px}
+  .h7 .proof{margin-top:72px}
+  .hero .syncrow{margin-top:52px}
 }
 
 /* ═══ FORSIDE v6 (4. sep) - nye flater. Kilde: design/xpulse-forside-v6-design.html ═══ */

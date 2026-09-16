@@ -24,7 +24,13 @@ import {
 } from '@/app/actions/stillestand'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { Ikon } from '@/components/ui/ikoner'
-import type { ActivityRow } from '@/lib/types'
+import { ACTIVITY_TYPES, type ActivityRow } from '@/lib/types'
+
+/** «aktiv pause», «veksling», «skyting L» - slik utøveren ser typen. */
+function navnPaaType(t: string | null): string {
+  if (!t) return 'noe annet'
+  return (ACTIVITY_TYPES.find(x => x.value === t)?.label ?? t).toLowerCase()
+}
 
 const FONT = "'Barlow Condensed', sans-serif"
 
@@ -67,32 +73,18 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
   const klokke = useKlokkedata(workoutId)
 
   const antallAuto = stillestandRader(rader).length
+  // Deler utøveren har gjort om til noe annet enn pause - de forsvinner
+  // ved angre, og dialogen skal si det konkret.
+  //
+  // KJENNETEGNET ER auto_pause + IKKE LENGER PAUSE. Maskinen laget raden
+  // som pause og merket den; er typen nå noe annet, er det utøveren som
+  // har endret den. auto_pause blir stående ved typebytte - den sier hvem
+  // som LAGET raden, ikke hva den er nå.
+  const endredeDelerRader = rader.filter(r =>
+    r.auto_pause === true && r.activity_type !== 'pause')
+  const antallEndredeDeler = endredeDelerRader.length
+  const endretType = endredeDelerRader[0]?.activity_type ?? null
   const harFart = fartProver(klokke.data?.samples ?? null) != null
-
-  // ══════════════════════════════════════════════════════════════════
-  // SKJULT INNTIL SPLITTEN VIRKER (Sverre 16. sep 2026).
-  //
-  // Knappen lover i dialogen at ren treningstid går ned. Det gjør den
-  // ikke. gjorStillestandTilPause LEGGER pause-raden OPPÅ aktiviteten i
-  // stedet for å SPLITTE den, så radene summerer mer enn økta varte, og
-  // computeActivityTotals - som summerer per rad og trekker fra pausen -
-  // lander på samme tall som før.
-  //
-  // Målt med den ekte funksjonen: økt 3600 s, stopp 60 s.
-  //   uten splitt   3600 -> 3600   (uendret)
-  //   med splitt    3600 -> 3540   (som lovet)
-  // Og den virker ikke når stoppet faller mellom to rader heller: den
-  // tida var aldri talt som treningstid, så 3540 -> 3540.
-  //
-  // Prod hadde ÉN auto_pause-rad da dette ble funnet, og den var CCs egen
-  // test - ingen ekte bruker mister noe på at knappen forsvinner.
-  //
-  // SKJULT ETT STED, med vilje: monteringspunktene i Oktbygger og
-  // WorkoutOverview står urørt, og handlingen, angre-flyten og fase E
-  // virker som før. Fjern denne ene linja når splitten er inne.
-  // ══════════════════════════════════════════════════════════════════
-  const SPLITT_VIRKER = false
-  if (!SPLITT_VIRKER) return null
 
   // Ingenting å tilby: ikke tegn noe som helst.
   if (!workoutId || !erKlokkeokt) return null
@@ -140,6 +132,22 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
   })
 
   const angre = () => kjor(async () => {
+    // ANGRE ER FULL ANGRE: økta settes tilbake slik den var før pausene
+    // ble laget. Har utøveren endret typen på en av delene, forsvinner
+    // den endringen med. Det er riktig for noe som heter «angre» - en
+    // delvis angre ville gitt ham en halv splitt tilbake, og originalen
+    // aldri hel. Men han skal vite det FØR han trykker (Sverre 16. sep).
+    const n = antallEndredeDeler
+    if (n > 0) {
+      const hva = n === 1
+        ? `Du har endret én av delene til ${navnPaaType(endretType)}. Angre setter økta`
+          + ' tilbake slik den var før pausene ble laget - både pausene og endringen din'
+          + ' forsvinner.'
+        : `Du har endret ${n} av delene. Angre setter økta tilbake slik den var før pausene`
+          + ' ble laget - både pausene og endringene dine forsvinner.'
+      // Typen navngis bare når det er ÉN del. Med flere blir setningen uleselig.
+      if (!await xpConfirm({ title: 'Angre pausene?', body: hva, confirmLabel: 'Angre likevel' })) return
+    }
     const r = await angreStillestandPauser(workoutId)
     if ('error' in r) { setFeil(r.error); return }
     await onEndret()

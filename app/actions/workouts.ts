@@ -1699,6 +1699,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
     lap_notes?: string | null
     gruppe_id?: string | null
     auto_pause?: boolean | null
+    split_parent_id?: string | null
     workout_activity_exercises?: DbExercise[] | null
     workout_activity_lactate_measurements?: DbLactate[] | null
     workout_shooting_series?: {
@@ -1770,6 +1771,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
         lap_notes: a.lap_notes ?? '',
         gruppe_id: a.gruppe_id ?? null,
         auto_pause: a.auto_pause === true,
+        split_parent_id: a.split_parent_id ?? null,
         avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
         pace_unit_preference: a.pace_unit_preference ?? '',
         splits_per_km: deserializeSplits(a.splits_per_km),

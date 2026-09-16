@@ -868,6 +868,10 @@ export interface ActivityRow {
   // kan se hvilke rader «angre» gjelder. lap_notes er utøverens tekst og
   // duger ikke som kjennetegn.
   auto_pause?: boolean | null
+  // Fase 114: raden er en del av en splittet rad (barnet peker på
+  // originalen). Read-only i skjemaet - splitten og angre eier feltene.
+  // UI-et trenger dem for å vite hvilke deler utøveren selv har endret.
+  split_parent_id?: string | null
   // UTEN KLOKKE (bolk 6): når en rad kuttes, arver delene IKKE pulsen —
   // feltet står tomt med dragets snitt som grå plassholder. Dette er
   // hintet. Det lagres aldri (saveWorkout kjenner det ikke), og forsvinner

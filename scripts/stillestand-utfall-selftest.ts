@@ -385,5 +385,61 @@ console.log('\nTO TIDSBEGREPER SOM IKKE SKAL BLANDES')
   ok('angre gir begge tilbake', sumVarighet(angreSplitt(ut.rader).rader) === sumVarighet(rader))
 }
 
+// ── PULSEN PÅ PAUSE-RADEN (Sverre 16. sep) ──────────────────────────────
+//
+// «Pause-raden fikk en puls» er IKKE det samme som «pulsen er hentet fra
+// radens eget vindu». Derfor måles verdien mot prøvene: pausen skal få
+// snittet av SITT vindu, ikke originalens tall og ikke naboens.
+//
+// Dette er restitusjonspulsen. For en skiskytter på standplass er den noe
+// av det mest interessante på hele økta, og et arvet snitt ville påstått
+// at pulsen var 158 gjennom et stopp der den falt til 100.
+{
+  console.log('\nPULS PER DEL - målt mot prøvene')
+  const hr: Array<{ t: number; hr: number }> = []
+  for (let t = 0; t < 3600; t++) {
+    // 160 før stoppet, 100 under, 170 etter. Tre tydelig ulike nivåer.
+    hr.push({ t, hr: t < 600 ? 160 : t < 780 ? 100 : 170 })
+  }
+  const original: SplittRad = { ...rad('aktivitet', 0, 3600), avg_heart_rate: 158, max_heart_rate: 178 }
+  const ut = splittForStillestand([original], [{ fraSek: 600, tilSek: 780 }], { hr })
+  const deler = ut.rader
+  const pause = deler.find(r => r.activity_type === 'pause')
+  const aktive = deler.filter(r => r.activity_type !== 'pause')
+
+  ok('pausen har puls', pause?.avg_heart_rate != null, JSON.stringify(pause))
+  ok('pausen har SITT vindus puls (100), ikke originalens 158',
+    pause?.avg_heart_rate === 100, `fikk ${pause?.avg_heart_rate}`)
+  ok('ingen del fikk originalens 158',
+    deler.every(r => r.avg_heart_rate !== 158), JSON.stringify(deler.map(r => r.avg_heart_rate)))
+  ok('delene før og etter fikk sine egne nivåer (160 og 170)',
+    aktive.map(r => r.avg_heart_rate).join(',') === '160,170',
+    JSON.stringify(aktive.map(r => r.avg_heart_rate)))
+  // MÅLT 16. sep: pulsIVindu tar med prøven som ligger PÅ sluttSek, og
+  // delene grenser til hverandre - så prøven i skjøten teller i begge.
+  // Snittet merker det knapt (100,4 -> 100), maks gjør det: pausen får 170
+  // fra det første punktet i neste del. Det er ETT punkt av 181, det er
+  // samme funksjon runder.ts bruker, og å gjøre vinduet halvåpent ville
+  // flyttet tall over hele appen. Testen sier derfor det som er sant:
+  // maks kommer fra vinduet og er IKKE originalens.
+  ok('maks kommer fra vinduet, ikke originalens 178',
+    pause?.max_heart_rate !== 178 && (pause?.max_heart_rate ?? 0) <= 170,
+    `fikk ${pause?.max_heart_rate}`)
+
+  // Under to prøver i vinduet er ikke et snitt. Da skal feltet stå TOMT -
+  // ikke fylles med noe som ser ut som en måling.
+  const glissen = [{ t: 0, hr: 160 }, { t: 650, hr: 101 }, { t: 3000, hr: 170 }]
+  const ut2 = splittForStillestand([original], [{ fraSek: 600, tilSek: 780 }], { hr: glissen })
+  const pause2 = ut2.rader.find(r => r.activity_type === 'pause')
+  ok('én prøve i vinduet gir TOMT felt, ikke et påstått snitt',
+    pause2?.avg_heart_rate === null, `fikk ${pause2?.avg_heart_rate}`)
+
+  // Uten pulsdata i det hele tatt skal ingenting dikte opp en verdi.
+  const ut3 = splittForStillestand([original], [{ fraSek: 600, tilSek: 780 }])
+  ok('uten pulsdata står alle delene tomme, også aktivitetsdelene',
+    ut3.rader.every(r => r.avg_heart_rate === null),
+    JSON.stringify(ut3.rader.map(r => r.avg_heart_rate)))
+}
+
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

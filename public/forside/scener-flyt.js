@@ -24,7 +24,8 @@ var BEL={rolig:'#28A86E',medium:'#D4A017',hard:'#E11D48'};
 var PER=[['rolig','Grunntrening',[36,37,38,39,40,41,42,43,44],12],['medium','Oppbygging',[45,46,47,48],14],['hard','Toppform 1',[49,50,51],10],['rolig','Overgang',[52,1],8],['medium','Spesifikk',[2,3,4,5],14],['hard','Toppform 2',[6,7,8,9],10]];
 function ukeMnd(u){for(var i=0;i<MND.length;i++)if(MND[i][1].indexOf(u)>=0)return i;return -1}
 SC.push({kap:0,tittel:'MAL SESONGEN.',tekst:'Mal periodene med pensel - rødt er hard. Legg inn samlinger i høyden, sett konkurransene og formtoppen, og se de planlagte timene per måned vokse mens du maler.',
- steg:['Mal periodene','Samling i høyden','Konkurranser og peak'],varighet:9000,fart:1,
+ steg:['Mal periodene','Samling i høyden','Konkurranser og peak'],
+ mer:['Pensel med tre belastninger - rolig, medium, hard - malt uke for uke på et lerret for hele sesongen.','Nøkkeldatoer: A-, B- og C-konkurranser, testløp, samlinger og høydesamlinger med moh. Peak settes sammen med A-rennet.','Planlagte timer per måned står ved hver månedsrad og summeres nederst mens du maler.','Periodene og samlingene vises igjen som stripe over uka i plan og dagbok, og treneren kan pushe en hel årsplan-mal til utøveren.'],varighet:9000,fart:1,
  html:function(){var rader=MND.map(function(r,mi){return'<div class="mnd"><span>'+r[0]+'</span><div class="uker">'+r[1].map(function(u){return'<div class="uke" data-u="'+u+'">U'+u+'</div>'}).join('')+'</div><div class="mtim"><b data-m="'+mi+'">0</b><small>t plan</small></div></div>'}).join('');
   return'<div class="app ars"><div class="ars-hd"><span class="strek"></span><span class="bebas">Mal sesongen</span><span class="cap" style="margin-left:auto">2026/27</span></div>'+
   '<div class="vlinje"><div class="vgr"><span class="cap">Belastning</span>'+['rolig','medium','hard'].map(function(b){return'<span class="vk" data-b="'+b+'"><i class="rute" style="background:'+BEL[b]+'"></i>'+b[0].toUpperCase()+b.slice(1)+'</span>'}).join('')+'</div>'+
@@ -62,7 +63,8 @@ function planGraf(W){var B=196,P=120,x0=6,bw=W-12;function X(m){return x0+m/TOT*
  s+='<line x1="'+x0+'" x2="'+(W-6)+'" y1="'+B+'" y2="'+B+'" stroke="var(--a-line2)"/><text x="'+x0+'" y="212" font-family="Inter" font-size="10.5" fill="var(--a-mut)">0:00</text><text x="'+(W-6)+'" y="212" text-anchor="end" font-family="Inter" font-size="10.5" fill="var(--a-mut)">1:20:00</text>';
  return'<svg viewBox="0 30 '+W+' 188">'+s+'</svg>'}
 SC.push({kap:0,tittel:'BYGG ØKTA PÅ SEKUNDER.',tekst:'Antall × dragtid × sone / pause. Skiskyttere velger skyting i pausene. Trykk Opprett, og økta tegner seg som graf med soner, klammer og nøkkeltall.',
- steg:['Fyll inn dragene','Skyting i pausene','Se økta før du gjør den'],varighet:7500,fart:1,
+ steg:['Fyll inn dragene','Skyting i pausene','Se økta før du gjør den'],
+ mer:['Antall × dragtid × sone / pause, flere bolker etter hverandre, oppvarming og nedjogg rundt.','Drag i kilometer med planlagt fart, kortintervaller inni draget (50/10, 20/10), watt, stigning og motstand per bevegelsesform.','Skiskyting: L-S-L-S, LLSS, par eller ett anlegg - skytinga tar sin tid av pausen, totaltida er uendret.','Økta tegnes som graf med soner, klammer og nøkkeltall før du gjør den, og «Endre» på en bolk fyller skjemaet fra radene igjen.'],varighet:7500,fart:1,
  html:function(){function felt(v,cls){return'<div class="felt '+(cls||'')+'"><span class="v">'+v+'</span></div>'}
   function drag(i,a,t,z,p){return'<div class="drad" data-r="'+i+'">'+felt(a,'fa')+'<span>×</span><div class="tk"><span class="on">TID</span><span>KM</span></div>'+felt(t,'ft')+'<div class="felt fz"><span class="v sone" style="color:'+Z[z]+'">'+z+'</span></div><span>/</span>'+felt(p,'fp')+'</div>'}
   return'<div class="ob app"><div class="ob-top"><span class="bebas">Øktbygger</span><span class="pil fylt">Ferdig</span></div>'+
@@ -87,7 +89,8 @@ SC.push({kap:0,tittel:'BYGG ØKTA PÅ SEKUNDER.',tekst:'Antall × dragtid × son
 
 /* ── 3 · MAL ── */
 SC.push({kap:0,tittel:'LAGRE DEN SOM MAL.',tekst:'Én knapp i skjemaet. Neste gang ligger økta klar i Maler - sammen med 58 ferdige økter på Olympiatoppens skala.',
- steg:['Lagre som mal','Gi den et navn','Klar i Maler'],varighet:9000,
+ steg:['Lagre som mal','Gi den et navn','Klar i Maler'],
+ mer:['Økt-, uke- og planmaler: én økt, en hel uke eller en periode lagres med ett trykk og hentes igjen fra Maler.','58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, sortert per idrett og type.','Testmaler og standardøkter (NSSF-serien, terskeltester) ligger i samme bibliotek.','Treneren lagrer maler i sitt panel og pusher dem til én eller flere utøvere.'],varighet:9000,
  html:function(){return'<div class="mal-wrap"><div class="app skj"><div class="skj-top"><span class="strek"></span><span class="bebas">Planlegg økt</span><span class="cap" style="margin-left:auto">Tir 15. sep</span></div>'+
   '<div class="skj-tit">Terskel komb - 2 × 10 I3 + 3 × 5 I4</div>'+
   '<div class="malrad"><span class="cap">Mal</span><span class="sel">Ingen mal valgt</span><span class="malpil">Lagre som mal</span></div>'+
@@ -110,7 +113,8 @@ SC.push({kap:0,tittel:'LAGRE DEN SOM MAL.',tekst:'Én knapp i skjemaet. Neste ga
 /* ── 4 · LIVE STYRKE (design/xpulse-styrke-design.html seksjon 2 - utkastet, ikke bygget ennå) ── */
 function fmtTid(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
 SC.push({kap:1,tittel:'LØFT MED ÉN HÅND.',tekst:'Live styrke er laget for hansker og tommel: store trinnknapper, forrige økt i grått, hvilen teller ned, og nye rekorder står klare når økta er ferdig.',
- steg:['Trinnknapper, ikke tastatur','Hvilen teller ned','Rekordene og dagboka'],varighet:12500,
+ steg:['Trinnknapper, ikke tastatur','Hvilen teller ned','Rekordene og dagboka'],
+ mer:['Start live fra en planlagt styrkeøkt eller rett fra +-knappen. Øvelsene kommer ferdig fra malen.','Vekt og reps justeres med store trinnknapper, forrige økt står i grått som referanse, hvileringen teller ned mellom settene.','Nye rekorder regnes automatisk (1RM etter Epley, maks reps ved vekt) og står klare når økta er ferdig.','«Lagre i dagboka» skriver settene inn på økta, med tonnasje og PR-merke på Hjem.'],varighet:12500,
  html:function(){function rad(n,r,kg,rpe,ferdig,pr){return'<div class="lv-r '+(ferdig?'ferdig':'')+'" data-s="'+n+'"><span class="lv-n">'+(ferdig?'✓':n)+'</span><span class="lv-f '+(ferdig?'fort':'spok')+' fr">'+r+'</span><span class="lv-f '+(ferdig?'fort':'spok')+' fk">'+kg+(pr?'<small>PR</small>':'')+'</span><span class="lv-rpe">'+rpe+'</span><span class="lv-k '+(ferdig?'ferdig':'')+'">'+(ferdig?'✓':'Start')+'</span></div>'}
   return'<div class="ls-wrap"><div class="lv-ramme"><div class="lv-skala"><div class="lv">'+
   '<div class="lv-sl"><span>09:41</span><span>100 %</span></div>'+
@@ -153,7 +157,8 @@ var HRV=[57,60,55,58,62,59,54,52,56,60,63,61,58,55,53,57,60,62,64,61,58,56,59,62
 var HVP=[50,49,52,50,48,49,53,54,51,50,48,48,50,52,53,51,49,48,47,49,51,52,50,48,49,51,50,49,48,48];
 function linjeSti(a,min,max,W,H){return a.map(function(v,i){return(i?'L':'M')+(i/(a.length-1)*W).toFixed(1)+' '+(H-(v-min)/(max-min)*H).toFixed(1)}).join('')}
 SC.push({kap:1,tittel:'FORMEN KOMMER INN OM NATTA.',tekst:'Søvn, hvilepuls og HRV fra klokka, uten å taste. Hardøktene ligger på samme akse, så du ser hva belastningen gjør med deg. Alt kan også føres manuelt.',
- steg:['Søvn og hvilepuls','HRV mot snittet','Hardøktene på aksen'],varighet:9500,
+ steg:['Søvn og hvilepuls','HRV mot snittet','Hardøktene på aksen'],
+ mer:['Søvn med faser, hvilepuls, natt-HRV og skritt hentes hver natt fra Garmin, COROS og Polar - alt kan også føres manuelt, og det du fører selv vinner.','HRV vises mot 7-dagerssnittet, hvilepuls mot ditt eget snitt; sykdom og skade føres som dagstatus og legges på samme akse.','Helsedata er dine: treneren ser dem bare når du har slått på deling, per trener.','Kalorier hentes bevisst ikke - estimatene spriker for mye mellom merker.'],varighet:9500,
  html:function(){var W=320,H=96,snH=H-(58-44)/(70-44)*H,snP=H-(50-44)/(58-44)*H;
   return'<div class="app hk"><div class="hk-hd"><span class="strek"></span>HELSE<span class="kl">'+ik('klokke','s')+'i natt</span><span class="apn">åpne '+ik('apne-fane','s')+'</span></div>'+
   '<div class="hk-grid"><div><div class="cap">Hvilepuls</div><div class="tall h1">0</div><div class="und">snitt 50</div></div><div><div class="cap">HRV</div><div class="tall h2">0</div><div class="und">snitt 58</div></div><div><div class="cap">Søvn</div><div class="tall h3">0:00</div><div class="und">score 84</div></div><div><div class="cap">Følelse</div><div class="tall">4<small>/5</small></div><div class="und">ført</div></div></div>'+
@@ -174,7 +179,8 @@ SC.push({kap:1,tittel:'FORMEN KOMMER INN OM NATTA.',tekst:'Søvn, hvilepuls og H
 /* ── 6 · KLOKKESYNK ── */
 var MERKER=[['Garmin','G','var(--a-ink)',1,'Tilkoblet · synk automatisk · 6 t siden'],['Polar','P','#FF4500',0,'Tilkoblet · synk automatisk · i går'],['Strava','S','#FC5200',0,'Ikke tilkoblet'],['COROS','C','var(--a-ink)',1,'Ikke tilkoblet'],['Wahoo','W','var(--a-ink)',1,'Ikke tilkoblet'],['Zepp','Z','var(--a-ink)',1,'Ikke tilkoblet']];
 SC.push({kap:2,tittel:'ØKTA KOMMER INN AV SEG SELV.',tekst:'Garmin, COROS, Wahoo og Zepp (beta), Polar og Strava - og .fit fra alle merker. Flett klokkeøkta med planen, så står plan og gjennomført i samme dagbok.',
- steg:['Klokka synker','Økta lander på planen','Flett med ett trykk'],varighet:11000,
+ steg:['Klokka synker','Økta lander på planen','Flett med ett trykk'],
+ mer:['Direktesynk for Garmin, COROS, Wahoo og Zepp (beta) via klokkesynk-leverandøren, pluss Strava og Polar. .fit-import for alle merker, også Suunto.','Pulskurve, runder, fart, høyde, watt og kadens følger økta inn; sonene regnes fra dine egne terskler.','Fletting: klokkeøkta legges på den planlagte økta med ett trykk, så plan og gjennomført står i samme rad - og kan skilles igjen.','Stillestand fra klokka kan gjøres om til pauser, med angre.'],varighet:11000,
  html:function(){return'<div class="sy-wrap"><div class="app" style="padding:10px">'+
   '<div class="glass"><span class="logo"><svg viewBox="0 0 24 24"><path d="M5 4l14 16M19 4L5 20" stroke="var(--a-ink)" stroke-width="3.2" stroke-linecap="round"/><path d="M5 20l4.2-4.8" stroke="#FF4500" stroke-width="3.2" stroke-linecap="round"/></svg>PULSE</span><span class="synkk">'+ik('synk','s')+'SYNK<i class="dot"></i></span><span class="avatar">O</span></div>'+
   '<div class="ark"><div class="over">KLOKKESYNK</div><div class="bebas">Synk</div><div class="sist">Sist synket 6 t siden</div>'+
@@ -200,7 +206,8 @@ function kurveSti(W,H){var min=90,max=190;return PULS.map(function(p,i){return(i
 var HOYDE_S=PULS.map(function(p){var m=p[0];return 612+20*Math.sin(m/7.5*Math.PI*2)+4*Math.sin(m/2.3*Math.PI*2+1)});
 var TEMPO_S=PULS.map(function(p){var m=p[0],b=OKT.filter(function(x){return m>=x.s&&m<x.e})[0]||OKT[OKT.length-1];var base=b.t==='sky'?9.5:(b.t==='drag'?(b.z==='I4'?3.05:3.35):4.2);return base+(HOYDE_S[Math.round(m/.25)]-612)*.006});
 SC.push({kap:3,tittel:'FØR DET KLOKKA IKKE VET.',tekst:'Skyting, laktat, ernæring og notater havner rett på kurven, der det skjedde. Velg puls, tempo, watt, kadens eller høyde - og treneren svarer rett på økta.',
- steg:['Pulsen over planen og høyden','Skyting, laktat, ernæring og tempo','Notat og svar fra treneren'],varighet:14000,
+ steg:['Pulsen over planen og høyden','Skyting, laktat, ernæring og tempo','Notat og svar fra treneren'],
+ mer:['Kurver: puls, tempo, watt, kadens og høyde - velg dem du vil se, planen ligger bak som spøkelse.','Skyting plottes skudd for skudd med vind og sikt, laktat og ernæring settes på tidspunktet det skjedde, notater rett på kurven.','Detaljraden under grafen: opplevd belastning, laktat, ernæring og runder, alt på samme økt.','Kommentarer på økta: utøver oransje, trener blå, med varsel til den andre.'],varighet:14000,
  html:function(){
   /* Tegnes av den felles oktgraf-tegneren (oktgraf.js) - samme design som
      dagpopupen og ukekortet i #inside og trener-scene 2. */
@@ -244,7 +251,8 @@ var FK=(function(){var seed=11;function r(){seed=(seed*9301+49297)%233280;return
   var hrv=syk?-16+r()*3:(hard?-2:3)+(r()-.5)*5-(atl-ctl)*.2,hvp=syk?12+r()*3:(r()-.5)*4+(atl-ctl)*.12;
   d.push({hvile:hvile,syk:syk,konk:konk,hard:hard,t:t,z:z,ctl:ctl,atl:atl,tsb:ctl-atl,hrv:hrv,hvp:hvp,fol:syk?3:Math.round(6+(ctl-atl)/12+(r()-.5)*2)})}for(var j=0;j<d.length;j++){var a0=d[Math.max(0,j-1)],a2=d[Math.min(d.length-1,j+1)];d[j].hrvS=(a0.hrv+d[j].hrv+a2.hrv)/3;d[j].hvpS=(a0.hvp+d[j].hvp+a2.hvp)/3}return d})();
 SC.push({kap:4,tittel:'SE HELE FORMEN PÅ ÉN AKSE.',tekst:'Sonetid per dag, form og tretthet, HRV, hvilepuls og følelse i baner på samme tidsakse. Du ser hva uka gjorde med deg - og når formen faktisk kom.',
- steg:['Sonetid per dag','Form og tretthet','Restitusjon og følelse'],varighet:11500,
+ steg:['Sonetid per dag','Form og tretthet','Restitusjon og følelse'],
+ mer:['Baner på én tidsakse: sonetid per dag (I1-I5), form (CTL), tretthet (ATL) og formbalanse (TSB), HRV og hvilepuls, følelse.','30, 60 eller 180 dager; sykdom, skade og konkurranser merkes i dagraden så du ser dem mot belastningen.','Hold over en dag for økta, formen, HRV mot snittet og følelsen samlet.','Sammenligner alltid med dine egne snitt - aldri med andres.'],varighet:11500,
  html:function(){var mob=erMobil(),D=mob?FK.slice(30):FK,n=D.length,W=1000,bw=W/n;
   function bane(navn,h,inner,kl){return'<div class="fkb '+(kl||'')+'"><div class="fkb-n">'+navn+'</div><div class="fkb-g" style="height:'+h+'px"><svg viewBox="0 0 '+W+' '+h+'" preserveAspectRatio="none">'+inner+'</svg></div></div>'}
   var dagen=D.map(function(x,i){var f=x.syk?'#E11D48':x.konk?'#D4A017':x.hvile?'var(--a-card2)':'#3A3A44';return'<rect x="'+(i*bw+bw*.12)+'" y="0" width="'+(bw*.76)+'" height="16" rx="2" fill="'+f+'" '+(x.hvile?'stroke="var(--a-line2)" vector-effect="non-scaling-stroke"':'')+'/>'}).join('');
@@ -284,7 +292,8 @@ function serieGraf(vid,perDrag,H){var W=1000,n=SERIE.length,v=SVAR.filter(functi
  s+='<path d="'+SERIE.map(function(r,i){return(i?'L':'M')+X(i)+' '+Y(r[vid])}).join('')+'" fill="none" stroke="#FF4500" stroke-width="2.5" vector-effect="non-scaling-stroke"/>';
  return{svg:s,best:{x:X(best)/W*100,y:Y(SERIE[best][vid])},pkt:SERIE.map(function(r,i){return{x:X(i)/W*100,y:Y(r[vid]),c:'#FF4500',t:v.fmt(r[vid])}})}}
 SC.push({kap:4,tittel:'SAMME ØKT. ÅTTE GANGER.',tekst:'Merk en økt som standardøkt, så følger appen hver gjennomføring: puls, laktat, treff og skytetid - drag for drag, mot forrige og mot beste.',
- steg:['Laktat over tid','Skytingen på samme serie','Drag for drag'],varighet:10500,
+ steg:['Laktat over tid','Skytingen på samme serie','Drag for drag'],
+ mer:['Merk en økt som standardøkt (egen eller NSSF-serien), så samles hver gjennomføring i én serie.','Graf per variabel med beste markert: puls, laktat, fart, treff og skytetid over tid.','«Per drag»: hvert drag mot forrige gjennomføring og mot beste, med tabell.','Treneren ser samme serie for sine utøvere i sitt panel.'],varighet:10500,
  html:function(){var mob=erMobil(),H=mob?130:170;
   var kol=mob?['p','l','tr']:['p','l','tr','st','o'];
   var tab='<table class="se-tab"><thead><tr><th></th><th>Dato</th>'+kol.map(function(k){return'<th>'+SVAR.filter(function(v){return v.id===k})[0].navn+'</th>'}).join('')+'</tr></thead><tbody>'+
@@ -336,7 +345,8 @@ var HJ={
   '<div class="hj-pl"><div><i style="background:#D4A017;border-radius:2px"></i><b>Livigno</b><small>8.-17. okt · høyde · 10 dager</small></div><div><i style="background:#E8B93C"></i><b>Oppbygging</b><small>2.-29. nov · 4 uker · Medium</small></div></div>','','--blaa:1')}
 };
 SC.push({kap:5,tittel:'ALT SAMLET PÅ HJEM.',tekst:'Dagens økt, uka mot planen, nedtelling til neste A-renn, formen fra natta, siste hardøkt, hovedmålet og perioden - ett blikk når du åpner appen.',
- steg:['Dagen og uka','Konkurransen og målet','Formen og perioden'],varighet:9000,
+ steg:['Dagen og uka','Konkurransen og målet','Formen og perioden'],
+ mer:['Rad 1: I dag (dagens økt med start-knapp), ukens totaler mot planen, neste A-konkurranse med nedtelling.','Rad 2: helsekortet fra natta, siste hardøkt med full øktgraf, hovedmålet og perioden du står i.','PR-merke når en styrkeøkt satte rekord, «Hva er nytt» når appen har fått noe nytt.','Trenerens Hjem: status nå for hele troppen i én henting - rød, gul, grønn etter dager siden siste logging.'],varighet:9000,
  html:function(){var mob=erMobil(),bredde=mob?380:1180;
   var innhold=mob?(HJ.idag()+HJ.uke()+HJ.konk()):('<div class="hj-r1">'+HJ.idag()+HJ.uke()+HJ.konk()+'</div><div class="hj-r2">'+HJ.helse()+HJ.hard()+HJ.maal()+HJ.periode()+'</div>');
   return'<div class="hj-ytre"><div class="app hj-ramme"><div class="hj-skala" style="width:'+bredde+'px"><div class="hj-inn '+(mob?'mob':'')+'">'+

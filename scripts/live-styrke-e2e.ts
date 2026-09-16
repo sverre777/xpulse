@@ -27,7 +27,7 @@ const maa = <T,>(r: { data: T; error: { message: string } | null }, h: string): 
 type Element = {
   waitFor: (o?: unknown) => Promise<void>; count: () => Promise<number>; first: () => Element
   click: () => Promise<void>; textContent: () => Promise<string | null>; getAttribute: (n: string) => Promise<string | null>
-  nth: (i: number) => Element
+  nth: (i: number) => Element; locator: (s: string) => Element
 }
 type Side = {
   setDefaultTimeout: (n: number) => void; goto: (u: string, o?: unknown) => Promise<unknown>

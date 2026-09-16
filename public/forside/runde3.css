@@ -1566,9 +1566,6 @@
 .t-dp{display:block;font:600 11.5px/1.15 'Barlow Condensed',sans-serif;border:1px dashed color-mix(in srgb,var(--a-ink) 38%,transparent);border-left:3px solid var(--c);border-radius:5px;padding:4px 5px;color:var(--a-ink3)}
 .t-dp.ok{border-style:solid;border-color:color-mix(in srgb,var(--a-ink) 16%,transparent);border-left-color:var(--c);background:var(--a-card)}
 /* T5 rettigheter */
-.t-rr.kommer{opacity:.62}
-.t-rr.kommer .t-sw{background:var(--a-line)}
-.t-kommer{font:700 9.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(26,111,212,.5);border-radius:999px;padding:3px 7px;margin-left:8px;font-style:normal;vertical-align:middle}
 .t-rr span{display:flex;align-items:center;flex-wrap:wrap;gap:4px 0}
 .t-to2{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;width:100%;align-items:start}
 .t-hs{display:flex;flex-direction:column;gap:12px}

@@ -68,7 +68,7 @@ async function main() {
       ok(`${navn}: klikk på prikk 2 gir scene 2`, on === 1, `aktiv indeks ${on}`)
     }
     ok('flyt har 10 scener (utkastene slatt pa 16. sep), dflyt 7, tflyt 5', await p.evaluate(() => [document.querySelectorAll('#spor .sc').length, document.querySelectorAll('#dspor .sc').length, document.querySelectorAll('#tspor .sc').length].join(',')) === '10,7,5')
-    ok('trener-kort 5 viser «Kommer» på de planlagte bryterne', await p.evaluate(() => /Kommer/.test(document.querySelector('#tflyt')!.textContent!)))
+    ok('trener-kort 5 viser de tre nye bryterne som vanlige brytere, uten «Kommer»', await p.evaluate(() => !/Kommer/.test(document.querySelector('#tflyt')!.textContent!) && document.querySelectorAll('#tspor .t-rr').length === 8))
     ok('ingen console-feil, pageerror eller 404', feilLogg.length === 0, feilLogg.join(' | ').slice(0, 300))
   } finally {
     if (b) await b.close()

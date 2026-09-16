@@ -69,6 +69,31 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
   const antallAuto = stillestandRader(rader).length
   const harFart = fartProver(klokke.data?.samples ?? null) != null
 
+  // ══════════════════════════════════════════════════════════════════
+  // SKJULT INNTIL SPLITTEN VIRKER (Sverre 16. sep 2026).
+  //
+  // Knappen lover i dialogen at ren treningstid går ned. Det gjør den
+  // ikke. gjorStillestandTilPause LEGGER pause-raden OPPÅ aktiviteten i
+  // stedet for å SPLITTE den, så radene summerer mer enn økta varte, og
+  // computeActivityTotals - som summerer per rad og trekker fra pausen -
+  // lander på samme tall som før.
+  //
+  // Målt med den ekte funksjonen: økt 3600 s, stopp 60 s.
+  //   uten splitt   3600 -> 3600   (uendret)
+  //   med splitt    3600 -> 3540   (som lovet)
+  // Og den virker ikke når stoppet faller mellom to rader heller: den
+  // tida var aldri talt som treningstid, så 3540 -> 3540.
+  //
+  // Prod hadde ÉN auto_pause-rad da dette ble funnet, og den var CCs egen
+  // test - ingen ekte bruker mister noe på at knappen forsvinner.
+  //
+  // SKJULT ETT STED, med vilje: monteringspunktene i Oktbygger og
+  // WorkoutOverview står urørt, og handlingen, angre-flyten og fase E
+  // virker som før. Fjern denne ene linja når splitten er inne.
+  // ══════════════════════════════════════════════════════════════════
+  const SPLITT_VIRKER = false
+  if (!SPLITT_VIRKER) return null
+
   // Ingenting å tilby: ikke tegn noe som helst.
   if (!workoutId || !erKlokkeokt) return null
   if (klokke.loading) return null

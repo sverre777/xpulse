@@ -35,6 +35,8 @@ import {
   STILLESTAND_MERKE, type StillestandResultat,
 } from '@/lib/stillestand'
 import { splittForStillestand, angreSplitt, type SplittRad } from '@/lib/stillestand-splitt'
+import { beregnSegmenter, type SegmentRad } from '@/lib/segmenter'
+import type { Fartprove, Stillestand } from '@/lib/stillestand'
 import type { HeartZone } from '@/lib/heart-zones'
 
 // MERK: denne fila kan BARE eksportere async funksjoner. STILLESTAND_MERKE
@@ -156,25 +158,101 @@ export async function forhandsvisStillestand(
     .select(RAD_FELTER)
     .eq('workout_id', workoutId).order('sort_order', { ascending: true })
 
-  const alle = finnStillestand(prover)
-  const { beholdt, hoppetOver } = utenSkytingOverlapp(alle, skytevinduer((rader ?? []) as unknown as Rad[]))
-  const tider = prover.map(p => p.t)
+  // SAMME funksjon som kjøringen bruker. Dialogen skal aldri kunne love
+  // noe kjøringen ikke gjør.
+  const f = periodeneSomBlirPauser(prover, (rader ?? []) as unknown as Rad[])
   return {
-    antall: beholdt.length,
-    sumSek: stillestandSum(beholdt),
+    antall: f.beholdt.length,
+    sumSek: stillestandSum(f.beholdt),
     timerTimeSek: null,
-    elapsedSek: tider.length > 0 ? Math.max(...tider) - Math.min(...tider) : 0,
-    hoppetOverSkyting: hoppetOver,
+    elapsedSek: f.totalSek,
+    hoppetOverSkyting: f.hoppetOverSkyting,
+    utenforRader: f.utenforRader,
   }
 }
 
-/** Skytevinduene på økta, slik radene plasserer dem i tid. */
-function skytevinduer(rader: Rad[]) {
-  return rader.filter(r => ER_SKYTING(r.activity_type)).map(r => {
-    const start = r.window_start_seconds
+/**
+ * HVOR LIGGER HVER RAD - ÉN KILDE (Sverre 16. sep 2026).
+ *
+ * .fit-importen skriver ALDRI window_start_seconds/window_duration_seconds
+ * (verifisert: null treff i lib/fit-import). Resten av appen håndterer det
+ * ved å FLISLEGGE radene - beregnSegmenter, samme funksjon båndet og
+ * øktbyggeren bruker.
+ *
+ * Denne fila regnet plasseringen selv, to steder, og begge leste window_*
+ * rått. På en importert økt ga det:
+ *   · splitten fant ingen rad å dele - knappen gjorde ingenting, stille
+ *   · skytevinduer ga TOM LISTE, så standplass-vakta beskyttet ingenting
+ * Det siste var ufarlig så lenge splitten ikke skrev noe. I det
+ * plasseringen rettes, ville pausene blitt lagt oppå standplass og tida
+ * trukket fra to ganger.
+ *
+ * Derfor: ingen egen utregning her. Plasseringen kommer fra biblioteket.
+ */
+function plasseringer(rader: Rad[], totalSek: number): Map<string, { fra: number; til: number }> {
+  const segRader: SegmentRad[] = rader.map(r => ({
+    id: r.id,
+    activity_type: r.activity_type,
+    movement_name: r.movement_name,
+    duration_seconds: r.duration_seconds,
+    window_start_seconds: r.window_start_seconds,
+    window_duration_seconds: r.window_duration_seconds,
+    prone_shots: null, prone_hits: null, standing_shots: null, standing_hits: null,
+    harKlokkeProveniens: true,
+    gruppeId: null,
+  }))
+  const ut = new Map<string, { fra: number; til: number }>()
+  for (const sg of beregnSegmenter(segRader, totalSek)) {
+    ut.set(sg.aktivitetId, { fra: sg.startSek, til: sg.sluttSek })
+  }
+  // Rader segmenteringen ikke plasserte (ingen kurve, ingen varighet):
+  // fall tilbake på vinduet når det finnes, ellers står de utenfor.
+  for (const r of rader) {
+    if (ut.has(r.id)) continue
+    const fra = r.window_start_seconds
     const lengde = r.window_duration_seconds ?? r.duration_seconds ?? 0
-    return start == null ? null : { fra: start, til: start + lengde }
-  }).filter((x): x is { fra: number; til: number } => x != null)
+    if (fra != null && lengde > 0) ut.set(r.id, { fra, til: fra + lengde })
+  }
+  return ut
+}
+
+/** Skytevinduene på økta - fra SAMME plassering som alt annet. */
+function skytevinduer(rader: Rad[], plass: Map<string, { fra: number; til: number }>) {
+  return rader.filter(r => ER_SKYTING(r.activity_type))
+    .map(r => plass.get(r.id))
+    .filter((x): x is { fra: number; til: number } => !!x)
+}
+
+/**
+ * Periodene som FAKTISK blir pauser - én funksjon for både forhåndsvisning
+ * og kjøring.
+ *
+ * Forhåndsvisningen telte tidligere rå perioder fra samples, mens kjøringen
+ * gjorde det den klarte. Da kunne dialogen si «fant 2 perioder» og
+ * ingenting skje. Nå er det ett tall fra ett sted.
+ *
+ * Et stillestand som faller UTENFOR alle rader telles ikke: den tida er
+ * allerede utenfor treningstida, og en nedgang kommer aldri.
+ */
+function periodeneSomBlirPauser(
+  prover: Fartprove[],
+  rader: Rad[],
+): { beholdt: Stillestand[]; hoppetOverSkyting: number; utenforRader: number;
+     plass: Map<string, { fra: number; til: number }>; totalSek: number } {
+  const tider = prover.map(p => p.t)
+  const totalSek = tider.length > 0 ? Math.max(...tider) - Math.min(...tider) : 0
+  const plass = plasseringer(rader, totalSek)
+  const alle = finnStillestand(prover)
+  const etterSkyting = utenSkytingOverlapp(alle, skytevinduer(rader, plass))
+  const inniEnRad = etterSkyting.beholdt.filter(pp =>
+    [...plass.values()].some(v => pp.fraSek < v.til && v.fra < pp.tilSek))
+  return {
+    beholdt: inniEnRad,
+    hoppetOverSkyting: etterSkyting.hoppetOver,
+    utenforRader: etterSkyting.beholdt.length - inniEnRad.length,
+    plass,
+    totalSek,
+  }
 }
 
 /**
@@ -222,15 +300,18 @@ export async function gjorStillestandTilPause(
   // auto-steget i fase E kaller hit uten å gå via knappen - regelen må bo
   // ett sted, og det er her.
   if (beholdteRader.length === 0) {
-    return { antall: 0, sumSek: 0, timerTimeSek: null, elapsedSek: 0, hoppetOverSkyting: 0 }
+    return { antall: 0, sumSek: 0, timerTimeSek: null, elapsedSek: 0,
+      hoppetOverSkyting: 0, utenforRader: 0 }
   }
 
-  const { beholdt, hoppetOver } = utenSkytingOverlapp(finnStillestand(prover), skytevinduer(beholdteRader))
-  const tider = prover.map(p => p.t)
-  const elapsedSek = tider.length > 0 ? Math.max(...tider) - Math.min(...tider) : 0
+  const f = periodeneSomBlirPauser(prover, beholdteRader)
+  const beholdt = f.beholdt
+  const hoppetOver = f.hoppetOverSkyting
+  const elapsedSek = f.totalSek
 
   if (beholdt.length === 0) {
-    return { antall: 0, sumSek: 0, timerTimeSek: null, elapsedSek, hoppetOverSkyting: hoppetOver }
+    return { antall: 0, sumSek: 0, timerTimeSek: null, elapsedSek,
+      hoppetOverSkyting: hoppetOver, utenforRader: f.utenforRader }
   }
 
   // SPLITTEN: raden stoppet ligger i deles, den får ikke pausen oppå seg.
@@ -239,7 +320,9 @@ export async function gjorStillestandTilPause(
   // Sonene trenger utøverens egne pulssoner. Finnes de ikke, fordeles
   // originalens soner etter tid i stedet - se lib/stillestand-splitt.
   const soner = await hentPulssoner(supabase, brukerId)
+  // Plasseringen sendes MED - splitten skal ikke lese window_* selv.
   const splitt = splittForStillestand(beholdteRader as unknown as SplittRad[], beholdt, {
+    plass: f.plass,
     hr: (samples as { hr_samples?: Array<{ t: number; hr: number }> } | null)?.hr_samples ?? null,
     distanse: (samples as { distance_samples?: Array<{ t: number; d: number }> } | null)?.distance_samples ?? null,
     soner,
@@ -309,6 +392,7 @@ export async function gjorStillestandTilPause(
     timerTimeSek: null,
     elapsedSek,
     hoppetOverSkyting: hoppetOver,
+    utenforRader: f.utenforRader,
   }
 }
 

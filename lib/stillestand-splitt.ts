@@ -40,6 +40,16 @@ export interface SplittKilder {
   hr?: Array<{ t: number; hr: number }> | null
   distanse?: Array<{ t: number; d: number }> | null
   soner?: HeartZone[] | null
+  /**
+   * HVOR HVER RAD LIGGER, fra biblioteket - ikke regnet ut her.
+   *
+   * .fit-importen skriver aldri window_start_seconds, og resten av appen
+   * flislegger radene i stedet (beregnSegmenter). Leste splitten window_*
+   * selv, fant den ingen rad å dele på en importert økt, og gjorde
+   * ingenting - stille (Sverre 16. sep). Mangler kartet, faller vi tilbake
+   * på vinduet, som før.
+   */
+  plass?: Map<string, { fra: number; til: number }> | null
 }
 
 /** Meter tilbakelagt i vinduet, lest av den kumulative distansekurven. */
@@ -105,8 +115,16 @@ export interface SplittResultat {
   alleredeSplittet: string[]
 }
 
-/** Radens plass på tidslinja. Vinduet vinner, som ellers i byggeren. */
-function spenn(r: SplittRad): { fra: number; sek: number } | null {
+/**
+ * Radens plass på tidslinja.
+ *
+ * Kartet fra biblioteket vinner. Uten kart: vinduet, som før - men da er
+ * dette den eneste kilden, og den er blind for flislagte rader. Se
+ * SplittKilder.plass.
+ */
+function spenn(r: SplittRad, plass?: Map<string, { fra: number; til: number }> | null): { fra: number; sek: number } | null {
+  const fraKart = plass?.get(r.id)
+  if (fraKart && fraKart.til > fraKart.fra) return { fra: fraKart.fra, sek: fraKart.til - fraKart.fra }
   const sek = r.window_duration_seconds ?? r.duration_seconds ?? 0
   if (!(sek > 0)) return null
   const fra = r.window_start_seconds
@@ -178,7 +196,7 @@ export function splittForStillestand(
     if (rad.split_backup || rad.split_parent_id) {
       ut.push(rad); alleredeSplittet.push(rad.id); continue
     }
-    const s = spenn(rad)
+    const s = spenn(rad, kilder.plass)
     if (!s) { ut.push(rad); continue }
     const slutt = s.fra + s.sek
 

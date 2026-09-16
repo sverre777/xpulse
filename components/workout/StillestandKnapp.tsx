@@ -121,11 +121,24 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
     if ('error' in f) { setFeil(f.error); return }
 
     if (f.antall === 0) {
+      // TRE ULIKE GRUNNER, og de skal ikke sies med samme setning.
+      // «utenfor alle rader» er den vi lenge sa feil om: da FANT vi
+      // perioder, men de lå i tid ingen aktivitetsrad dekker, og den tida
+      // er allerede utenfor treningstida. Å love en nedgang der ville vært
+      // å love noe som aldri kommer.
+      const deler: string[] = []
+      if (f.utenforRader > 0) {
+        deler.push(`${f.utenforRader} ${f.utenforRader === 1 ? 'periode ligger' : 'perioder ligger'}`
+          + ' i tid ingen aktivitetsrad dekker. Den tida teller ikke som trening fra før,'
+          + ' så det er ingenting å trekke fra.')
+      }
+      if (f.hoppetOverSkyting > 0) {
+        deler.push(`${f.hoppetOverSkyting} ${f.hoppetOverSkyting === 1 ? 'periode lå' : 'perioder lå'}`
+          + ' på standplass, og den tida er allerede utenfor treningstida.')
+      }
       await xpAlert(
-        'Ingen stillestand funnet',
-        f.hoppetOverSkyting > 0
-          ? `Klokka har trolig auto-pause på. ${f.hoppetOverSkyting} ${f.hoppetOverSkyting === 1 ? 'periode lå' : 'perioder lå'} på standplass, og den tida er allerede utenfor treningstida.`
-          : 'Klokka har trolig auto-pause på.',
+        deler.length > 0 ? 'Ingen stillestand som kan gjøres om til pause' : 'Ingen stillestand funnet',
+        deler.length > 0 ? deler.join(' ') : 'Klokka har trolig auto-pause på.',
       )
       return
     }

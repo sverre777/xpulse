@@ -218,4 +218,7 @@ export interface StillestandResultat {
   elapsedSek: number
   /** Perioder vi hoppet over fordi de overlapper standplass. */
   hoppetOverSkyting: number
+  /** Perioder som faller utenfor alle rader. De telles IKKE som pauser:
+      tida er allerede utenfor treningstida, og en nedgang kommer aldri. */
+  utenforRader: number
 }

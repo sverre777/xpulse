@@ -311,5 +311,43 @@ console.log('\nPULS, SONER OG DISTANSE PER DEL (steg 5)')
     (ut.rader.find(r => r.activity_type === 'pause')?.distance_meters ?? 0) === 0)
 }
 
+console.log('\nRADER UTEN VINDU - slik EKTE klokkedata ser ut')
+// DETTE ER TESTEN SOM MANGLET. Alle sjekkene over gir radene eksplisitt
+// window_start_seconds. .fit-importen gjør ALDRI det (null treff i
+// lib/fit-import), og resten av appen flislegger radene i stedet. Splitten
+// leste window_* selv, fant ingen rad å dele på en importert økt, og gjorde
+// ingenting - stille. Målt på Sverres Garmin-økt 16. sep.
+{
+  const utenVindu = (id: string, type: string, sek: number): Rad => ({
+    id, activity_type: type,
+    window_start_seconds: null, window_duration_seconds: null, duration_seconds: sek,
+    distance_meters: null, avg_heart_rate: null, max_heart_rate: null, zones: null,
+  })
+  // Sverres økt: to runder på 1279 og 2355 s, ingen vinduer.
+  const rader = [utenVindu('a', 'aktivitet', 1279), utenVindu('b', 'aktivitet', 2355)]
+  const stopp: Stillestand[] = [{ fraSek: 961, tilSek: 1034 }, { fraSek: 1642, tilSek: 1931 }]
+
+  // UTEN kart: splitten er blind - dette er feilen, og den skal vises.
+  const blind = splittForStillestand(rader, stopp)
+  ok('uten plasseringskart gjør splitten INGENTING (feilen som var i prod)',
+    blind.rader.length === 2 && blind.splittede.length === 0,
+    JSON.stringify(blind.rader.map(r => [r.activity_type, r.window_duration_seconds])))
+
+  // MED kart fra biblioteket: radene flislegges 0..1279 og 1279..3634.
+  const plass = new Map([['a', { fra: 0, til: 1279 }], ['b', { fra: 1279, til: 3634 }]])
+  const forTid = renTid(rader)
+  const med = splittForStillestand(rader, stopp, { plass })
+  const stoppSum = stopp.reduce((s, p) => s + (p.tilSek - p.fraSek), 0)
+  ok('med kart blir begge radene splittet',
+    med.splittede.length === 2, JSON.stringify(med.splittede))
+  ok(`ren treningstid ned med nøyaktig ${stoppSum} s`,
+    forTid - renTid(med.rader) === stoppSum, `${forTid} -> ${renTid(med.rader)}`)
+  ok('totaltida er uendret', sumVarighet(med.rader) === sumVarighet(rader),
+    `${sumVarighet(rader)} -> ${sumVarighet(med.rader)}`)
+  ok('og angre gir tallet tilbake',
+    renTid(angreSplitt(med.rader).rader) === forTid,
+    `${forTid} -> ${renTid(med.rader)} -> ${renTid(angreSplitt(med.rader).rader)}`)
+}
+
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

@@ -13,7 +13,7 @@ import {
   SEGMENT_FARGER, PUNKT_FARGER, segmentBakgrunn, segmentTypeFor, fmtKlokkeSek, pulsIVindu, fmtVarighetKort,
 } from '@/lib/segmenter'
 import {
-  plasserRader, kuttRad, radVed, naboEtter, slaaSammenMedNeste, settRadStart, settRadVarighet,
+  plasserRader, kuttRad, gjorTilSkyting, radVed, naboEtter, slaaSammenMedNeste, settRadStart, settRadVarighet,
   slettRad, typerForRad, etikettFor, klokkeslettTilSek, sekTilKlokkeslett,
   leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast, KURVE_TOLERANSE_SEK, MIN_RAD_SEK, skytingVarighetSek, radVarighetSek } from '@/lib/oktbygger-rader'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -21,6 +21,7 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
+import { SHOOTING_ACTIVITY_TYPES as SKYTE_TYPER } from '@/lib/activity-summary'
 import { StillestandKnapp } from './StillestandKnapp'
 import { PlanSpokelse, VisPlanBryter } from './PlanSpokelse'
 import { hentPlanensRunder, hentPlanensPunkter, sikreKlokkerundeBackup, hentKlokkerunder, type PlanBlokk, type Klokkerunde } from '@/app/actions/runder'
@@ -755,7 +756,16 @@ export function OktbyggerPopup({
                       onVelg={() => setValgtRad(valgtRad === u.id ? null : u.id)}
                       onStart={sek => endre(settRadStart(rader, plassering, u.id, sek))}
                       onVarighet={sek => endre(settRadVarighet(rader, plassering, u.id, sek, totalSek))}
-                      onType={t => endreRad(u.id, { activity_type: t })}
+                      onType={t => {
+                        // Blir raden SKYTING, tar skytinga bare standardtida
+                        // og resten blir liggende som en egen rad etter
+                        // (lib/oktbygger-rader.gjorTilSkyting). Ellers ville
+                        // en femminutters klokkerunde blitt fem minutter
+                        // standplass. Totaltida er uendret.
+                        const blirSkyting = SKYTE_TYPER.has(t) && !SKYTE_TYPER.has(u.type)
+                        if (blirSkyting) endre(gjorTilSkyting(rader, plassering, u.id, t))
+                        else endreRad(u.id, { activity_type: t })
+                      }}
                       onNavn={navn => endreRad(u.id, { lap_notes: navn })}
                       onDel={() => endre(kuttRad(rader, plassering, u.id, undefined, { pulsHint: !harKurve }))}
                       onSlaaSammen={() => endre(slaaSammenMedNeste(rader, plassering, u.id))}

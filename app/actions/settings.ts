@@ -274,6 +274,36 @@ export interface UnitsInput {
   weight?: WeightUnit | null
 }
 
+/**
+ * Fase E: «Gjør stillestand til pause automatisk».
+ *
+ * FRA-DATOEN ER POENGET. Innstillingen gjelder FRAMOVER (Sverre): slår
+ * utøveren den på i dag, ligger det alt hundrevis av ubehandlede importer
+ * i hovedboka, og uten et skille ville auto-steget tatt hele historikken
+ * med tilbakevirkende kraft. Datoen settes hver gang bryteren slås PÅ -
+ * slås den av og på igjen, flyttes skillet fram, og perioden den var av
+ * blir aldri behandlet i ettertid.
+ *
+ * Datoen nullstilles ikke når bryteren slås av: den er «gyldig fra», ikke
+ * «er på». Den som slår av og på samme dag skal ikke få tilbake gårsdagen.
+ */
+export async function settAutoStillestand(pa: boolean): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const payload: Record<string, unknown> = {
+    auto_pause_from_speed: pa,
+    updated_at: new Date().toISOString(),
+  }
+  if (pa) payload.auto_pause_fra_dato = new Date().toISOString()
+
+  const { error } = await supabase.from('profiles').update(payload).eq('id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger')
+  return {}
+}
+
 export async function updateUnitsSettings(input: UnitsInput): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

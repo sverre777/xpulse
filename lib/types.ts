@@ -549,8 +549,23 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
 // PAUSE teller derfor ikke, aktiv pause gjør det. PAUSE_TYPER er fortsatt
 // pause-FAMILIEN og brukes strukturelt (ingen bev.form, ingen sone å lese,
 // samme bolk i Samlet); PASSIV_PAUSE_TYPER er den som holdes utenfor tida.
+//
+// Sverre 16. sep 2026: VEKSLING TELLER OGSÅ. Samme begrunnelse som aktiv
+// pause - i en veksling beveger man seg, og tida er trening. Den er
+// fortsatt en EGEN statistikk-kategori (vekslingSeconds,
+// activity_veksling_seconds), så man kan se hvor mye T1/T2 tok; det er
+// bare tidsregnskapet som endret seg.
+//
+// Skal en veksling IKKE telle, er den en pause, og typen endres. Det er
+// bryteren - et eget av-flagg per rad ville vært to mekanismer for samme
+// valg (regel 11).
+//
+// MERK: dette settet er ikke alene. computeActivityTotals har sin egen
+// VEKSLING_TYPER-sjekk (lib/activity-summary), og calendar-summary sin
+// sumActivityTime en tredje. Endres reglene, må alle tre følge - ellers
+// teller analysen noe kalenderen ikke teller.
 export const IKKE_TRENINGSTID_TYPER: ReadonlySet<string> = new Set([
-  'pause', 'veksling',
+  'pause',
 ])
 export const PAUSE_TYPER: ReadonlySet<string> = new Set(['pause', 'aktiv_pause'])
 export const PASSIV_PAUSE_TYPER: ReadonlySet<string> = new Set(['pause'])

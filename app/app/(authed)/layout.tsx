@@ -4,6 +4,7 @@ import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { medTid } from '@/lib/ytelse-tid'
 import { GlassLinje } from '@/components/layout/GlassLinje'
 import { PlussKnappAuto } from '@/components/ui/PlussKnapp'
+import { AutoStillestand } from '@/components/workout/AutoStillestand'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
@@ -92,6 +93,20 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <GlassLinje rolle={effectiveRole === 'coach' ? 'coach' : 'athlete'}
           meny={{ userName: profile?.full_name ?? null, hasAthleteRole: hasAthleteRole, hasCoachRole: hasCoachRole, hasCoachTier: coachTier, unreadInboxCount: unreadInboxCount, harPlan: true }} />
         {effectiveRole !== 'coach' && <PlussKnappAuto />}
+        {/* Fase E: auto-steget «gjør stillestand til pause». Tegner
+            ingenting; kaller handlingen én gang etter første tegning.
+
+            GATET PÅ UTØVERROLLEN, OG DET ER ET VALG - ikke en bieffekt.
+            En trener som også trener selv (det er flere av dem) har egne
+            importerte økter. Men i trenerrollen ser han på ANDRES data;
+            hans egen dagbok er ikke på skjermen. Lot vi steget fyre da,
+            ville pausene blitt laget mens han ikke så dem - og hele
+            begrunnelsen for at steget henger på sidelasting er at radene
+            og angre-raden skal være SAMME hendelse.
+
+            Ingenting går tapt: bytter han til utøver, monteres komponenten
+            og steget kjører. Det utsettes, det avlyses ikke. */}
+        {effectiveRole !== 'coach' && <AutoStillestand />}
       </div>
     </BrukerSporterProvider>
     </RoleProvider>

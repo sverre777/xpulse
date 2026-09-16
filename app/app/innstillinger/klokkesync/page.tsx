@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { KlokkesyncView } from '@/components/klokkesync/KlokkesyncView'
+import { AutoStillestandSection } from '@/components/settings/AutoStillestandSection'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { synkConnectionsFraApi } from '@/lib/stridee-api'
 
@@ -30,7 +31,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
   // migreringen (fase 106) venter på godkjenning, og sida skal ikke feile av
   // at en tabell mangler — da får utøveren en hvit skjerm av noe som ikke
   // engang er skrudd på ennå. Feil ⇒ ingen Stridee-seksjon, ingenting mer.
-  const [{ data: stravaConn }, { data: polarConn }, strideeSvar, sp] = await Promise.all([
+  const [{ data: stravaConn }, { data: polarConn }, strideeSvar, sp, { data: autoProfil }] = await Promise.all([
     supabase
       .from('strava_connections')
       .select('strava_athlete_id, auto_sync, last_sync_at, scope, token_expires_at, created_at')
@@ -47,6 +48,10 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
       .eq('user_id', user.id)
       .maybeSingle(),
     searchParams,
+    // Fase E: bryteren hører hjemme her, ikke under Profil - den gjelder
+    // bare økter som kommer fra en klokke, og det er her utøveren tenker
+    // på klokkeimport. Samme rundtur, ingen ekstra ventetid.
+    supabase.from('profiles').select('auto_pause_from_speed').eq('id', user.id).maybeSingle(),
   ])
   // Retur fra leverandørens tilkoblingsside: ?status=… i return_uri.
   // Parametrene er USIGNERTE — hvem som helst kan skrive dem i adressefeltet.
@@ -105,6 +110,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
           strideeConnections={strideeConnections}
           leverandorStatus={leverandorStatus}
         />
+        <AutoStillestandSection initialPa={autoProfil?.auto_pause_from_speed === true} />
       </div>
     </div>
   )

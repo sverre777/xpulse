@@ -125,7 +125,13 @@ export function computeActivityTotals(
   for (const a of activities) {
     const sec = Number(a.duration_seconds) || 0
     if (VEKSLING_TYPES.has(a.activity_type)) {
+      // Veksling TELLER som treningstid (Sverre 16. sep) - man beveger seg,
+      // som i en aktiv pause. Den føres fortsatt som egen kategori så T1/T2
+      // kan leses av for seg; det er bare `continue` som er borte, slik at
+      // tida også havner i totalSeconds. Ingen distanse eller sone leses
+      // fra en veksling.
       totals.vekslingSeconds += sec
+      totals.totalSeconds += sec
       continue
     }
     if (PAUSE_TYPES.has(a.activity_type)) {

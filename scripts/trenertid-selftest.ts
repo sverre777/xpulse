@@ -33,12 +33,18 @@ console.log('Regnemåten')
 const blandet = [
   rad('a', 'oppvarming', 900), rad('a', 'aktivitet', 2700), rad('a', 'nedjogg', 600),
   rad('a', 'pause', 300),        // ute
-  rad('a', 'veksling', 120),     // ute
+  rad('a', 'veksling', 120),     // INNE siden 16. sep - man beveger seg
   rad('a', 'aktiv_pause', 240),  // INNE siden 9823f70
   rad('a', 'skyting_liggende', 480),  // egen kategori, ute
 ]
-sjekk('pause, veksling og skyting er ute - aktiv pause er inne',
-  renTidSekPerOkt(blandet).get('a'), 900 + 2700 + 600 + 240)
+sjekk('bare ren pause og skyting er ute - aktiv pause OG veksling teller',
+  renTidSekPerOkt(blandet).get('a'), 900 + 2700 + 600 + 240 + 120)
+// Veksling er fortsatt en EGEN kategori, den er bare ikke lenger utenfor
+// tida. Tas den ut av regnestykket igjen, faller dette tallet med 120.
+sjekk('veksling alene teller som trening',
+  renTidSekPerOkt([rad('v', 'veksling', 120)]).get('v'), 120)
+sjekk('ren pause alene teller ikke',
+  renTidSekPerOkt([rad('p2', 'pause', 300)]).get('p2'), 0)
 sjekk('flere økter holdes fra hverandre',
   [...renTidSekPerOkt([rad('a', 'aktivitet', 600), rad('b', 'aktivitet', 1200)]).entries()],
   [['a', 600], ['b', 1200]])
@@ -48,7 +54,7 @@ const tomt = new Map<string, number>()
 sjekk('økt uten rader: det utøveren førte står',
   renTidMin({ id: 'x', duration_minutes: 75 }, tomt), 75)
 sjekk('økt med rader: radene vinner',
-  renTidMin({ id: 'a', duration_minutes: 90 }, renTidSekPerOkt(blandet)), 74)
+  renTidMin({ id: 'a', duration_minutes: 90 }, renTidSekPerOkt(blandet)), 76)
 sjekk('BARE pause- og skyterader: faller tilbake, ikke til null',
   renTidMin({ id: 'p', duration_minutes: 60 },
     renTidSekPerOkt([rad('p', 'pause', 600), rad('p', 'skyting_staaende', 300)])), 60)

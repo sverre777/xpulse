@@ -78,9 +78,12 @@ export type RawCalendarWorkout = {
 }
 
 function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
-  total: number       // ren treningstid (ekskl. pause, veksling + skyting)
+  // Ren treningstid: pause og skyting holdes utenfor, VEKSLING TELLER MED
+  // (Sverre 16. sep) - samme regel som computeActivityTotals. De to må si
+  // det samme, ellers viser kalenderen ett tall og øktsida et annet.
+  total: number
   pause: number
-  veksling: number    // bytt-tid (T1/T2) - EGEN kategori, aldri i pause
+  veksling: number    // bytt-tid (T1/T2) - egen kategori, men OGSÅ i total
   shooting: number    // skyting (alle typer + tørrtrening)
 } {
   if (!acts || acts.length === 0) return { total: 0, pause: 0, veksling: 0, shooting: 0 }
@@ -88,7 +91,9 @@ function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
   for (const a of acts) {
     const s = Number(a.duration_seconds) || 0
     if (VEKSLING_TYPER.has(a.activity_type ?? '')) {
+      // Egen kategori OG med i totalen - ikke enten/eller.
       veksling += s
+      total += s
     } else if (PASSIV_PAUSE_TYPER.has(a.activity_type ?? '')) {
       pause += s
     } else if (isShootingActivityType(a.activity_type)) {

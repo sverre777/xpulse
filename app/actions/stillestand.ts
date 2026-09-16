@@ -148,6 +148,17 @@ export async function gjorStillestandTilPause(
   }
   const beholdteRader = ikkeStillestandRader(rader)
 
+  // TREDJE VAKT, server-side: aldri pauser på en økt UTEN aktivitetsrader.
+  // Uke- og månedstallene leser radene når økta HAR rader, og faller
+  // tilbake til duration_minutes bare når den ikke har noen. Pauser på en
+  // tom økt ville flyttet den fra «hele varigheten teller» til «bare
+  // pausene finnes». Knappen gater på det samme (StillestandKnapp), men
+  // auto-steget i fase E kaller hit uten å gå via knappen - regelen må bo
+  // ett sted, og det er her.
+  if (beholdteRader.length === 0) {
+    return { antall: 0, sumSek: 0, timerTimeSek: null, elapsedSek: 0, hoppetOverSkyting: 0 }
+  }
+
   const { beholdt, hoppetOver } = utenSkytingOverlapp(finnStillestand(prover), skytevinduer(beholdteRader))
   const tider = prover.map(p => p.t)
   const elapsedSek = tider.length > 0 ? Math.max(...tider) - Math.min(...tider) : 0

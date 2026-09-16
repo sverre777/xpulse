@@ -14,6 +14,7 @@
 import { ACTIVITY_TYPES, PAUSE_TYPER, VEKSLING_TYPER, type ActivityRow, type ActivityType } from './types'
 import { parseActivityDuration, formatActivityDuration } from './activity-duration'
 import { beregnSegmenter, type SegmentRad } from './segmenter'
+import { SKYTETID_STANDARD_SEK } from './intervall-generator'
 
 /** Én rad slik byggeren ser den: plassering i tid + feltene som vises. */
 export interface Utkast {
@@ -62,15 +63,21 @@ export function radVarighetSek(a: ActivityRow): number {
 /** En skyting varer SEKUNDER, aldri kvarter (Sverre 5. sep, skjermbilde:
     «45» i Varighet-feltet ble 45 minutter og båndet fløt ut av kortet).
     Tall uten kolon leses som sekunder på skyterader; vinduet begrenses til
-    MAKS_SKYTING_SEK; ellers serie-summen (skytetid) eller mm:ss. */
-export const MAKS_SKYTING_SEK = 600
+    SKYTEVINDU_MAKS_SEK; ellers serie-summen (skytetid) eller mm:ss.
+
+    NAVNET (Sverre 16. sep): dette er et TAK PÅ VINDUET til en LAGRET rad -
+    en vakt mot feiltolket inndata. Det er ikke det samme som
+    SKYTETID_MAKS_SEK i lib/intervall-generator, som er lengden på et NYTT
+    skytesegment når en økt genereres. De het nesten det samme og ble
+    forvekslet; derfor «vindu» her og «skytetid» der. */
+export const SKYTEVINDU_MAKS_SEK = 600
 export function skytingVarighetSek(a: ActivityRow): number {
   const raa = String(a.duration ?? '').trim()
   const fraFelt = /^\d+$/.test(raa) ? parseInt(raa, 10) : (parseActivityDuration(raa) ?? 0)
   const kandidat = a.window_duration_seconds != null && a.window_duration_seconds > 0
     ? a.window_duration_seconds
     : (fraFelt > 0 ? fraFelt : (skytetid(a) ?? 0))
-  return Math.min(MAKS_SKYTING_SEK, Math.max(0, kandidat))
+  return Math.min(SKYTEVINDU_MAKS_SEK, Math.max(0, kandidat))
 }
 
 function skytetid(a: ActivityRow): number | null {
@@ -125,7 +132,7 @@ export function plasserRader(
     const p = posisjon.get(a.id)
     const varighet = Math.max(MIN_RAD_SEK, radVarighetSek(a) || MIN_RAD_SEK)
     const start = vindu ? a.window_start_seconds! : p ? p.start : t
-    // Skyting: vinduet er også begrenset (MAKS_SKYTING_SEK) — en lagret
+    // Skyting: vinduet er også begrenset (SKYTEVINDU_MAKS_SEK) — en lagret
     // «45 min»-feil skal ikke fylle båndet (Sverre 5. sep).
     const dur = vindu
       ? Math.max(MIN_RAD_SEK, erSkyting(a.activity_type) ? skytingVarighetSek(a) : (a.window_duration_seconds ?? varighet))
@@ -216,6 +223,64 @@ export function kuttRad(
     ...plassering.filter(x => x.id !== radId),
     { ...u, varighetSek: kutt },
     { ...u, id: nyId, dbId: null, navn: '', startSek: u.startSek + kutt, varighetSek: u.varighetSek - kutt, snittpuls: '', makspuls: '', skytetidSek: null, arvetPuls: hint },
+  ])
+  return skriv(nyeRader, nyPlassering, new Set([radId, nyId]))
+}
+
+/**
+ * Gjør en rad om til skyting - og la resten av tida bli liggende.
+ *
+ * FØR (Sverre 16. sep): en klokkerunde på fem minutter som ble satt til
+ * skyting, ble fem minutter skyting. Ren treningstid falt med fem
+ * minutter for en standplass som tok førtifem sekunder.
+ *
+ * NÅ: samme regel som øktgeneratoren alt bruker (lib/intervall-generator,
+ * pkt 16): skytinga tar SKYTETID_STANDARD_SEK i STARTEN av raden, og
+ * resten blir en egen rad etter - aktiv pause som standard, fordi man er
+ * i bevegelse mellom skuddene og på vei ut igjen. TOTALTIDA ER UENDRET.
+ * Begge radene kan endres etterpå; dette er utgangspunktet, ikke en lås.
+ *
+ * Er raden for kort til å deles (resten ville blitt under MIN_RAD_SEK),
+ * blir hele raden skyting - en to-sekunders restrad hjelper ingen.
+ */
+export function gjorTilSkyting(
+  rows: ActivityRow[], plassering: Utkast[], radId: string, skytetype: ActivityType,
+  opts: { skytetidSek?: number; resttype?: ActivityType } = {},
+): ActivityRow[] {
+  const u = plassering.find(x => x.id === radId)
+  const rad = rows.find(r => r.id === radId)
+  if (!u || !rad) return rows
+
+  const skytetid = Math.max(1, Math.round(opts.skytetidSek ?? SKYTETID_STANDARD_SEK))
+  const rest = Math.round(u.varighetSek - skytetid)
+
+  // For kort til å dele: hele raden blir skyting, som før.
+  if (rest < MIN_RAD_SEK) {
+    return skriv(
+      rows.map(r => (r.id === radId ? { ...r, activity_type: skytetype } : r)),
+      plassering, new Set([radId]),
+    )
+  }
+
+  const nyId = crypto.randomUUID()
+  const restRad: ActivityRow = {
+    ...rad, id: nyId, db_id: undefined,
+    activity_type: opts.resttype ?? 'aktiv_pause',
+    lap_notes: '', notes: '', distance_km: '', avg_heart_rate: '', max_heart_rate: '',
+    avg_watts: '', max_watts: '', splits_per_km: [], lactate_measurements: [],
+    shooting_series: [], prone_shots: '', prone_hits: '', standing_shots: '', standing_hits: '',
+    exercises: [],
+  }
+  const nyeRader: ActivityRow[] = []
+  for (const r of rows) {
+    nyeRader.push(r.id === radId ? { ...r, activity_type: skytetype } : r)
+    if (r.id === radId) nyeRader.push(restRad)
+  }
+  const nyPlassering = sortertPlassering([
+    ...plassering.filter(x => x.id !== radId),
+    { ...u, varighetSek: skytetid },
+    { ...u, id: nyId, dbId: null, navn: '', startSek: u.startSek + skytetid, varighetSek: rest,
+      snittpuls: '', makspuls: '', skytetidSek: null, arvetPuls: '' },
   ])
   return skriv(nyeRader, nyPlassering, new Set([radId, nyId]))
 }

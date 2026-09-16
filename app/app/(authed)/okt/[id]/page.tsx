@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { resolveSelfContext } from '@/lib/view-context'
-import { getStrengthForLiveSession, getLastSessionForExercises } from '@/app/actions/strength-session'
+import { getStrengthForLiveSession, getLastSessionForExercises, getBesteForExercises } from '@/app/actions/strength-session'
 import { LiveSessionView } from '@/components/workout/LiveSessionView'
 
 // Økt-modus (live styrkeøkt). Athlete-only: ligger under (authed), så trener i
@@ -35,10 +35,11 @@ export default async function OktModusPage({
 
   const names = exercises.map(e => e.exercise_name).filter(Boolean)
   let lastByName: Awaited<ReturnType<typeof getLastSessionForExercises>> = {}
+  let besteByName: Awaited<ReturnType<typeof getBesteForExercises>> = {}
   try {
-    lastByName = await getLastSessionForExercises(names)
+    ;[lastByName, besteByName] = await Promise.all([getLastSessionForExercises(names), getBesteForExercises(names)])
   } catch (e) {
-    console.error('[oktModus] getLastSessionForExercises kastet', e)
+    console.error('[oktModus] getLastSessionForExercises/getBesteForExercises kastet', e)
   }
   console.log(`[oktModus] auth ${tAuth - t0}ms · seed ${tSeed - tAuth}ms · last ${Date.now() - tSeed}ms · total ${Date.now() - t0}ms · ${exercises.length} øv`)
 
@@ -47,6 +48,7 @@ export default async function OktModusPage({
       workoutId={id}
       initialExercises={exercises}
       lastByName={lastByName}
+      besteByName={besteByName}
       plannedByName={plannedByName}
     />
   )

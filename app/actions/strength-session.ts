@@ -1,5 +1,7 @@
 'use server'
 
+import { byggBeste, type BesteForOvelse } from '@/lib/live-styrke'
+import type { StyrkeSett } from '@/lib/styrke-pr'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
@@ -389,4 +391,39 @@ export async function getActiveLiveSession(): Promise<ActiveLiveSession | null> 
     date: data.date as string,
     live_started_at: data.live_started_at as string,
   }
+}
+
+// ── «Beste» per øvelse for live styrke v2 ─────────────────
+// Hele historikken (fullførte økter) for de etterspurte øvelsene, redusert
+// til beste vekt / beste reps per vekt / est. 1RM i lib/live-styrke.byggBeste.
+// Grunnlinje-regelen (første registrering er ikke PR) håndteres der.
+export async function getBesteForExercises(
+  names: string[],
+  targetUserId?: string,
+): Promise<Record<string, BesteForOvelse>> {
+  const wanted = new Set(names.map(n => n.trim().toLowerCase()).filter(Boolean))
+  if (wanted.size === 0) return {}
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok', 'read')
+  if ('error' in resolved) return {}
+  const { data, error } = await supabase
+    .from('workout_activity_exercises')
+    .select('exercise_name, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe), workout_activities!inner(workouts!inner(id, date, user_id, is_completed))')
+    .in('exercise_name', Array.from(new Set(names.map(n => n.trim()).filter(Boolean))))
+    .limit(2000)
+  if (error || !data) return {}
+  type WkRef = { id: string; date: string; user_id: string; is_completed: boolean }
+  type ExRow = { exercise_name: string | null; workout_activity_exercise_sets: LastSessionSet[] | null; workout_activities: { workouts: WkRef | WkRef[] | null } | { workouts: WkRef | WkRef[] | null }[] | null }
+  const sett: StyrkeSett[] = []
+  for (const r of data as ExRow[]) {
+    const key = (r.exercise_name ?? '').trim().toLowerCase()
+    if (!key || !wanted.has(key)) continue
+    const wa = Array.isArray(r.workout_activities) ? r.workout_activities[0] : r.workout_activities
+    const wk = wa ? (Array.isArray(wa.workouts) ? wa.workouts[0] : wa.workouts) : null
+    if (!wk || wk.user_id !== resolved.userId || !wk.is_completed) continue
+    for (const x of r.workout_activity_exercise_sets ?? []) {
+      sett.push({ workout_id: wk.id, date: wk.date, title: '', ovelse: r.exercise_name!, set_number: x.set_number, reps: x.reps ?? null, vekt: x.weight_kg ?? null, varighetSek: x.duration_seconds ?? null, rpe: x.rpe ?? null, supersett: false })
+    }
+  }
+  return byggBeste(sett)
 }

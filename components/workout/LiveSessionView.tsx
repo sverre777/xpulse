@@ -13,13 +13,40 @@ import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { hapticTap, showCompletionCheck } from '@/lib/interactions'
 import { Ikon } from '@/components/ui/ikoner'
+import { normOvelse } from '@/lib/styrke-pr'
+import {
+  erPr, fmtBeste, fmtKg, rekorder, spokelse, tonnasje, HVILE_MAAL_SEK, type BesteForOvelse,
+} from '@/lib/live-styrke'
 
-// Live styrkeøkt-modus (Fase 80). Tynt lag oppå WorkoutFormData: redigerer
-// styrke-aktivitetens øvelser/sett live, autosaver via saveWorkout, og Fullfør =
-// finishLiveSession (markCompleted + total tid). Total tid = wall-clock fra
-// live_started_at (pausetid er en del av totalen). Mobil-først.
+// LIVE STYRKE v2 (fasit: design/xpulse-styrke-design.html seksjon 2 + notat).
+//
+// Én hånd, hansker, mellom sett. Ingen systemtastatur: settet du jobber med
+// løftes ned i en fast tastaturflate nederst med to store steppere (reps ±1,
+// kg ±2,5, treffflate 52 px). Grå forrige-verdier i lista er PLASSHOLDERE og
+// lagres aldri; i tastaturet lagres forrige økts tall når du trykker «Logg
+// sett» uten å røre det - den asymmetrien er villet (lib/live-styrke).
+//
+// TRE TIDER: Stopp stanser HELE økta (klokka står, tiden fra da av teller
+// ikke), hvile mellom sett stanser ingenting og ER styrketid, total = fra
+// live_started_at minus stoppet tid. Stopp er lokalt i økta (ingen SQL):
+// lukkes appen mens den er stoppet, teller tiden videre, og varigheten kan
+// rettes på ferdig-skjermen. Stopp nullstiller ALDRI live_started_at - da
+// forsvinner økta fra gjenoppta-banneret. Avbryt (krysset) er
+// cancelLiveSession og noe annet enn Avslutt.
+//
+// Hvile mellom sett skal ALDRI bli en rad med activity_type 'pause' -
+// PASSIV_PAUSE_TYPER ville trukket den ut av treningstida. finishLiveSession
+// skriver bare duration_minutes; ingen aktivitetsrader lages her.
+//
+// Supersett-fargen: #5B8DEF sto ikke i fargefasiten - trener-blå #1A6FD4
+// brukes til Sverre eventuelt vil ha en egen linje i fargefasiten.
 
 const ORANGE = '#FF4500'
+const GRONN = '#28A86E'
+const GULL = '#D4A017'
+const BLAA = '#1A6FD4'
+const FONT = "'Barlow Condensed', sans-serif"
+const BEBAS = "'Bebas Neue', sans-serif"
 
 function makeSet(n: number): StrengthSetRow {
   return { id: crypto.randomUUID(), set_number: String(n), reps: '', weight_kg: '', duration: '', rpe: '', notes: '' }
@@ -27,13 +54,10 @@ function makeSet(n: number): StrengthSetRow {
 function makeExercise(name: string): StrengthExerciseRow {
   return { id: crypto.randomUUID(), exercise_name: name, notes: '', sets: [makeSet(1)] }
 }
-
 function fmtClock(totalSec: number): string {
   const s = Math.max(0, Math.floor(totalSec))
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
-  return h > 0
-    ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
-    : `${m}:${String(sec).padStart(2, '0')}`
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`
 }
 function daysAgoLabel(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
@@ -50,40 +74,46 @@ function summarizeLast(ls: LastSessionForExercise): string {
   if (sets.length === 0) return '-'
   const w = sets[0].weight_kg, r = sets[0].reps
   const sameW = sets.every(s => s.weight_kg === w), sameR = sets.every(s => s.reps === r)
-  const wPart = w != null ? ` @ ${w} kg` : ''
+  const wPart = w != null ? ` @ ${fmtKg(w)} kg` : ''
   if (sameR && r != null) return `${sets.length}×${r}${sameW ? wPart : ''}`
   return `${sets.length} sett · ${sets.map(s => s.reps ?? '-').join('/')}${sameW ? wPart : ''}`
 }
+const num = (v: string): number | null => { const n = parseDecimal(v); return isNaN(n) ? null : n }
+/** Sett-oppsummeringen i kortets hode: «8 / 8 / -». */
+const settRad = (ex: StrengthExerciseRow) => ex.sets.map(s => s.reps.trim() || '-').join(' / ')
 
 export function LiveSessionView({
-  workoutId, initialExercises, lastByName, plannedByName = {},
+  workoutId, initialExercises, lastByName, plannedByName = {}, besteByName = {},
 }: {
   workoutId: string
   initialExercises: StrengthExerciseRow[]
   lastByName: Record<string, LastSessionForExercise>
   plannedByName?: Record<string, string>
+  besteByName?: Record<string, BesteForOvelse>
 }) {
   const router = useRouter()
-  // Sikre stabile klient-id-er på øvelser/sett (for React-keys + redigering).
-  // Indeks-basert fallback (ikke crypto) så initialiseringen er trygg under SSR.
   const [exercises, setExercises] = useState<StrengthExerciseRow[]>(() =>
     initialExercises.map((ex, ei) => ({
       ...ex,
       id: ex.id || `ex-${ei}`,
-      sets: (ex.sets ?? []).map((s, i) => ({
-        ...s,
-        id: s.id || `ex-${ei}-set-${i}`,
-        set_number: s.set_number || String(i + 1),
-      })),
+      sets: (ex.sets ?? []).map((s, i) => ({ ...s, id: s.id || `ex-${ei}-set-${i}`, set_number: s.set_number || String(i + 1) })),
     })),
   )
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null)
   const [nowMs, setNowMs] = useState<number>(() => Date.now())
   const [lastLogMs, setLastLogMs] = useState<number | null>(null)   // hvile-base (etter Logg)
   const [activeSetId, setActiveSetId] = useState<string | null>(null)
-  const [workStartMs, setWorkStartMs] = useState<number | null>(null) // arbeids-base (etter Start)
   const [doneSets, setDoneSets] = useState<Set<string>>(new Set())
+  const [prSets, setPrSets] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
+  // Stopp: akkumulert stoppet tid + «stoppet siden» - lokalt, ingen SQL.
+  const [stoppetSidenMs, setStoppetSidenMs] = useState<number | null>(null)
+  const [stoppetSumMs, setStoppetSumMs] = useState(0)
+  const [skjerm, setSkjerm] = useState<'live' | 'ferdig'>('live')
+  const [varighetMin, setVarighetMin] = useState<string>('')
+  const [meny, setMeny] = useState<string | null>(null)
+  // Tastaturets verdier for det aktive settet. rort = brukeren har trykket.
+  const [tast, setTast] = useState<{ reps: string; kg: string; rort: boolean }>({ reps: '', kg: '', rort: false })
 
   // ── Start/gjenoppta + timer ──────────────────────────────
   useEffect(() => {
@@ -92,18 +122,14 @@ export function LiveSessionView({
       else setStartedAtMs(Date.now())
     }).catch(() => setStartedAtMs(Date.now()))
   }, [workoutId])
+  useEffect(() => { const t = setInterval(() => setNowMs(Date.now()), 1000); return () => clearInterval(t) }, [])
 
-  useEffect(() => {
-    const t = setInterval(() => setNowMs(Date.now()), 1000)
-    return () => clearInterval(t)
-  }, [])
+  const stoppet = stoppetSidenMs != null
+  const stoppetNaa = stoppet ? nowMs - stoppetSidenMs! : 0
+  const elapsedSec = startedAtMs != null ? Math.max(0, (nowMs - startedAtMs - stoppetSumMs - stoppetNaa) / 1000) : 0
+  const restSec = activeSetId == null && lastLogMs != null && !stoppet ? (nowMs - lastLogMs) / 1000 : null
 
-  const elapsedSec = startedAtMs != null ? (nowMs - startedAtMs) / 1000 : 0
-  // Arbeidstid vises på det aktive settet; hviletid mellom Logg og neste Start.
-  const workSec = activeSetId != null && workStartMs != null ? (nowMs - workStartMs) / 1000 : null
-  const restSec = activeSetId == null && lastLogMs != null ? (nowMs - lastLogMs) / 1000 : null
-
-  // ── Wake lock (skjermen sovner ikke under økt) ───────────
+  // ── Wake lock (best effort - ingen lovnad om at skjermen står på) ──
   useEffect(() => {
     type WL = { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> }
     const nav = navigator as Navigator & { wakeLock?: WL }
@@ -114,30 +140,20 @@ export function LiveSessionView({
     acquire()
     const onVis = () => { if (document.visibilityState === 'visible') acquire() }
     document.addEventListener('visibilitychange', onVis)
-    return () => {
-      released = true
-      document.removeEventListener('visibilitychange', onVis)
-      sentinel?.release().catch(() => {})
-    }
+    return () => { released = true; document.removeEventListener('visibilitychange', onVis); sentinel?.release().catch(() => {}) }
   }, [])
 
   // ── Autosave (debounced) + ved skjul/lukking ─────────────
   const exRef = useRef(exercises)
-  exRef.current = exercises
+  useEffect(() => { exRef.current = exercises }, [exercises])
   const dirtyRef = useRef(false)
   const doSave = useCallback(() => {
     if (!dirtyRef.current) return
-    // KLIENT-GUARD: aldri autosave en tom/blank øvelsesliste. Sammen med server-
-    // guarden i saveLiveStrength hindrer dette at en treg/avbrutt last (tomt UI)
-    // wiper øvelsene i DB. Tom = ikke lastet ennå / ingenting å persistere.
+    // KLIENT-GUARD: aldri autosave en tom øvelsesliste (sammen med server-guarden).
     if (!exRef.current.some(ex => ex.exercise_name.trim())) return
     dirtyRef.current = false
     saveLiveStrength(workoutId, exRef.current).catch(() => {})
   }, [workoutId])
-  // Hopp over mount-kjøringen: vi vil bare autosave faktiske BRUKER-endringer,
-  // ikke skrive seedede øvelser tilbake umiddelbart (Fullfør/Avbryt persisterer
-  // uansett eksplisitt). Hindrer også en race der mount-save fyrer før last er
-  // ferdig.
   const mountedRef = useRef(false)
   useEffect(() => {
     if (!mountedRef.current) { mountedRef.current = true; return }
@@ -149,57 +165,34 @@ export function LiveSessionView({
     const onHide = () => doSave()
     document.addEventListener('visibilitychange', onHide)
     window.addEventListener('beforeunload', onHide)
-    return () => {
-      document.removeEventListener('visibilitychange', onHide)
-      window.removeEventListener('beforeunload', onHide)
-    }
+    return () => { document.removeEventListener('visibilitychange', onHide); window.removeEventListener('beforeunload', onHide) }
   }, [doSave])
 
-  // ── Volum (sett × reps × vekt for utfylte sett) ──────────
-  const totalVolume = useMemo(() => {
-    let v = 0
-    for (const ex of exercises) {
-      for (const s of ex.sets) {
-        const r = parseDecimal(s.reps), w = parseDecimal(s.weight_kg)
-        if (!isNaN(r) && !isNaN(w)) v += r * w
-      }
-    }
-    return Math.round(v)
-  }, [exercises])
+  // ── Tall ─────────────────────────────────────────────────
+  const somOvelser = useMemo(() => exercises.map(ex => ({ navn: ex.exercise_name, sett: ex.sets.map(s => ({ reps: num(s.reps), vekt: num(s.weight_kg) })) })), [exercises])
+  const totalVolume = useMemo(() => tonnasje(somOvelser), [somOvelser])
+  const antallSett = exercises.reduce((n, e) => n + e.sets.length, 0)
+  const forte = exercises.reduce((n, e) => n + e.sets.filter(s => s.reps.trim() || s.weight_kg.trim()).length, 0)
 
   // ── Mutasjoner ───────────────────────────────────────────
-  const updateExercise = (id: string, patch: Partial<StrengthExerciseRow>) =>
-    setExercises(exercises.map(e => e.id === id ? { ...e, ...patch } : e))
+  const updateExercise = (id: string, patch: Partial<StrengthExerciseRow>) => setExercises(exercises.map(e => e.id === id ? { ...e, ...patch } : e))
   const updateSet = (exId: string, setId: string, patch: Partial<StrengthSetRow>) =>
-    setExercises(exercises.map(e => e.id !== exId ? e : { ...e, sets: e.sets.map(s => s.id === setId ? { ...s, ...patch } : s) }))
-  const addSet = (exId: string) =>
-    setExercises(exercises.map(e => e.id !== exId ? e : { ...e, sets: [...e.sets, makeSet(e.sets.length + 1)] }))
+    setExercises(prev => prev.map(e => e.id !== exId ? e : { ...e, sets: e.sets.map(s => s.id === setId ? { ...s, ...patch } : s) }))
+  const addSet = (exId: string) => setExercises(exercises.map(e => e.id !== exId ? e : { ...e, sets: [...e.sets, makeSet(e.sets.length + 1)] }))
   const removeSet = (exId: string, setId: string) =>
     setExercises(exercises.map(e => e.id !== exId ? e : { ...e, sets: e.sets.filter(s => s.id !== setId).map((s, i) => ({ ...s, set_number: String(i + 1) })) }))
   const removeExercise = (exId: string) => setExercises(exercises.filter(e => e.id !== exId))
   const moveExercise = (exId: string, dir: -1 | 1) => {
-    const i = exercises.findIndex(e => e.id === exId)
-    const j = i + dir
+    const i = exercises.findIndex(e => e.id === exId), j = i + dir
     if (i < 0 || j < 0 || j >= exercises.length) return
-    const next = [...exercises]
-    ;[next[i], next[j]] = [next[j], next[i]]
-    setExercises(next)
+    const next = [...exercises]; [next[i], next[j]] = [next[j], next[i]]; setExercises(next)
   }
-  const addExercise = (name: string) => {
-    if (!name.trim()) return
-    setExercises([...exercises, makeExercise(name.trim())])
-  }
+  const addExercise = (name: string) => { if (name.trim()) setExercises([...exercises, makeExercise(name.trim())]) }
 
-  // ── Supersett: gruppér øvelser (logges sammen). Membership-basert via
-  // superset_group; lett å koble med forrige / løse opp. ──
+  // Supersett: membership via superset_group.
   const groupLetters = useMemo(() => {
-    const map = new Map<number, string>()
-    let n = 0
-    for (const e of exercises) {
-      if (e.superset_group != null && !map.has(e.superset_group)) {
-        map.set(e.superset_group, String.fromCharCode(65 + n)); n++
-      }
-    }
+    const map = new Map<number, string>(); let n = 0
+    for (const e of exercises) if (e.superset_group != null && !map.has(e.superset_group)) { map.set(e.superset_group, String.fromCharCode(65 + n)); n++ }
     return map
   }, [exercises])
   const linkWithPrevious = (id: string) => {
@@ -209,48 +202,86 @@ export function LiveSessionView({
     const g = exercises[i - 1].superset_group ?? ((existing.length ? Math.max(...existing) : 0) + 1)
     setExercises(exercises.map((e, idx) => (idx === i || idx === i - 1) ? { ...e, superset_group: g } : e))
   }
-  const unlinkExercise = (id: string) =>
-    setExercises(exercises.map(e => e.id === id ? { ...e, superset_group: null } : e))
-  // Start et sett: timer på selve settet starter, hvile stopper. Ett aktivt om
-  // gangen. Tapper du Start på et logget sett, redoes det.
-  const startSet = (setId: string) => {
-    setDoneSets(prev => { const n = new Set(prev); n.delete(setId); return n })
-    setActiveSetId(setId)
-    setWorkStartMs(Date.now())
-    setLastLogMs(null)
-  }
-  // Logg et sett: markeres ferdig, hvile-telleren starter mot neste Start.
-  const logSet = (setId: string) => {
-    hapticTap(15)
-    setDoneSets(prev => new Set(prev).add(setId))
-    setActiveSetId(null)
-    setWorkStartMs(null)
-    setLastLogMs(Date.now())
-  }
+  const unlinkExercise = (id: string) => setExercises(exercises.map(e => e.id === id ? { ...e, superset_group: null } : e))
+
+  // «Gjenta forrige»: hele øvelsen fra forrige økt, som FØRT (aktivt valg).
   const repeatLast = (ex: StrengthExerciseRow) => {
-    const ls = lastByName[ex.exercise_name.trim().toLowerCase()]
+    const ls = lastByName[normOvelse(ex.exercise_name)]
     if (!ls || ls.sets.length === 0) return
     updateExercise(ex.id, {
       sets: ls.sets.map((s, i) => ({
         ...makeSet(i + 1),
-        reps: s.reps != null ? String(s.reps) : '',
-        weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
-        duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
-        rpe: s.rpe != null ? String(s.rpe) : '',
+        reps: s.reps != null ? String(s.reps) : '', weight_kg: s.weight_kg != null ? fmtKg(s.weight_kg) : '',
+        duration: s.duration_seconds != null ? String(s.duration_seconds) : '', rpe: s.rpe != null ? String(s.rpe) : '',
       })),
     })
   }
 
-  // ── Fullfør / avbryt ─────────────────────────────────────
-  const finish = async () => {
+  // ── Aktivt sett + tastaturet ─────────────────────────────
+  const aktiv = finnAktiv(exercises, activeSetId)
+
+  /** Velg et sett: tastaturet starter på FØRT verdi hvis den finnes, ellers forrige økts tall (grått). */
+  const velgSett = (ex: StrengthExerciseRow, s: StrengthSetRow, i: number) => {
+    if (stoppet) return
+    setDoneSets(prev => { const n = new Set(prev); n.delete(s.id); return n })
+    setActiveSetId(s.id)
+    setLastLogMs(null)
+    const sp = spokelse(lastByName[normOvelse(ex.exercise_name)], i)
+    const harFort = !!(s.reps.trim() || s.weight_kg.trim())
+    setTast(harFort ? { reps: s.reps, kg: s.weight_kg, rort: true } : { reps: sp.reps, kg: sp.kg, rort: false })
+  }
+  const bump = (felt: 'reps' | 'kg', d: number) => {
+    hapticTap(8)
+    setTast(t => {
+      const cur = num(t[felt]) ?? 0
+      const step = felt === 'reps' ? 1 : 2.5
+      const next = Math.max(0, Math.round((cur + d * step) * 100) / 100)
+      return { ...t, [felt]: next === 0 ? '' : fmtKg(next), rort: true }
+    })
+  }
+  /** Logg sett: verdien i tastaturet lagres som ført - også når den er forrige økts (aktivt valg). */
+  const loggSett = () => {
+    if (!aktiv) return
+    const reps = tast.reps.trim(), kg = tast.kg.trim()
+    updateSet(aktiv.ex.id, aktiv.sett.id, { reps, weight_kg: kg })
+    const pr = erPr(besteByName[normOvelse(aktiv.ex.exercise_name)], num(reps), num(kg))
+    setPrSets(prev => { const n = new Set(prev); if (pr) n.add(aktiv.sett.id); else n.delete(aktiv.sett.id); return n })
+    hapticTap(pr ? [15, 40, 15] : 15)
+    setDoneSets(prev => new Set(prev).add(aktiv.sett.id))
+    setActiveSetId(null)
+    setLastLogMs(Date.now())   // hvile teller mot neste sett
+  }
+  /** «Samme som sist sett»: kopierer settet OVER i denne økta - ikke forrige økt. */
+  const sammeSomSist = () => {
+    if (!aktiv || aktiv.i === 0) return
+    const f = aktiv.ex.sets[aktiv.i - 1]
+    setTast({ reps: f.reps, kg: f.weight_kg, rort: true })
+  }
+  /** Trykk på et grått felt i lista fyller verdien inn som ført. */
+  const fyllSpokelse = (ex: StrengthExerciseRow, s: StrengthSetRow, i: number, felt: 'reps' | 'kg') => {
+    const sp = spokelse(lastByName[normOvelse(ex.exercise_name)], i)
+    const v = felt === 'reps' ? sp.reps : sp.kg
+    if (!v) return
+    updateSet(ex.id, s.id, felt === 'reps' ? { reps: v } : { weight_kg: v })
+  }
+
+  // ── Stopp / fortsett / avslutt / avbryt ──────────────────
+  const stopp = () => { if (stoppet) return; setActiveSetId(null); setStoppetSidenMs(Date.now()) }
+  const fortsett = () => { if (!stoppet) return; setStoppetSumMs(s => s + (Date.now() - stoppetSidenMs!)); setStoppetSidenMs(null) }
+  const tilFerdig = () => {
+    if (stoppet) fortsett()
+    setVarighetMin(String(Math.max(1, Math.round(elapsedSec / 60))))
+    setSkjerm('ferdig')
+  }
+  const lagreIDagboka = async () => {
     if (busy) return
     setBusy(true)
     const saved = await saveLiveStrength(workoutId, exercises)
     if (saved.error) { setBusy(false); void xpAlert(saved.error); return }
-    const res = await finishLiveSession(workoutId, Math.round(elapsedSec))
+    const min = Math.max(1, Math.round(num(varighetMin) ?? elapsedSec / 60))
+    const res = await finishLiveSession(workoutId, min * 60)
     if (res.error) { setBusy(false); void xpAlert(res.error); return }
-    hapticTap([15, 60, 20])
-    showCompletionCheck()
+    hapticTap([15, 60, 20]); showCompletionCheck()
     router.push('/app/dagbok')
   }
   const cancel = async () => {
@@ -262,220 +293,286 @@ export function LiveSessionView({
     router.push('/app/dagbok')
   }
 
-  return (
-    <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: 96 }}>
-      {/* Topp: avbryt + tittel + total tid */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '10px 14px' }}>
-        <div className="flex items-center justify-between">
-          <button type="button" onClick={cancel}
-            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, cursor: 'pointer' }}>
-            <Ikon navn="forrige" variant="strek" storrelse={14} /> Avbryt
-          </button>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-            Styrke-økt
-          </span>
-          <span style={{ width: 52 }} />
-        </div>
-        <div className="flex items-center justify-center gap-4 mt-1">
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 30, letterSpacing: '0.04em' }}>
-            <Ikon navn="testlop" variant="strek" storrelse={14} /> {fmtClock(elapsedSec)}
-          </span>
-          {restSec != null && (
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', fontSize: 14 }}>
-              hvile {fmtClock(restSec)}
+  const nyeRekorder = useMemo(() => rekorder(somOvelser, besteByName), [somOvelser, besteByName])
+  // Neste sett (til hvile-ringen): første uferdige sett etter det sist loggede.
+  const neste = finnNeste(exercises, doneSets)
+
+  // ═══ FERDIG-SKJERMEN ═══
+  if (skjerm === 'ferdig') {
+    const ovelserMedSett = exercises.filter(e => e.exercise_name.trim()).length
+    return (
+      <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: 40 }} data-live-ferdig>
+        <div style={topp}>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setSkjerm('live')} style={ikonKnapp} aria-label="Tilbake til økta"><Ikon navn="forrige" variant="strek" storrelse={18} /></button>
+            <span style={{ fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
+              Økta er ferdig
+              <span style={{ display: 'block', fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5, letterSpacing: 0 }}>{fmtClock(elapsedSec)} · {forte} sett</span>
             </span>
+          </div>
+        </div>
+        <div style={{ padding: '14px 16px' }}>
+          <div style={kort}>
+            <h3 style={kortH3}>Nøkkeltall</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 10 }}>
+              <div><div style={disp}>{totalVolume.toLocaleString('nb-NO')}</div><div style={meta}>kg tonnasje</div></div>
+              <div><div style={disp}>{forte}</div><div style={meta}>sett · {ovelserMedSett} øvelser</div></div>
+              <div><div style={{ ...disp, color: GULL }}>{nyeRekorder.length}</div><div style={meta}>nye PR-er</div></div>
+            </div>
+          </div>
+          {nyeRekorder.length > 0 && (
+            <div style={kort} data-live-rekorder>
+              <h3 style={kortH3}>Nye rekorder</h3>
+              <div style={{ marginTop: 8 }}>
+                {nyeRekorder.map((r, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '7px 0', borderBottom: i < nyeRekorder.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                    <span style={{ ...chip, ...chipBeste, height: 22, padding: '0 7px' }}>★</span>
+                    <div style={{ flex: 1 }}><b style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)' }}>{r.ovelse}</b><div style={meta}>{r.tekst}</div></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={kort}>
+            <h3 style={kortH3}>Varighet</h3>
+            <p style={{ ...meta, margin: '6px 0 8px' }}>Fra start til nå, uten tida økta sto stoppet. Rett den om klokka gikk mens du var borte.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button type="button" onClick={() => setVarighetMin(v => String(Math.max(1, (num(v) ?? 0) - 5)))} style={stepKnapp} aria-label="5 minutter mindre">−5</button>
+              <div style={{ ...verdiBoks, flex: 1 }}><em style={verdiEm}>{varighetMin || '-'}</em><i style={verdiI}>min</i></div>
+              <button type="button" onClick={() => setVarighetMin(v => String((num(v) ?? 0) + 5))} style={stepKnapp} aria-label="5 minutter mer">+5</button>
+            </div>
+          </div>
+          <button type="button" onClick={lagreIDagboka} disabled={busy} data-live-lagre
+            className="xp-pill" style={{ ...pillStor, width: '100%', background: GRONN, borderColor: GRONN, color: '#fff', opacity: busy ? .6 : 1 }}>
+            Lagre i dagboka
+          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <a href={`/app/dagbok?edit=${workoutId}`} className="xp-pill xp-pill-ghost" style={{ flex: 1 }}>Se plan mot faktisk</a>
+            <a href="/app/analyse?tab=styrke" data-live-styrke-analyse className="xp-pill xp-pill-ghost" style={{ flex: 1 }}>Utvikling</a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ═══ LIVE ═══
+  return (
+    <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: aktiv ? 300 : 96 }} data-live-styrke>
+      {/* Topp: avbryt (×) · tittel + tid/sett · Stopp */}
+      <div style={topp}>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={cancel} style={ikonKnapp} aria-label="Avbryt økt-modus" data-live-avbryt><Ikon navn="lukk" variant="strek" storrelse={18} /></button>
+          <span style={{ flex: 1, fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
+            Live styrke
+            <span style={{ display: 'block', fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5, letterSpacing: 0 }} data-live-tid>
+              {stoppet ? `Stoppet · ${fmtClock(elapsedSec)}` : `${fmtClock(elapsedSec)} · ${forte} av ${antallSett} sett`}
+            </span>
+          </span>
+          {!stoppet && (
+            <button type="button" onClick={stopp} className="xp-pill xp-pill-ghost" style={{ minHeight: 30, padding: '0 11px', fontSize: 11.5 }} data-live-stopp>Stopp</button>
           )}
         </div>
       </div>
 
-      <div style={{ padding: '12px 12px 0' }}>
+      <div style={{ padding: '14px 16px 0', opacity: stoppet ? .34 : 1, pointerEvents: stoppet ? 'none' : 'auto', filter: stoppet ? 'blur(1px)' : 'none', transition: 'opacity .2s' }}>
+        {/* Hvile-ringen: starter automatisk når et sett logges, teller ned til HVILE_MAAL_SEK. Ingen lyd. */}
+        {restSec != null && neste && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 16, background: 'var(--card2)', border: '1px solid var(--line2)', marginBottom: 12 }} data-live-hvile>
+            <HvileRing sek={restSec} />
+            <div style={{ flex: 1, fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', lineHeight: 1.35 }}>
+              Hvile<br /><b style={{ color: 'var(--tekst-1-app)' }}>{neste.ex.exercise_name} · sett {neste.i + 1} av {neste.ex.sets.length}</b>
+            </div>
+            <span style={{ fontFamily: BEBAS, fontSize: 26, color: 'var(--tekst-1-app)', letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums' }}>
+              {fmtClock(Math.max(0, HVILE_MAAL_SEK - restSec))}
+            </span>
+          </div>
+        )}
+
         {exercises.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--card)', border: '1px dashed var(--line2)', borderRadius: 14, marginBottom: 16 }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 15, margin: 0 }}>
-              Ingen øvelser lagt til - legg til øvelser for å begynne.
-            </p>
-            <button type="button"
-              onClick={() => {
-                const el = document.getElementById('xp-live-add-exercise')
-                el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                ;(el as HTMLInputElement | null)?.focus({ preventScroll: true })
-              }}
-              className="mt-4 transition-opacity hover:opacity-90"
-              style={{
-                background: ORANGE, color: 'var(--flate-3)', border: 'none',
-                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em',
-                padding: '10px 20px', cursor: 'pointer',
-              }}>
-              + Legg til øvelse
-            </button>
+          <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--card)', border: '1px dashed var(--line2)', borderRadius: 16, marginBottom: 16 }}>
+            <p style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 15, margin: 0 }}>Ingen øvelser lagt til - legg til øvelser for å begynne.</p>
           </div>
         )}
 
         {exercises.map((ex, idx) => {
-          const ls = lastByName[ex.exercise_name.trim().toLowerCase()]
-          const plan = plannedByName[ex.exercise_name.trim().toLowerCase()]
+          const key = normOvelse(ex.exercise_name)
+          const ls = lastByName[key], plan = plannedByName[key], beste = fmtBeste(besteByName[key])
           const ssLetter = ex.superset_group != null ? groupLetters.get(ex.superset_group) : undefined
-          const accent = ssLetter ? '#5B8DEF' : ORANGE
+          const erAktivOvelse = aktiv?.ex.id === ex.id
           return (
-            <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${accent}`, borderRadius: 12, padding: '12px', marginBottom: 12 }}>
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
-                  {ssLetter && (
-                    <span style={{ color: '#5B8DEF', fontSize: 14, marginRight: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Ikon navn="koble-flett" variant="strek" storrelse={14} />SS {ssLetter}</span>
-                  )}
-                  {idx + 1}. {ex.exercise_name || 'Øvelse'}
+            <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${ssLetter ? BLAA : erAktivOvelse ? ORANGE : 'var(--line)'}`, borderRadius: 16, marginBottom: 12, overflow: 'hidden' }} data-live-ovelse>
+              <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 14px 9px' }}>
+                <span style={{ width: 24, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>
+                  {ssLetter ? `SS ${ssLetter}` : idx + 1}
                 </span>
-                <div className="flex items-center gap-1">
-                  {idx > 0 && ssLetter == null && (
-                    <button type="button" onClick={() => linkWithPrevious(ex.id)} title="Supersett med forrige"
-                      style={btnIcon}><Ikon navn="koble-flett" variant="strek" storrelse={14} /></button>
-                  )}
-                  {ssLetter != null && (
-                    <button type="button" onClick={() => unlinkExercise(ex.id)} title="Løs opp supersett"
-                      style={{ ...btnIcon, color: '#5B8DEF' }}><Ikon navn="koble-flett" variant="strek" storrelse={14} /><Ikon navn="lukk" variant="strek" storrelse={14} /></button>
-                  )}
-                  <button type="button" onClick={() => moveExercise(ex.id, -1)} title="Flytt opp"
-                    style={btnIcon}>▲</button>
-                  <button type="button" onClick={() => moveExercise(ex.id, 1)} title="Flytt ned"
-                    style={btnIcon}>▼</button>
-                  <button type="button" onClick={() => removeExercise(ex.id)} title="Fjern øvelse"
-                    style={{ ...btnIcon, color: '#7A3030' }}><Ikon navn="lukk" variant="strek" storrelse={14} /></button>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <b style={{ display: 'block', fontFamily: BEBAS, fontSize: 19, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.exercise_name || 'Øvelse'}</b>
+                  <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>{ex.sets.length} sett · {settRad(ex)}</span>
+                </span>
+                <button type="button" onClick={() => setMeny(m => m === ex.id ? null : ex.id)} style={ikonKnapp} aria-label="Handlinger for øvelsen" aria-expanded={meny === ex.id}>⋯</button>
+              </header>
+              {meny === ex.id && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 10px' }} data-live-meny>
+                  {idx > 0 && ssLetter == null && <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => { linkWithPrevious(ex.id); setMeny(null) }}><Ikon navn="koble-flett" variant="strek" storrelse={14} /> Supersett med forrige</button>}
+                  {ssLetter != null && <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => { unlinkExercise(ex.id); setMeny(null) }}>Løs opp supersett</button>}
+                  <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => moveExercise(ex.id, -1)}>▲ Opp</button>
+                  <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => moveExercise(ex.id, 1)}>▼ Ned</button>
+                  <button type="button" className="xp-pill xp-pill-ghost" style={{ ...pillLiten, color: '#E23A5A' }} onClick={() => { removeExercise(ex.id); setMeny(null) }}>Fjern øvelse</button>
                 </div>
-              </div>
-
-              {(plan || ls) && (
-                <div className="flex items-center gap-2 flex-wrap mb-2">
-                  {plan && (
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', fontSize: 12, fontStyle: 'italic' }}>
-                      Plan: {plan}
-                    </span>
-                  )}
-                  {ls && (
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-7)', fontSize: 12, fontStyle: 'italic' }}>
-                      Sist: {summarizeLast(ls)} ({daysAgoLabel(ls.date)})
-                    </span>
-                  )}
-                  {ls && (
-                    <button type="button" onClick={() => repeatLast(ex)}
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE, background: 'none', border: '1px solid #3A2418', padding: '2px 8px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                      <Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta forrige
-                    </button>
-                  )}
+              )}
+              {(beste || plan || ls) && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 11px', alignItems: 'center' }}>
+                  {beste && <span style={{ ...chip, ...chipBeste }} data-live-beste>★ Beste <b style={{ color: GULL, fontWeight: 700 }}>{beste}</b></span>}
+                  {!beste && !ls && <span style={{ ...chip, color: 'var(--tekst-8-app)' }}>Ingen historikk ennå</span>}
+                  {plan && <span style={{ ...chip, borderColor: 'rgba(26,111,212,.45)', color: BLAA, background: 'rgba(26,111,212,.10)' }}>Plan <b style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>{plan}</b></span>}
+                  {ls && <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>Sist: {summarizeLast(ls)} ({daysAgoLabel(ls.date)})</span>}
+                  {ls && <button type="button" onClick={() => repeatLast(ex)} className="xp-pill xp-pill-ghost" style={pillLiten}><Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta forrige</button>}
                 </div>
               )}
 
-              {ex.sets.map((s, si) => {
-                const done = doneSets.has(s.id)
-                const active = s.id === activeSetId
-                return (
-                  <div key={s.id} className="xp-live-settrad" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid var(--kant-1-app)' }}>
-                    <span style={{ width: 22, color: done ? '#28A86E' : active ? ORANGE : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
-                      {done ? <Ikon navn="fullfort" variant="strek" storrelse={14} /> : si + 1}
-                    </span>
-                    <Stepper label="reps" value={s.reps} step={1}
-                      onChange={v => updateSet(ex.id, s.id, { reps: v })} />
-                    <Stepper label="kg" value={s.weight_kg} step={2.5}
-                      onChange={v => updateSet(ex.id, s.id, { weight_kg: v })} />
-                    <RpePicker value={s.rpe} onChange={v => updateSet(ex.id, s.id, { rpe: v })} />
-                    {active ? (
-                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE, fontSize: 13 }}>
-                          jobber {fmtClock(workSec ?? 0)}
-                        </span>
-                        <button type="button" onClick={() => logSet(s.id)}
-                          style={{ background: '#28A86E', color: 'var(--flate-3)', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                          <Ikon navn="fullfort" variant="strek" storrelse={14} /> logg
-                        </button>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={() => startSet(s.id)}
-                        style={{ marginLeft: 'auto', background: done ? '#14241A' : ORANGE, color: done ? '#28A86E' : 'var(--flate-3)', border: done ? '1px solid #1E4A38' : 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                        {done ? <><Ikon navn="fullfort" variant="strek" storrelse={14} /> logget</> : 'Start'}
-                      </button>
-                    )}
-                    <button type="button" onClick={() => removeSet(ex.id, s.id)} title="Fjern sett" style={btnIcon}>×</button>
-                  </div>
-                )
-              })}
-
-              <button type="button" onClick={() => addSet(ex.id)}
-                style={{ marginTop: 8, background: 'none', border: '1px dashed var(--kant-6)', color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, padding: '6px 10px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', width: '100%' }}>
-                + Legg til sett
-              </button>
+              {/* Settradene: nr · reps · kg · rpe · knapp. Grått = forrige økt, plassholder - lagres aldri. */}
+              <div style={{ borderTop: '1px solid var(--line)' }}>
+                {ex.sets.map((s, si) => {
+                  const done = doneSets.has(s.id), active = s.id === activeSetId, pr = prSets.has(s.id)
+                  const sp = spokelse(ls, si)
+                  const repsFort = s.reps.trim() !== '', kgFort = s.weight_kg.trim() !== ''
+                  return (
+                    <div key={s.id} className="xp-live-settrad" data-sett={si + 1} style={{ display: 'grid', gridTemplateColumns: '26px 1fr 1fr 44px 62px', gap: 7, alignItems: 'center', padding: '7px 14px', borderTop: si === 0 ? 'none' : '1px solid var(--line)', background: active ? 'rgba(255,69,0,.06)' : 'none' }}>
+                      <span style={{ fontFamily: FONT, fontSize: 13, color: done ? GRONN : active ? ORANGE : 'var(--tekst-8-app)', textAlign: 'center' }}>
+                        {done ? <Ikon navn="fullfort" variant="strek" storrelse={14} /> : si + 1}
+                      </span>
+                      <Felt fort={repsFort} verdi={repsFort ? s.reps : sp.reps} pr={false} onClick={() => repsFort || active ? velgSett(ex, s, si) : fyllSpokelse(ex, s, si, 'reps')} aria={`Sett ${si + 1} reps`} />
+                      <Felt fort={kgFort} verdi={kgFort ? s.weight_kg : sp.kg} pr={pr} onClick={() => kgFort || active ? velgSett(ex, s, si) : fyllSpokelse(ex, s, si, 'kg')} aria={`Sett ${si + 1} kg`} />
+                      <RpePicker value={s.rpe} onChange={v => updateSet(ex.id, s.id, { rpe: v })} />
+                      {done ? (
+                        <button type="button" onClick={() => velgSett(ex, s, si)} style={{ ...settKnapp, background: 'rgba(40,168,110,.14)', color: GRONN, border: '1px solid rgba(40,168,110,.35)' }} aria-label={`Sett ${si + 1} logget - trykk for å rette`}>✓</button>
+                      ) : active ? (
+                        <button type="button" onClick={loggSett} style={settKnapp} data-live-logg-rad>Logg</button>
+                      ) : (
+                        <button type="button" onClick={() => velgSett(ex, s, si)} style={settKnapp} data-live-start>Start</button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              <div style={{ display: 'flex', gap: 8, padding: '8px 14px 12px' }}>
+                <button type="button" onClick={() => addSet(ex.id)} className="xp-pill xp-pill-ghost" style={{ flex: 1, borderStyle: 'dashed', minHeight: 40 }}>+ Legg til sett</button>
+                {ex.sets.length > 1 && <button type="button" onClick={() => removeSet(ex.id, ex.sets[ex.sets.length - 1].id)} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} aria-label="Fjern siste sett">− Sett</button>}
+              </div>
             </div>
           )
         })}
 
         <AddExerciseInline onAdd={addExercise} />
-      </div>
 
-      {/* Bunn: volum + Fullfør */}
-      {/* zIndex 50: bunnlinja lå uten stablingsnivå og ble dekket av profil-påminnelsen (fixed, z-40) - «Fullfør» fikk ikke klikk (funnet i ＋-knapp bolk 3). */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
-        <div className="flex items-center justify-between mb-2">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
-            Volum: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>
-          </span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12 }}>
-            {exercises.length} øvelser · <a href="/app/analyse?tab=styrke" data-live-styrke-analyse style={{ color: 'var(--tekst-5-app)', textDecoration: 'underline' }}>utvikling og PR-er</a>
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0 16px' }}>
+          <span style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 13 }}>Tonnasje: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b></span>
+          <a href="/app/analyse?tab=styrke" data-live-styrke-analyse style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 12, textDecoration: 'underline' }}>utvikling og PR-er</a>
         </div>
-        <button type="button" onClick={finish} disabled={busy}
-          style={{ width: '100%', background: '#28A86E', color: 'var(--flate-3)', border: 'none', borderRadius: 12, boxShadow: '0 6px 24px rgba(40,168,110,.3)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em', padding: '12px', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
-          Fullfør økt <Ikon navn="fullfort" variant="strek" storrelse={14} />
-        </button>
+      </div>
+
+      {/* TASTATURET - fast nederst når et sett er aktivt. Ellers: Fullfør-linja. */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50, background: 'var(--live-topp)', backdropFilter: 'blur(14px)', borderTop: '1px solid var(--line2)', borderRadius: '20px 20px 0 0', padding: '12px 14px 14px' }} data-live-bunn>
+        {stoppet ? (
+          <div data-live-stoppet>
+            <div style={{ textAlign: 'center', padding: '6px 0 14px' }}>
+              <div style={{ fontFamily: BEBAS, fontSize: 40, letterSpacing: '0.02em', color: 'var(--tekst-1-app)' }}>{fmtClock(elapsedSec)}</div>
+              <div style={{ ...meta, fontSize: 12 }}>Klokka står. Tiden fra nå teller ikke med.</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 9 }}>
+              <button type="button" onClick={tilFerdig} className="xp-pill" style={{ ...pillStor, background: 'var(--card2)', color: 'var(--tekst-1-app)', borderColor: 'var(--line2)' }} data-live-avslutt>Avslutt</button>
+              <button type="button" onClick={fortsett} className="xp-pill xp-pill-primary" style={pillStor} data-live-fortsett>▶ Fortsett</button>
+            </div>
+            <div style={{ ...meta, textAlign: 'center', fontSize: 11 }}>{forte} sett ført · {totalVolume.toLocaleString('nb-NO')} kg · hvile mellom sett teller som styrketid</div>
+          </div>
+        ) : aktiv ? (
+          <div data-live-tastatur>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+              <b style={{ fontFamily: BEBAS, fontSize: 17, letterSpacing: '0.03em', fontWeight: 400, color: 'var(--tekst-1-app)' }}>{aktiv.ex.exercise_name} · sett {aktiv.i + 1}</b>
+              <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>{tast.rort ? 'Ditt tall' : 'Grått = forrige økt'}</span>
+            </div>
+            <div style={stepperRad}>
+              <button type="button" onClick={() => bump('reps', -1)} style={stepKnapp} aria-label="En rep mindre">−</button>
+              <div style={verdiBoks}><em style={{ ...verdiEm, color: tast.rort ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }} data-live-tast-reps>{tast.reps || '-'}</em><i style={verdiI}>reps</i></div>
+              <button type="button" onClick={() => bump('reps', 1)} style={stepKnapp} aria-label="En rep mer">+</button>
+            </div>
+            <div style={stepperRad}>
+              <button type="button" onClick={() => bump('kg', -1)} style={stepKnapp} aria-label="2,5 kg mindre">−2,5</button>
+              <div style={verdiBoks}><em style={{ ...verdiEm, color: tast.rort ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }} data-live-tast-kg>{tast.kg || '-'}</em><i style={verdiI}>kg</i></div>
+              <button type="button" onClick={() => bump('kg', 1)} style={stepKnapp} aria-label="2,5 kg mer">+2,5</button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+              <RpePicker value={aktiv.sett.rpe} onChange={v => updateSet(aktiv.ex.id, aktiv.sett.id, { rpe: v })} somPille />
+              {aktiv.i > 0 && <button type="button" onClick={sammeSomSist} className="xp-pill xp-pill-ghost" style={pillLiten}>Samme som sist sett</button>}
+              <button type="button" onClick={() => setActiveSetId(null)} className="xp-pill xp-pill-ghost" style={pillLiten}>Lukk</button>
+            </div>
+            <button type="button" onClick={loggSett} className="xp-pill" style={{ ...pillStor, width: '100%', background: GRONN, borderColor: GRONN, color: '#fff' }} data-live-logg>✓ Logg sett</button>
+          </div>
+        ) : (
+          <button type="button" onClick={tilFerdig} disabled={busy} className="xp-pill" style={{ ...pillStor, width: '100%', background: GRONN, borderColor: GRONN, color: '#fff' }} data-live-fullfor>
+            Fullfør økt
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
-const btnIcon: React.CSSProperties = {
-  background: 'none', border: 'none', color: 'var(--tekst-8-app)', cursor: 'pointer',
-  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '2px 6px',
+function finnAktiv(exercises: StrengthExerciseRow[], activeSetId: string | null) {
+  if (activeSetId == null) return null
+  for (const ex of exercises) { const i = ex.sets.findIndex(s => s.id === activeSetId); if (i >= 0) return { ex, sett: ex.sets[i], i } }
+  return null
+}
+/** Første uferdige sett - det hvile-ringen teller ned mot. */
+function finnNeste(exercises: StrengthExerciseRow[], doneSets: Set<string>) {
+  for (const ex of exercises) for (let i = 0; i < ex.sets.length; i++) if (!doneSets.has(ex.sets[i].id)) return { ex, i }
+  return null
 }
 
-function Stepper({ label, value, step, onChange }: {
-  label: string; value: string; step: number; onChange: (v: string) => void
-}) {
-  const bump = (d: number) => {
-    const cur = parseDecimal(value)
-    const base = isNaN(cur) ? 0 : cur
-    const next = Math.max(0, Math.round((base + d * step) * 100) / 100)
-    onChange(next === 0 && d < 0 ? '' : String(next))
-  }
+// ── Småkomponenter ───────────────────────────────────────
+
+/** Felt i settrada: ført (hvit) eller forrige økts tall (grått, plassholder). */
+function Felt({ fort, verdi, pr, onClick, aria }: { fort: boolean; verdi: string; pr: boolean; onClick: () => void; aria: string }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <button type="button" onClick={() => bump(-1)} style={stepBtn}>−</button>
-        <input value={value} onChange={e => onChange(e.target.value)} inputMode="decimal"
-          style={{ width: 46, textAlign: 'center', background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '6px 0', outline: 'none' }} />
-        <button type="button" onClick={() => bump(1)} style={stepBtn}>+</button>
-      </div>
-    </div>
+    <button type="button" onClick={onClick} aria-label={aria} data-fort={fort ? '1' : '0'}
+      style={{
+        position: 'relative', height: 44, borderRadius: 10, border: `1px solid ${pr ? 'rgba(212,160,23,.55)' : fort ? 'var(--kant-3)' : 'var(--line2)'}`,
+        background: fort ? 'var(--card2)' : 'var(--card)', color: fort ? 'var(--tekst-1-app)' : 'var(--tekst-10)',
+        fontFamily: BEBAS, fontSize: 20, letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums', cursor: 'pointer',
+        boxShadow: pr ? 'inset 0 0 0 1px rgba(212,160,23,.18)' : 'none',
+      }}>
+      {verdi || '-'}
+      {pr && <small style={{ position: 'absolute', right: 7, bottom: 3, fontFamily: FONT, fontSize: 9, letterSpacing: '0.04em', color: GULL, fontWeight: 700 }}>PR</small>}
+    </button>
   )
 }
-const stepBtn: React.CSSProperties = {
-  background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--tekst-1-app)',
-  width: 30, height: 34, fontSize: 18, cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
+
+function HvileRing({ sek }: { sek: number }) {
+  const r = 18, omkrets = 2 * Math.PI * r
+  const andel = Math.min(1, sek / HVILE_MAAL_SEK)
+  return (
+    <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">
+      <circle cx="21" cy="21" r={r} fill="none" stroke="var(--line2)" strokeWidth="4" />
+      <circle cx="21" cy="21" r={r} fill="none" stroke={ORANGE} strokeWidth="4" strokeLinecap="round"
+        strokeDasharray={omkrets} strokeDashoffset={omkrets * (1 - andel)} transform="rotate(-90 21 21)" style={{ transition: 'stroke-dashoffset .9s linear' }} />
+    </svg>
+  )
 }
 
-function RpePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function RpePicker({ value, onChange, somPille = false }: { value: string; onChange: (v: string) => void; somPille?: boolean }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>RPE</span>
-      <button type="button" onClick={() => setOpen(o => !o)}
-        style={{ width: 38, height: 34, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: value ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, cursor: 'pointer' }}>
-        {value || '-'}
+    <div style={{ position: 'relative' }}>
+      <button type="button" onClick={() => setOpen(o => !o)} aria-label="RPE"
+        className={somPille ? 'xp-pill xp-pill-ghost' : undefined}
+        style={somPille ? pillLiten : { height: 36, width: '100%', borderRadius: 999, border: '1px solid var(--line2)', background: 'var(--card2)', color: value ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)', fontFamily: FONT, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+        {somPille ? `RPE ${value || '-'}` : (value || '-')}
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: '100%', zIndex: 20, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 2 }}>
+        <div style={{ position: 'absolute', bottom: somPille ? '100%' : 'auto', top: somPille ? 'auto' : '100%', left: 0, zIndex: 60, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', margin: '2px 0' }}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-            <button key={n} type="button"
-              onClick={() => { onChange(String(n)); setOpen(false) }}
-              style={{ width: 30, height: 30, background: String(n) === value ? ORANGE : 'none', color: String(n) === value ? 'var(--flate-3)' : 'var(--tekst-3-app)', border: '1px solid var(--kant-1-app)', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
+            <button key={n} type="button" onClick={() => { onChange(String(n)); setOpen(false) }}
+              style={{ width: 36, height: 36, background: String(n) === value ? ORANGE : 'none', color: String(n) === value ? '#fff' : 'var(--tekst-3-app)', border: '1px solid var(--kant-1-app)', cursor: 'pointer', fontFamily: FONT, fontSize: 13 }}>
               {n}
             </button>
           ))}
@@ -487,35 +584,23 @@ function RpePicker({ value, onChange }: { value: string; onChange: (v: string) =
 
 function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
   const [q, setQ] = useState('')
-  // Bla-modus: kategorichips fra standardbiblioteket (kø #46-oppfølger).
   const [browse, setBrowse] = useState(false)
   const matches = useMemo(() => q.trim() ? searchStandardExercises(q, new Set(), 6) : [], [q])
   const commit = (name: string) => { onAdd(name); setQ(''); setBrowse(false) }
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', gap: 8 }}>
-        <input id="xp-live-add-exercise" value={q} onChange={e => setQ(e.target.value)}
-          placeholder="Legg til øvelse (søk eller skriv eget)"
-          style={{ flex: 1, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
-        <button type="button" onClick={() => setBrowse(b => !b)} aria-label="Bla i biblioteket"
-          style={{ background: browse ? ORANGE : 'var(--card2)', color: browse ? 'var(--flate-3)' : 'var(--tekst-3-app)', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 12px', cursor: 'pointer', minHeight: 40 }}>
-          ▦ Bla
-        </button>
-        <button type="button" onClick={() => commit(q)} disabled={!q.trim()}
-          style={{ background: ORANGE, color: 'var(--flate-3)', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 16px', textTransform: 'uppercase', cursor: q.trim() ? 'pointer' : 'default', opacity: q.trim() ? 1 : 0.5 }}>
-          Legg til
-        </button>
+        <input id="xp-live-add-exercise" value={q} onChange={e => setQ(e.target.value)} placeholder="Legg til øvelse (søk eller skriv eget)"
+          style={{ flex: 1, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 999, color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 15, padding: '10px 16px', outline: 'none', minHeight: 44 }} />
+        <button type="button" onClick={() => setBrowse(b => !b)} aria-label="Bla i biblioteket" className={`xp-pill ${browse ? 'xp-pill-primary' : 'xp-pill-ghost'}`} style={{ minHeight: 44 }}>Bla</button>
+        <button type="button" onClick={() => commit(q)} disabled={!q.trim()} className="xp-pill xp-pill-primary" style={{ minHeight: 44 }}>Legg til</button>
       </div>
-      {browse && (
-        <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, marginTop: 6, overflow: 'hidden' }}>
-          <StandardExerciseBrowser onPick={commit} />
-        </div>
-      )}
+      {browse && <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 14, marginTop: 6, overflow: 'hidden' }}><StandardExerciseBrowser onPick={commit} /></div>}
       {matches.length > 0 && (
-        <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderTop: 'none', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 14, marginTop: 6, overflow: 'hidden' }}>
           {matches.map(m => (
             <button key={m.name} type="button" onClick={() => commit(m.name)}
-              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-1-app)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 12px', cursor: 'pointer' }}>
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-1-app)', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14, padding: '10px 14px', cursor: 'pointer', minHeight: 40 }}>
               {m.name}
             </button>
           ))}
@@ -524,3 +609,21 @@ function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
     </div>
   )
 }
+
+// ── Stiler ───────────────────────────────────────────────
+const topp: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 10, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '8px 16px 12px' }
+const ikonKnapp: React.CSSProperties = { background: 'none', border: 'none', color: 'var(--tekst-5-app)', minWidth: 36, minHeight: 36, fontSize: 17, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
+const kort: React.CSSProperties = { background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: 14, marginBottom: 12 }
+const kortH3: React.CSSProperties = { margin: 0, fontFamily: BEBAS, fontSize: 18, letterSpacing: '0.03em', fontWeight: 400, color: 'var(--tekst-1-app)' }
+const meta: React.CSSProperties = { fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }
+const disp: React.CSSProperties = { fontFamily: BEBAS, fontSize: 26, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', fontVariantNumeric: 'tabular-nums' }
+const chip: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 5, height: 26, padding: '0 10px', borderRadius: 999, border: '1px solid var(--line2)', fontFamily: FONT, fontSize: 11.5, color: 'var(--tekst-5-app)', background: 'var(--card2)' }
+const chipBeste: React.CSSProperties = { borderColor: 'rgba(212,160,23,.5)', color: GULL, background: 'rgba(212,160,23,.10)' }
+const settKnapp: React.CSSProperties = { height: 36, borderRadius: 999, border: 0, background: ORANGE, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', padding: '0 4px', whiteSpace: 'nowrap', cursor: 'pointer' }
+const pillLiten: React.CSSProperties = { minHeight: 30, padding: '0 11px', fontSize: 11.5, letterSpacing: '0.06em' }
+const pillStor: React.CSSProperties = { minHeight: 52, fontSize: 16, letterSpacing: '0.06em' }
+const stepperRad: React.CSSProperties = { display: 'grid', gridTemplateColumns: '52px 1fr 52px', gap: 8, alignItems: 'center', marginBottom: 9 }
+const stepKnapp: React.CSSProperties = { height: 52, minWidth: 52, borderRadius: 12, border: '1px solid var(--line2)', background: 'var(--card2)', color: 'var(--tekst-3-app)', fontSize: 22, fontFamily: "'Barlow', sans-serif", lineHeight: 1, cursor: 'pointer' }
+const verdiBoks: React.CSSProperties = { height: 52, borderRadius: 12, background: 'var(--card)', border: '1px solid var(--line2)', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6 }
+const verdiEm: React.CSSProperties = { fontStyle: 'normal', fontFamily: BEBAS, fontSize: 30, letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)' }
+const verdiI: React.CSSProperties = { fontStyle: 'normal', color: 'var(--tekst-8-app)', fontSize: 12, fontFamily: FONT, textTransform: 'uppercase', letterSpacing: '0.07em' }

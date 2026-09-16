@@ -125,8 +125,13 @@ function LoginInner() {
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             Har du ikke konto?{' '}
+            {/* return_to MÅ følge med hit. Uten den mister den som valgte
+                en plan på forsida valget sitt i det han trykker «Registrer
+                deg» - og lander på abonnementsvelgeren etter e-posten, der
+                han må velge på nytt (målt 16. sep: 18 av 36 kontoer hadde
+                ingen abonnementsrad). */}
             <Link
-              href="/app/register"
+              href={returnTo ? `/app/register?return_to=${encodeURIComponent(returnTo)}` : '/app/register'}
               className="transition-opacity hover:opacity-80"
               style={{ color: '#FF4500' }}
             >

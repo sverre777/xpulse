@@ -101,6 +101,9 @@ export async function register(prevState: AuthState, formData: FormData): Promis
   // fortsatt `anon`, og phase39b har med vilje fjernet INSERT/UPDATE fra
   // anon. Den skrivingen feilet med «permission denied for table profiles»
   // og blokkerte alle nye brukere (10. sep 2026).
+  // Samme validering som login-veien bruker: kun interne paths.
+  const returnTo = safeReturnTo(formData.get('return_to') as string | null)
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -115,7 +118,18 @@ export async function register(prevState: AuthState, formData: FormData): Promis
       },
       // Uten denne lander bekreftelseslenken på Supabase sin Site URL i
       // stedet for i onboardingen. Samme mønster som passord-reset under.
-      emailRedirectTo: `${baseUrl}/auth/confirm?next=/onboarding/abonnement`,
+      //
+      // TIER-VALGET SKAL OVERLEVE E-POSTEN (Sverre 16. sep 2026): valgte
+      // brukeren en plan på forsida, står den i return_to, og da skal han
+      // til Stripe med DEN planen - ikke til abonnementsvelgeren for å
+      // velge det samme om igjen etter et e-postavbrudd. Der falt folk av.
+      //
+      // next MÅ url-kodes: verdien inneholder selv «?tier=...», og uten
+      // koding blir alt etter det første &-tegnet en egen parameter på
+      // /auth/confirm i stedet for en del av next.
+      // Mottakersiden (lib/trygg-next) slipper bare gjennom /api/checkout
+      // med en kjent tier - den er ingen åpen dør.
+      emailRedirectTo: `${baseUrl}/auth/confirm?next=${encodeURIComponent(returnTo ?? '/onboarding/abonnement')}`,
     },
   })
 

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { tryggNext } from '@/lib/trygg-next'
 
 // Håndterer alle e-post-bekreftelser fra Supabase: password recovery, email
 // change, magic link, signup-bekreftelse. Erstatter direkte redirectTo til
@@ -16,24 +17,8 @@ import { createClient } from '@/lib/supabase/server'
 // til server components). Hvis cookies ikke settes — sesjon er borte ved
 // redirect og /nytt-passord ser brukeren som utlogget.
 
-const ALLOWED_NEXT = new Set([
-  '/nytt-passord',
-  // Bekreftelseslenken fra registreringen peker hit (auth.ts). Uten den i
-  // lista faller safeNext tilbake til /app/dagbok, og den nye brukeren
-  // hopper over abonnementsvalget.
-  '/onboarding/abonnement',
-  '/app/dagbok',
-  '/app/trener',
-  '/app/innstillinger/bekreft-epost',
-])
-
-function safeNext(raw: string | null): string {
-  if (!raw) return '/app/dagbok'
-  if (ALLOWED_NEXT.has(raw)) return raw
-  if (raw.startsWith('/app/') && !raw.startsWith('//')) return raw
-  return '/app/dagbok'
-}
-
+// Lista over hvor bekreftelseslenka får lande bor i lib/trygg-next, fordi
+// den er en sikkerhetsvakt som SKAL testes (npm run next-selftest).
 // Bygg redirect til /app med ?error=... så bruker ser konkret melding.
 // Inkluder type-parameter i URL-en for å vise hvilken flow som feilet —
 // nyttig under diagnose.
@@ -53,7 +38,7 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as
     | 'signup' | 'invite' | 'magiclink' | 'recovery' | 'email_change' | 'email' | null
-  const next = safeNext(searchParams.get('next'))
+  const next = tryggNext(searchParams.get('next'))
 
   // Detaljert logging — i Netlify Function Logs kan vi se nøyaktig hva
   // Supabase sender. Hvis token_hash mangler eller type=null: email template

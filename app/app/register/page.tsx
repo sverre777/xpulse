@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useActionState } from 'react'
+import { Suspense, useActionState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { register, AuthState } from '@/app/actions/auth'
 import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
@@ -11,8 +12,23 @@ import { PILLE_BASIS } from '@/components/ui/Pilleknapp'
 
 const initialState: AuthState = {}
 
+// useSearchParams krever en Suspense-grense ved prerender - samme mønster
+// som innloggingssida (app/app/page.tsx). Uten den feiler byggingen på
+// «Export encountered an error on /app/register».
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterInner />
+    </Suspense>
+  )
+}
+
+function RegisterInner() {
   const [state, formAction, pending] = useActionState(register, initialState)
+  // Valgte brukeren en plan på forsida, ligger den i return_to. Den skal
+  // overleve helt fram til Stripe - se kommentaren i app/app/page.tsx.
+  const searchParams = useSearchParams()
+  const returnTo = searchParams?.get('return_to') ?? ''
 
   return (
     <>
@@ -21,6 +37,7 @@ export default function RegisterPage() {
     >
       <AuthCard title="Opprett konto" subtitle="Velg din rolle og kom i gang">
         <form action={formAction} className="flex flex-col gap-5">
+          {returnTo && <input type="hidden" name="return_to" value={returnTo} />}
           <FormField
             label="Fullt navn"
             name="full_name"

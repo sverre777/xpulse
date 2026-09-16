@@ -11,7 +11,8 @@
     "prebuild": "npm run font-selftest",
     "stillestand-selftest": "tsx scripts/stillestand-selftest.ts",
     "trenertid-selftest": "tsx scripts/trenertid-selftest.ts",
-    "skyting-selftest": "tsx scripts/skyting-konvertering-selftest.ts"
+    "skyting-selftest": "tsx scripts/skyting-konvertering-selftest.ts",
+    "next-selftest": "tsx scripts/next-selftest.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -34,12 +34,17 @@ function navnPaaType(t: string | null): string {
 
 const FONT = "'Barlow Condensed', sans-serif"
 
-/** Ordrett fra Sverre 15. sep - hva som faktisk endrer seg, verifisert mot
-    kartleggingen av uketimer og årsplan-framdrift. Ikke skriv om denne uten
-    å sjekke regnemåtene på nytt. */
-const FOLGER =
-  'Timene på økta står. Ren treningstid går ned, og det slår gjennom i uke- og '
-  + 'månedstallene, plan mot faktisk, og årsplan-framdriften.'
+/**
+ * ORDBRUKEN (rettet 16. sep 2026, og den var feil før):
+ *   TOTALTID   = treningstiden. Den GÅR NED når pauser legges inn.
+ *   KLOKKETID  = det klokka på håndleddet viste fra start til stopp,
+ *                med pauser og alt. Den STÅR.
+ *
+ * Den gamle teksten sa «Timene på økta står. Ren treningstid går ned» -
+ * motsatt av hvordan Sverre og appen mener begge ordene. Ikke skriv den
+ * om uten å sjekke ordbruken på nytt.
+ */
+const FOLGER = 'Klokketida står.'
 
 const PILL: React.CSSProperties = {
   fontFamily: FONT, fontWeight: 700, letterSpacing: '0.08em', fontSize: 12,
@@ -132,9 +137,12 @@ export function StillestandKnapp({ workoutId, erKlokkeokt, rader, onEndret, komp
     const skyting = f.hoppetOverSkyting > 0
       ? `\n\n${f.hoppetOverSkyting} ${f.hoppetOverSkyting === 1 ? 'periode ligger' : 'perioder ligger'} på standplass og hoppes over - den tida er allerede utenfor treningstida.`
       : ''
+    const ned = varighetKort(f.sumSek)
     const ok = await xpConfirm({
-      title: `Fant ${f.antall} ${f.antall === 1 ? 'periode' : 'perioder'}, til sammen ${varighetKort(f.sumSek)}.`,
-      body: `${FOLGER}${skyting}\n\nDu kan angre, og du kan endre en rad til aktiv pause hvis du var i bevegelse.`,
+      title: `Fant ${f.antall} ${f.antall === 1 ? 'periode' : 'perioder'}, til sammen ${ned}.`,
+      body: `Totaltida på økta går ned med ${ned} - det er tida du sto stille.\n`
+        + `${FOLGER}${skyting}\n\n`
+        + 'Du kan angre, og du kan endre en rad til aktiv pause hvis du var i bevegelse.',
       confirmLabel: 'Lag pausene',
     })
     if (!ok) return

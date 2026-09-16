@@ -1,3 +1,4 @@
+import { ZONE_COLORS_V2 } from './activity-summary'
 // Segmentbånd + tidsvinduer på pulskurven (fase 113, Øktbyggeren).
 // Ren logikk — ingen react, ingen supabase. Fasit: design/xpulse-oktgraf-
 // design.html (segmentbåndet) + Øktbygger-omleggingen v6.
@@ -22,7 +23,7 @@
 // aldri en gjettet tidslinje.
 
 export type SegmentType =
-  | 'oppvarming' | 'drag' | 'nedjogg' | 'pause' | 'veksling' | 'bevform' | 'annet'
+  | 'oppvarming' | 'drag' | 'nedjogg' | 'pause' | 'aktiv_pause' | 'veksling' | 'bevform' | 'annet'
   | 'skyting_ligg' | 'skyting_staa' | 'skyting_annet'
 
 // Segmentfargene (godkjent 28. aug 2026, CVD-validert mot HELE fargefasiten
@@ -44,6 +45,13 @@ export const SEGMENT_FARGER: Record<SegmentType, string> = {
   // hex: fargerommet er brukt opp mot fargefasiten, og tekstur overlever
   // all fargeblindhet. Se SEGMENT_STRIPET.
   veksling:      '#43434B',
+  // Aktiv pause deler også pausefargen - den hører til pausefamilien
+  // strukturelt. Men den ER treningstid siden 9823f70, og tegnet som ren
+  // pause var grafen og regnestykket uenige om samme rad (Sverre 16. sep).
+  // Skilles med en tynn SONEFARGET stripe langs overkanten, ikke med en ny
+  // hex og ikke med høyden: høyden koder intensitet (SONE_HOYDE), og full
+  // høyde ville sagt «hard økt» der sonen kanskje er I1.
+  aktiv_pause:   '#43434B',
   bevform:       '#A6A6AF',
   annet:         '#A6A6AF',
   // SKYTING HAR IKKE FARGE PÅ TIDSLINJA (rettelse 1, 3. sep): en farget
@@ -81,7 +89,10 @@ export function segmentTypeFor(type: string, bevegelsesform: string): SegmentTyp
   }
   if (type === 'oppvarming') return 'oppvarming'
   if (type === 'nedjogg') return 'nedjogg'
-  if (type === 'pause' || type === 'aktiv_pause') return 'pause'
+  // AKTIV PAUSE ER IKKE PAUSE. Den teller som treningstid, og kollapset
+  // her gjorde at grafen malte den som om den ikke gjorde det.
+  if (type === 'aktiv_pause') return 'aktiv_pause'
+  if (type === 'pause') return 'pause'
   if (type === 'veksling') return 'veksling'
   if (type === 'annet') return 'annet'
   void bevegelsesform
@@ -102,9 +113,22 @@ export const PUNKT_FARGER = {
 // Segmenttyper som tegnes med diagonale striper i tillegg til fargen.
 export const SEGMENT_STRIPET: ReadonlySet<SegmentType> = new Set<SegmentType>(['veksling'])
 
-/** CSS-bakgrunn for et segment — farge, evt. med stripe-tekstur. */
-export function segmentBakgrunn(type: SegmentType): string {
+/**
+ * CSS-bakgrunn for et segment - farge, evt. med tekstur.
+ *
+ * AKTIV PAUSE får en tynn sonefarget stripe langs overkanten når sonen er
+ * kjent. Samme prinsipp som vekslingsstripene: fargerommet er brukt opp mot
+ * fargefasiten, så tekstur bærer det fargen ikke kan. Stripa sier HVILKEN
+ * SONE; blokka sier fortsatt «pausefamilie».
+ *
+ * UTEN SONE: ingen stripe. En aktiv pause ført for hånd uten sone har ingen,
+ * og skal se ut som før - aldri en oppdiktet sone.
+ */
+export function segmentBakgrunn(type: SegmentType, soneFarge?: string | null): string {
   const farge = SEGMENT_FARGER[type]
+  if (type === 'aktiv_pause' && soneFarge) {
+    return `linear-gradient(to bottom, ${soneFarge} 0 3px, ${farge} 3px 100%)`
+  }
   if (!SEGMENT_STRIPET.has(type)) return farge
   return `repeating-linear-gradient(45deg, ${farge} 0 3px, rgba(255,255,255,.28) 3px 6px)`
 }
@@ -116,6 +140,10 @@ export interface SegmentRad {
   duration_seconds: number | null
   window_start_seconds: number | null
   window_duration_seconds: number | null
+  /** Sonene på raden - brukes bare til sonestripa på aktiv pause.
+      Bevisst løs type: skjemaet har tekst (ActivityZoneMinutes), basen har
+      tall, og begge skal kunne sendes inn uten konvertering. */
+  zones?: Readonly<Record<string, unknown>> | null
   prone_shots: number | null
   prone_hits: number | null
   standing_shots: number | null
@@ -138,6 +166,9 @@ export interface Segment {
   paaKurven: boolean
   kilde: 'runde' | 'plassert'
   gruppeId: string | null
+  /** Sonefarge for stripa på aktiv pause. Null når sonen er ukjent - da
+      tegnes ingen stripe, aldri en oppdiktet sone. */
+  soneFarge?: string | null
   /** Likhetsnøkkel utover type (plan-grafen: sonen) — to blokker med ulik
       nøkkel er aldri «like», selv med samme varighet. */
   nokkel?: string
@@ -206,9 +237,28 @@ export function beregnSegmenter(rader: SegmentRad[], totalSek: number): Segment[
       paaKurven: kl.type.startsWith(SKYTING_PREFIX),
       kilde: plassert ? 'plassert' : 'runde',
       gruppeId: r.gruppeId ?? null,
+      soneFarge: kl.type === 'aktiv_pause' ? dominantSoneFarge(r.zones) : null,
     })
   }
   return ut
+}
+
+/**
+ * Fargen på sonen raden brukte mest tid i - stripa på aktiv pause.
+ *
+ * Null når sonen er ukjent. Da tegnes ingen stripe: en aktiv pause ført
+ * for hånd uten sone skal se ut som før, ikke få en oppdiktet sone.
+ */
+function dominantSoneFarge(zones: SegmentRad['zones']): string | null {
+  if (!zones) return null
+  let beste: string | null = null, mest = 0
+  for (const [navn, raa] of Object.entries(zones)) {
+    const sek = typeof raa === 'string' ? parseFloat(raa) : Number(raa)
+    if (!Number.isFinite(sek) || sek <= mest) continue
+    mest = sek; beste = navn
+  }
+  if (!beste) return null
+  return (ZONE_COLORS_V2 as Record<string, string>)[beste] ?? null
 }
 
 function klassifiser(

@@ -115,6 +115,10 @@ export function plasserRader(
       duration_seconds: parseActivityDuration(a.duration) ?? 0,
       window_start_seconds: a.window_start_seconds ?? null,
       window_duration_seconds: a.window_duration_seconds ?? null,
+      // Sonene følger med så aktiv pause kan bære sonestripa si.
+      // ActivityZoneMinutes er et interface med faste nøkler og har ingen
+      // indekssignatur - derfor den eksplisitte konverteringen.
+      zones: (a.zones ?? null) as unknown as Record<string, unknown> | null,
       prone_shots: parseInt(a.prone_shots) || null, prone_hits: parseInt(a.prone_hits) || null,
       standing_shots: parseInt(a.standing_shots) || null, standing_hits: parseInt(a.standing_hits) || null,
       harKlokkeProveniens: a.db_id ? (opts.radInfo[a.db_id]?.harKlokkeProveniens ?? false) : false,

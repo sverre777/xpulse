@@ -197,6 +197,7 @@ function plasseringer(rader: Rad[], totalSek: number): Map<string, { fra: number
     duration_seconds: r.duration_seconds,
     window_start_seconds: r.window_start_seconds,
     window_duration_seconds: r.window_duration_seconds,
+    zones: r.zones,
     prone_shots: null, prone_hits: null, standing_shots: null, standing_hits: null,
     harKlokkeProveniens: true,
     gruppeId: null,

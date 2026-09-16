@@ -1418,7 +1418,7 @@ function SegmentBaand({
               minWidth: 10,
               height: BAAND_HOYDE, top: 0, padding: '0 4px',
               zIndex: smalt ? 3 : 1,
-              background: segmentBakgrunn(sg.type),
+              background: segmentBakgrunn(sg.type, sg.soneFarge),
               opacity: dempet ? 0.45 : 0.9,
               border: 'none', borderRadius: 3, cursor: 'pointer',
               outline: 'none', overflow: 'hidden', textAlign: 'left',

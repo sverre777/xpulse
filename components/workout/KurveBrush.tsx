@@ -102,7 +102,7 @@ export function KurveBrush({
             <span key={sg.aktivitetId} aria-hidden style={{
               position: 'absolute', left: pct(sg.startSek),
               width: `calc(${pct(sg.sluttSek - sg.startSek)} - 1px)`, minWidth: 3,
-              top: 0, bottom: 0, borderRadius: 2, background: segmentBakgrunn(sg.type), opacity: 0.85,
+              top: 0, bottom: 0, borderRadius: 2, background: segmentBakgrunn(sg.type, sg.soneFarge), opacity: 0.85,
             }} />
           ))}
         </div>

@@ -176,7 +176,11 @@ function fargeForAktivitetstype(t: string): string | undefined {
   if (t.startsWith('skyting')) return SKYTE_FARGER.ligg
   if (t === 'oppvarming') return SEGMENT_FARGER.oppvarming
   if (t === 'nedjogg') return SEGMENT_FARGER.nedjogg
-  if (t === 'pause' || t === 'aktiv_pause' || t === 'veksling') return SEGMENT_FARGER.pause
+  // Aktiv pause deler farge med pause (samme familie), men har sin egen
+  // segmenttype så den kan bære sonestripa. Rettes SAMMEN med
+  // lib/segmenter.ts:84 - én av dem alene gir to flater som er uenige.
+  if (t === 'aktiv_pause') return SEGMENT_FARGER.aktiv_pause
+  if (t === 'pause' || t === 'veksling') return SEGMENT_FARGER.pause
   return undefined
 }
 

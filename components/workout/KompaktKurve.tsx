@@ -77,7 +77,7 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], p
             <span key={sg.aktivitetId} style={{
               position: 'absolute', left: pct(sg.startSek),
               width: `calc(${pct(sg.sluttSek - sg.startSek)} - 1px)`, minWidth: 2,
-              top: 0, bottom: 0, borderRadius: 1, background: segmentBakgrunn(sg.type), opacity: 0.9,
+              top: 0, bottom: 0, borderRadius: 1, background: segmentBakgrunn(sg.type, sg.soneFarge), opacity: 0.9,
             }} />
           ))}
         </div>

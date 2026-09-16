@@ -302,8 +302,24 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   })()
   const speedKmh = totalSec > 0 && totalKm > 0 ? (totalKm / (totalSec / 3600)) : 0
 
+  // KLOKKETID = det klokka på håndleddet viste fra start til stopp, med
+  // pauser og alt. TOTALTID er treningstiden, og den GÅR NED når pauser
+  // legges inn (Sverre 16. sep). Klokketid SUMMERES ALDRI inn i noe - den
+  // er til å se på.
+  //
+  // Alle radene til sammen er øktas spenn: pause og standplass er tid som
+  // gikk, de er bare ikke trening.
+  const klokketidSek = activities.reduce((sum, a) => {
+    const like = allLikes.get(a.id)
+    return sum + (like?.duration_seconds ?? 0)
+  }, 0)
+  // Vises BARE når den skiller seg fra totaltid. På en økt uten pauser er
+  // de like, og to like tall ved siden av hverandre er støy.
+  const visKlokketid = klokketidSek > 0 && Math.round(klokketidSek / 60) !== Math.round(totalSec / 60)
+
   const stats: { k: string; v: ReactNode; sm?: boolean }[] = []
   if (totalSec > 0) stats.push({ k: 'Total tid', v: fmtClock(totalSec) })
+  if (visKlokketid) stats.push({ k: 'Klokketid', v: fmtClock(klokketidSek) })
   if (totalKm > 0) stats.push({ k: 'Distanse', v: <>{fmtNo(totalKm)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>km</span></> })
   if (hrWeighted > 0) stats.push({ k: 'Snittpuls', v: <>{hrWeighted} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>bpm</span></> })
   if (speedKmh > 0) stats.push({ k: 'Snittfart', v: <>{fmtNo(speedKmh)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>km/t</span></> })

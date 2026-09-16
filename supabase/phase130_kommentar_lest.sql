@@ -110,7 +110,7 @@ begin
 end; 
 $$; 
  
-revoke all on function public.merk_kommentarer_lest(uuid[]) from public; 
+revoke all on function public.merk_kommentarer_lest(uuid[]) from public, anon; 
 grant execute on function public.merk_kommentarer_lest(uuid[]) to authenticated; 
  
 /* ── ETTER: samme tre ─────────────────────────────────────────────────────── */ 

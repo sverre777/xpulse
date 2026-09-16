@@ -265,7 +265,26 @@ export type SamleFelt =
 
 const SNITT_FELTER: ReadonlySet<SamleFelt> = new Set<SamleFelt>(['avg_heart_rate', 'max_heart_rate', 'avg_watts', 'max_watts', 'avg_cadence', 'max_cadence'])
 
-/** Klokkerad: plassert på pulskurven eller med arvet puls fra draget. */
+/**
+ * Klokkerad: plassert på pulskurven eller med arvet puls fra draget.
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * «FELTET FINNES» ER IKKE DET SAMME SOM «NOEN HAR PLASSERT RADEN»
+ * (mønsteret, funnet tre ganger på én dag 16. sep 2026).
+ *
+ * window_start_seconds er en LAGRET plassering som bare NOEN importveier
+ * skriver. .fit-importen skriver den aldri (null treff i lib/fit-import).
+ * Plasseringen som faktisk GJELDER kommer fra biblioteket - beregnSegmenter
+ * flislegger radene langs kurven, og det er den båndet og øktbyggeren
+ * bruker.
+ *
+ * KONSEKVENSEN HER, ikke rettet ennå: på en .fit-økt er både
+ * window_start_seconds og arvet_puls null, så en ekte klokkerad regnes
+ * IKKE som klokkerad. Da blir den «skrivbar» i Samlet, og en verdi skrevet
+ * på gruppa overskriver det klokka målte - i stedet for å la det stå.
+ * På en Strava-økt skjer ikke det, for der er radene plassert.
+ * ────────────────────────────────────────────────────────────────────
+ */
 export function erKlokkeRad(a: ActivityRow): boolean {
   return a.window_start_seconds != null || !!a.arvet_puls
 }

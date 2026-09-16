@@ -30,6 +30,20 @@
 // nøyaktig originalens. En fordeling som ser riktig ut men mister ti meter
 // er en fordeling som lyver.
 
+// ────────────────────────────────────────────────────────────────────────
+// «FELTET FINNES» ER IKKE DET SAMME SOM «NOEN HAR PLASSERT RADEN»
+// (Sverre 16. sep 2026 - mønsteret, funnet tre ganger på én dag).
+//
+// window_start_seconds er en LAGRET plassering som bare NOEN importveier
+// skriver. .fit-importen skriver den ALDRI. Plasseringen som gjelder kommer
+// fra biblioteket: beregnSegmenter flislegger radene langs kurven, og det
+// er den båndet, øktbyggeren og analysen bruker.
+//
+// Denne fila leste window_* selv og fant ingen rad å dele på en importert
+// økt - knappen gjorde ingenting, stille. Nå kommer plasseringen inn som
+// `plass` fra kalleren, og kalleren spør biblioteket.
+// ────────────────────────────────────────────────────────────────────────
+
 import type { Stillestand } from '@/lib/stillestand'
 import { MIN_RAD_SEK } from '@/lib/oktbygger-rader'
 import { pulsIVindu } from '@/lib/segmenter'
@@ -291,6 +305,17 @@ export function splittForStillestand(
       b.type === 'pause' ? 0 : (meterIVindu(kilder.distanse, b.fra, b.fra + b.sek) ?? b.sek))
     const distPerDel = origDist > 0 ? fordel(maltPerDel, origDist) : biter.map(() => 0)
 
+    // TO TIDSBEGREPER, OG DE SKAL IKKE BLANDES (målt på Sverres Garmin-økt
+    // 16. sep): flisleggingen plasserer radene langs KURVEN, som er 3633 s,
+    // mens radenes egne duration_seconds summerer 3634. Brukte vi
+    // plasseringen til begge, tapte økta ett sekund i en operasjon som bare
+    // skulle flytte tid.
+    //   window_*          fra plasseringen - båndet skal treffe kurven
+    //   duration_seconds  skalert til ORIGINALENS varighet - regnskapet
+    //                     skal stemme på sekundet
+    const origVarighet = rad.duration_seconds ?? s.sek
+    const varigheter = fordel(biter.map(b => b.sek), origVarighet)
+
     biter.forEach((b, i) => {
       const erPause = b.type === 'pause'
       const felter = {
@@ -311,13 +336,13 @@ export function splittForStillestand(
           activity_type: b.type,
           window_start_seconds: b.fra,
           window_duration_seconds: b.sek,
-          duration_seconds: b.sek,
+          duration_seconds: varigheter[i],
           split_backup: backup,
           ...felter,
         })
         return
       }
-      ut.push({ ...del(rad, b.type, b.fra, b.sek, i), ...felter })
+      ut.push({ ...del(rad, b.type, b.fra, b.sek, i), duration_seconds: varigheter[i], ...felter })
     })
     splittede.push(rad.id)
   }

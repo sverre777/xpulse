@@ -560,7 +560,7 @@ function AnalysisPageInner({
         )}
         {tab === 'terskel' && (
           cache.terskel
-            ? <TerskelTab data={cache.terskel} targetUserId={targetUserId} />
+            ? <TerskelTab data={cache.terskel} targetUserId={targetUserId} range={range} />
             : <LoadingStub label="Laster terskel…" />
         )}
         {tab === 'skyting' && (

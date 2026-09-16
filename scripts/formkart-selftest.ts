@@ -1,7 +1,7 @@
 // FORMKARTET bolk 1 - selvtest på lib-funksjonene (ingen DB).  npm run formkart
 import {
   snittOgSd, avvikProsent, sdProsent, pctAvTerskel, erHviledag, monotoniFoster,
-  lengsteStrekkUtenHvile, hviledagerPer28, hrv7mot60, skytingForDag, glidendeTreff, sykdomsperioder, MIN_DAGER_FOR_TALL,
+  lengsteStrekkUtenHvile, hviledagerPer28, hrv7mot60, skytingForDag, glidendeTreff, sykdomsperioder, tredel, bolkKurve, laktatVed, MIN_DAGER_FOR_TALL,
 } from '../lib/formkart.ts'
 
 let ok = 0, feil = 0
@@ -64,6 +64,16 @@ const D = (i: number, sykdom: boolean, timer = 0) => ({ dato: `2026-09-${String(
 const sp = sykdomsperioder([D(0, false, 2), D(1, false, 2), D(2, false, 2), D(3, false, 2), D(4, false, 2), D(5, false, 2), D(6, false, 2), D(7, true), D(8, true), D(9, false, 1), D(10, true)])
 sjekk('sykdomsperioder: to perioder (2 dager + 1 dag), uka før den første = 14 t', sp.length === 2 && sp[0].dager === 2 && sp[0].start === '2026-09-08' && sp[0].timerUkaFor === 14 && sp[1].dager === 1, JSON.stringify(sp))
 sjekk('sykdomsperioder: uka før ligger utenfor serien -> null, ikke 0', sykdomsperioder([D(0, false, 3), D(1, true)])[0].timerUkaFor === null)
+
+// Laktat per puls
+const [t1, t2, t3] = tredel([1, 2, 3, 4, 5, 6, 7])
+sjekk('tredel: 7 økter -> 3 / 3 / 1 (tid, ikke verdi)', t1.length === 3 && t2.length === 3 && t3.length === 1 && t3[0] === 7)
+sjekk('tredel: tom liste -> tre tomme', tredel([]).every(t => t.length === 0))
+const kurve = bolkKurve([{ x: 81, y: 1.2 }, { x: 82, y: 1.6 }, { x: 90, y: 2.5 }, { x: 101, y: 4.1 }], 2)
+sjekk('bolkKurve: snitt per 2 %-bolk, sortert: 82 -> 1,4, 90 -> 2,5, 102 -> 4,1', kurve.length === 3 && naer(kurve[0].y, 1.4) && kurve[0].x === 82 && kurve[2].x === 102, JSON.stringify(kurve))
+sjekk('bolkKurve: én bolk er ingen kurve', bolkKurve([{ x: 90, y: 2 }, { x: 90.5, y: 3 }], 2).length === 0)
+sjekk('laktatVed 90 ±3: snitt av 88 og 92 = 2,0', naer(laktatVed([{ x: 88, y: 1.5 }, { x: 92, y: 2.5 }, { x: 99, y: 4 }], 90), 2.0))
+sjekk('laktatVed: ett punkt nær nivået -> null (aldri differanse på ett punkt)', laktatVed([{ x: 90, y: 2 }], 90) === null)
 
 console.log(`\n${ok} OK · ${feil} FEIL\n${feil === 0 ? 'ALT OK' : ''}`)
 if (feil > 0) process.exitCode = 1

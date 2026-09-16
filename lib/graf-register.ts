@@ -176,6 +176,12 @@ export const GRAFER: Record<string, GrafDef> = {
   terskel_hfmax_pct: G('terskel', '% av HFmax ved terskel'),
   terskel_watt_per_kg: G('terskel', 'Watt per kg'),
   terskel_watt_soner_per_uke: G('terskel', 'Tid i watt-sone per uke'),
+  // FORMKARTET bolk 6 - laktat per puls (henter selv gjennom getFormkart). Bred som laktat-mot-watt-raden.
+  terskel_laktat_puls: G('terskel', 'Laktat per puls (alle)', { data: 'selv', bred: true }),
+  terskel_laktat_per_puls: G('terskel', 'Laktat per puls (% av terskel)', { data: 'selv', bred: true }),
+  terskel_laktat_ved_90: G('terskel', 'Laktat ved 90 % av terskel, før mot nå', { data: 'selv' }),
+  terskel_laktat_ved_100: G('terskel', 'Laktat ved 100 % av terskel, før mot nå', { data: 'selv' }),
+  terskel_laktat_malinger: G('terskel', 'Laktatmålinger i perioden', { data: 'selv' }),
   terskel_np_if_per_okt: G('terskel', 'NP og IF per økt'),
   terskel_laktat_vs_intensitet: G('terskel', 'Laktat ved samme fart / watt', { config: true }),
   terskel_lt1: G('terskel', 'LT1 (2 mmol)'),

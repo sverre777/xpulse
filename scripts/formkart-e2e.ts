@@ -214,6 +214,23 @@ try {
   sjekk('Skyting: korrelasjonskortene TSB/puls inn mot treff stående sier for lite data (n < 10)', (await p.locator('[data-standplass-korr] [data-korrelasjon][data-n="1"]').count()) === 2, spt.slice(0, 240))
   sjekk('Skyting: lenker til Belastning i stedet for å kopiere HRV/søvn mot treff', ((await p.locator('[data-standplass-lenke]').getAttribute('href')) ?? '') === '?tab=belastning')
 
+  // BOLK 6: laktat per puls i terskelfanen - én måling (2,5 mmol ved 160 bpm = 88,9 % av 180).
+  await p.goto(`${BASE}/app/analyse?tab=terskel`, { waitUntil: 'domcontentloaded' })
+  const lp = p.locator('[data-laktat-per-puls]')
+  await lp.waitFor({ timeout: 90000 })
+  for (let i = 0; i < 40 && (await lp.getAttribute('data-malinger')) === '0' && ((await lp.textContent()) ?? '').includes('Henter'); i++) await p.waitForTimeout(500)
+  await p.locator('[data-laktat-graf]').waitFor({ timeout: 30000 })
+  const lpt = (await lp.textContent()) ?? ''
+  sjekk('Terskel: laktat per puls tegnet med én måling (én økt = eldste tredjedel, som fasiten), terskelpuls 180 bpm, akse % av terskel', (await lp.getAttribute('data-malinger')) === '1' && (await p.locator('[data-laktat-graf] circle[data-maaling="0"]').count()) === 1 && lpt.includes('180 bpm') && lpt.includes('Akse: % av terskel'), lpt.slice(0, 200))
+  sjekk('Terskel: 4 mmol-referansen er tynn og stiplet, ingenting farges etter den', (await p.locator('[data-laktat-graf] line[data-ref="4mmol"][stroke-dasharray]').count()) === 1)
+  const lt = (await p.locator('[data-laktat-tall]').textContent()) ?? ''
+  sjekk('Terskel: laktat ved 90 og 100 % = «for lite data» (aldri differanse på ett punkt), 1 måling på 1 økt', (lt.match(/for lite data/g) ?? []).length === 2 && /Målinger i perioden1fordelt på 1 økter/.test(lt.replace(/\s+/g, ' ').replace('perioden 1', 'perioden1')), lt.slice(0, 240))
+  sjekk('Terskel: bevegelsesform-filteret er skjult med én form (regel 20)', (await p.locator('[data-laktat-former]').count()) === 0)
+  await p.locator('[data-laktat-akse="puls"]').click()
+  await p.waitForTimeout(300)
+  const lpt2 = (await lp.textContent()) ?? ''
+  sjekk('Terskel: rå puls-bryteren viser valgt akse synlig', lpt2.includes('Akse: rå puls') && (await p.locator('[data-laktat-akse="puls"]').getAttribute('aria-pressed')) === 'true')
+
   // Mobil: Lav/Med/Høy er standard under 640 px.
   const pm = await loggInn(b, ut.epost, 390)
   await pm.goto(`${BASE}/app/analyse`, { waitUntil: 'domcontentloaded' })

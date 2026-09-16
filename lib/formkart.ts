@@ -255,3 +255,32 @@ export function glidendeTreff(dager: { treff: number; skudd: number }[], vindu =
     return treffPct(treff, skudd)
   })
 }
+
+// ── Laktat per puls (bolk 6) ─────────────────────────────
+
+export interface LaktatPunkt { x: number; y: number; dato: string; bevegelse: string }
+
+/** Tre tredjedeler av økt-rekkefølgen (tid, ikke verdi): eldst, midtre, siste. */
+export function tredel<T>(liste: T[]): [T[], T[], T[]] {
+  const n = Math.ceil(liste.length / 3)
+  if (liste.length === 0) return [[], [], []]
+  return [liste.slice(0, n), liste.slice(n, 2 * n), liste.slice(2 * n)]
+}
+
+/** Glattet kurve: snitt per x-bolk (bolkbredde i x-enheter), sortert. Under to bolker: tom. */
+export function bolkKurve(punkter: { x: number; y: number }[], bredde: number): { x: number; y: number }[] {
+  const bins = new Map<number, number[]>()
+  for (const p of punkter) { const k = Math.round(p.x / bredde) * bredde; if (!bins.has(k)) bins.set(k, []); bins.get(k)!.push(p.y) }
+  const ut = Array.from(bins.entries()).sort((a, b) => a[0] - b[0]).map(([x, ys]) => ({ x, y: ys.reduce((a, b) => a + b, 0) / ys.length }))
+  return ut.length > 1 ? ut : []
+}
+
+/**
+ * Laktat nær et pulsnivå (± vindu): snitt av målingene der. null når ingen -
+ * en differanse regnet på ett punkt er ikke et tall («for lite data»).
+ */
+export function laktatVed(punkter: { x: number; y: number }[], maal: number, vindu = 3, minAntall = 2): number | null {
+  const naer = punkter.filter(p => Math.abs(p.x - maal) <= vindu)
+  if (naer.length < minAntall) return null
+  return naer.reduce((a, b) => a + b.y, 0) / naer.length
+}

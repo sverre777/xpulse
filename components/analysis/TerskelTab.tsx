@@ -12,6 +12,8 @@ import {
 } from 'recharts'
 import type { TerskelAnalysis, LactatePoint } from '@/app/actions/analysis'
 import { ChartWrapper } from './ChartWrapper'
+import { LaktatPerPuls } from './LaktatPerPuls'
+import type { DateRange } from './date-range'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
 } from './chart-theme'
@@ -46,7 +48,7 @@ function downloadCsv(filename: string, rows: string[][]) {
   URL.revokeObjectURL(url)
 }
 
-export function TerskelTab({ data, targetUserId }: { data: TerskelAnalysis; targetUserId?: string }) {
+export function TerskelTab({ data, targetUserId, range }: { data: TerskelAnalysis; targetUserId?: string; range?: DateRange }) {
   if (!data.hasData) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
@@ -65,6 +67,8 @@ export function TerskelTab({ data, targetUserId }: { data: TerskelAnalysis; targ
       <EstimaterTabell data={data} targetUserId={targetUserId} />
       <LactateProfile data={data} />
       <LaktatVedIntensitet data={data} />
+      {/* FORMKARTET bolk 6: samme spørsmål, annen akse - pulsen er den eneste felles aksen for langrenn og skiskyting. */}
+      {range && <LaktatPerPuls range={range} targetUserId={targetUserId} />}
       <LactateTrend data={data} />
       <WattSonerPerUke data={data} />
       <NpIfPerOkt data={data} />
@@ -337,7 +341,11 @@ function MethodNote() {
 }
 
 /** Bolk 1: favoritt-rendring for Terskel-nøklene. */
-export function renderFavoritt(key: string, data: TerskelAnalysis, ctx?: { config?: Record<string, unknown> | null; targetUserId?: string }): React.ReactNode | null {
+export function renderFavoritt(key: string, data: TerskelAnalysis, ctx?: { config?: Record<string, unknown> | null; targetUserId?: string; range?: DateRange }): React.ReactNode | null {
+  // FORMKARTET bolk 6: laktat per puls henter selv.
+  if (key.startsWith('terskel_laktat_puls') || key.startsWith('terskel_laktat_per_puls') || key.startsWith('terskel_laktat_ved_') || key === 'terskel_laktat_malinger') {
+    return ctx?.range ? <LaktatPerPuls range={ctx.range} targetUserId={ctx.targetUserId} bare={key === 'terskel_laktat_puls' ? undefined : key} /> : null
+  }
   switch (key) {
     case 'terskel_historikk': return <TerskelHistorikk data={data} initialConfig={ctx?.config} targetUserId={ctx?.targetUserId} />
     case 'terskel_estimater': return <EstimaterTabell data={data} targetUserId={ctx?.targetUserId} />

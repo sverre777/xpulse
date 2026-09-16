@@ -11,6 +11,11 @@
    egne overskrifter i denne fila i bolk 5 og 6. */
 
 /* ── Grunnlaget: bolk-rammen og app-flatene inni scenene (style-blokk nr 1 i designfila) ── */
+/* Knapp-resetten fra designfilene (button{background:none;border:0}) manglet her,
+   sa kapittelfanene fikk nettleserens standard knappebakgrunn (#EFEFEF) - de sa
+   hvite ut i stedet for gjennomsiktige (Sverre 16. sep). Scopet til de nye
+   seksjonene, ikke hele sida. */
+.fb button,.fv button,.fv-ytre button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ═════════ FLYT-BOLKEN ═════════ */
 .fb{padding:40px 0 96px;position:relative}
 .fb-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap}

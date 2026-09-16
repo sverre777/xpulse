@@ -1084,17 +1084,17 @@ nav {
 .h7 .proof{margin-top:150px;padding-top:0}
 .hero .syncrow{margin-top:110px;padding-top:26px}
 @media (max-width:640px){
-  .hero-in.h7{padding:120px 0 52px}
+  .hero-in.h7{padding:132px 0 76px}
   .h7 .hero-tags{margin-bottom:26px}
   .h7 h1.h7-b{font-size:clamp(46px,13vw,58px);margin-bottom:22px}
   .h7-sub{font-size:17px;padding:0 6px}
   .h7 .hacts{margin-top:30px;gap:10px;justify-content:center}
   .h7 .btn{padding:13px 22px;font-size:14px}
   .h7 .hfree{margin-top:16px;font-size:13px}
-  .h7-stjerner{margin-top:64px}
+  .h7-stjerner{margin-top:104px}
   .h7-br{display:none}
-  .h7 .proof{margin-top:72px}
-  .hero .syncrow{margin-top:52px}
+  .h7 .proof{margin-top:108px}
+  .hero .syncrow{margin-top:68px}
 }
 
 /* ═══ FORSIDE v6 (4. sep) - nye flater. Kilde: design/xpulse-forside-v6-design.html ═══ */
@@ -1882,279 +1882,6 @@ section[id],header[id]{scroll-margin-top:108px}
 .dpmob .dp .dp-chips{display:none}
 @media (max-width:900px){ .dprad{display:none} .dpmob{display:flex} }
 @media (prefers-reduced-motion:reduce){ .dp,.dp-img,.dp-mer{transition:none} }
-/* ── SLIK SER DET FAKTISK UT (Sverre 6. sep, fasit design/xpulse-faktisk-ut-design.html) ──
-   Seksjonen er appens EGNE flater: PC-visningen er Plan-siden med topplinja, målraden,
-   to uker med periodestripe og stiplede øktkort; mobilvisningen er Dagboka med ukestripa
-   og hele ØktGrafen. Klassene har fu-prefiks fordi forsiden allerede bruker .chip, .dn,
-   .malrad, .okt og .synk til noe annet. Menyene står lukket, som fasiten krever. */
-.fu-visbryter{display:inline-flex;gap:4px;border:1px solid var(--line2);border-radius:999px;padding:5px;margin:22px 0 26px;background:var(--card)}
-.fu-visbryter button{display:inline-flex;align-items:center;gap:9px;border:0;background:transparent;color:var(--dim);border-radius:999px;padding:10px 20px;cursor:pointer;
-  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase}
-.fu-visbryter button.fu-on{background:#FF4500;color:#fff}
-.fu-visbryter svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7}
-.fu-flater{display:grid;grid-template-columns:1fr 356px;gap:20px;align-items:start}
-@media(max-width:1250px){.fu-flater{grid-template-columns:1fr}}
-
-/* ── app-vindu (PC) ── */
-.fu-appvindu,.fu-telefon{--fu-flate:#0A0A0B;--fu-navscrim:rgba(11,19,21,.75);--fu-navtekst:rgba(242,240,236,.55)}
-:root[data-tema="lys"] .fu-appvindu,:root[data-tema="lys"] .fu-telefon{--fu-flate:#fff;--fu-navscrim:rgba(234,242,244,.75);--fu-navtekst:rgba(19,17,13,.55)}
-.fu-appvindu{position:relative;background:#0A0A0B;border:1px solid var(--line2);border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
-:root[data-tema="lys"] .fu-appvindu{background:#fff}
-/* Topplinja er appens egen (components/layout/MainNav.tsx): 52 px hoy, logo 37 px,
-   PULSE 22/.4em i oransje, v-merket i pille, fanene 36 px hoye med 18 px glyf, og
-   til hoyre sok - SYNK - innboks - Utover|Trener - tema - avatar. Ekte px-verdier;
-   zoom krymper hele linja sa den far plass i mockup-vinduet (1180 px fast bredde). */
-.fu-apptopp{zoom:.8;display:flex;align-items:center;justify-content:space-between;gap:24px;height:52px;padding:0 24px;
-  background:linear-gradient(to bottom,var(--fu-navscrim),transparent)}
-.fu-tvenstre{display:flex;align-items:center;gap:24px;min-width:0}
-.fu-merke{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.fu-xw{width:37px;height:37px;color:#fff;display:block} .fu-xw svg{width:100%;height:100%}
-:root[data-tema="lys"] .fu-xw{color:#111}
-.fu-merke b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:22px;letter-spacing:.4em;color:#FF4500}
-.fu-merke em{font-style:normal;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:1px 7px;margin-left:4px}
-/* Forsidens globale nav-regel er position:fixed med padding 28/56 - uten hele denne
-   nullstillingen brakk fanene i tre rader. */
-.fu-navrad{position:static;z-index:auto;background:none;padding:0;justify-content:flex-start;flex-wrap:nowrap;display:flex;gap:0}
-.fu-nv{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--fu-navtekst);cursor:pointer;
-  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:14px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
-.fu-nv svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fu-nv.fu-on{background:rgba(255,69,0,.12);color:#FF4500}
-.fu-tophoyre{display:flex;align-items:center;gap:12px}
-.fu-tik{width:40px;height:40px;border:0;background:transparent;color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative}
-.fu-tik svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fu-tik .fu-mane{display:none}
-:root[data-tema="lys"] .fu-tik .fu-mane{display:block}
-:root[data-tema="lys"] .fu-tik .fu-sol2{display:none}
-.fu-synk{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 11px;border:0;border-radius:999px;background:rgba(40,168,110,.22);color:#28A86E;cursor:pointer;
-  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase}
-.fu-synk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fu-rolle{display:flex;align-items:center;height:32px;padding:2px;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
-.fu-rolle span{padding:4px 12px;border-radius:999px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-.fu-rolle span.fu-on{background:#FF4500;color:#fff}
-.fu-rolle i{font-style:normal;font-size:10px;color:var(--dim);padding:0 8px 0 2px}
-.fu-avat{width:36px;height:36px;border-radius:50%;background:#FF4500;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13px;letter-spacing:.04em}
-.fu-avat.fu-sm{width:34px;height:34px;font-size:13px}
-/* Plan-sidens egen tittelrad (components/views/PlanPageView.tsx + .xp-seg-pill):
-   oransje strek 24x2, «Plan 2026» i Bebas 32, Plan|Årsplan-segmentet og
-   «Lagre som mal» til hoyre. Samme zoom som topplinja. */
-.fu-plantopp{zoom:.86;display:flex;align-items:center;gap:12px;padding:16px 24px 10px}
-.fu-beam{width:24px;height:2px;background:#FF4500;display:inline-block;flex-shrink:0}
-.fu-plantopp>b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:32px;letter-spacing:.08em;font-weight:400;color:var(--paper)}
-.fu-segpille{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
-.fu-segpille a{padding:8px 16px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);cursor:pointer}
-.fu-segpille a.fu-on{background:#FF4500;color:#fff}
-.fu-lagremal{margin-left:auto;padding:8px 12px;border:1px solid #FF4500;color:var(--paper);font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-.fu-malrad{display:flex;align-items:center;gap:8px;padding:8px 16px;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:12px;color:var(--dim);border-bottom:1px solid var(--line)}
-.fu-malrad .fu-ml{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
-.fu-malrad b{color:var(--paper);font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:17px}
-.fu-malrad .fu-rest{color:#FF4500;margin-left:6px}
-.fu-ukedager{display:grid;grid-template-columns:repeat(7,1fr);padding:6px 12px 0}
-.fu-ukedager span{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);text-align:center}
-.fu-uke{padding:0 12px 8px;position:relative}
-.fu-periodestripe{height:16px;margin:6px 0 4px;border-radius:4px;display:flex;align-items:center;padding:0 8px;opacity:.9}
-.fu-periodestripe span{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#0A0A0B}
-.fu-periodestripe.fu-gronn{background:rgba(40,168,110,.55)} .fu-periodestripe.fu-gull{background:rgba(212,160,23,.6)}
-.fu-periodestripe.fu-delt{background:transparent;padding:0;gap:4px;display:flex}
-.fu-periodestripe.fu-delt i{display:flex;align-items:center;padding:0 8px;border-radius:4px;height:16px}
-.fu-periodestripe.fu-delt i.fu-gronn{flex:3;background:rgba(40,168,110,.55)}
-.fu-periodestripe.fu-delt i.fu-rod{flex:4;background:rgba(225,29,72,.62)}
-.fu-periodestripe.fu-delt span{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#0A0A0B}
-.fu-periodestripe.fu-delt i.fu-rod span{color:#fff}
-.fu-dager{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.fu-dag{position:relative;min-height:104px;border:1px solid var(--line);border-radius:9px;padding:5px 5px 6px;background:var(--card)}
-.fu-dag.fu-samling{border-color:rgba(225,29,72,.4);background:rgba(225,29,72,.05)}
-.fu-dn{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11.5px;color:var(--dim)}
-/* «I dag» i planen - samme markering som kalenderen: tallet i en roed ring. */
-.fu-dn.fu-idag{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 4px;border:1.5px solid #E23A5A;border-radius:999px;color:#E23A5A;font-weight:600}
-.fu-pl{position:absolute;right:6px;top:4px;color:#FF4500;font-size:12px;opacity:.75}
-.fu-okt{margin-top:4px;border:1px dashed rgba(240,240,242,.34);border-radius:7px;padding:4px 6px 5px;background:transparent}
-.fu-okt.fu-ok{border-style:dashed}
-.fu-okt.fu-plan{border-style:dashed}
-.fu-okt.fu-konk{border:1px dashed #D4A017;background:rgba(212,160,23,.10)}
-.fu-hake{color:#28A86E;font-weight:400}
-.fu-okt.fu-hvile{border-style:dashed;text-align:center;color:var(--mute);padding:6px 4px}
-.fu-ot{display:block;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11px;color:var(--paper);line-height:1.25}
-.fu-om{display:block;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:10px;color:var(--dim);margin-top:1px}
-.fu-om b{color:#FF4500;font-weight:600}
-.fu-oktgraf{margin-top:5px}
-.fu-oktgraf svg{display:block}
-.fu-ukerad{display:flex;align-items:center;gap:10px;margin-top:6px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.fu-uk{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
-.fu-ut{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:17px;color:#FF4500;letter-spacing:.03em}
-.fu-ue{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11.5px;color:var(--dim)}
-.fu-sonebar{flex:1;display:flex;gap:1px;height:6px;border-radius:3px;overflow:hidden;min-width:80px}
-.fu-sonebar i{display:block}
-.fu-uskudd{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:10.5px;color:var(--dim);white-space:nowrap}
-.fu-uskudd b{color:var(--paper)}
-.fu-ul{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:10.5px;color:var(--mute);white-space:nowrap}
-.fu-fab{position:absolute;right:18px;bottom:18px;width:48px;height:48px;border-radius:50%;border:0;background:#FF4500;color:#fff;font-size:26px;line-height:1;cursor:pointer;box-shadow:0 12px 26px rgba(255,69,0,.4)}
-/* profilmeny */
-.fu-pmeny{position:absolute;right:12px;top:52px;width:246px;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px;box-shadow:0 24px 60px rgba(0,0,0,.55);z-index:5}
-.fu-pm-topp b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:20px;letter-spacing:.04em;display:block}
-.fu-pm-topp small{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11.5px;color:var(--dim)}
-.fu-pm-bryter{display:flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden;margin:9px 0 10px}
-.fu-pm-bryter span{flex:1;text-align:center;padding:7px 0;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-.fu-pm-bryter span.fu-on{background:#FF4500;color:#fff}
-.fu-pm-rad{display:flex;align-items:center;gap:10px;padding:7px 4px;color:var(--paper);font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:13px;cursor:pointer;border-radius:7px}
-.fu-pm-rad:hover{background:var(--surface)}
-.fu-pm-rad svg{width:16px;height:16px;fill:none;stroke:#FF4500;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.fu-pm-rad em{margin-left:auto;font-style:normal;font-size:11px;color:var(--mute)}
-.fu-pm-fot{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:10.5px;color:var(--mute);padding:8px 4px 6px;border-top:1px solid var(--line);margin-top:6px}
-
-/* ── telefon ── */
-.fu-telefon{width:392px;margin:0 auto;border:1px solid var(--line2);border-radius:30px;padding:9px;background:var(--surface);box-shadow:0 30px 80px rgba(0,0,0,.5)}
-.fu-tskjerm{position:relative;background:#0A0A0B;border-radius:23px;overflow:hidden;height:760px;display:flex;flex-direction:column}
-:root[data-tema="lys"] .fu-tskjerm{background:#fff}
-/* Mobiltoppen er appens egen (components/layout/GlassTopp.tsx): glass-pille 52 px
-   hoy, radius 18, blur 18 + metning 1,6, logo 28 px + PULSE i aksentfargen,
-   tittelpille 36 px med glyf, SYNK-pille 34 px og avatar 34 px. Ekte px. */
-.fu-mtopp{padding:8px 12px 6px}
-.fu-mglass{display:flex;align-items:center;gap:8px;height:52px;border-radius:18px;padding:0 8px 0 10px;
-  background:color-mix(in srgb,var(--fu-flate) 72%,transparent);
-  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
-  border:1px solid color-mix(in srgb,var(--line2) 70%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--paper) 14%,transparent),0 8px 24px rgba(0,0,0,.28)}
-.fu-mmerke{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.fu-xw.fu-sm{width:28px;height:28px}
-/* Telefonrammen er 348 px inni, appen 366 - det er akkurat de 18 px som gjor at
-   «DAGBOK» ikke far plass ved siden av ordmerket. Appen loser det samme problemet
-   ved a la ikonet sta alene naar midten trenger plassen (GlassTopp: !planSegment). */
-.fu-mmerke b{display:none;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:15px;letter-spacing:.3em;color:#FF4500}
-.fu-mtittelboks{flex:1;min-width:0;display:flex;justify-content:center;overflow:hidden}
-.fu-mtittel{display:inline-flex;align-items:center;gap:7px;height:36px;max-width:100%;min-width:0;overflow:hidden;padding:0 14px;border-radius:14px;background:rgba(255,69,0,.14);color:#FF4500;white-space:nowrap}
-.fu-mtittel svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.fu-mtittel b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:14.5px;letter-spacing:.12em;text-transform:uppercase;line-height:1;overflow:hidden;text-overflow:ellipsis}
-.fu-mtittel em{font-style:normal;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:12px;letter-spacing:.04em;color:var(--dim);overflow:hidden;text-overflow:ellipsis}
-.fu-msynk{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 11px;border:0;border-radius:999px;background:rgba(40,168,110,.22);color:#28A86E;
-  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0}
-.fu-msynk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.fu-minnhold{flex:1;overflow:hidden;padding:5px 11px 88px}
-.fu-muke{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
-.fu-muke b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:26px;letter-spacing:.03em}
-.fu-muke span{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11px;color:var(--dim)} .fu-muke span b{font-size:12px;color:var(--paper)}
-.fu-mperiode{display:flex;align-items:center;gap:7px;margin:0 0 6px}
-.fu-mperiode i{flex:1;height:3px;border-radius:2px;background:rgba(40,168,110,.55)}
-.fu-mperiode span{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
-.fu-mdager{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.fu-md{position:relative;border:1px solid var(--line);border-radius:14px;padding:5px 3px;text-align:center;background:var(--card);min-height:78px;min-width:0}
-.fu-md.fu-valgt{border-color:#FF4500;box-shadow:inset 0 0 0 1px #FF4500}
-.fu-md.fu-valgt::after{content:'';position:absolute;left:50%;bottom:-8px;width:13px;height:13px;z-index:1;
-  background:var(--card);border-right:1px solid #FF4500;border-bottom:1px solid #FF4500;transform:translateX(-50%) rotate(45deg)}
-.fu-md small{display:block;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
-.fu-md b{display:block;font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:19px;line-height:1.1}
-.fu-md .fu-c{display:block;font-style:normal;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:7.5px;border-radius:4px;padding:2px 3px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.fu-md .fu-c.fu-tom{color:var(--mute);border:1px dashed var(--line2)}
-.fu-md .fu-c.fu-ferdig{background:#28A86E;color:#0A0A0B}
-.fu-md .fu-c.fu-ferdig.fu-gra{background:#6E6E78;color:#fff}
-.fu-md .fu-c.fu-ferdig.fu-gul{background:#E8B93C;color:#151519}
-.fu-md .fu-c.fu-plan{border:1px dashed var(--line2);color:var(--dim)}
-.fu-md .fu-c.fu-gull{border:1px dashed #D4A017;color:#D4A017}
-.fu-md .fu-c.fu-gull2{background:#E8B93C;color:#151519}
-.fu-md .fu-c.fu-oransje{background:#FF4500;color:#fff}
-.fu-md .fu-c.fu-gronn{background:#28A86E;color:#0A0A0B}
-.fu-md .fu-c.fu-gra{background:#6E6E78;color:#fff}
-.fu-md em{display:block;font-style:normal;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:8.5px;color:var(--mute);margin-top:2px}
-.fu-mdagkort{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:10px}
-.fu-mdk-hode{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.fu-strek{width:16px;height:2.5px;background:#FF4500;border-radius:2px;display:inline-block}
-.fu-strek.fu-gul{background:#E8B93C}
-.fu-mdk-hode b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase}
-.fu-mdk-hode .fu-d{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:10.5px;color:var(--dim)}
-.fu-mdk-hode .fu-legg{margin-left:auto;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#FF4500}
-.fu-moktkort{border:1px solid var(--line2);border-left:2px solid #E8B93C;border-radius:10px;padding:9px}
-.fu-chip.fu-ok{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(40,168,110,.5);background:rgba(40,168,110,.1);color:#28A86E;border-radius:999px;padding:3px 10px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase}
-.fu-mokt-tittel{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:23px;letter-spacing:.03em;margin:6px 0 2px}
-.fu-mokt-meta{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:10.5px;color:var(--dim);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.fu-mokt-meta .fu-z{border:1px solid #28A86E;color:#28A86E;border-radius:999px;padding:0 6px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9.5px}
-.fu-moktkort .fu-kg{margin-top:6px}
-.fu-mokt-tall{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:8px}
-.fu-mokt-tall div{background:var(--card);padding:5px 6px}
-.fu-mokt-tall small{display:block;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
-.fu-mokt-tall b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:16px;letter-spacing:.03em}
-.fu-mokt-tall b.fu-i3{color:#E8B93C} .fu-mokt-tall b em{font-style:normal;font-size:9px;color:var(--dim)}
-.fu-mokt-pkt{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
-.fu-mokt-pkt span{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:9px;letter-spacing:.06em;border:1px solid var(--line2);border-radius:999px;padding:2px 7px;color:var(--paper)}
-.fu-mokt-pkt .fu-l{border-color:rgba(226,58,90,.5)} .fu-mokt-pkt .fu-e{border-color:rgba(232,185,60,.5)} .fu-mokt-pkt .fu-s{border-color:var(--line2)}
-.fu-mapne{width:100%;margin-top:8px;border:1px solid rgba(40,168,110,.5);background:transparent;color:#28A86E;border-radius:9px;padding:7px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
-.fu-mnotat{display:flex;align-items:center;gap:8px;margin-top:9px;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
-.fu-mnotat b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
-.fu-fabmeny{position:absolute;right:14px;bottom:130px;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:6px;box-shadow:0 20px 50px rgba(0,0,0,.55);z-index:4}
-.fu-fabmeny a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:13.5px;color:var(--paper);cursor:pointer}
-.fu-fabmeny a:hover{background:var(--surface)}
-.fu-fabmeny svg{width:16px;height:16px;fill:none;stroke:#FF4500;stroke-width:1.7}
-.fu-fabmeny a:last-child svg{fill:#28A86E;stroke:#28A86E}
-.fu-mfab{position:absolute;right:14px;bottom:98px;width:46px;height:46px;border-radius:50%;border:0;background:#FF4500;color:#fff;font-size:19px;cursor:pointer;box-shadow:0 12px 26px rgba(255,69,0,.45);z-index:4}
-/* Bunnlinja er appens egen (components/layout/GlassLinje.tsx): flytende pille
-   12 px fra kantene, 64 px hoy, radius 22, glass som toppen, ikon 23 px strek 1,7
-   og etikett 10,5 px. Aktiv fane far aksentfarge + 14 % fyll, radius 18. */
-.fu-mnav{position:absolute;left:12px;right:12px;bottom:12px;height:64px;z-index:5;
-  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-radius:22px;padding:4px;
-  background:color-mix(in srgb,var(--fu-flate) 72%,transparent);
-  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
-  border:1px solid color-mix(in srgb,var(--line2) 70%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--paper) 14%,transparent),0 12px 32px rgba(0,0,0,.35)}
-.fu-mnav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:18px;color:var(--dim);
-  font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;line-height:1}
-.fu-mnav svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.fu-mnav a.fu-on{color:#FF4500;background:rgba(255,69,0,.14)}
-
-/* ── live styrke ── */
-.fu-livekort{background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:14px}
-.fu-lv-hode{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.fu-lv-hode b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
-.fu-lv-hode .fu-d{margin-left:auto;font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11.5px;color:var(--dim)}
-.fu-lv-ovelse{border:1px solid var(--line);border-left:3px solid #FF4500;border-radius:11px;padding:11px}
-.fu-lv-topp{display:flex;align-items:center}
-.fu-lv-topp b{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.14em;text-transform:uppercase}
-.fu-lv-knr{margin-left:auto;color:var(--mute);font-size:11px;letter-spacing:.2em}
-.fu-lv-plan{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11.5px;color:var(--dim);margin:4px 0 9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.fu-gjenta{border:1px solid #FF4500;color:#FF4500;border-radius:7px;padding:2px 8px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
-.fu-lv-hdr,.fu-lv-rad{display:grid;grid-template-columns:14px 1fr 1fr 54px 62px;gap:8px;align-items:center}
-.fu-lv-hdr{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:600;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding:0 0 5px 22px;border-bottom:1px solid var(--line)}
-.fu-lv-hdr span:nth-child(1){grid-column:2} .fu-lv-hdr span:nth-child(2){grid-column:3} .fu-lv-hdr span:nth-child(3){grid-column:4}
-.fu-lv-rad{padding:7px 0;border-bottom:1px solid var(--line)}
-.fu-lv-rad .fu-d{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11px;color:var(--mute)}
-.fu-stepper{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--line2);border-radius:8px;padding:5px 8px;color:#FF4500;font-size:13px}
-.fu-stepper b{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:18px;color:var(--paper);letter-spacing:.03em}
-.fu-rpe{border:1px solid var(--line2);border-radius:8px;padding:6px 0;text-align:center;color:var(--mute);font-size:12px}
-.fu-start{background:#FF4500;color:#fff;border:0;border-radius:8px;padding:7px 0;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-.fu-lv-legg{width:100%;margin-top:8px;border:1px dashed var(--line2);background:transparent;color:var(--dim);border-radius:9px;padding:7px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
-.fu-lv-vol{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:12px;color:var(--dim);margin:10px 0}
-.fu-lv-vol b{color:var(--paper)}
-.fu-lv-ferdig{width:100%;background:#28A86E;color:#fff;border:0;border-radius:10px;padding:11px;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:13px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
-.fu-lv-fot{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:11.5px;color:var(--mute);margin-top:9px}
-
-/* PC-visningen krympes på mobil (Sverre 7. sep, etter test på telefon):
-   1) FAST bredde (1180 px), aldri prosent - da strekkes topplinja ut og rammen
-      scroller, i stedet for at delene legger seg oppå hverandre.
-   2) zoom, ikke transform: transform endrer ikke layouthøyden, så rammen sto
-      igjen med et stort tomrom under. zoom krymper også høyden.
-   3) rammen tar bare vannrett drag; loddrett går videre til sida. */
-.fu-pcskall{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
-.fu-pcinner{width:100%;min-width:1040px;zoom:var(--fu-pcz,1);will-change:transform}
-.fu-pcinner .fu-appvindu{contain:paint}
-.fu-apptopp>*,.fu-tvenstre>*,.fu-tophoyre>*{flex:none;white-space:nowrap}
-@media(max-width:1100px){
-  .fu-pcskall{border:1px solid var(--line);border-radius:14px;padding:6px}
-  /* Fra her krympes visningen: da er bredden FAST (1180 px), aldri prosent, slik at
-     topplinja strekkes ut og rammen scroller i stedet for at delene klemmes sammen. */
-  .fu-pcinner{width:1180px;--fu-pcz:.8}
-}
-@media(max-width:620px){
-  .fu-pcinner{--fu-pcz:.6}
-}
-.fu-pcskall::-webkit-scrollbar{height:6px}
-.fu-pcskall::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
-.fu-livrad{display:grid;grid-template-columns:400px 1fr;gap:22px;align-items:center;margin-top:20px}
-/* Sverre 6. sep: teksten skal staa ved siden av Live styrke i BEGGE visningene -
-   og den skal FOELGE kortet. Kort og tekst er derfor ett rutenettsbarn (.fu-livkol);
-   som to soesken havnet teksten i kolonnen under telefonen. */
-.fu-livkol{display:flex;flex-direction:column;gap:14px;min-width:0}
-.fu-flater{align-items:start}
-.fu-livtekst b{display:block;font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:24px;letter-spacing:.03em;margin-bottom:6px}
-.fu-livtekst span{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:14.5px;color:var(--dim);max-width:46ch;display:block;line-height:1.6}
-@media(max-width:1100px){.fu-livrad{grid-template-columns:1fr}}
-.fu-skjul{display:none}
 </style>
 <link rel="stylesheet" href="/forside/runde3.css">
 </head>
@@ -2368,6 +2095,7 @@ section[id],header[id]{scroll-margin-top:108px}
 <script defer src="/forside/karusell.js"></script>
 <script defer src="/forside/scener-flyt.js"></script>
 <script defer src="/forside/scener-detaljene.js"></script>
+<script defer src="/forside/faktisk-ut.js"></script>
 
 <!-- ═══════════ FORSIDE v7 bolk 1: DU FORTJENER ÉN APP. IKKE TRE. - rett under heroen, scrolldrevet (bolk 0-motoren) ═══════════ -->
 <section id="problem" style="padding:0 0 40px"><div class="flyt-scrolly prob-scrolly" data-n="4" style="height:calc(4 * 60vh + 30vh)">
@@ -2384,250 +2112,32 @@ section[id],header[id]{scroll-margin-top:108px}
 
 
 <!-- ═══════════ NY SEKSJON: INNI APPEN ═══════════ -->
-<section id="inside">
+<section class="fv" id="inside">
   <div class="wrap">
     <div class="label">Inni appen - ekte flater, fiktive data</div>
     <h2>SLIK SER DET <span class="o">FAKTISK UT.</span></h2>
-    <p class="lead">Ikke skisser. Dette er kalenderen og øktføringen slik de er i appen - planlagt trening ligger stiplet, gjennomført ligger fylt, og planen står urørt uansett hva dagen ble.</p>
+    <p class="lead">Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.</p>
 
-<div class="fu-visbryter">
-  <button class="fu-on" id="fu-bpc"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6"/></svg>PC-visning</button>
-  <button id="fu-bmob"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 5h3"/></svg>Mobilvisning</button>
- </div>
-
- <div id="fu-pc">
-  <div class="fu-pcskall"><div class="fu-pcinner"><div class="fu-appvindu">
- <div class="fu-apptopp">
-  <div class="fu-tvenstre">
-   <div class="fu-merke"><span class="fu-xw"><svg viewBox="-93 -132 1450 1450" class="fu-xl" aria-hidden="true"><g transform="translate(86,0) skewX(-8)">
-<path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="currentColor" stroke="currentColor" stroke-width="48" stroke-linejoin="round"/>
-<path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="currentColor" stroke="currentColor" stroke-width="44" stroke-linejoin="round"/>
-<path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="#FF4500" stroke="#FF4500" stroke-width="38" stroke-linejoin="round"/>
-</g></svg></span><b>PULSE</b><em>v1.3</em></div>
-   <nav class="fu-navrad"><a class="fu-nv"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-7h6v7"/></svg><span>Hjem</span></a><a class="fu-nv fu-on"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/></svg><span>Plan</span></a><a class="fu-nv"><svg viewBox="0 0 24 24"><path d="M4 4v17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7a3 3 0 0 0-3 3z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Dagbok</span></a><a class="fu-nv"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg><span>Analyse</span></a><a class="fu-nv"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span>Maler</span></a><a class="fu-nv"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Mer</span></a></nav>
-  </div>
-  <div class="fu-tophoyre">
-   <button class="fu-tik" aria-label="Åpne søk"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
-   <button class="fu-synk"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-15-6.7L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/><path d="M16 16h5v5"/></svg>SYNK</button>
-   <button class="fu-tik" aria-label="Innboks"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></button>
-   <div class="fu-rolle"><span class="fu-on">Utøver</span><span>Trener</span><i>▾</i></div>
-   <button class="fu-tik" aria-label="Bytt tema"><svg class="fu-sol2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="fu-mane" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-   <span class="fu-avat">S</span>
-  </div>
- </div>
- <div class="fu-plantopp"><span class="fu-beam"></span><b>Plan 2026</b><div class="fu-segpille"><a class="fu-on">Plan</a><a>Årsplan</a></div><span class="fu-lagremal">Lagre som mal</span></div>
- <div class="fu-malrad"><span class="fu-ml">Mål fra årsplan</span><b>70t</b><span class="fu-d">· 9t 20m planlagt</span><span class="fu-rest">→ 60t 40m igjen</span></div>
- <div class="fu-ukedager"><span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span></div>
-
- <div class="fu-uke">
-  <div class="fu-periodestripe fu-gronn"><span>Grunnperiode 2 · uke 1 av 6</span></div>
-  <div class="fu-dager">
-   <div class="fu-dag"><span class="fu-dn">1</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
-  <span class="fu-ot"><b class="fu-hake">✓</b> Rolig langtur</span>
-  <span class="fu-om"><b>1t 10m</b> Løping</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="134.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="135.5" y="15.7" width="14.0" height="13.3" rx="1.5" fill="#1A6FD4" opacity=".85"/></svg></div>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn">2</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
-  <span class="fu-ot"><b class="fu-hake">✓</b> 6 × 6 min I3 / 2 min</span>
-  <span class="fu-om"><b>1t 26m</b> Rulleski · skøyting</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="39.9" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="41.4" y="11.0" width="26.3" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="68.7" y="19.7" width="12.6" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="82.3" y="11.0" width="26.3" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="109.6" y="19.7" width="39.9" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div><div class="fu-okt fu-ok">
-  <span class="fu-ot"><b class="fu-hake">✓</b> Styrke basis</span>
-  <span class="fu-om"><b>45m</b> Styrke</span>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn">3</span><span class="fu-pl">+</span><div class="fu-okt fu-hvile"><span class="fu-ot">Hvile</span></div></div>
-   <div class="fu-dag"><span class="fu-dn">4</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
-  <span class="fu-ot"><b class="fu-hake">✓</b> 🎯 3 × 10 min I3 + skyting</span>
-  <span class="fu-om"><b>1t 28m</b> Skiskyting · rulleski</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="36.5" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="38.0" y="11.0" width="36.5" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="75.5" y="23.8" width="11.5" height="5.2" rx="1.5" fill="#43434B" opacity=".85"/><rect x="88.0" y="11.0" width="36.5" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="125.5" y="19.7" width="24.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn fu-idag" aria-label="I dag">5</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
-  <span class="fu-ot"><b class="fu-hake">✓</b> Rolig 1t 05</span>
-  <span class="fu-om"><b>1t 05m</b> Langrenn · rulleski</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="149.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn">6</span><span class="fu-pl">+</span><div class="fu-okt fu-plan">
-  <span class="fu-ot">4 × 5 min I4</span>
-  <span class="fu-om"><b>1t 15m</b> Rulleski · skøyting</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="49.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="50.5" y="6.4" width="24.0" height="22.6" rx="1.5" fill="#FF8C00" opacity=".85"/><rect x="75.5" y="19.7" width="11.5" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="88.0" y="6.4" width="24.0" height="22.6" rx="1.5" fill="#FF8C00" opacity=".85"/><rect x="113.0" y="19.7" width="36.5" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn">7</span><span class="fu-pl">+</span><div class="fu-okt fu-plan">
-  <span class="fu-ot">Langtur 2t 30</span>
-  <span class="fu-om"><b>2t 30m</b> Langrenn · rulleski</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="149.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-  </div>
-  <div class="fu-ukerad"><span class="fu-uk">Uke 36</span><span class="fu-ut">9t 20m</span><span class="fu-ue">6 økter</span><div class="fu-sonebar"><i style="flex:62;background:#28A86E"></i><i style="flex:17;background:#1A6FD4"></i><i style="flex:12;background:#E8B93C"></i><i style="flex:7;background:#FF8C00"></i><i style="flex:2;background:#E23A5A"></i></div><span class="fu-uskudd">🎯 <b>240</b> skudd · <b>84 %</b></span><span class="fu-ul">I1-2: 79% · I3: 12% · I4-5: 9%</span></div>
- </div>
-
- <div class="fu-uke">
-  <div class="fu-periodestripe fu-delt"><i class="fu-gronn"><span>Grunnperiode 2 · uke 2 av 6</span></i><i class="fu-rod"><span>Samling Sjusjøen · tor-søn · hard</span></i></div>
-  <div class="fu-dager">
-   <div class="fu-dag"><span class="fu-dn">8</span><span class="fu-pl">+</span><div class="fu-okt fu-ok">
-  <span class="fu-ot"><b class="fu-hake">✓</b> Rolig 1t</span>
-  <span class="fu-om"><b>1t 00m</b> Løping</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="149.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn">9</span><span class="fu-pl">+</span><div class="fu-okt fu-plan">
-  <span class="fu-ot">10 × 1 km I5 + 2 × 3 km I4</span>
-  <span class="fu-om"><b>1t 25m</b> Bane · løping</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="39.9" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="41.4" y="1.7" width="53.5" height="27.3" rx="1.5" fill="#E23A5A" opacity=".85"/><rect x="96.0" y="6.4" width="26.3" height="22.6" rx="1.5" fill="#FF8C00" opacity=".85"/><rect x="123.2" y="19.7" width="26.3" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-   <div class="fu-dag"><span class="fu-dn">10</span><span class="fu-pl">+</span><div class="fu-okt fu-hvile"><span class="fu-ot">Hvile</span></div></div>
-   <div class="fu-dag fu-samling"><span class="fu-dn">11</span><span class="fu-pl">+</span><div class="fu-okt fu-plan">
-  <span class="fu-ot">Terskeltest 5 × 6 min</span>
-  <span class="fu-om"><b>1t 20m</b> Rulleski · skøyting</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="44.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="45.5" y="11.0" width="74.0" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="120.5" y="19.7" width="29.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div><div class="fu-okt fu-plan">
-  <span class="fu-ot">🎯 Skytetest 4 × 5</span>
-  <span class="fu-om"><b>40m</b> Skiskyting</span>
- </div></div>
-   <div class="fu-dag fu-samling"><span class="fu-dn">12</span><span class="fu-pl">+</span><div class="fu-okt fu-plan">
-  <span class="fu-ot">2 × 20 min I3</span>
-  <span class="fu-om"><b>1t 30m</b> Rulleski · staking</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="36.5" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/><rect x="38.0" y="11.0" width="74.0" height="18.0" rx="1.5" fill="#E8B93C" opacity=".85"/><rect x="113.0" y="19.7" width="36.5" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div><div class="fu-okt fu-plan">
-  <span class="fu-ot">Styrke maks</span>
-  <span class="fu-om"><b>50m</b> Styrke</span>
- </div></div>
-   <div class="fu-dag fu-samling"><span class="fu-dn">13</span><span class="fu-pl">+</span><div class="fu-okt fu-konk">
-  <span class="fu-ot">🏁 NM rulleski · sprint</span>
-  <span class="fu-om"><b>45m</b> Konkurranse · Lillehammer</span>
- </div></div>
-   <div class="fu-dag fu-samling"><span class="fu-dn">14</span><span class="fu-pl">+</span><div class="fu-okt fu-plan">
-  <span class="fu-ot">Rolig 1t 30</span>
-  <span class="fu-om"><b>1t 30m</b> Langrenn · rulleski</span><div class="fu-oktgraf"><svg class="fu-mg" viewBox="0 0 150 30" width="100%" height="30" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="19.7" width="149.0" height="9.3" rx="1.5" fill="#28A86E" opacity=".85"/></svg></div>
- </div></div>
-  </div>
-  <div class="fu-ukerad"><span class="fu-uk">Uke 37</span><span class="fu-ut">8t 10m</span><span class="fu-ue">7 økter · 1 konkurranse</span><div class="fu-sonebar"><i style="flex:54;background:#28A86E"></i><i style="flex:14;background:#1A6FD4"></i><i style="flex:18;background:#E8B93C"></i><i style="flex:8;background:#FF8C00"></i><i style="flex:6;background:#E23A5A"></i></div><span class="fu-uskudd">🎯 <b>310</b> skudd · <b>88 %</b></span><span class="fu-ul">I1-2: 68% · I3: 18% · I4-5: 14%</span></div>
- </div>
-
- <button class="fu-fab">+</button>
-</div>
-  <div class="fu-livrad"><div class="fu-livekort">
- <div class="fu-lv-hode"><span class="fu-strek fu-gul"></span><b>Live styrkeøkt</b><span class="fu-d">⏱ 12:47</span></div>
- <div class="fu-lv-ovelse">
-  <div class="fu-lv-topp"><b>1. Knebøy</b><span class="fu-lv-knr">▲ ▼ ✕</span></div>
-  <div class="fu-lv-plan">Plan: 3×5 @ 100 kg &nbsp; Sist: 3×5 (i går) <span class="fu-gjenta">↺ Gjenta forrige</span></div>
-  <div class="fu-lv-hdr"><span>Reps</span><span>Kg</span><span>RPE</span><span></span></div>
-  <div class="fu-lv-rad"><span class="fu-d">1</span><div class="fu-stepper">- <b>5</b> +</div><div class="fu-stepper">- <b>100</b> +</div><div class="fu-rpe">-</div><button class="fu-start">Start</button></div><div class="fu-lv-rad"><span class="fu-d">2</span><div class="fu-stepper">- <b>5</b> +</div><div class="fu-stepper">- <b>100</b> +</div><div class="fu-rpe">-</div><button class="fu-start">Start</button></div>
-  <button class="fu-lv-legg">+ Legg til sett</button>
- </div>
- <div class="fu-lv-vol">Volum: <b>4 350 kg</b> &nbsp; 3 øvelser</div>
- <button class="fu-lv-ferdig">Fullfør økt ✓</button>
- <div class="fu-lv-fot">Plan, «sist» og START per sett - rett i dagboka når du fullfører.</div>
-</div><div class="fu-livtekst"><b>Live styrke ligger i samme app.</b><span>Start økta fra ＋-knappen eller fra en planlagt styrkeøkt - plan og «sist» per øvelse, START per sett, og alt havner i dagboka når du fullfører.</span></div></div>
- </div></div>
- </div>
-
- <div class="fu-flater fu-skjul" id="fu-mob">
-  <div class="fu-telefon">
- <div class="fu-tskjerm">
-  <div class="fu-mtopp">
-   <div class="fu-mglass">
-    <span class="fu-mmerke"><span class="fu-xw fu-sm"><svg viewBox="-93 -132 1450 1450" class="fu-xl" aria-hidden="true"><g transform="translate(86,0) skewX(-8)">
-<path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="currentColor" stroke="currentColor" stroke-width="48" stroke-linejoin="round"/>
-<path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="currentColor" stroke="currentColor" stroke-width="44" stroke-linejoin="round"/>
-<path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="#FF4500" stroke="#FF4500" stroke-width="38" stroke-linejoin="round"/>
-</g></svg></span><b>PULSE</b></span>
-    <span class="fu-mtittelboks"><span class="fu-mtittel"><svg viewBox="0 0 24 24"><path d="M4 4v17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7a3 3 0 0 0-3 3z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><b>Dagbok</b></span></span>
-    <button class="fu-msynk"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg><span>Synk</span></button>
-    <span class="fu-avat fu-sm">S</span>
-   </div>
-  </div>
-  <div class="fu-minnhold">
-   <div class="fu-muke"><b>UKE 36</b><span>2t 54m gjennomført · 3,2 km · 4 økter · <b>1m</b> plan</span></div>
-   <div class="fu-mperiode"><i></i><span>Grunnperiode 2 · uke 1 av 6</span></div>
-   <div class="fu-mdager">
-    <div class="fu-md"><small>Ma</small><b>31</b><i class="fu-c fu-ferdig">Rolig 1t 10</i><em>1 økt</em></div><div class="fu-md"><small>Ti</small><b>1</b><i class="fu-c fu-ferdig">6 × 6 min I3</i><i class="fu-c fu-ferdig fu-gra">Styrke</i><em>2 økter</em></div><div class="fu-md"><small>On</small><b>2</b><i class="fu-c fu-tom">Hvile</i><em></em></div><div class="fu-md"><small>To</small><b>3</b><i class="fu-c fu-ferdig">3 × 10 min I3 🎯</i><em>1 økt</em></div><div class="fu-md"><small>Fr</small><b>4</b><i class="fu-c fu-ferdig">Rolig 1t 05</i><em>1 økt</em></div><div class="fu-md fu-valgt"><small>Lø</small><b>5</b><i class="fu-c fu-ferdig fu-gul">3 × 10 min I3 🎯</i><em>1 økt</em></div><div class="fu-md"><small>Sø</small><b>6</b><i class="fu-c fu-plan">Langtur 2t 30</i><i class="fu-c fu-plan">Styrke</i><em>2 planlagt</em></div>
-   </div>
-   <div class="fu-mdagkort">
-    <div class="fu-mdk-hode"><span class="fu-strek"></span><b>Lørdag 5. sep</b><span class="fu-d">1 økt · 1t 5m</span><span class="fu-legg">+ Legg til økt</span></div>
-    <div class="fu-moktkort">
-     <span class="fu-chip fu-ok">Gjennomført</span>
-     <div class="fu-mokt-tittel">3 × 10 min I3 / 2 min</div>
-     <div class="fu-mokt-meta">Skiskyting · Langrenn · Rulleski · 1t 5m <span class="fu-z">I1</span></div>
-     <svg class="fu-kg" viewBox="0 0 560 250" width="100%" preserveAspectRatio="none" aria-hidden="true">
-<line x1="30" y1="156.2" x2="554" y2="156.2" stroke="var(--line)" stroke-width="1"/>
-<text x="25" y="159.2" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">120</text>
-<line x1="30" y1="100.4" x2="554" y2="100.4" stroke="var(--line)" stroke-width="1"/>
-<text x="25" y="103.4" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">150</text>
-<line x1="30" y1="44.6" x2="554" y2="44.6" stroke="var(--line)" stroke-width="1"/>
-<text x="25" y="47.6" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">180</text>
-<rect x="31.0" y="152.5" width="122.8" height="59.5" rx="3" fill="#28A86E" opacity=".22"/>
-<rect x="155.8" y="96.7" width="81.2" height="115.3" rx="3" fill="#E8B93C" opacity=".22"/>
-<rect x="238.9" y="178.5" width="6.3" height="33.5" rx="3" fill="#43434B" opacity=".22"/>
-<rect x="247.3" y="178.5" width="14.6" height="33.5" rx="3" fill="#43434B" opacity=".22"/>
-<rect x="263.9" y="96.7" width="81.2" height="115.3" rx="3" fill="#E8B93C" opacity=".22"/>
-<rect x="347.1" y="178.5" width="6.3" height="33.5" rx="3" fill="#43434B" opacity=".22"/>
-<rect x="355.4" y="178.5" width="14.6" height="33.5" rx="3" fill="#43434B" opacity=".22"/>
-<rect x="372.0" y="96.7" width="81.2" height="115.3" rx="3" fill="#E8B93C" opacity=".22"/>
-<rect x="455.2" y="152.5" width="97.8" height="59.5" rx="3" fill="#28A86E" opacity=".22"/>
-<path d="M30.0,181.3 L32.8,169.2 L35.5,156.1 L38.3,152.3 L41.1,145.3 L43.9,142.0 L46.6,142.6 L49.4,138.8 L52.2,140.5 L55.0,138.0 L57.7,139.7 L60.5,140.6 L63.3,138.2 L66.0,132.7 L68.8,135.5 L71.6,136.4 L74.4,133.4 L77.1,128.2 L79.9,128.1 L82.7,129.7 L85.4,125.4 L88.2,131.0 L91.0,127.4 L93.8,130.2 L96.5,133.5 L99.3,136.1 L102.1,136.1 L104.9,131.4 L107.6,134.0 L110.4,132.1 L113.2,130.2 L115.9,131.4 L118.7,130.6 L121.5,134.5 L124.3,137.3 L127.0,137.9 L129.8,133.9 L132.6,133.4 L135.4,134.2 L138.1,132.2 L140.9,132.0 L143.7,133.3 L146.4,129.6 L149.2,127.9 L152.0,131.0 L154.8,112.7 L157.5,100.4 L160.3,88.6 L163.1,81.6 L165.9,80.9 L168.6,73.9 L171.4,77.0 L174.2,76.4 L176.9,72.9 L179.7,76.0 L182.5,75.0 L185.3,78.6 L188.0,75.2 L190.8,71.9 L193.6,71.4 L196.3,68.2 L199.1,71.3 L201.9,69.8 L204.7,69.7 L207.4,69.8 L210.2,71.0 L213.0,68.3 L215.8,65.4 L218.5,67.8 L221.3,67.7 L224.1,73.2 L226.8,71.1 L229.6,70.2 L232.4,66.3 L235.2,65.2 L237.9,93.4 L240.0,112.2 L242.1,122.7 L244.2,136.1 L246.3,141.3 L249.0,147.8 L251.8,152.7 L254.6,156.8 L257.3,153.0 L260.1,156.3 L262.9,133.5 L265.7,116.2 L268.4,99.6 L271.2,95.4 L274.0,89.0 L276.8,83.6 L279.5,76.7 L282.3,72.5 L285.1,69.1 L287.8,72.2 L290.6,73.1 L293.4,74.2 L296.2,70.1 L298.9,66.6 L301.7,71.6 L304.5,74.9 L307.2,76.7 L310.0,77.9 L312.8,76.4 L315.6,74.4 L318.3,76.0 L321.1,79.6 L323.9,78.2 L326.7,77.7 L329.4,75.5 L332.2,70.4 L335.0,69.3 L337.7,70.1 L340.5,69.7 L343.3,68.9 L346.1,98.1 L348.1,110.7 L350.2,120.6 L352.3,126.7 L354.4,131.7 L357.2,138.9 L359.9,143.9 L362.7,150.2 L365.5,149.6 L368.2,154.5 L371.0,134.0 L373.8,118.2 L376.6,107.7 L379.3,98.6 L382.1,94.9 L384.9,92.8 L387.7,90.0 L390.4,88.4 L393.2,84.9 L396.0,85.6 L398.7,78.2 L401.5,75.4 L404.3,77.8 L407.1,78.5 L409.8,78.1 L412.6,77.7 L415.4,79.7 L418.1,74.3 L420.9,69.1 L423.7,70.5 L426.5,71.2 L429.2,75.5 L432.0,78.3 L434.8,78.0 L437.6,78.5 L440.3,73.7 L443.1,76.5 L445.9,79.7 L448.6,73.4 L451.4,72.8 L454.2,93.3 L457.0,104.0 L459.7,116.2 L462.5,120.1 L465.3,118.7 L468.1,118.8 L470.8,120.4 L473.6,125.5 L476.4,128.2 L479.1,131.8 L481.9,128.8 L484.7,128.9 L487.5,126.7 L490.2,129.3 L493.0,132.1 L495.8,128.7 L498.6,124.6 L501.3,123.0 L504.1,122.3 L506.9,121.7 L509.6,122.0 L512.4,127.0 L515.2,127.8 L518.0,129.8 L520.7,134.3 L523.5,137.5 L526.3,137.3 L529.0,137.4 L531.8,133.4 L534.6,128.2 L537.4,129.3 L540.1,125.5 L542.9,122.3 L545.7,120.5 L548.5,124.6 L551.2,128.9" fill="none" stroke="#E23A5A" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M30.0,188.6 L32.8,182.6 L35.5,176.0 L38.3,174.1 L41.1,170.7 L43.9,169.0 L46.6,169.3 L49.4,167.4 L52.2,168.2 L55.0,167.0 L57.7,167.8 L60.5,168.3 L63.3,167.1 L66.0,164.4 L68.8,165.7 L71.6,166.2 L74.4,164.7 L77.1,162.1 L79.9,162.1 L82.7,162.8 L85.4,160.7 L88.2,163.5 L91.0,161.7 L93.8,163.1 L96.5,164.8 L99.3,166.0 L102.1,166.0 L104.9,163.7 L107.6,165.0 L110.4,164.0 L113.2,163.1 L115.9,163.7 L118.7,163.3 L121.5,165.3 L124.3,166.7 L127.0,166.9 L129.8,164.9 L132.6,164.7 L135.4,165.1 L138.1,164.1 L140.9,164.0 L143.7,164.7 L146.4,162.8 L149.2,162.0 L152.0,163.5 L154.8,154.4 L157.5,148.2 L160.3,142.3 L163.1,138.8 L165.9,138.4 L168.6,134.9 L171.4,136.5 L174.2,136.2 L176.9,134.4 L179.7,136.0 L182.5,135.5 L185.3,137.3 L188.0,135.6 L190.8,134.0 L193.6,133.7 L196.3,132.1 L199.1,133.6 L201.9,132.9 L204.7,132.9 L207.4,132.9 L210.2,133.5 L213.0,132.2 L215.8,130.7 L218.5,131.9 L221.3,131.8 L224.1,134.6 L226.8,133.6 L229.6,133.1 L232.4,131.1 L235.2,130.6 L237.9,144.7 L240.0,154.1 L242.1,159.3 L244.2,166.0 L246.3,168.7 L249.0,171.9 L251.8,174.4 L254.6,176.4 L257.3,174.5 L260.1,176.1 L262.9,164.7 L265.7,156.1 L268.4,147.8 L271.2,145.7 L274.0,142.5 L276.8,139.8 L279.5,136.3 L282.3,134.2 L285.1,132.5 L287.8,134.1 L290.6,134.5 L293.4,135.1 L296.2,133.1 L298.9,131.3 L301.7,133.8 L304.5,135.4 L307.2,136.3 L310.0,136.9 L312.8,136.2 L315.6,135.2 L318.3,136.0 L321.1,137.8 L323.9,137.1 L326.7,136.9 L329.4,135.8 L332.2,133.2 L335.0,132.6 L337.7,133.0 L340.5,132.9 L343.3,132.5 L346.1,147.1 L348.1,153.4 L350.2,158.3 L352.3,161.4 L354.4,163.8 L357.2,167.5 L359.9,170.0 L362.7,173.1 L365.5,172.8 L368.2,175.3 L371.0,165.0 L373.8,157.1 L376.6,151.8 L379.3,147.3 L382.1,145.5 L384.9,144.4 L387.7,143.0 L390.4,142.2 L393.2,140.5 L396.0,140.8 L398.7,137.1 L401.5,135.7 L404.3,136.9 L407.1,137.3 L409.8,137.1 L412.6,136.9 L415.4,137.8 L418.1,135.1 L420.9,132.6 L423.7,133.2 L426.5,133.6 L429.2,135.7 L432.0,137.1 L434.8,137.0 L437.6,137.3 L440.3,134.8 L443.1,136.2 L445.9,137.9 L448.6,134.7 L451.4,134.4 L454.2,144.7 L457.0,150.0 L459.7,156.1 L462.5,158.1 L465.3,157.3 L468.1,157.4 L470.8,158.2 L473.6,160.8 L476.4,162.1 L479.1,163.9 L481.9,162.4 L484.7,162.5 L487.5,161.3 L490.2,162.7 L493.0,164.1 L495.8,162.3 L498.6,160.3 L501.3,159.5 L504.1,159.1 L506.9,158.8 L509.6,159.0 L512.4,161.5 L515.2,161.9 L518.0,162.9 L520.7,165.2 L523.5,166.7 L526.3,166.7 L529.0,166.7 L531.8,164.7 L534.6,162.1 L537.4,162.6 L540.1,160.7 L542.9,159.2 L545.7,158.2 L548.5,160.3 L551.2,162.4" fill="none" stroke="#28A86E" stroke-width="1.2" opacity=".45"/>
-<text x="92.4" y="12" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10.5" letter-spacing=".06em" fill="var(--dim)">OPPVARMING · 15 MIN</text>
-<text x="196.3" y="12" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10.5" letter-spacing=".06em" fill="var(--paper)">10 MIN · I3</text>
-<text x="304.5" y="12" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10.5" letter-spacing=".06em" fill="var(--paper)">10 MIN · I3</text>
-<text x="412.6" y="12" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10.5" letter-spacing=".06em" fill="var(--paper)">10 MIN · I3</text>
-<text x="504.1" y="12" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10.5" letter-spacing=".06em" fill="var(--dim)">NEDJOGG · 12 MIN</text>
-<line x1="279.5" y1="46" x2="279.5" y2="212" stroke="#E23A5A" stroke-width="1" stroke-dasharray="2 3"/>
-<circle cx="279.5" cy="182" r="3.5" fill="#E23A5A"/>
-<rect x="253.5" y="30" width="52" height="16" rx="8" fill="var(--card)" stroke="#E23A5A" stroke-width="1"/>
-<text x="279.5" y="41.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">🩸 2,1</text>
-<line x1="412.6" y1="66" x2="412.6" y2="212" stroke="#E8B93C" stroke-width="1" stroke-dasharray="2 3"/>
-<circle cx="412.6" cy="182" r="3.5" fill="#E8B93C"/>
-<rect x="386.6" y="50" width="52" height="16" rx="8" fill="var(--card)" stroke="#E8B93C" stroke-width="1"/>
-<text x="412.6" y="61.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">🍌 40 g</text>
-<line x1="495.8" y1="46" x2="495.8" y2="212" stroke="#E23A5A" stroke-width="1" stroke-dasharray="2 3"/>
-<circle cx="495.8" cy="182" r="3.5" fill="#E23A5A"/>
-<rect x="469.8" y="30" width="52" height="16" rx="8" fill="var(--card)" stroke="#E23A5A" stroke-width="1"/>
-<text x="495.8" y="41.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">🩸 3,4</text>
-<rect x="31.0" y="218" width="122.8" height="16" rx="2.5" fill="#BBAA55"/>
-<rect x="155.8" y="218" width="81.2" height="16" rx="2.5" fill="#1E2AA8"/>
-<text x="196.3" y="229.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="9" fill="#fff">10 MIN</text>
-<rect x="238.9" y="218" width="6.3" height="16" rx="2.5" fill="#43434B"/>
-<text x="242.1" y="214" text-anchor="middle" font-size="10">🎯</text>
-<text x="242.1" y="229.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="8.5" fill="#fff">L</text>
-<rect x="247.3" y="218" width="14.6" height="16" rx="2.5" fill="#43434B"/>
-<rect x="263.9" y="218" width="81.2" height="16" rx="2.5" fill="#1E2AA8"/>
-<text x="304.5" y="229.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="9" fill="#fff">10 MIN</text>
-<rect x="347.1" y="218" width="6.3" height="16" rx="2.5" fill="#43434B"/>
-<text x="350.2" y="214" text-anchor="middle" font-size="10">🎯</text>
-<text x="350.2" y="229.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="8.5" fill="#fff">S</text>
-<rect x="355.4" y="218" width="14.6" height="16" rx="2.5" fill="#43434B"/>
-<rect x="372.0" y="218" width="81.2" height="16" rx="2.5" fill="#1E2AA8"/>
-<text x="412.6" y="229.5" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="9" fill="#fff">10 MIN</text>
-<rect x="455.2" y="218" width="97.8" height="16" rx="2.5" fill="#64748B"/>
-<text x="30.0" y="246" text-anchor="start" font-family="Barlow" font-size="9" fill="var(--mute)">0:00</text>
-<text x="292.0" y="246" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">0:31</text>
-<text x="554.0" y="246" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">1:03</text>
-</svg>
-     <div class="fu-mokt-tall">
-      <div><small>Snittpuls</small><b>158</b></div>
-      <div><small>I3-tid</small><b class="fu-i3">30 min</b></div>
-      <div><small>Belastning</small><b>125 <em>TSS</em></b></div>
-      <div><small>Treff</small><b>8/10</b></div>
-     </div>
-     <div class="fu-mokt-pkt"><span class="fu-l">🩸 2,1 · 30 min</span><span class="fu-l">🩸 3,4 · 56 min</span><span class="fu-e">🍌 40 g</span><span class="fu-s">🎯 L 4/5 · S 4/5</span></div>
-     <button class="fu-mapne">Åpne økt</button>
+    <div class="fv-ytre">
+      <span class="fv-tag">Interaktiv</span>
+      <div class="fv-visbryter" role="tablist" aria-label="Velg enhet">
+        <button type="button" data-v="pc" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6"/></svg>PC</button>
+        <button type="button" data-v="mob"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 5h3"/></svg>Mobil</button>
+      </div>
+      <div class="fv-visbryter" role="tablist" aria-label="Velg visning">
+        <button type="button" data-yvis="uke">Uke</button>
+        <button type="button" data-yvis="maned" class="on">Måned</button>
+        <button type="button" data-yvis="aar">År</button>
+      </div>
+      <div class="fv-visbryter" id="fv-ymodus" role="tablist" aria-label="Kalender eller liste">
+        <button type="button" data-ymodus="grid" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg>Kalender</button>
+        <button type="button" data-ymodus="liste"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Liste</button>
+      </div>
     </div>
-   </div>
-   <div class="fu-mnotat"><span class="fu-strek"></span><b>Notat for uke 36</b></div>
-  </div>
-  <button class="fu-mfab">+</button>
-  <div class="fu-mnav">
-   <a class=""><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-7h6v7"/></svg><span>Hjem</span></a><a class=""><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/></svg><span>Plan</span></a><a class="fu-on"><svg viewBox="0 0 24 24"><path d="M4 4v17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7a3 3 0 0 0-3 3z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Dagbok</span></a><a class=""><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg><span>Analyse</span></a><a class=""><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Mer</span></a>
-  </div>
- </div>
-</div>
-  <div class="fu-livkol">
-  <div class="fu-livekort">
- <div class="fu-lv-hode"><span class="fu-strek fu-gul"></span><b>Live styrkeøkt</b><span class="fu-d">⏱ 12:47</span></div>
- <div class="fu-lv-ovelse">
-  <div class="fu-lv-topp"><b>1. Knebøy</b><span class="fu-lv-knr">▲ ▼ ✕</span></div>
-  <div class="fu-lv-plan">Plan: 3×5 @ 100 kg &nbsp; Sist: 3×5 (i går) <span class="fu-gjenta">↺ Gjenta forrige</span></div>
-  <div class="fu-lv-hdr"><span>Reps</span><span>Kg</span><span>RPE</span><span></span></div>
-  <div class="fu-lv-rad"><span class="fu-d">1</span><div class="fu-stepper">- <b>5</b> +</div><div class="fu-stepper">- <b>100</b> +</div><div class="fu-rpe">-</div><button class="fu-start">Start</button></div><div class="fu-lv-rad"><span class="fu-d">2</span><div class="fu-stepper">- <b>5</b> +</div><div class="fu-stepper">- <b>100</b> +</div><div class="fu-rpe">-</div><button class="fu-start">Start</button></div>
-  <button class="fu-lv-legg">+ Legg til sett</button>
- </div>
- <div class="fu-lv-vol">Volum: <b>4 350 kg</b> &nbsp; 3 øvelser</div>
- <button class="fu-lv-ferdig">Fullfør økt ✓</button>
- <div class="fu-lv-fot">Plan, «sist» og START per sett - rett i dagboka når du fullfører.</div>
-</div>
-  <div class="fu-livtekst"><b>Live styrke ligger i samme app.</b><span>Start økta fra ＋-knappen eller fra en planlagt styrkeøkt - plan og «sist» per øvelse, START per sett, og alt havner i dagboka når du fullfører.</span></div>
- </div>
-  </div>
-</div>
+
+    <div id="fv-pc" class="fv-pc" aria-label="Kalenderen i appen, PC"></div>
+    <div id="fv-mob" class="fv-mobwrap" aria-label="Kalenderen i appen, mobil"></div>
+    <div class="fv-fork"><p><b>Interaktiv.</b> Trykk på Uke, Måned eller År, bytt mellom kalender og liste i måneden, og trykk på en dag for å åpne den - akkurat som i dagboken. Der ser du dagens økter og helsekortet fra klokka. Knappene i dagen er bare til å se på her.</p><p><span class="f"><i class="fylt"></i>Fylt = gjennomført</span><span class="f"><i class="stip"></i>Stiplet = hentet fra planen</span><span class="f"><i class="puls"></i>Rød linje = puls fra klokka</span><span class="f"><i class="kant"></i>Kanten = intensiteten i økta</span><span class="f"><i class="per"></i>Stripen over uka = perioden, grønn rolig · gul medium · rød hard</span></p></div>
   </div>
 </section>
 
@@ -3337,21 +2847,6 @@ section[id],header[id]{scroll-margin-top:108px}
    design/xpulse-hero-interaktiv-design.html. IntersectionObserver, aldri
    scroll-lyttere; alt fyrer ÉN gang og reverserer ikke ved scroll opp. ═══ */
 (function(){
-  /* PC/mobil-bryteren - ren klient-bytting i samme slot */
-  /* Bryteren PC-visning | Mobilvisning i «Slik ser det faktisk ut». Valget huskes ikke
-     mellom besøk (fasit). Flatene er fu-pc og fu-mob. */
-  var fuPc=document.getElementById('fu-pc'), fuMob=document.getElementById('fu-mob');
-  var fuBpc=document.getElementById('fu-bpc'), fuBmob=document.getElementById('fu-bmob');
-  if(fuPc&&fuMob&&fuBpc&&fuBmob){
-    var settVis=function(pc){
-      fuPc.classList.toggle('fu-skjul',!pc); fuMob.classList.toggle('fu-skjul',pc);
-      fuBpc.classList.toggle('fu-on',pc); fuBmob.classList.toggle('fu-on',!pc);
-      fuBpc.setAttribute('aria-pressed',String(pc)); fuBmob.setAttribute('aria-pressed',String(!pc));
-    };
-    fuBpc.addEventListener('click',function(){settVis(true)});
-    fuBmob.addEventListener('click',function(){settVis(false)});
-  }
-
   /* Tall-opptellingen - ~900 ms, kubisk ease-out, én gang, threshold 0.5.
      Sluttallet står i markupen fra før (synlig uten JS); reduced motion
      lar det stå urørt. Dagens tall har ingen suffikser. */

@@ -27,7 +27,8 @@
     "forside-ikoner": "tsx scripts/forside-ikoner.ts",
     "forside-e2e": "tsx scripts/forside-runde3-selftest.ts",
     "live-styrke": "tsx scripts/live-styrke-selftest.ts",
-    "live-styrke-e2e": "tsx scripts/live-styrke-e2e.ts"
+    "live-styrke-e2e": "tsx scripts/live-styrke-e2e.ts",
+    "formkart": "tsx scripts/formkart-selftest.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

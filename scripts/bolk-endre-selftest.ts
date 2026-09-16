@@ -66,6 +66,7 @@ function endreOgOpprett(rader: ActivityRow[]) {
     ...konfig, oppvarmingSek: ramme.oppvarmingSek, nedjoggSek: ramme.nedjoggSek,
     rader: oppsett.rader.map(r => ({ antall: r.antall, dragSek: r.dragSek, sone: r.sone as 'I6', pauseSek: r.pauseSek })),
     bevegelsesform: oppsett.bev, underkategori: oppsett.sub,
+    pausetype: oppsett.pausetype,
   })
   return { bolker, oppsett, ramme, nye }
 }
@@ -94,26 +95,18 @@ for (const [navn, pauseType] of [['AKTIV PAUSE (byggerens standard)', 'aktiv_pau
   ok('OPPRETT ETTER ENDRE GIR LIKE MANGE RADER (7), ikke åtte nye', nye.length === rader.length,
     `${rader.length} -> ${nye.length}`)
   ok('totaltid uendret', før.totalt === etter.totalt, `${før.totalt} -> ${etter.totalt}`)
-  if (pauseType === 'aktiv_pause') {
-    ok('sonene uendret', JSON.stringify(før.soner) === JSON.stringify(etter.soner),
-      `${JSON.stringify(før.soner)} -> ${JSON.stringify(etter.soner)}`)
-    ok(`ren treningstid uendret (${før.renTid} s)`, før.renTid === etter.renTid, `${før.renTid} -> ${etter.renTid}`)
-  } else {
-    // MÅLT 16. sep, og det er IKKE denne fiksen: Opprett skriver alltid
-    // pausene som AKTIVE pauser (byggBlokker, «Pausene blir vanlige aktive
-    // pauser»). Starter økta med REN pause, kommer den tilbake fra
-    // Endre + Opprett med aktiv pause: ren treningstid går OPP med
-    // nøyaktig pausetida, og I1 får den samme tida. Skjemaet er riktig
-    // (sjekkene over), radantallet er riktig - typen på pausen er byttet.
-    // Om Opprett skal bevare pausetypen er en avgjørelse for Sverre, ikke
-    // for en regresjonsfiks. Testen sier derfor det som er sant.
-    const pauseSek = før.pause
-    ok(`ren treningstid opp med nøyaktig pausetida (${pauseSek} s) - Opprett gjør pausene aktive`,
-      etter.renTid - før.renTid === pauseSek && etter.pause === 0, `${før.renTid} -> ${etter.renTid}, pause ${før.pause} -> ${etter.pause}`)
-    ok('og I1 får nøyaktig den samme tida - ingenting annet flytter seg',
-      (etter.soner.I1 ?? 0) - (før.soner.I1 ?? 0) === pauseSek && etter.soner.I6 === før.soner.I6,
-      `${JSON.stringify(før.soner)} -> ${JSON.stringify(etter.soner)}`)
-  }
+  // OPPRETT BEVARER PAUSETYPEN (Sverre 16. sep: «ikke en preferanse»).
+  // Før bevarte den ikke: en økt med REN pause kom tilbake med AKTIV, og
+  // ren treningstid gikk 3900 -> 4140 uten at brukeren rørte et tall -
+  // samme klasse som stillestand-feilen: mekanismen kjørte, utfallet var
+  // feil. Nå skal begge tallene stå, for begge pausetypene.
+  ok(`pausetypen kommer tilbake som «${pauseType}»`, oppsett.pausetype === pauseType, oppsett.pausetype)
+  ok('pausene i de nye radene har samme type som før',
+    nye.filter(r => r.activity_type === 'pause' || r.activity_type === 'aktiv_pause').every(r => r.activity_type === pauseType),
+    nye.map(r => r.activity_type).join(','))
+  ok('sonene uendret', JSON.stringify(før.soner) === JSON.stringify(etter.soner),
+    `${JSON.stringify(før.soner)} -> ${JSON.stringify(etter.soner)}`)
+  ok(`ren treningstid uendret (${før.renTid} s)`, før.renTid === etter.renTid, `${før.renTid} -> ${etter.renTid}`)
   console.log(`       FØR:   ${JSON.stringify(før)}`)
   console.log(`       ETTER: ${JSON.stringify(etter)}`)
 }

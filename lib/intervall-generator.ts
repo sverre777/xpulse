@@ -89,6 +89,11 @@ export interface IntervallKonfig {
       pausen (standard 45 s); resten av pausen ligger som pause etter.
       Totaltida er fortsatt uendret. */
   skytetidSek?: number
+  /** Hva pausene skrives som (Sverre 16. sep): standard aktiv pause, men
+      Endre + Opprett på en bolk med REN pause skal BEVARE ren pause. Ellers
+      flytter en rundtur gjennom skjemaet ren treningstid - målt 3900 -> 4140
+      på en 3 x 10-økt uten at brukeren rørte et tall. */
+  pausetype?: 'pause' | 'aktiv_pause'
 }
 
 export const SKYTETID_STANDARD_SEK = 45
@@ -181,8 +186,9 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
 
       const posisjon = posisjonForPause(konfig.skyting, pauseNr, antallPauser)
       pauseNr++
+      const pausetype = konfig.pausetype ?? 'aktiv_pause'
       if (!posisjon) {
-        blokker.push({ sek: rad.pauseSek, sone: 'I1', rolle: 'pause', type: 'aktiv_pause', posisjon: null })
+        blokker.push({ sek: rad.pauseSek, sone: 'I1', rolle: 'pause', type: pausetype, posisjon: null })
         continue
       }
       // Pkt 16: skytinga tar maks skytetidSek (≤ 60 s) av pausen; RESTEN av
@@ -191,7 +197,7 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
       const skytetid = Math.min(rad.pauseSek, Math.max(1, Math.min(SKYTETID_MAKS_SEK, konfig.skytetidSek ?? SKYTETID_STANDARD_SEK)))
       blokker.push({ sek: skytetid, sone: 'I1', rolle: 'pause', type: 'skyting_kombinert', posisjon, skytetype: skytetypeForDrag(rad.sone) })
       if (rad.pauseSek - skytetid > 0) {
-        blokker.push({ sek: rad.pauseSek - skytetid, sone: 'I1', rolle: 'pause', type: 'aktiv_pause', posisjon: null })
+        blokker.push({ sek: rad.pauseSek - skytetid, sone: 'I1', rolle: 'pause', type: pausetype, posisjon: null })
       }
     }
   })

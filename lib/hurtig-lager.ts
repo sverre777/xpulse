@@ -18,6 +18,9 @@ export interface HurtigBolk<Rad = unknown> {
 export interface HurtigLager<Rad = unknown> extends HurtigBolk<Rad> {
   opp: string
   ned: string
+  /** Pausetypen bolken hadde (Sverre 16. sep) - Opprett skal bevare ren
+      pause. Valgfri: eldre lagre mangler den, og da er standarden aktiv. */
+  pausetype?: 'pause' | 'aktiv_pause'
 }
 
 export function lesHurtigLager<Rad = unknown>(nokkel: string): HurtigLager<Rad> | null {
@@ -29,6 +32,7 @@ export function lesHurtigLager<Rad = unknown>(nokkel: string): HurtigLager<Rad> 
     return {
       rader: v.rader, fartEnhet: v.fartEnhet ?? 'min_per_km', bev: v.bev ?? '', sub: v.sub ?? '',
       skyting: v.skyting ?? '', skytetid: v.skytetid ?? '45', opp: v.opp ?? '20:00', ned: v.ned ?? '15:00',
+      ...(v.pausetype === 'pause' || v.pausetype === 'aktiv_pause' ? { pausetype: v.pausetype } : {}),
     }
   } catch { return null }
 }

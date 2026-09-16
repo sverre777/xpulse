@@ -95,6 +95,8 @@ export interface BolkOppsett {
   skytetidSek: number
   bev: string
   sub: string
+  /** Pausetypen bolkens pauser HAR - så Opprett kan skrive den tilbake. */
+  pausetype: 'pause' | 'aktiv_pause'
 }
 
 /** Hurtigoppsettet fylt fra bolkens rader — mønsteret (gruppe_id) der det
@@ -143,7 +145,12 @@ export function oppsettFraBolk(b: RadBolk): BolkOppsett {
     i = j
   }
   const skyting: SkyteMonster | null = L > 0 && S > 0 ? 'LS' : L > 0 ? 'L' : S > 0 ? 'S' : null
-  return { rader, skyting, skytetidSek: skytetidSek || 45, bev: b.bev, sub: b.sub }
+  // REN pause bevares (Sverre 16. sep): er alle pausene i bolken rene, er
+  // bolkens pausetype ren. Blandet eller ingen: aktiv, som byggeren ellers.
+  const pauseRader = kjerne.filter(a => erPauseSegment(seg(a)))
+  const pausetype: BolkOppsett['pausetype'] =
+    pauseRader.length > 0 && pauseRader.every(a => a.activity_type === 'pause') ? 'pause' : 'aktiv_pause'
+  return { rader, skyting, skytetidSek: skytetidSek || 45, bev: b.bev, sub: b.sub, pausetype }
 }
 
 /** Stripe-blokker fra radene (samme form som generatorens blokker). */

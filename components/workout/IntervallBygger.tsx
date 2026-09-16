@@ -138,7 +138,7 @@ const KNAPP_GRAA: React.CSSProperties = { fontFamily: FONT, color: 'var(--tekst-
 const KNAPP_ACCENT: React.CSSProperties = { fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }
 
 /** Skjemafeltene for én bolk (radene + det som gjelder bolken). */
-interface Oppsett { rader: Rad[]; fartEnhet: string; bev: string; sub: string; skyting: string; skytetid: string }
+interface Oppsett { rader: Rad[]; fartEnhet: string; bev: string; sub: string; skyting: string; skytetid: string; pausetype: 'pause' | 'aktiv_pause' }
 
 /** Oppsettet fra radene → skjemarader. */
 function oppsettTilRader(o: BolkOppsett): Rad[] {
@@ -177,6 +177,7 @@ function konfigFor(b: Oppsett, oppvarmingSek: number, nedjoggSek: number): Inter
     }),
     bevegelsesform: b.bev,
     underkategori: b.sub,
+    pausetype: b.pausetype,
     skyting: (b.skyting || null) as SkyteMonster | null,
     skytetidSek: Math.max(1, Math.min(SKYTETID_MAKS_SEK, parseInt(b.skytetid) || SKYTETID_STANDARD_SEK)),
   }
@@ -293,6 +294,10 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => (husket?.skyting as '' | SkyteMonster | undefined) ?? forhandsutfylt?.skyting ?? startOppsett?.skyting ?? '')
   // Pkt 16: skytetid inni pausen — standard 45 s, fritt (maks 60 s).
   const [skytetid, setSkytetid] = useState(() => husket?.skytetid ?? String(forhandsutfylt?.skytetidSek ?? startOppsett?.skytetidSek ?? SKYTETID_STANDARD_SEK))
+  // Pausetypen følger bolken (Sverre 16. sep): Endre på en bolk med ren
+  // pause skal ikke gjøre pausene aktive ved Opprett. Ny bolk = aktiv.
+  const [pausetype, setPausetype] = useState<'pause' | 'aktiv_pause'>(() =>
+    (husket as { pausetype?: 'pause' | 'aktiv_pause' } | null)?.pausetype ?? startOppsett?.pausetype ?? 'aktiv_pause')
   const [opp, setOpp] = useState(() => husket?.opp ?? (forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : startOppsett ? fTid(startRamme.oppvarmingSek) : '20:00'))
   const [ned, setNed] = useState(() => husket?.ned ?? (forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : startOppsett ? fTid(startRamme.nedjoggSek) : '15:00'))
 
@@ -309,7 +314,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const felter = useMemo(() => bevFelterFor(bev, sub), [bev, sub])
   const fartEnhetEff: FartEnhet = felter.fart === 'kmt' ? 'km_per_h' : fartEnhet
 
-  const aktivBolk: Oppsett = useMemo(() => ({ rader, fartEnhet, bev, sub, skyting, skytetid }), [rader, fartEnhet, bev, sub, skyting, skytetid])
+  const aktivBolk: Oppsett = useMemo(() => ({ rader, fartEnhet, bev, sub, skyting, skytetid, pausetype }), [rader, fartEnhet, bev, sub, skyting, skytetid, pausetype])
   // Bolk 1 (eller ingen bolker ennå) eier ramma (oppvarming/nedjogg).
   const erForsteBolk = aktiv == null || aktiv === 0
   const konfig: IntervallKonfig = useMemo(
@@ -324,19 +329,19 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
   const last = (b: Oppsett) => {
     setRader(b.rader); setFartEnhet(b.fartEnhet as FartEnhet); setBev(b.bev); setSub(b.sub)
-    setSkyting(b.skyting as '' | SkyteMonster); setSkytetid(b.skytetid)
+    setSkyting(b.skyting as '' | SkyteMonster); setSkytetid(b.skytetid); setPausetype(b.pausetype)
   }
   /** «Endre» på en bolk: skjemaet fylles fra bolkens rader. */
   const velgBolk = (i: number) => {
     const b = bolker[i]; if (!b) return
     const o = oppsettFraBolk(b)
-    last({ rader: oppsettTilRader(o), fartEnhet, bev: o.bev || bev, sub: o.sub, skyting: o.skyting ?? '', skytetid: String(o.skytetidSek) })
+    last({ rader: oppsettTilRader(o), fartEnhet, bev: o.bev || bev, sub: o.sub, skyting: o.skyting ?? '', skytetid: String(o.skytetidSek), pausetype: o.pausetype })
     if (i === 0) { setOpp(fTid(ramme.oppvarmingSek)); setNed(fTid(ramme.nedjoggSek)) }
     setAktiv(i); setSteg('bygg')
   }
   /** «+ Legg til bolk»: tomt oppsett, legges under radene som finnes ved Opprett. */
   const leggTilBolk = () => {
-    last({ rader: [{ ...TOM_RAD }], fartEnhet, bev, sub, skyting: '', skytetid })
+    last({ rader: [{ ...TOM_RAD }], fartEnhet, bev, sub, skyting: '', skytetid, pausetype: 'aktiv_pause' })
     setAktiv(bolker.length); setSteg('bygg')
   }
   const slettBolk = (i: number) => {
@@ -368,7 +373,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
       await onOpprett(genererIntervalløkt(konfig), tittel, { regenerert: harOpprettet.current })
     }
     harOpprettet.current = true
-    if (lagerNokkel) skrivHurtigLager(lagerNokkel, { rader, fartEnhet, bev, sub, skyting, skytetid, opp, ned })
+    if (lagerNokkel) skrivHurtigLager(lagerNokkel, { rader, fartEnhet, bev, sub, skyting, skytetid, opp, ned, pausetype })
     if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk - ingen kollaps-linje
     else setSteg('ferdig')                        // i byggeren: bli, med økta opprettet
   }

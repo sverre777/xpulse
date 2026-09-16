@@ -1616,3 +1616,23 @@
   .t-to2{grid-template-columns:1fr}
   .t-tv{display:none}
 }
+
+/* ── Den felles oktgrafen (oktgraf.js) der den star stille: dagpopup, ukekort, trener ── */
+.fv-og{margin:8px 0 10px}
+.fv-og .og-t{font-size:10.5px}
+.fv-og-liten{padding:8px 10px;border-radius:10px}
+.fv-og-liten .og-t{display:none}
+.fv-og-liten .segb{height:10px;margin-top:4px}
+.t-og{padding:8px 10px;border-radius:10px;margin:8px 0}
+.t-og .og-t{display:none}
+
+/* ── Mobil (<=900 px): telefonramma i #inside ruller ikke innvendig (Sverre 16. sep:
+   «har man bladd nederst pa interaktiv mobil skal man kunne fortsette a bla ned pa
+   nettsiden»). Ramma far hoyden til innholdet, og sida ruller gjennom den med
+   kalenderhodet klebrig - slik notatet beskriver mobilen. PC-visningen av
+   telefonen (>900 px) beholder 800 px-ramma med innvendig rulling. ── */
+@media (max-width:900px){
+  .fv-tlf{height:auto}
+  .fv-sk{overflow:visible}
+  .fv-mbody{overflow:visible;flex:none;padding-bottom:24px}
+}

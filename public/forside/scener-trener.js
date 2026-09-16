@@ -43,9 +43,8 @@ SC3.push({kap:0,tittel:'ÉN MAL. HELE GRUPPA.',tekst:'Lag uka én gang som plan-
 
 /* ── T2 · KOMMENTER I ØKTA ── */
 var KOM_T='Drag 3 lå 6 slag over de to første - legg deg på 165 neste gang, det er nok. Skytinga: ta 2 s ekstra på liggende, bommene er tidsbommer.';
-function oktGraf(){var W=300,H=90,s='';OKT.forEach(function(b){var x=b.s/TOT*W,w=(b.e-b.s)/TOT*W,h=blokkH(b)*(H-10);s+='<rect x="'+x+'" y="'+(H-h)+'" width="'+(w-.8)+'" height="'+h+'" rx="1.5" fill="'+blokkFarge(b)+'" opacity="'+(b.z==='I1'?.62:.9)+'"/>'});
-  var p=[];for(var m=0;m<=TOT;m+=.5)p.push((m/TOT*W).toFixed(1)+','+(H-8-(pulsVed(m)-90)/100*(H-14)).toFixed(1));s+='<polyline fill="none" stroke="#E23A5A" stroke-width="1.8" vector-effect="non-scaling-stroke" points="'+p.join(' ')+'"/>';
-  return'<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="t-graf">'+s+'</svg>'}
+/* Okta i trener-kortet tegnes av den felles oktgraf-tegneren (oktgraf.js). */
+function oktGraf(){return tegnOktgraf({blokker:OKT,tot:TOT,pulsVed:pulsVed,punkter:PUNKT,still:true,chips:false,knapper:false,mob:true,PH:90,TOPP:56,akse:3,klasse:'t-og'})}
 SC3.push({kap:1,tittel:'KOMMENTER I ØKTA. IKKE I INNBOKSEN.',tekst:'Trenerens ord ligger på økta, rett under grafen. Utøveren får varsel med lenke rett inn, og svarer på samme sted.',
  steg:['Kommentaren ligger på økta','Utøveren får varsel','Svarer samme sted'],varighet:9500,
  mer:['Kommentarer på økt, dag, uke og måned - i planen, dagboken og årsplanen. Uke- og månedstrådene ligger over kalenderen.','Begge parter får varsel med dyplenke; lest-status vises på kommentaren.','Innboks felles for begge roller: meldingstråder, kommentar-feed og varsler, med uleste-merke i navigasjonen.','Retter treneren i utøverens egen økt, står «endret av trener» på økta - med logg utøveren kan lese.'],

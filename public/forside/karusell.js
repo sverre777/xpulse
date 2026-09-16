@@ -43,6 +43,11 @@ var PULS=(function(){var hr=96,ut=[],seed=7;function rnd(){seed=(seed*9301+49297
     var k=b.t==='sky'?.22:.13;hr+=(mal-hr)*k+(rnd()-.5)*2.2;ut.push([m,hr])}return ut})();
 function pulsVed(m){var i=Math.round(m/.25);return PULS[Math.max(0,Math.min(PULS.length-1,i))][1]}
 
+/* Punktene pa okta (skyting, laktat, ernaering, notat) - delt av flyt-scene 7 og
+   trener-scene 2, sa begge viser den samme okta. */
+var PUNKT=[{m:20,k:'ernaering',c:'#28A86E',tx:'40 g',ctx:'drag 1 · 20:00',niv:0,grp:'ern'},{m:31.5,k:'skyting',c:'var(--a-mut)',tx:'L 5/5',ctx:'skyting 1',niv:0,grp:'sky'},{m:41,k:'laktat',c:'#E23A5A',tx:'2,8',ctx:'drag 2 · 41:00',niv:1,grp:'lak'},
+ {m:44.5,k:'skyting',c:'var(--a-mut)',tx:'S 4/5',ctx:'skyting 2',niv:0,grp:'sky'},{m:52,k:'skyting',c:'var(--a-mut)',tx:'L 5/5',ctx:'skyting 3',niv:0,grp:'sky'},{m:59,k:'skyting',c:'var(--a-mut)',tx:'S 4/5',ctx:'skyting 4',niv:0,grp:'sky'},{m:62,k:'for-okt',c:'#A6A6AF',tx:'Tungt i bakken',ctx:'drag 5 · 62:00',niv:1,grp:'not'},{m:64.5,k:'laktat',c:'#E23A5A',tx:'4,6',ctx:'drag 5 · 64:30',niv:2,grp:'lak'}];
+
 /* ───────── Tidslinje-motor per scene ───────── */
 function Scene(def,rot){this.d=def;this.rot=rot;this.hend=[];this.id=[];}
 Scene.prototype.t=function(at,fn){this.hend.push([at,fn])};

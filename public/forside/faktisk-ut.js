@@ -178,9 +178,8 @@ function liste(mob){
 
 /* UKE (UkeVisning) */
 var VALGT='2026-09-15';
-function detaljGraf(o){var W=320,H=130,x=0,s='';o.bl.forEach(function(b){var w=b[1]/o.dur*W,bh=BH[b[0]]*(H-18);s+='<rect x="'+x.toFixed(1)+'" y="'+(H-bh).toFixed(1)+'" width="'+Math.max(w-.6,.5).toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="1.5" fill="'+Z[b[0]]+'" opacity="'+(b[0]===1?.62:.9)+'"/>';x+=w});
-  var p=puls(o),n=p.length;s+='<polyline fill="none" stroke="#E23A5A" stroke-width="1.8" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'+p.map(function(v,i){return(i/(n-1)*W).toFixed(1)+','+(H-8-(v-85)/105*(H-14)).toFixed(1)}).join(' ')+'"/>';
-  return'<svg class="fv-graf" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+s+'</svg><div class="fv-graf-ak"><span style="color:#E23A5A">— puls</span><span>sonesøyler = planblokkene</span></div>'}
+function detaljGraf(o){var c=oktgrafOppsett(o);c.still=true;c.chips=false;c.knapper=false;c.mob=true;c.PH=76;c.TOPP=72;c.akse=3;c.klasse='fv-og fv-og-liten';
+  return tegnOktgraf(c)}
 /* Styrke-grafen fra design/xpulse-styrke-design.html (UTKAST): sett som grå blokker, høyde = kg, tall = reps, klamme = øvelse */
 function styrkeGraf(o){var W=320,H=130,x=6,s='',maks=0;o.sett.forEach(function(e){e[1].forEach(function(st){maks=Math.max(maks,st[1])})});var bw=20,gap=3,ovgap=13;
   o.sett.forEach(function(e){var x0=x;e[1].forEach(function(st,i){var bh=Math.max(14,st[1]/maks*(H-44));s+='<rect x="'+x+'" y="'+(H-26-bh)+'" width="'+bw+'" height="'+bh+'" rx="2" fill="'+Z.S+'"'+(e[2]&&i===2?' stroke="#D4A017" stroke-width="1.5"':'')+'/><text x="'+(x+bw/2)+'" y="'+(H-26-bh+11)+'" text-anchor="middle" font-size="8.5" font-weight="700" fill="#F0F0F2" font-family="Barlow Condensed,sans-serif">'+st[0]+'</text>';x+=bw+gap;if(i<2)s+='<rect x="'+(x-gap)+'" y="'+(H-29)+'" width="'+gap+'" height="3" fill="'+Z.P+'"/>'});
@@ -220,12 +219,26 @@ function aar(mob){var sep=sum(OKTER.filter(function(o){return o.dt.slice(5,7)===
 /* Helsedata per dag (deterministisk, bare til og med i dag) */
 function helse(k){var n=parseInt(k.slice(8),10)+parseInt(k.slice(5,7),10)*3,r=function(i){return((n*37+i*11)%17)/17};return{hp:48+Math.round(r(1)*7),hrv:62+Math.round(r(2)*18),sov:390+Math.round(r(3)*90),fol:3+Math.round(r(4)*2),faser:[.22+r(5)*.08,.48-r(5)*.05,.22,.08]}}
 var AAPEN=null;
-function popGraf(o){var h=72,W=200,x=0,s='',top=14;o.bl.forEach(function(b){var w=b[1]/o.dur*W,bh=BH[b[0]]*(h-top);s+='<rect x="'+x.toFixed(1)+'" y="'+(h-bh).toFixed(1)+'" width="'+Math.max(w-.6,.5).toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="1" fill="'+Z[b[0]]+'" opacity="'+(b[0]===1?.62:.9)+'"/>';x+=w});
-  if(o.garmin){var p=puls(o),n=p.length;s+='<polyline fill="none" stroke="#E23A5A" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'+p.map(function(v,i){return(i/(n-1)*W).toFixed(1)+','+(h-(v-85)/105*(h-top)).toFixed(1)}).join(' ')+'"/>'}
-  var lab='';
-  if(o.lak){var fin=parseFloat(o.lak.replace(',','.')),harde=[];x=0;o.bl.forEach(function(b){var w=b[1]/o.dur*W;if(b[0]>=3)harde.push(x+w);x+=w});var n2=harde.length;harde.forEach(function(px,i){var v=(fin-(n2-1-i)*(n2>3?.45:.7)).toFixed(1).replace('.',',');var py=h-((parseFloat(v.replace(',','.'))-1)/5)*(h-top)-6;s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="3" fill="#8B5CF6" stroke="#0A0A0B" stroke-width="1"/>';lab+='<span class="lkm" style="left:'+(px/W*100).toFixed(1)+'%">'+v+'</span>'})}
-  if(o.sky&&(o.uk.indexOf('skyting')>-1||o.uk.indexOf('L-S')>-1)){var tr=[],rest=o.sky[0],ant=o.bl.filter(function(b){return b[0]==='P'}).length,per=o.sky[1]/ant;for(var i=0;i<ant;i++){var t=Math.min(per,Math.max(0,rest-(ant-1-i)*(per-1)));if(i<ant-1)t=Math.min(per,rest-(ant-1-i)*(per-1)>per?per:Math.max(per-1,rest-(ant-1-i)*per));tr.push(Math.round(t));rest-=Math.round(t)}var d=o.sky[0]-tr.reduce(function(a,b){return a+b},0);tr[tr.length-1]+=d;x=0;var j=0;o.bl.forEach(function(b){var w=b[1]/o.dur*W;if(b[0]==='P'){lab+='<span class="skm" style="left:'+((x+w/2)/W*100).toFixed(1)+'%">'+(j%2?'S':'L')+' '+tr[j]+'/'+per+'</span>';j++}x+=w})}
-  return'<div class="pkg"><svg class="fv-kurve" viewBox="0 0 '+W+' '+h+'" preserveAspectRatio="none" style="height:'+h+'px">'+s+'</svg>'+lab+(o.garmin?'<span class="pt">'+ik('puls')+'puls</span>':'')+'</div>'}
+/* Okta (o) -> oppsettet den felles oktgraf-tegneren (oktgraf.js) vil ha.
+   Blokkene er PlanGraf-blokkene [sone, minutter]; pulsen er den samme
+   deterministiske kurven som pillene i kalenderen bruker (puls(o)), sa
+   grafen i dagen kan ikke sprike fra pillen. */
+function oktgrafOppsett(o){var BL=[],m=0,skyN=0,skyAnt=o.bl.filter(function(b){return b[0]==='P'}).length;
+  var mon=(o.uk||'').indexOf('L-S')>-1||(!!o.sky&&skyAnt>0);
+  o.bl.forEach(function(b,i){var z=b[0],t;if(z==='P')t=mon?'sky':'pause';else if(z===1&&i===0)t='oppv';else if(z===1&&i===o.bl.length-1)t='ned';else t='drag';
+    var e=m+b[1],bl={t:t,z:typeof z==='number'?'I'+z:'I1',s:m,e:e};if(t==='sky'){bl.ls=(skyN++)%2?'S':'L'}BL.push(bl);m=e});
+  var pts=puls(o);function pulsVed(mm){var i=Math.max(0,Math.min(pts.length-1,Math.round(mm)));return pts[i]}
+  var P=[];
+  if(o.sky&&mon&&skyAnt){var tr=[],rest=o.sky[0],per=o.sky[1]/skyAnt,k=0;for(var i=0;i<skyAnt;i++){var t=Math.round(Math.min(per,rest-(skyAnt-1-i)*(per-1)));tr.push(t);rest-=t}
+    BL.forEach(function(b){if(b.t!=='sky')return;P.push({m:(b.s+b.e)/2,k:'skyting',c:'var(--a-mut)',tx:b.ls+' '+tr[k]+'/'+per,grp:'sky',niv:k%2});k++})}
+  if(o.lak){var fin=parseFloat(String(o.lak).replace(',','.')),harde=BL.filter(function(b){return b.t==='drag'&&+b.z.slice(1)>=3}),n2=harde.length;
+    /* Som fasitens scene 7: pille pa forste og siste harde drag (2,8 -> 4,6) -
+       fem piller pa nitten minutter overlapper hverandre. */
+    harde.forEach(function(b,i){if(i!==0&&i!==n2-1)return;var v=(fin-(n2-1-i)*(n2>3?.45:.7)).toFixed(1).replace('.',',');P.push({m:b.e-.5,k:'laktat',c:'#E23A5A',tx:v,grp:'lak',niv:2})})}
+  if(o.ok&&(o.konk||o.dur>=150))P.push({m:o.konk?4:Math.round(o.dur*.35),k:'ernaering',c:'#28A86E',tx:o.konk?'1 gel':'40 g',grp:'ern',niv:1});
+  return{blokker:BL,tot:o.dur,pulsVed:pulsVed,punkter:P}}
+function popGraf(o){var c=oktgrafOppsett(o);c.still=true;c.chips=false;c.knapper=false;c.PH=110;c.TOPP=84;c.kilde=o.garmin?'Garmin':'';c.klasse='fv-og';
+  return'<div class="pkg">'+tegnOktgraf(c)+'</div>'}
 function ernaering(o){if(!o.ok)return'';if(o.konk)return'<div class="ern"><span class="cap">'+ik('ernaering')+'Ernæring</span><span>1 gel før start</span><span>250 ml sportsdrikk</span><span>40 g karbo</span></div>';if(o.dur>=150)return'<div class="ern"><span class="cap">'+ik('ernaering')+'Ernæring</span><span>'+Math.round(o.dur/45)+' gel</span><span>'+Math.round(o.dur/60*500)+' ml sportsdrikk</span><span>'+(o.dur>=180?68:62)+' g karbo/t</span></div>';if(o.uk.indexOf('L-S')>-1||o.uk.indexOf('skyting')>-1)return'<div class="ern"><span class="cap">'+ik('ernaering')+'Ernæring</span><span>1 gel</span><span>500 ml sportsdrikk</span><span>55 g karbo/t</span></div>';return''}
 function popKort(o){var stats=[];if(o.km)stats.push(km(o.km)+' km');if(o.ok&&o.garmin){stats.push('Snitt '+(o.puls||(o.z[3]+o.z[4]+o.z[5]>15?149:133))+' bpm');stats.push('Maks '+(o.z[5]>=5?189:o.z[4]>=10?181:o.z[3]>=20?174:158)+' bpm')}if(o.ok&&o.rpe)stats.push('RPE '+o.rpe);if(o.ok&&o.kg)stats.push((Math.round(o.kg/100)/10).toString().replace('.',',')+' t tonnasje');if(o.lak)stats.push(ik('laktat')+'Laktat '+o.lak);
   return'<div class="fv-pk'+(o.ok?'':' plan')+'" style="--c:'+o.c+'"><div class="l1">'+(o.ok?hake():'')+(o.garmin?importBadge():'')+(o.konk?'<span style="color:#D4A017">'+ik(o.konk==='B'?'b-konkurranse':'c-konkurranse')+'</span>':'')+'<span class="kl">'+o.kl+'</span><span class="tt">'+o.t+'</span>'+(o.plass?'<em style="color:'+o.c+'">#'+o.plass+'</em>':'')+'<span class="hoyre">'+(o.ok?'':'<span class="pl">Plan</span>')+'<b>'+tidT(o.dur)+'</b></span></div><div class="l2">'+o.sp+' · '+o.uk+'</div>'+(o.ok?(o.sett?'<div class="pkg">'+styrkeGraf(o)+'</div>':popGraf(o)):'')+(stats.length?'<div class="l3">'+stats.map(function(x){return'<span>'+x+'</span>'}).join('')+'</div>':'')+'<div class="zb">'+zb(o.z)+'</div>'+(o.sky&&o.ok?'<div class="sk"><span class="cap">'+ik('skyting')+'Skyting</span><b>'+o.sky[0]+'/'+o.sky[1]+'</b><span>'+Math.round(o.sky[0]/o.sky[1]*100)+' % treff</span>'+(o.uk.indexOf('L-S')>-1||o.t.indexOf('komb')>-1?'<span class="lig">L · S · L · S</span>':'')+'</div>':o.plan&&!o.ok?'<div class="sk"><span class="cap">'+ik('skyting')+'Skyting</span><b>'+o.plan+' skudd</b><span>planlagt</span></div>':'')+ernaering(o)+'</div>'+(o.sp==='Styrke'&&!o.ok?'<div class="fv-live">▶ Start live</div>':'')}

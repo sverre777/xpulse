@@ -349,5 +349,35 @@ console.log('\nRADER UTEN VINDU - slik EKTE klokkedata ser ut')
     `${forTid} -> ${renTid(med.rader)} -> ${renTid(angreSplitt(med.rader).rader)}`)
 }
 
+console.log('\nTO TIDSBEGREPER SOM IKKE SKAL BLANDES')
+// Flisleggingen plasserer radene langs KURVEN; radenes egne
+// duration_seconds er noe annet, og de to spriker med et sekund eller to
+// på ekte importerte økter (målt: kurven 3633 s, radene 3634 s).
+// Brukes plasseringen til BEGGE, taper økta tid i en operasjon som bare
+// skulle flytte den. Fantes ikke i 73 lib-sjekker og 36 E2E-sjekker -
+// bare en tørrkjøring mot ekte data fant den.
+{
+  const rad2 = (id: string, sek: number): Rad => ({
+    id, activity_type: 'aktivitet',
+    window_start_seconds: null, window_duration_seconds: null, duration_seconds: sek,
+    distance_meters: null, avg_heart_rate: null, max_heart_rate: null, zones: null,
+  })
+  // Radene summerer 3634, men kurven er 3633 - nøyaktig Sverres økt.
+  const rader = [rad2('a', 1279), rad2('b', 2355)]
+  const plass = new Map([['a', { fra: 0, til: 1279 }], ['b', { fra: 1279, til: 3633 }]])
+  const ut = splittForStillestand(rader, [{ fraSek: 961, tilSek: 1034 }, { fraSek: 1642, tilSek: 1931 }], { plass })
+  ok('TOTALTIDA STÅR selv når kurven og radene spriker',
+    sumVarighet(ut.rader) === sumVarighet(rader),
+    `rader ${sumVarighet(rader)} · kurve 3633 · etter ${sumVarighet(ut.rader)}`)
+  ok('hver rads deler summerer radens EGEN varighet',
+    ut.rader.filter(r => r.id === 'a' || r.id.startsWith('a::')).reduce((s, r) => s + (r.duration_seconds ?? 0), 0) === 1279
+    && ut.rader.filter(r => r.id === 'b' || r.id.startsWith('b::')).reduce((s, r) => s + (r.duration_seconds ?? 0), 0) === 2355,
+    JSON.stringify(ut.rader.map(r => [r.id, r.duration_seconds])))
+  ok('og vinduene følger kurven, ikke varighetene',
+    ut.rader.every(r => (r.window_start_seconds ?? 0) + (r.window_duration_seconds ?? 0) <= 3633),
+    JSON.stringify(ut.rader.map(r => [r.window_start_seconds, r.window_duration_seconds])))
+  ok('angre gir begge tilbake', sumVarighet(angreSplitt(ut.rader).rader) === sumVarighet(rader))
+}
+
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

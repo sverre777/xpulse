@@ -1,7 +1,7 @@
 // FORMKARTET bolk 1 - selvtest på lib-funksjonene (ingen DB).  npm run formkart
 import {
   snittOgSd, avvikProsent, sdProsent, pctAvTerskel, erHviledag, monotoniFoster,
-  lengsteStrekkUtenHvile, hviledagerPer28, hrv7mot60, skytingForDag, glidendeTreff, MIN_DAGER_FOR_TALL,
+  lengsteStrekkUtenHvile, hviledagerPer28, hrv7mot60, skytingForDag, glidendeTreff, sykdomsperioder, MIN_DAGER_FOR_TALL,
 } from '../lib/formkart.ts'
 
 let ok = 0, feil = 0
@@ -58,6 +58,12 @@ sjekk('skyting: puls inn 155, skytetid 32,0, tre serier med skudd, 15 skudd', sk
 sjekk('skyting: ingen serier med skudd -> null', skytingForDag([{ position: 'L', shots: 0, hits: null, time_seconds: null, avg_heart_rate: null }]) === null)
 const gl = glidendeTreff([{ treff: 5, skudd: 5 }, { treff: 0, skudd: 0 }, { treff: 3, skudd: 5 }], 7)
 sjekk('glidende treff: 100, 100 (dag uten skudd endrer ikke), 80', naer(gl[0], 100) && naer(gl[1], 100) && naer(gl[2], 80), JSON.stringify(gl))
+
+// Sykdomsperioder - observasjon, aldri årsak
+const D = (i: number, sykdom: boolean, timer = 0) => ({ dato: `2026-09-${String(i + 1).padStart(2, '0')}`, sykdom, treningSek: timer * 3600 })
+const sp = sykdomsperioder([D(0, false, 2), D(1, false, 2), D(2, false, 2), D(3, false, 2), D(4, false, 2), D(5, false, 2), D(6, false, 2), D(7, true), D(8, true), D(9, false, 1), D(10, true)])
+sjekk('sykdomsperioder: to perioder (2 dager + 1 dag), uka før den første = 14 t', sp.length === 2 && sp[0].dager === 2 && sp[0].start === '2026-09-08' && sp[0].timerUkaFor === 14 && sp[1].dager === 1, JSON.stringify(sp))
+sjekk('sykdomsperioder: uka før ligger utenfor serien -> null, ikke 0', sykdomsperioder([D(0, false, 3), D(1, true)])[0].timerUkaFor === null)
 
 console.log(`\n${ok} OK · ${feil} FEIL\n${feil === 0 ? 'ALT OK' : ''}`)
 if (feil > 0) process.exitCode = 1

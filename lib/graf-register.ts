@@ -81,7 +81,7 @@ export const GRAFER: Record<string, GrafDef> = {
   // BOLK A (6. sep): «STATUS NÅ»-kortet øverst i Oversikt. Boksene får egne nøkler i A2/A3.
   oversikt_status_kort: G('oversikt', 'Status nå (statuskortet)', { bred: true }),
   // FORMKARTET (16. sep): seks baner på én tidsakse under «Status nå». Bred som statuskortet.
-  oversikt_formkart: G('oversikt', 'Formkartet (belastning, form, helse, skyting på én tidsakse)', { bred: true }),
+  oversikt_formkart: G('oversikt', 'Formkartet (belastning, form, helse, skyting på én tidsakse)', { bred: true, data: 'selv' }),
   oversikt_status_siste_hard: G('oversikt', 'Status nå - siste hardøkt'),
   oversikt_status_neste: G('oversikt', 'Status nå - neste hardøkt og neste økt'),
   oversikt_status_plan: G('oversikt', 'Status nå - timer plan vs gjennomført'),
@@ -141,6 +141,11 @@ export const GRAFER: Record<string, GrafDef> = {
   belastning_korr_hrv_treff: G('belastning', 'HRV vs treff %', { data: 'helse_belastning' }),
   belastning_korr_vekt_wattkg: G('belastning', 'Vekt vs watt per kg', { data: 'helse_belastning' }),
   belastning_rpe_vs_tss: G('belastning', 'Opplevd vs TSS per økt', { data: 'helse_belastning', config: true }),
+  // FORMKARTET bolk 4 - mønsterkort (belastningsstruktur, ikke helse). Henter selv.
+  belastning_monster: G('belastning', 'Mønster: monotoni, strekk uten hvile, hviledager (alle)', { data: 'selv' }),
+  belastning_monotoni: G('belastning', 'Monotoni (Foster, 7 dager)', { data: 'selv' }),
+  belastning_strekk_uten_hvile: G('belastning', 'Lengste strekk uten hviledag', { data: 'selv' }),
+  belastning_hviledager_28: G('belastning', 'Hviledager per 28 dager', { data: 'selv' }),
   belastning_custom: G('belastning', 'Custom belastningsgraf', { data: 'helse_belastning', config: true }),
   belastning_ctl: G('belastning', 'Fitness (CTL)'),
   belastning_atl: G('belastning', 'Fatigue (ATL)'),
@@ -246,6 +251,10 @@ export const GRAFER: Record<string, GrafDef> = {
 
   // ── Helse (HelseOversikt henter selv; korrelasjonsgrafene fra getHealthCorrelations) ──
   helse_oversikt: G('helse', 'Helsekortet (hele)'),
+  // FORMKARTET bolk 4 - mønsterkort i Helse (henter selv, 60 dager bakover).
+  helse_monster: G('helse', 'Mønster: HRV 7 mot 60 og sykdomsdager (alle)', { data: 'selv' }),
+  helse_hrv_7_mot_60: G('helse', 'HRV 7 dager mot 60-dagers grunnivå', { data: 'selv' }),
+  helse_sykdomsdager: G('helse', 'Sykdomsdager i perioden', { data: 'selv' }),
   helse_sovnstadier: G('helse', 'Søvnstadier per natt'),
   helse_hrv: G('helse', 'HRV'),
   helse_resting_hr: G('helse', 'Hvilepuls'),

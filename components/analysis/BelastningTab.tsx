@@ -10,6 +10,8 @@ import { ChartWrapper } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
 import { KortGruppe } from './KortGruppe'
 import { HelseBelastningSeksjon, HelseMotBelastning, KlarForBelastning, Korrelasjonskort, RpeVsTss, BelastningCustom } from './BelastningBolk4'
+import { BelastningMonsterkort } from './FormkartMonsterkort'
+import type { DateRange } from './date-range'
 import type { HelseBelastning } from '@/app/actions/helse-belastning'
 import type { ReactNode } from 'react'
 import {
@@ -69,7 +71,7 @@ function downloadCsv(filename: string, rows: string[][]) {
   URL.revokeObjectURL(url)
 }
 
-export function BelastningTab({ data, helse }: { data: BelastningAnalysis; helse?: HelseBelastning | null }) {
+export function BelastningTab({ data, helse, range, targetUserId }: { data: BelastningAnalysis; helse?: HelseBelastning | null; range?: DateRange; targetUserId?: string }) {
   if (!data.hasData || data.daily.length === 0) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
@@ -88,6 +90,8 @@ export function BelastningTab({ data, helse }: { data: BelastningAnalysis; helse
       <PerceivedVsCalculatedChart data={data} />
       <EnergyStressOverTimeChart data={data} />
       <RestDayStats data={data} />
+      {/* FORMKARTET bolk 4: mønsterkort (belastningsstruktur) over korrelasjonskortene. */}
+      {range && <BelastningMonsterkort range={range} targetUserId={targetUserId} />}
       {/* Bolk 4: helse mot belastning - egen datasett (getHelseBelastning), lastes med fanen. */}
       {helse ? <HelseBelastningSeksjon data={helse} /> : (
         <div className="py-10 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
@@ -485,7 +489,11 @@ function MethodNote() {
 
 /** Bolk 1: favoritt-rendring for Belastning-nøklene (Favoritter-fanen). Bolk 4-nøklene får
     datasettet helse_belastning (registeret sier data: 'helse_belastning'). */
-export function renderFavoritt(key: string, data: BelastningAnalysis | HelseBelastning, ctx?: { config?: Record<string, unknown> | null }): ReactNode | null {
+export function renderFavoritt(key: string, data: BelastningAnalysis | HelseBelastning, ctx?: { config?: Record<string, unknown> | null; range?: DateRange; targetUserId?: string }): ReactNode | null {
+  // FORMKARTET bolk 4: mønsterkortene henter selv (data: 'selv').
+  if (key === 'belastning_monster' || key === 'belastning_monotoni' || key === 'belastning_strekk_uten_hvile' || key === 'belastning_hviledager_28') {
+    return ctx?.range ? <BelastningMonsterkort range={ctx.range} targetUserId={ctx.targetUserId} bare={key === 'belastning_monster' ? undefined : key} /> : null
+  }
   if (key.startsWith('belastning_helse_') || key.startsWith('belastning_korr') || key === 'belastning_klar' || key === 'belastning_rpe_vs_tss' || key === 'belastning_custom') {
     const h = data as HelseBelastning
     if (!('dager' in h)) return null

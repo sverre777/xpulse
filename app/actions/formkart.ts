@@ -86,8 +86,8 @@ export async function getFormkart(
   const helsePerDag = new Map<string, HelseDag>()
   if (!('error' in helse)) for (const d of helse.dager) helsePerDag.set(d.date, d)
 
-  const belastningPerDag = new Map<string, { ctl: number; atl: number; tsb: number }>()
-  if (!('error' in belastning)) for (const d of belastning.daily) belastningPerDag.set(d.date, { ctl: d.ctl, atl: d.atl, tsb: d.tsb })
+  const belastningPerDag = new Map<string, { ctl: number; atl: number; tsb: number; tss: number }>()
+  if (!('error' in belastning)) for (const d of belastning.daily) belastningPerDag.set(d.date, { ctl: d.ctl, atl: d.atl, tsb: d.tsb, tss: d.tss })
 
   const status = new Map<string, Set<string>>()
   for (const r of (dagRes.data ?? []) as { date: string; state_type: string }[]) {
@@ -157,6 +157,7 @@ export async function getFormkart(
         hviledag: erHviledag({ treningSek, planlagtSek, okter: okter.map(o => ({ gjennomfort: o.is_completed })), sykdom }),
         planlagtIkkeGjort: okter.some(o => o.is_planned && !o.is_completed) && treningSek === 0,
       },
+      tss: bel?.tss ?? null,
       ctl: bel?.ctl ?? null, atl: bel?.atl ?? null, tsb: bel?.tsb ?? null,
       skyting: skytingForDag(serier),
       laktat,

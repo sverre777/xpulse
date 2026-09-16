@@ -7,9 +7,15 @@
 import type { HelseOversiktData } from '@/app/actions/helse-oversikt'
 import { HELSE_TREND_FARGER } from '@/lib/helse-farger'
 import { HelseOversikt, SeksjonsTittel, TrendPanel } from './HelseOversikt'
+import { HelseMonsterkort } from '@/components/analysis/FormkartMonsterkort'
+import type { DateRange } from '@/components/analysis/date-range'
 import { StadieStabler } from './SovnGrafikk'
 
-export function renderFavoritt(key: string, data: HelseOversiktData, ctx?: { targetUserId?: string }): React.ReactNode | null {
+export function renderFavoritt(key: string, data: HelseOversiktData, ctx?: { targetUserId?: string; range?: DateRange }): React.ReactNode | null {
+  // FORMKARTET bolk 4: mønsterkortene henter selv (data: 'selv').
+  if (key === 'helse_monster' || key === 'helse_hrv_7_mot_60' || key === 'helse_sykdomsdager') {
+    return ctx?.range ? <HelseMonsterkort range={ctx.range} targetUserId={ctx.targetUserId} bare={key === 'helse_monster' ? undefined : key} /> : null
+  }
   const dager = data.dager
   switch (key) {
     case 'helse_oversikt': return <HelseOversikt forhandsdata={data} kompaktHeader targetUserId={ctx?.targetUserId} chartKey="helse_oversikt" />

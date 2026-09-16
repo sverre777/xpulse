@@ -87,6 +87,8 @@ export interface FormkartDag {
   planlagtSek: number
   hardOkt: boolean
   status: FormkartStatus
+  /** Dagens TSS (samme spor som Belastning-fanen) - grunnlaget for monotoni. */
+  tss: number | null
   ctl: number | null; atl: number | null; tsb: number | null
   helse?: FormkartHelse
   skyting: FormkartSkyting | null
@@ -176,6 +178,25 @@ export function lengsteStrekkUtenHvile(dager: { hviledag: boolean }[]): number {
 export function hviledagerPer28(dager: { hviledag: boolean }[]): number | null {
   if (dager.length < 28) return null
   return dager.slice(-28).filter(d => d.hviledag).length
+}
+
+export interface Sykdomsperiode { start: string; slutt: string; dager: number; /** Treningstimer de sju dagene FØR start. */ timerUkaFor: number | null }
+
+/**
+ * Sammenhengende sykdomsdager som perioder, med treningstimene uka før hver.
+ * OBSERVASJON, aldri årsak: «uka før startet» er en telling, ikke en påstand.
+ * Uka før må ligge innenfor serien (ellers null) - ingen gjetting bakover.
+ */
+export function sykdomsperioder(dager: { dato: string; sykdom: boolean; treningSek: number }[]): Sykdomsperiode[] {
+  const ut: Sykdomsperiode[] = []
+  for (let i = 0; i < dager.length; i++) {
+    if (!dager[i].sykdom || (i > 0 && dager[i - 1].sykdom)) continue
+    let j = i
+    while (j + 1 < dager.length && dager[j + 1].sykdom) j++
+    const timerUkaFor = i >= 7 ? dager.slice(i - 7, i).reduce((a, d) => a + d.treningSek, 0) / 3600 : null
+    ut.push({ start: dager[i].dato, slutt: dager[j].dato, dager: j - i + 1, timerUkaFor })
+  }
+  return ut
 }
 
 export interface Hrv7Mot60 { snitt7: number; snitt60: number; sd60: number; avvikPct: number; n7: number; n60: number }

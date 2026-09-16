@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { HelseOversikt } from '@/components/helse/HelseOversikt'
+import { HelseMonsterkort } from '@/components/analysis/FormkartMonsterkort'
 import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
@@ -505,7 +506,13 @@ function AnalysisPageInner({
         )}
         {/* Helse-fanen = den nye helseflaten (HelseOversikt) - erstattet
             HealthTab-trendene/korrelasjonene 27. aug (helse-designet). */}
-        {tab === 'helse' && <HelseOversikt targetUserId={targetUserId} chartKey="helse_oversikt" />}
+        {tab === 'helse' && (
+          <div className="space-y-5">
+            <HelseOversikt targetUserId={targetUserId} chartKey="helse_oversikt" />
+            {/* FORMKARTET bolk 4: HRV 7 mot 60 og sykdomsdager - tallet bor her, banen i formkartet. */}
+            <HelseMonsterkort range={range} targetUserId={targetUserId} />
+          </div>
+        )}
         {tab === 'ernering' && (
           cache.ernering
             ? <ErneringTab data={cache.ernering} />
@@ -548,7 +555,7 @@ function AnalysisPageInner({
         )}
         {tab === 'belastning' && (
           cache.belastning
-            ? <BelastningTab data={cache.belastning} helse={cache.helse_belastning ?? null} />
+            ? <BelastningTab data={cache.belastning} helse={cache.helse_belastning ?? null} range={range} targetUserId={targetUserId} />
             : <LoadingStub label="Laster belastning…" />
         )}
         {tab === 'terskel' && (

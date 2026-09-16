@@ -181,6 +181,25 @@ try {
   sjekk('dagboka: dagvisningen (samme komponent) står i dagdetaljen med økt, standplass og laktat', dbt.includes('CC formkart-økt') && dbt.includes('88,9 % av terskel') && dbt.includes('32,0 s'), dbt.slice(0, 200))
   sjekk('dagboka: ingen lukk-knapp (dagen velges i uka)', await p.locator('[data-uke-dagdetalj] [data-formkart-dag-lukk]').count() === 0)
 
+  // BOLK 4: mønsterkortene i Belastning og Helse.
+  await p.goto(`${BASE}/app/analyse?tab=belastning`, { waitUntil: 'domcontentloaded' })
+  const bm = p.locator('[data-belastning-monster]')
+  await bm.waitFor({ timeout: 90000 })
+  await p.waitForTimeout(500)
+  let bmt = (await bm.textContent()) ?? ''
+  for (let i = 0; i < 20 && bmt.includes('…'); i++) { await p.waitForTimeout(500); bmt = (await bm.textContent()) ?? '' }
+  sjekk('Belastning: monotoni 0,41 (TSS 120 én dag av sju), ikke alarmfarget', /0,4\d/.test(bmt), bmt.slice(0, 200))
+  sjekk('Belastning: lengste strekk uten hviledag = 1 d (sykdom og planlagt bryter ikke strekket som hvile)', bmt.includes('1 d'), bmt.slice(0, 200))
+  sjekk('Belastning: hviledager per 28 d = 25 (28 - sykdom - økt - planlagt)', /Hviledagerper28d25/.test(bmt.replace(/\s+/g, '')), bmt.slice(0, 260))
+  await p.goto(`${BASE}/app/analyse?tab=helse`, { waitUntil: 'domcontentloaded' })
+  const hm = p.locator('[data-helse-monster]')
+  await hm.waitFor({ timeout: 90000 })
+  let hmt = (await hm.textContent()) ?? ''
+  for (let i = 0; i < 20 && hmt.includes('…'); i++) { await p.waitForTimeout(500); hmt = (await hm.textContent()) ?? '' }
+  // Siste sju dager: 50, 50, 50 (dag -6..-4) og 60 (dag -2) = 52,5 mot grunnivå 50,8 -> +3 %.
+  sjekk('Helse: HRV 7 mot 60 = +3 % (52,5 ms siste 7 d mot 50,8 ms på 60 d)', hmt.includes('+3 %') && hmt.includes('52,5 ms siste 7 d mot 50,8 ms'), hmt.slice(0, 200))
+  sjekk('Helse: 1 sykdomsdag, 1 periode, «uka før startet: i snitt 0,0 t» som observasjon', /Sykdomsdageriperioden1/.test(hmt.replace(/\s+/g, '')) && hmt.includes('1 periode') && hmt.includes('uka før startet: i snitt 0,0 t') && hmt.includes('observasjon, ikke årsak'), hmt.slice(0, 300))
+
   // Mobil: Lav/Med/Høy er standard under 640 px.
   const pm = await loggInn(b, ut.epost, 390)
   await pm.goto(`${BASE}/app/analyse`, { waitUntil: 'domcontentloaded' })

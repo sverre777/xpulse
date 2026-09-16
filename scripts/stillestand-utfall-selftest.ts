@@ -9,7 +9,13 @@
 //
 // Derfor uttrykker denne fila ÉN ting, og den er løftet selv:
 //
-//     ren treningstid FØR - ren treningstid ETTER = stoppets varighet
+//     treningstid FØR - treningstid ETTER = stoppets varighet
+//
+// ORDBRUK (Sverre 16. sep): TOTALTID betyr TRENINGSTIDEN i X-PULSE, og den
+// SKAL gå ned når pauser legges inn. ELAPSED er klokkas spenn, med pauser
+// og alt, og den står. Invarianten «radene dekker samme spenn» handler om
+// summen av ALLE radene inkludert pauser - den het «totaltida er uendret»
+// og ble døpt om, fordi to ting med samme navn er hvordan dette startet.
 //
 // Alt annet kommer etter den.
 //
@@ -71,7 +77,7 @@ function loftet(navn: string, rader: Rad[], stopp: Stillestand[]) {
   const stoppSek = stopp.reduce((s, p) => s + (p.tilSek - p.fraSek), 0)
   ok(`${navn}: ren treningstid ned med nøyaktig stoppets lengde (${stoppSek} s)`,
     for_ - etterTid === stoppSek, `${for_} -> ${etterTid}, ventet ${for_ - stoppSek}`)
-  ok(`${navn}: TOTALTIDA er uendret`,
+  ok(`${navn}: radene dekker samme spenn`,
     sumVarighet(etter.rader) === totalFor, `${totalFor} -> ${sumVarighet(etter.rader)}`)
   return etter
 }
@@ -109,7 +115,7 @@ console.log('\nFormen på resultatet')
   const ut = splittForStillestand([rad('aktivitet', 0, 120)], [{ fraSek: 0, tilSek: 117 }])
   ok('rest under minstemålet blir ikke en egen rad', ut.rader.length <= 2,
     JSON.stringify(ut.rader.map(r => [r.activity_type, r.window_duration_seconds])))
-  sjekk('totaltida står likevel', sumVarighet(ut.rader), 120)
+  sjekk('radene dekker samme spenn', sumVarighet(ut.rader), 120)
 }
 {
   const ut = splittForStillestand([rad('aktivitet', 0, 3600)], [])
@@ -132,7 +138,7 @@ console.log('\nVakter')
   ok('stopp på grensa treffer bare ÉN av radene',
     ut.rader.filter(r => r.activity_type === 'pause').length === 1,
     JSON.stringify(ut.rader.map(r => [r.activity_type, r.window_start_seconds, r.window_duration_seconds])))
-  sjekk('totaltida står', sumVarighet(ut.rader), 3600)
+  sjekk('radene dekker samme spenn', sumVarighet(ut.rader), 3600)
 }
 {
   // Ingen rad skal noen gang få varighet 0, uansett hvor stoppet ligger.
@@ -156,7 +162,7 @@ function angreLoftet(navn: string, rader: Rad[], stopp: Stillestand[]) {
   const tilbake = angreSplitt(etterSplitt.rader)
   ok(`${navn}: REN TRENINGSTID ETTER ANGRE == FØR SPLITTEN`,
     renTid(tilbake.rader) === forTid, `${forTid} -> ${renTid(etterSplitt.rader)} -> ${renTid(tilbake.rader)}`)
-  ok(`${navn}: totaltida er tilbake`, sumVarighet(tilbake.rader) === forTotal,
+  ok(`${navn}: radene dekker samme spenn igjen`, sumVarighet(tilbake.rader) === forTotal,
     `${forTotal} -> ${sumVarighet(tilbake.rader)}`)
   ok(`${navn}: like mange rader som før`, tilbake.rader.length === rader.length,
     `${rader.length} -> ${etterSplitt.rader.length} -> ${tilbake.rader.length}`)
@@ -366,7 +372,7 @@ console.log('\nTO TIDSBEGREPER SOM IKKE SKAL BLANDES')
   const rader = [rad2('a', 1279), rad2('b', 2355)]
   const plass = new Map([['a', { fra: 0, til: 1279 }], ['b', { fra: 1279, til: 3633 }]])
   const ut = splittForStillestand(rader, [{ fraSek: 961, tilSek: 1034 }, { fraSek: 1642, tilSek: 1931 }], { plass })
-  ok('TOTALTIDA STÅR selv når kurven og radene spriker',
+  ok('RADENES SPENN STÅR selv når kurven og radene spriker',
     sumVarighet(ut.rader) === sumVarighet(rader),
     `rader ${sumVarighet(rader)} · kurve 3633 · etter ${sumVarighet(ut.rader)}`)
   ok('hver rads deler summerer radens EGEN varighet',

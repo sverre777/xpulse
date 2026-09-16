@@ -14,7 +14,8 @@
     "skyting-selftest": "tsx scripts/skyting-konvertering-selftest.ts",
     "next-selftest": "tsx scripts/next-selftest.ts",
     "endringslogg-selftest": "tsx scripts/endringslogg-selftest.ts",
-    "stillestand-utfall": "tsx scripts/stillestand-utfall-selftest.ts"
+    "stillestand-utfall": "tsx scripts/stillestand-utfall-selftest.ts",
+    "varighet-vern": "tsx scripts/varighet-vern-selftest.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

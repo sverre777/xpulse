@@ -8,6 +8,7 @@ import { pulsIVindu } from '@/lib/segmenter'
 import { PAUSE_TYPER, VEKSLING_TYPER, normaliserBevform, normaliserUnderkategori } from '@/lib/types'
 import { dbFeilTekst } from '@/lib/db-feil'
 import { finnEndringer, OKT_FELTER, type Endring } from '@/lib/endringslogg'
+import { varighetsFelt } from '@/lib/varighet-vern'
 import { loggEndringer } from '@/lib/coach-audit'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
@@ -702,6 +703,20 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   const activityKm      = acts.reduce((s, a) => s + (parseDecimal(a.distance_km) || 0), 0)
   const activityElev    = acts.reduce((s, a) => s + (parseInt(a.elevation_gain_m) || 0), 0)
   const totalMinutes  = activityMinutes || movementMinutes
+  // VARIGHETSVERNET (lib/varighet-vern): en lagring skal ALDRI skrive null
+  // over en varighet som står der fra før. `totalMinutes || null` blandet
+  // «vi regnet ut null» med «vi klarte ikke å regne ut», og slettet
+  // varigheten klokka hadde levert hver gang noen lagret en økt uten
+  // aktivitetsrader. Målt 16. sep: 17 av 18 importerte økter uten varighet
+  // var lagret på nytt etter import.
+  //
+  // harGrunnlag skiller de to: fantes det rader eller bevegelsesformer å
+  // regne FRA? Er svaret nei, utelates feltet fra payloaden og basen
+  // beholder sitt tall. 0 er fortsatt et lovlig svar og skrives som 0.
+  const varighetGrunnlag = {
+    harGrunnlag: acts.length > 0 || data.movements.length > 0,
+    regnet: totalMinutes,
+  }
   const totalKm       = activityKm || movementKm
   const totalElev     = activityElev || movementElev
 
@@ -751,7 +766,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     title: data.title,
     sport: data.sport,
     workout_type: data.workout_type,
-    duration_minutes: totalMinutes || null,
+    ...varighetsFelt('duration_minutes', varighetGrunnlag),
     distance_km: totalKm || null,
     elevation_meters: totalElev || null,
     notes: data.notes || null,
@@ -771,7 +786,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     workout_type: data.workout_type,
     date: data.date,
     time_of_day: data.time_of_day || null,
-    duration_minutes: totalMinutes || null,
+    ...varighetsFelt('duration_minutes', varighetGrunnlag),
     distance_km: totalKm || null,
     elevation_meters: totalElev || null,
     notes: data.notes || null,

@@ -143,17 +143,27 @@ export const SEGMENT_STRIPET: ReadonlySet<SegmentType> = new Set<SegmentType>(['
 /**
  * CSS-bakgrunn for et segment - farge, evt. med tekstur.
  *
- * AKTIV PAUSE får en tynn sonefarget stripe langs overkanten når sonen er
- * kjent. Samme prinsipp som vekslingsstripene: fargerommet er brukt opp mot
- * fargefasiten, så tekstur bærer det fargen ikke kan. Stripa sier HVILKEN
- * SONE; blokka sier fortsatt «pausefamilie».
+ * PAUSENE får en tynn sonefarget stripe langs overkanten når sonen er
+ * kjent - BEGGE: aktiv pause og ren pause (Sverre 16. sep: «sone i øktgraf
+ * skal vises selv om det er aktiv pause. pause er grå ok, men bør mulig
+ * vise sone den og, men markeres som pause»). Samme prinsipp som
+ * vekslingsstripene: fargerommet er brukt opp mot fargefasiten, så tekstur
+ * bærer det fargen ikke kan. Stripa sier HVILKEN SONE; blokka sier
+ * fortsatt «pausefamilie» - grunnfargen er pausegrå, aldri sonefargen, og
+ * etiketten leser fortsatt «Pause».
  *
- * UTEN SONE: ingen stripe. En aktiv pause ført for hånd uten sone har ingen,
- * og skal se ut som før - aldri en oppdiktet sone.
+ * Dette er VISNING. Ren pause står fortsatt utenfor treningstida
+ * (IKKE_TRENINGSTID_TYPER); ingen sum leser stripa.
+ *
+ * SKYTING FÅR ALDRI STRIPE: skytetypene starter med 'skyting' og er ikke i
+ * PAUSE_SEGMENTER. Fargefasiten står: skyting er pausegrå med målskive.
+ *
+ * UTEN SONE: ingen stripe. En pause uten sone skal se ut som før - aldri
+ * en oppdiktet sone.
  */
 export function segmentBakgrunn(type: SegmentType, soneFarge?: string | null): string {
   const farge = SEGMENT_FARGER[type]
-  if (type === 'aktiv_pause' && soneFarge) {
+  if (erPauseSegment(type) && soneFarge) {
     return `linear-gradient(to bottom, ${soneFarge} 0 3px, ${farge} 3px 100%)`
   }
   if (!SEGMENT_STRIPET.has(type)) return farge
@@ -167,7 +177,7 @@ export interface SegmentRad {
   duration_seconds: number | null
   window_start_seconds: number | null
   window_duration_seconds: number | null
-  /** Sonene på raden - brukes bare til sonestripa på aktiv pause.
+  /** Sonene på raden - brukes bare til sonestripa på pausene.
       Bevisst løs type: skjemaet har tekst (ActivityZoneMinutes), basen har
       tall, og begge skal kunne sendes inn uten konvertering. */
   zones?: Readonly<Record<string, unknown>> | null
@@ -281,17 +291,22 @@ export function beregnSegmenter(rader: SegmentRad[], totalSek: number): Segment[
       paaKurven: kl.type.startsWith(SKYTING_PREFIX),
       kilde: plassert ? 'plassert' : 'runde',
       gruppeId: r.gruppeId ?? null,
-      soneFarge: kl.type === 'aktiv_pause' ? dominantSoneFarge(r.zones) : null,
+      // MÅLT 16. sep: klassifiser gir type 'pause' for BÅDE pause og
+      // aktiv_pause (etiketten skiller dem), så `=== 'aktiv_pause'` her var
+      // aldri sann - stripa fra 678f3b2 nådde grafen bare via
+      // segmentTypeFor (bånd/bygger), ikke via denne funksjonen. Med
+      // erPauseSegment får begge pausene stripa, skyting aldri.
+      soneFarge: erPauseSegment(kl.type) ? dominantSoneFarge(r.zones) : null,
     })
   }
   return ut
 }
 
 /**
- * Fargen på sonen raden brukte mest tid i - stripa på aktiv pause.
+ * Fargen på sonen raden brukte mest tid i - stripa på pausene.
  *
- * Null når sonen er ukjent. Da tegnes ingen stripe: en aktiv pause ført
- * for hånd uten sone skal se ut som før, ikke få en oppdiktet sone.
+ * Null når sonen er ukjent. Da tegnes ingen stripe: en pause ført for
+ * hånd uten sone skal se ut som før, ikke få en oppdiktet sone.
  */
 function dominantSoneFarge(zones: SegmentRad['zones']): string | null {
   if (!zones) return null

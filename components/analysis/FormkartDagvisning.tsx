@@ -86,7 +86,7 @@ export function FormkartDagvisning({ dag, historikk, helseInkludert, harSkyting,
                     {ALL_ZONE_NAMES.filter(z => (o.soneSek[z] ?? 0) > 0).map(z => <i key={z} style={{ display: 'block', background: ZONE_COLORS_V2[z], width: `${((o.soneSek[z] ?? 0) / sum * 100).toFixed(1)}%` }} />)}
                   </div>
                 )}
-                <a href={`${targetUserId ? `/app/trener/utover/${targetUserId}/dagbok` : '/app/dagbok'}?edit=${o.id}`} data-formkart-dag-se className="xp-pill xp-pill-ghost" style={{ minHeight: 32, padding: '0 10px', fontSize: 11 }}>Se økta</a>
+                <a href={`${targetUserId ? `/app/trener/${targetUserId}/dagbok` : '/app/dagbok'}?edit=${o.id}`} data-formkart-dag-se className="xp-pill xp-pill-ghost" style={{ minHeight: 32, padding: '0 10px', fontSize: 11 }}>Se økta</a>
               </div>
             )
           })}

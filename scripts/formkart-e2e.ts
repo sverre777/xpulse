@@ -7,7 +7,7 @@
 // IKKE PÅ PREBUILD: lager ekte brukere i prod og rydder dem etterpå.
 
 import {
-  admin, PASS, krevSamtykke, lagBruker, girAbonnement, rydd, status, lagSjekker, UTOVER_META,
+  admin, PASS, krevSamtykke, lagBruker, girAbonnement, rydd, status, lagSjekker, UTOVER_META, TRENER_META,
 } from './testbrukere.ts'
 
 const PREFIKS = 'cc-fkrt'
@@ -24,7 +24,9 @@ type Element = {
   boundingBox: () => Promise<{ x: number; y: number; width: number; height: number } | null>
   scrollIntoViewIfNeeded: () => Promise<void>
 }
+type Svar = { url: () => string; status: () => number; request: () => { method: () => string; headers: () => Record<string, string> }; text: () => Promise<string>; headers: () => Record<string, string> }
 type Side = {
+  on: (ev: 'response', cb: (r: Svar) => void) => void
   setDefaultTimeout: (n: number) => void; goto: (u: string, o?: unknown) => Promise<unknown>
   fill: (s: string, v: string) => Promise<void>; waitForTimeout: (n: number) => Promise<void>
   getByRole: (r: string, o?: unknown) => Element; locator: (s: string) => Element
@@ -54,7 +56,13 @@ async function loggInn(b: Nettleser, epost: string, bredde = 1400): Promise<Side
   return p
 }
 
-const dagerSiden = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10) }
+// LOKAL dato, ikke toISOString: etter kl. 00 norsk tid er UTC-datoen fortsatt i går,
+// og appen regner «i dag» i Europe/Oslo (iDagISO). Målt 17. sep 00:30 - hele
+// seeden lå én dag feil. Samme felle som xpulse-idag-europe-oslo.
+const dagerSiden = (n: number) => {
+  const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - n)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 export async function seedFormkart(uid: string): Promise<{ oktDato: string; helseDato: string }> {
   // Terskel 180 fra lenge siden - % av terskel skal regnes mot den.
@@ -231,6 +239,54 @@ try {
   const lpt2 = (await lp.textContent()) ?? ''
   sjekk('Terskel: rå puls-bryteren viser valgt akse synlig', lpt2.includes('Akse: rå puls') && (await p.locator('[data-laktat-akse="puls"]').getAttribute('aria-pressed')) === 'true')
 
+  // BOLK 7: TRENER OG HELSEGATING - PAYLOAD-BEVIS, ikke UI-bevis.
+  // Treneren har egne helsetall (HRV 99) så «utøverens tall, ikke sine egne» kan måles.
+  const tr = await lagBruker(PREFIKS, 'tr', 'CC Trener', TRENER_META)
+  await girAbonnement(tr.uid, 'trener_pro')
+  maa(await admin.from('health_metrics').insert({ user_id: tr.uid, date: helseDato, hrv_ms: 99, resting_hr: 99, sources: { hrv_ms: 'manual', resting_hr: 'manual' } }), 'trenerhelse')
+  const rel = maa(await admin.from('coach_athlete_relations').insert({
+    coach_id: tr.uid, athlete_id: ut.uid, status: 'active',
+    can_edit_plan: true, can_view_dagbok: true, can_view_analysis: true, can_edit_periodization: true,
+  }).select('id').single(), 'relasjon') as { id: string }
+  maa(await admin.from('coach_data_permissions').insert({ coach_athlete_relation_id: rel.id, can_see_health_data: false }), 'rettighet')
+
+  const t = await loggInn(b, tr.epost)
+  const svar: { url: string; type: string; body: string }[] = []
+  t.on('response', r => {
+    if (r.request().method() !== 'POST') return
+    r.text().then(body => svar.push({ url: r.url(), type: r.headers()['content-type'] ?? '', body })).catch(() => {})
+  })
+  const hentFormkartSvar = () => svar.filter(x => x.type.includes('text/x-component') && x.body.includes('helseInkludert'))
+  await t.goto(`${BASE}/app/trener/${ut.uid}/analyse`, { waitUntil: 'domcontentloaded' })
+  await t.locator('[data-formkart-graf]').waitFor({ timeout: 90000 })
+  await t.waitForTimeout(800)
+  let uten = hentFormkartSvar()
+  for (let i = 0; i < 20 && uten.length === 0; i++) { await t.waitForTimeout(300); uten = hentFormkartSvar() }
+  const kropp = uten.map(x => x.body).join('\n')
+  sjekk('trener UTEN can_see_health_data: formkart-payloaden (text/x-component) har ingen helse-nøkkel, ingen hrv/hvilepuls/sovn/folelse', uten.length > 0 && !kropp.includes('"helse"') && !/"hrv"|"hvilepuls"|"sovnTimer"|"folelse"/.test(kropp) && kropp.includes('"helseInkludert":false'), kropp.slice(0, 200))
+  sjekk('trener UTEN: flaten SIER at helsebanene er skjult, og tegner ingen HRV-linje', (await t.locator('[data-formkart-helse-skjult]').count()) === 1 && (await t.locator('[data-formkart] path[data-linje="hrv"]').count()) === 0)
+  const html = await (await fetch(`${BASE}/app/trener/${ut.uid}/analyse`, { headers: { cookie: '' } })).text()
+  sjekk('text/html (uinnlogget) bærer ingen helsetall', !/"hrv_ms"|"hrv":/.test(html))
+  sjekk('trener: «Se økta» peker til trenerens dagbokrute for utøveren, aldri /app/dagbok', await (async () => {
+    await t.locator('[data-formkart-graf]').first().scrollIntoViewIfNeeded(); await t.waitForTimeout(300)
+    const bbT = (await t.locator('[data-formkart-graf]').first().boundingBox())!
+    await t.mouse.click(bbT.x + px / 1100 * bbT.width, bbT.y + 120)
+    await t.locator('[data-formkart-dag-se]').first().waitFor({ timeout: 10000 })
+    return ((await t.locator('[data-formkart-dag-se]').first().getAttribute('href')) ?? '').startsWith(`/app/trener/${ut.uid}/dagbok?edit=`)
+  })())
+
+  // Gaten åpnes: nå skal tallene være UTØVERENS (60), ikke trenerens (99) - og «uten»-sjekken skal bite.
+  maa(await admin.from('coach_data_permissions').update({ can_see_health_data: true }).eq('coach_athlete_relation_id', rel.id), 'rettighet på')
+  svar.length = 0
+  await t.goto(`${BASE}/app/trener/${ut.uid}/analyse`, { waitUntil: 'domcontentloaded' })
+  await t.locator('[data-formkart] path[data-linje="hrv"]').waitFor({ state: 'attached', timeout: 90000 })
+  let med = hentFormkartSvar()
+  for (let i = 0; i < 20 && med.length === 0; i++) { await t.waitForTimeout(300); med = hentFormkartSvar() }
+  const kropp2 = med.map(x => x.body).join('\n')
+  sjekk('trener MED rettighet: payloaden har helse med utøverens HRV 60, ikke trenerens 99', kropp2.includes('"helseInkludert":true') && /"hrv":60/.test(kropp2) && !/"hrv":99/.test(kropp2), kropp2.slice(0, 200))
+  sjekk('testen biter: samme «ingen helse»-predikat er usant når gaten er åpen', !( !kropp2.includes('"helse"') && !/"hrv"/.test(kropp2) ))
+  sjekk('trener MED: ingen «skjult»-lapp, HRV-linja tegnes', (await t.locator('[data-formkart-helse-skjult]').count()) === 0 && (await t.locator('[data-formkart] path[data-linje="hrv"]').count()) === 1)
+
   // Mobil: Lav/Med/Høy er standard under 640 px.
   const pm = await loggInn(b, ut.epost, 390)
   await pm.goto(`${BASE}/app/analyse`, { waitUntil: 'domcontentloaded' })
@@ -243,7 +299,9 @@ try {
   const uids = (brukere ?? []).map(x => x.id as string)
   const tellRest = async (t: string) => { const { count } = await admin.from(t).select('*', { count: 'exact', head: true }).in('user_id', uids.length ? uids : ['00000000-0000-0000-0000-000000000000']); return count ?? 0 }
   console.log('\nRYDDET  før :', r.for)
-  console.log('        etter:', r.etter, `· profiler igjen: ${r.igjen} · health_metrics: ${await tellRest('health_metrics')} · day_states: ${await tellRest('day_states')} · user_thresholds: ${await tellRest('user_thresholds')}`)
+  const { count: rettIgjen } = await admin.from('coach_data_permissions').select('*', { count: 'exact', head: true })
+    .in('coach_athlete_relation_id', ((await admin.from('coach_athlete_relations').select('id').in('coach_id', uids.length ? uids : ['00000000-0000-0000-0000-000000000000'])).data ?? []).map(x => x.id as string).concat(['00000000-0000-0000-0000-000000000000']))
+  console.log('        etter:', r.etter, `· profiler igjen: ${r.igjen} · health_metrics: ${await tellRest('health_metrics')} · day_states: ${await tellRest('day_states')} · user_thresholds: ${await tellRest('user_thresholds')} · coach_data_permissions: ${rettIgjen ?? 0}`)
   const { ok, feil } = tall()
   console.log(`\n${ok} OK · ${feil} FEIL\n`)
   if (feil > 0 || r.igjen > 0) process.exitCode = 1

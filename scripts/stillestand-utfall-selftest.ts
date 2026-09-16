@@ -98,5 +98,36 @@ console.log('\nFormen på resultatet')
   sjekk('ingen stopp: radene er urørt', ut.rader.length, 1)
 }
 
+console.log('\nVakter')
+{
+  // Et stopp som starter FØR raden og slutter ETTER den: hele raden er pause.
+  const ut = splittForStillestand([rad('aktivitet', 600, 300)], [{ fraSek: 0, tilSek: 5000 }])
+  sjekk('stopp som omslutter raden: én pause', ut.rader.map(r => r.activity_type), ['pause'])
+  sjekk('og bare radens egen tid', sumVarighet(ut.rader), 300)
+}
+{
+  // Stoppet ligger nøyaktig på radgrensa: ingen nulllange biter.
+  const rader = [rad('oppvarming', 0, 900), rad('aktivitet', 900, 2700)]
+  const ut = splittForStillestand(rader, [{ fraSek: 900, tilSek: 960 }])
+  ok('ingen rad har varighet 0', ut.rader.every(r => (r.window_duration_seconds ?? 0) > 0),
+    JSON.stringify(ut.rader.map(r => [r.activity_type, r.window_duration_seconds])))
+  ok('stopp på grensa treffer bare ÉN av radene',
+    ut.rader.filter(r => r.activity_type === 'pause').length === 1,
+    JSON.stringify(ut.rader.map(r => [r.activity_type, r.window_start_seconds, r.window_duration_seconds])))
+  sjekk('totaltida står', sumVarighet(ut.rader), 3600)
+}
+{
+  // Ingen rad skal noen gang få varighet 0, uansett hvor stoppet ligger.
+  let verst = ''
+  for (let start = 0; start <= 3600; start += 97) {
+    for (const lengde of [1, 14, 15, 60, 600]) {
+      const ut = splittForStillestand([rad('aktivitet', 0, 3600)], [{ fraSek: start, tilSek: start + lengde }])
+      if (!ut.rader.every(r => (r.window_duration_seconds ?? 0) > 0)) verst = `start ${start} lengde ${lengde}`
+      if (sumVarighet(ut.rader) !== 3600) verst = `TOTALTID BRAST: start ${start} lengde ${lengde}`
+    }
+  }
+  ok('190 plasseringer: aldri en nulllang rad, aldri endret totaltid', verst === '', verst)
+}
+
 console.log(feil === 0 ? '\nALT OK\n' : `\n${feil} FEIL\n`)
 process.exit(feil === 0 ? 0 : 1)

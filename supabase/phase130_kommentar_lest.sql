@@ -46,6 +46,14 @@
 /* utovere. Divergerer de to, er vi tilbake til feil 1 - derfor er */ 
 /* betingelsen skrevet ut her, ikke gjemt i en hjelpefunksjon. */ 
 /* */ 
+/* MAALT 16. sep, ved kjoring: Supabase sin SQL-editor kjorer IKKE denne */ 
+/* fila som EN transaksjon. Funksjonen overlevde en feil lenger nede i */ 
+/* samme fil, altsa ble den committet for feilen kom. Foerste utkast */ 
+/* hadde en temp-tabell med «on commit drop» for aa fryse FOR-tallene; */ 
+/* den var borte da assertionene kjorte (42P01). Den er fjernet - den */ 
+/* brot ogsaa den staaende regelen «ingen temp-tabeller» i migreringene. */ 
+/* FOR/ETTER leses som egne blokker for og etter fila. */ 
+/* */ 
 /* Ingen datarader endres av migrasjonen selv. */ 
 /* Kolonnene er sjekket mot phase26_coach_panel.sql:152-164 */ 
 /* (coach_comments: id, author_id, athlete_id, is_read) og mot */ 
@@ -60,12 +68,6 @@ select 'FØR' as steg,
          where n.nspname = 'public' 
            and p.proname = 'merk_kommentarer_lest') as funksjonen_finnes, 
        (select count(*) from public.coach_comments) as antall_rader, 
-       (select count(*) from public.coach_comments where is_read) as antall_lest; 
- 
-/* Tallene fryses her, sa assertionen under kan sammenligne mot dem. */ 
-/* on commit drop: tabellen forsvinner nar transaksjonen er ferdig. */ 
-create temporary table _fase130_for on commit drop as 
-select (select count(*) from public.coach_comments) as antall_rader, 
        (select count(*) from public.coach_comments where is_read) as antall_lest; 
  
 create or replace function public.merk_kommentarer_lest(p_ids uuid[]) 
@@ -156,12 +158,18 @@ select 'execute er gitt til authenticated, og IKKE til public eller anon',
             and p.proname = 'merk_kommentarer_lest' 
        ) then 'OK' else 'FEIL' end 
 union all 
-/* Migrasjonen skal opprette en funksjon, ikke rore data. Star det FEIL */ 
-/* her, har noe merket kommentarer lest - og da skal den rulles tilbake. */ 
-select 'ingen rad har endret is_read (migrasjonen rorer ikke data)', 
-       case when (select f.antall_lest from _fase130_for f) 
-               = (select count(*) from public.coach_comments where is_read) 
-         then 'OK' else 'FEIL' end 
+/* Signaturen: kallstedet sender uuid[] og leser et tall tilbake. Er */ 
+/* argumenttypen en annen, gir PostgREST PGRST202 «finner ikke funksjonen» */ 
+/* - nøyaktig symptomet vi holder paa aa fjerne. */ 
+select 'signaturen er (uuid[]) og returnerer integer', 
+       case when exists ( 
+         select 1 from pg_proc p 
+           join pg_namespace n on n.oid = p.pronamespace 
+          where n.nspname = 'public' 
+            and p.proname = 'merk_kommentarer_lest' 
+            and pg_get_function_identity_arguments(p.oid) = 'uuid[]' 
+            and pg_get_function_result(p.oid) = 'integer' 
+       ) then 'OK' else 'FEIL' end 
 union all 
 select 'AVLESNING: radtall uendret i coach_comments (FØR = ETTER over)', 
        'SE TALLENE'; 

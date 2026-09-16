@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="nb" data-tema="mørk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-PULSE - Formkartet (designutkast)</title>
+<style>
+/* ============================================================
+   X-PULSE - FORMKARTET
+   Designutkast. Fargene er hentet fra design/fargefasit.md.
+   Alt bygges for lys og mørk (regel 23). Kun vanlig bindestrek (regel 31).
+   ============================================================ */
+
+:root[data-tema="mørk"]{
+  --bg:#0A0A0B; --card:#101014; --card2:#15151B;
+  --line:#1F1F26; --line2:#2A2A33; --line3:#34343E;
+  --ink:#F2F2F0; --ink2:#DEDEE6; --mut:#8B8B95; --dim:#5A5A64; --dim2:#3A3A44;
+  --snitt:#F0F0F2; --tom:#1E1E22;
+  --slor:linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%);
+}
+:root[data-tema="lys"]{
+  --bg:#F4F4F5; --card:#EBEBEF; --card2:#E4E4EA;
+  --line:#D9D9E0; --line2:#CCCCD5; --line3:#C1C1CB;
+  --ink:#0F0F0D; --ink2:#191921; --mut:#6A6A74; --dim:#9B9BA5; --dim2:#BBBBC5;
+  --snitt:#0D0D0F; --tom:#DDDDE1;
+  --slor:none;
+}
+:root{
+  /* Aksenter - samme hex i begge tema (fargefasit pkt 1) */
+  --orange:#FF4500; --blue:#1A6FD4; --green:#28A86E; --gold:#D4A017; --red:#E23A5A;
+  /* Soner - ZONE_COLORS_V2 */
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A; --hurt:#8B5CF6;
+  /* Helse - lib/helse-farger.ts */
+  --hrv:#8B5CF6; --hvilepuls:#E23A5A; --søvn:#1A6FD4;
+  /* Status - lib/status-farger.ts */
+  --st-gronn:#28A86E; --st-gul:#D4A017; --st-rod:#E11D48;
+  --r:14px; --r-sm:10px;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0; background:var(--slor),var(--bg); color:var(--ink);
+  font-family:"Barlow",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:28px 20px 80px}
+h1,h2,h3,.kond{font-family:"Barlow Condensed","Barlow",sans-serif; font-weight:700; letter-spacing:.02em}
+
+/* Topplinje */
+.topp{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:6px}
+.logo{width:30px;height:30px;flex:none}
+.topp h1{font-size:30px; margin:0; text-transform:uppercase}
+.topp .und{color:var(--mut); font-size:13px; margin:0}
+.temaknapp{
+  margin-left:auto; min-height:38px; padding:0 16px; border-radius:999px;
+  border:1px solid var(--line2); background:var(--card); color:var(--ink2);
+  font:inherit; font-size:12.5px; text-transform:uppercase; letter-spacing:.05em;
+}
+.temaknapp:hover{border-color:var(--line3)}
+
+/* Kort */
+.kort{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+  padding:18px 18px 16px; margin-top:18px;
+}
+.kort-topp{display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:4px}
+.kort h2{font-size:19px; margin:0; text-transform:uppercase}
+.kort .und{color:var(--mut); font-size:12.5px; margin:3px 0 0; max-width:74ch}
+
+/* Kontrollrad - ALLTID synlig over grafen (regel 20 + konvensjon om skjulte filtre) */
+.kontroller{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  margin:14px 0 6px; padding-bottom:14px; border-bottom:1px solid var(--line);
+}
+.seg{display:inline-flex; background:var(--card2); border:1px solid var(--line); border-radius:999px; padding:3px}
+.seg button{
+  min-height:36px; padding:0 14px; border:0; border-radius:999px; background:transparent;
+  color:var(--mut); font:inherit; font-size:12.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+}
+.seg button[aria-pressed="true"]{background:var(--orange); color:#fff}
+.seg.rolig button[aria-pressed="true"]{background:var(--line3); color:var(--ink)}
+.kontroller label{display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:0 10px; color:var(--mut); font-size:12.5px}
+.kontroller input[type=checkbox]{width:16px;height:16px; accent-color:var(--orange)}
+.filterlapp{
+  display:inline-flex; align-items:center; gap:8px; min-height:36px; padding:0 12px;
+  border-radius:999px; border:1px solid var(--orange); background:rgba(255,69,0,.12);
+  color:var(--ink); font-size:12.5px;
+}
+.filterlapp b{font-weight:700}
+
+/* Legend */
+.legend{display:flex; flex-wrap:wrap; gap:6px 16px; margin:10px 0 2px; font-size:12px; color:var(--mut)}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.sw{width:11px;height:11px;border-radius:3px;flex:none}
+.sw.linje{height:3px;border-radius:2px;width:16px}
+
+/* Graf */
+.grafboks{position:relative; width:100%; overflow-x:auto}
+svg.graf{display:block; width:100%; min-width:680px; height:auto}
+.lane-navn{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; fill:var(--mut); font-weight:700}
+.akse{font-size:10px; fill:var(--dim)}
+.rutenett{stroke:var(--line); stroke-width:1}
+.nulllinje{stroke:var(--line2); stroke-width:1}
+
+/* Tooltip */
+.tip{
+  position:absolute; pointer-events:none; opacity:0; transition:opacity .08s;
+  background:var(--card2); border:1px solid var(--line2); border-radius:var(--r-sm);
+  padding:10px 12px; font-size:12px; min-width:186px; z-index:5;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+}
+.tip h4{margin:0 0 6px; font-size:12.5px; font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.04em}
+.tip .rad{display:flex; justify-content:space-between; gap:18px; margin:2px 0; color:var(--mut)}
+.tip .rad b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+.tip .merk{margin-top:7px; padding-top:7px; border-top:1px solid var(--line); color:var(--ink2); font-size:11.5px}
+
+/* Dagvisning */
+.daggrid{display:grid; grid-template-columns:1.25fr 1fr; gap:16px; margin-top:14px}
+.dagboks{background:var(--card2); border:1px solid var(--line); border-radius:var(--r-sm); padding:14px}
+.dagboks h3{margin:0 0 10px; font-size:14px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut)}
+.tall{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.tall div{background:var(--card); border:1px solid var(--line); border-radius:var(--r-sm); padding:9px 10px}
+.tall .n{font-family:"Barlow Condensed",sans-serif; font-size:21px; white-space:nowrap; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums}
+.tall .e{font-size:10.5px; color:var(--mut); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+.tall .d{font-size:11px; margin-top:3px; font-variant-numeric:tabular-nums}
+.opp{color:var(--st-gronn)} .ned{color:var(--st-rod)} .flat{color:var(--mut)}
+
+.oktrad{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line)}
+.oktrad:last-child{border-bottom:0}
+.oktrad .navn{flex:1; min-width:0}
+.oktrad .navn b{display:block; font-size:13px; font-weight:600}
+.oktrad .navn span{font-size:11.5px; color:var(--mut)}
+.sonestripe{display:flex; height:8px; border-radius:4px; overflow:hidden; gap:2px; width:132px; flex:none}
+.sonestripe i{display:block}
+
+/* Sma kort */
+.minigrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(224px,1fr)); gap:14px; margin-top:14px}
+.mini{background:var(--card2); border:1px solid var(--line); border-radius:var(--r-sm); padding:13px 14px}
+.mini h4{margin:0 0 3px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); font-family:"Barlow Condensed",sans-serif}
+.mini .stor{font-family:"Barlow Condensed",sans-serif; font-size:31px; font-weight:700; line-height:1.05; font-variant-numeric:tabular-nums}
+.mini p{margin:5px 0 0; font-size:11.5px; color:var(--mut)}
+.mini.tomt .stor{color:var(--dim)}
+.forlite{color:var(--dim); font-size:12px; font-style:normal}
+
+/* Notat */
+.notat{margin-top:52px; border:1px dashed var(--line2); border-radius:var(--r); padding:24px; color:var(--mut); font-size:13px}
+.notat h2{font-size:22px; color:var(--ink); margin:0 0 12px; text-transform:uppercase}
+.notat h3{font-size:14px; color:var(--ink2); margin:18px 0 6px; text-transform:uppercase; letter-spacing:.05em}
+.notat li{margin:6px 0 6px 18px}
+.notat code{background:var(--card); border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-size:12px; color:var(--ink2)}
+.notat .ja{color:var(--st-gronn)} .notat .nei{color:var(--st-rod)} .notat .obs{color:var(--st-gul)}
+
+/* Plasseringskart */
+table.kart{width:100%; border-collapse:collapse; margin-top:14px; font-size:12.5px}
+table.kart th{
+  text-align:left; padding:8px 10px; border-bottom:1px solid var(--line2); color:var(--mut);
+  font-family:"Barlow Condensed",sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+}
+table.kart td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+table.kart tr:last-child td{border-bottom:0}
+table.kart td:first-child{color:var(--ink); font-weight:600}
+table.kart .sted{color:var(--orange); font-weight:600; white-space:nowrap}
+table.kart .ny{color:var(--st-gronn)} table.kart .finnes{color:var(--mut)}
+table.kart code{background:var(--card); border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:11px}
+.kartwrap{overflow-x:auto}
+
+@media (max-width:760px){
+  .daggrid{grid-template-columns:1fr}
+  .tall{grid-template-columns:repeat(2,1fr)}
+  .topp h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topp">
+    <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 3 L21 21 M21 3 L3 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    </svg>
+    <div>
+      <h1>Formkartet</h1>
+      <p class="und">Belastning, soner, restitusjon og følelse på én delt tidsakse - designutkast</p>
+    </div>
+    <button class="temaknapp" id="tema">Lys modus</button>
+  </div>
+
+  <!-- ============ HOVEDGRAFEN ============ -->
+  <section class="kort">
+    <div class="kort-topp">
+      <div>
+        <h2>Belastning og restitusjon over tid</h2>
+        <p class="und">Fem baner, én tidsakse, ingen dobbel y-akse. Hver bane har sin egen enhet og sin egen skala -
+          det er tidspunktene som sammenlignes, aldri tallene på tvers. Hold over for å lese en dag, klikk for å åpne den.</p>
+      </div>
+    </div>
+
+    <div class="kontroller">
+      <div class="seg" role="group" aria-label="Periode">
+        <button data-dager="30">30 dager</button>
+        <button data-dager="90" aria-pressed="true">90 dager</button>
+        <button data-dager="180">180 dager</button>
+      </div>
+      <div class="seg rolig" role="group" aria-label="Soneoppdeling">
+        <button data-soner="fem" aria-pressed="true">I1-I5</button>
+        <button data-soner="tre">Lav / Med / Høy</button>
+      </div>
+      <label><input type="checkbox" id="visPlan" checked> Plan bak</label>
+      <label><input type="checkbox" id="visHard" checked> Merk hardøkter</label>
+      <span class="filterlapp" id="filterlapp" hidden>Filter: <b>Løping</b></span>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="grafboks" id="grafboks">
+      <svg class="graf" id="graf" viewBox="0 0 1100 560" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="Flerbane tidsserie: dagstatus, sonetid per dag, form, restitusjon og følelse"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+  </section>
+
+  <!-- ============ DAGVISNING ============ -->
+  <section class="kort">
+    <div class="kort-topp">
+      <div>
+        <h2>Dagen <span id="dagtittel" style="color:var(--mut); font-weight:400"></span></h2>
+        <p class="und">Samme dag som er valgt i kartet over. Trening og helse i ett bilde - ingen ny henting, samme lager.</p>
+      </div>
+    </div>
+
+    <div class="daggrid">
+      <div class="dagboks">
+        <h3>Trening</h3>
+        <div id="dagøkter"></div>
+        <div class="legend" style="margin-top:12px" id="dagsoner"></div>
+      </div>
+
+      <div class="dagboks">
+        <h3>Helse og følelse</h3>
+        <div class="tall" id="daghelse"></div>
+        <div id="dagskyting" hidden></div>
+        <div id="daglaktat" hidden></div>
+        <p class="und" style="margin-top:12px" id="dagnotat"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NYE NOKKELTALL ============ -->
+  <section class="kort">
+    <div class="kort-topp">
+      <div>
+        <h2>Mønstre i perioden</h2>
+        <p class="und">Visning, ikke råd. Tall som er regnet av data som allerede finnes - ingen modell, ingen prognose.
+          Under ti dager med verdier står det <em>for lite data</em> i stedet for et villedende tall.</p>
+      </div>
+    </div>
+    <div class="minigrid" id="mini"></div>
+  </section>
+
+  <!-- ============ STANDPLASSFORM ============ -->
+  <section class="kort" id="skyteseksjon">
+    <div class="kort-topp">
+      <div>
+        <h2>Standplassform mot fysisk form</h2>
+        <p class="und">Kun for skiskyttere. Skjules på «har utøveren skyting i det hele tatt», aldri på «er valgt periode tom».
+          Stående er stillingen som faller først når tretthet stiger - derfor står liggende og stående alltid hver for seg,
+          aldri som ett samletall.</p>
+      </div>
+    </div>
+    <div class="minigrid" id="skytetall"></div>
+    <div class="minigrid" id="skytekorr" style="margin-top:14px"></div>
+  </section>
+
+  <!-- ============ LAKTAT PER PULS ============ -->
+  <section class="kort" id="laktatseksjon">
+    <div class="kort-topp">
+      <div>
+        <h2>Laktat per puls</h2>
+        <p class="und">Hver måling plassert på <b>pulsen i prosent av terskelen som gjaldt den dagen</b>, ikke rå puls.
+          Da kan målinger fra ulike terskelperioder legges i samme bilde. Flytter kurven seg ned og til høyre, tåler du
+          mer arbeid før laktatet stiger. Kun målte verdier - planlagt laktat teller aldri som målt.</p>
+      </div>
+    </div>
+
+    <div class="kontroller">
+      <div class="seg rolig" role="group" aria-label="Akse">
+        <button data-lakt="pct" aria-pressed="true">% av terskel</button>
+        <button data-lakt="puls">Rå puls</button>
+      </div>
+      <span class="filterlapp" style="border-color:var(--line2); background:transparent; color:var(--mut)">
+        Terskelpuls i perioden: <b id="terskelspenn"></b></span>
+    </div>
+
+    <div class="legend" id="laktatlegend"></div>
+    <div class="grafboks">
+      <svg class="graf" id="laktatgraf" viewBox="0 0 1100 340" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="Laktat mot puls i prosent av terskel, delt i tre perioder"></svg>
+    </div>
+    <div class="minigrid" id="laktattall" style="margin-top:16px"></div>
+  </section>
+
+  <!-- ============ PLASSERINGSKART ============ -->
+  <section class="kort">
+    <div class="kort-topp">
+      <div>
+        <h2>Plasseringskart - hvor hver del bor</h2>
+        <p class="und">Én ting bor ett sted (regel 11). Ingenting av dette får en ny toppfane. Formkartet er inngangen på
+          Oversikt; dybden bor i fanen som allerede eier emnet. Alle nye grafer trenger egen <code>chartKey</code> i
+          <code>lib/graf-register.ts</code> for å kunne stjernemerkes - ingen nakne grafer.</p>
+      </div>
+    </div>
+    <div class="kartwrap">
+      <table class="kart">
+        <thead><tr><th>Del</th><th>Hvor</th><th>Plassering og begrunnelse</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Formkartet (hele flerbanegrafen)</td>
+            <td class="sted">Oversikt</td>
+            <td>Rett under <code>StatusKort</code> («Status nå»), full bredde. Det er periodens ene bilde og skal leses
+              før man velger fane. Krever <code>bred: true</code> i graf-registeret, som favoritt-kortene bruker.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Dagvisningen</td>
+            <td class="sted">Oversikt</td>
+            <td>Åpnes ved klikk i formkartet, rett under det. Samme komponent gjenbrukes ved dag-klikk i dagboka -
+              ett sted i koden, to monteringspunkter (samme mønster som plan-grafen og klokke-grafen).</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Monotoni · lengste strekk uten hviledag · hviledager per 28 dager</td>
+            <td class="sted">Belastning</td>
+            <td>Som <code>MetricCard</code>-gruppe over de eksisterende korrelasjonskortene i bolk 4. Det er
+              belastningsstruktur, ikke helse.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>HRV 7 dager mot 60-dagers grunnivå</td>
+            <td class="sted">Helse</td>
+            <td>Hører til helsefanen sammen med søvn og hvilepuls. Formkartets restitusjonsbane <em>viser</em> det
+              samme, men tallet bor her.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Sykdomsdager og hva som gikk forut</td>
+            <td class="sted">Helse</td>
+            <td>Under helsefanen, som observasjon. Aldri formulert som årsak.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Standplassform: treff liggende / stående over tid, puls inn, skytetid</td>
+            <td class="sted">Skyting</td>
+            <td>Ny bolk nederst i skytefanen, under <code>SkytingBolk8</code>. Skytedybden bor der den alltid har bodd.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Form (TSB) mot treff stående · puls inn mot treff stående</td>
+            <td class="sted">Skyting</td>
+            <td>Samme bolk. <b>Ikke</b> i bolk 4, selv om det er korrelasjonskort - de to som finnes der
+              (<code>belastning_korr_hrv_treff</code>, <code>belastning_korr_sovn_treff</code>) blir stående, og
+              skytefanen lenker dit i stedet for å kopiere dem.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Laktat per puls (% av terskel)</td>
+            <td class="sted">Terskel</td>
+            <td>Rett ved siden av <code>terskel_laktat_vs_intensitet</code> («Laktat ved samme fart / watt»).
+              Samme spørsmål, annen akse: pulsen er den eneste felles aksen for langrenn og skiskyting, der watt
+              mangler og terrenget varierer.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Laktat ved 90 og 100 % av terskel, før mot nå</td>
+            <td class="sted">Terskel</td>
+            <td>Som <code>MetricCard</code> over laktatgrafen, i samme bolk.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>Skytebanen i formkartet</td>
+            <td class="sted">Oversikt</td>
+            <td>Del av formkartet, ikke et eget kort. Skjules på «har utøveren skyting», aldri på tom periode.</td>
+            <td class="ny">Ny</td>
+          </tr>
+          <tr>
+            <td>HRV/hvilepuls mot CTL/ATL/TSB · de sju korrelasjonskortene · klar-stripa · opplevd mot TSS ·
+              custom belastningsgraf</td>
+            <td class="sted">Belastning</td>
+            <td>Står som i dag i <code>BelastningBolk4.tsx</code>.</td>
+            <td class="finnes">Finnes</td>
+          </tr>
+          <tr>
+            <td>Skyting: pivot, puls inn per økt, foregående drag-sone, skuddplott, bom-retning</td>
+            <td class="sted">Skyting</td>
+            <td>Står som i dag i <code>SkytingBolk8.tsx</code>.</td>
+            <td class="finnes">Finnes</td>
+          </tr>
+          <tr>
+            <td>Terskel over tid · estimert mot testet · laktat ved samme fart/watt · fart ved terskelpuls</td>
+            <td class="sted">Terskel / Prestasjon</td>
+            <td>Står som i dag i <code>TerskelBolk2.tsx</code> og <code>PrestasjonBolk3.tsx</code>.</td>
+            <td class="finnes">Finnes</td>
+          </tr>
+          <tr>
+            <td>Sonefordeling per uke · polarisering</td>
+            <td class="sted">Intensitet</td>
+            <td>Står som i dag. Formkartets sonebane er <em>per dag</em> og erstatter ikke ukefordelingen.</td>
+            <td class="finnes">Finnes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ NOTAT - REGLER ============ -->
+  <section class="notat">
+    <h2>Notat - regler</h2>
+    <p>Denne blokka er bindende fasit for CC. Ved sprik vinner <code>claude/x-pulse-status.md</code>.</p>
+
+    <h3>1. Hva dette er, og hva det IKKE er</h3>
+    <ul>
+      <li><b>Dette er en ny flate, ikke en erstatning.</b> <code>BelastningBolk4.tsx</code> (levert <code>ec6a4f7</code>)
+        har allerede HRV/hvilepuls mot CTL/ATL/TSB, sju korrelasjonskort, klar-stripa, opplevd mot TSS og custom
+        belastningsgrafen. <span class="nei">Ingenting av det bygges på nytt.</span></li>
+      <li><b>Det nye er tre ting:</b> (a) sonetid <em>per dag</em> på samme tidsakse som helsa - i dag finnes
+        sonefordeling kun per uke (<code>intensity_zones_per_week</code>); (b) hviledager, sykdom, skade, reise,
+        samling og konkurranse som en egen lesbar dagstripe over alt annet; (c) en dagvisning som viser trening og
+        helse i samme bilde.</li>
+      <li>Formkartet bor under <b>Analyse -&gt; Belastning</b>, over de eksisterende kortene i bolk 4. Det er
+        inngangen; korrelasjonskortene er dybden. Én ting bor ett sted (regel 11).</li>
+    </ul>
+
+    <h3>1b. Standplassform - hva som finnes fra før</h3>
+    <ul>
+      <li><span class="nei">Bygges IKKE på nytt:</span> <code>SkytingBolk8.tsx</code> (levert <code>2b02e43</code>)
+        har allerede pivot i custom skyting-graf, puls inn, foregående drag-sone, skuddplott-heatmap og bom-retning.
+        <code>BelastningBolk4.tsx</code> har allerede korrelasjonskortene <b>HRV mot treff %</b>
+        (<code>belastning_korr_hrv_treff</code>) og <b>Søvn mot treff %</b>
+        (<code>belastning_korr_sovn_treff</code>).</li>
+      <li><b>Det nye er fire ting:</b> (a) treff % som egen bane på den delte tidsaksen, slik at standplassform og
+        fysisk form leses i samme blikk; (b) <b>liggende og stående hver for seg over tid</b> - stående er
+        stillingen som faller først når tretthet stiger, og et samletall skjuler nettopp det signalet;
+        (c) puls inn på standplass og skytetid per serie som <em>trender</em>, ikke bare per økt;
+        (d) <b>form (TSB) mot treff stående</b> og <b>puls inn mot treff stående</b> - to korrelasjoner som ikke
+        finnes blant de sju i bolk 4.</li>
+      <li><b>Liggende og stående slås aldri sammen</b> til ett treff-tall i denne flaten. Skytefargene er fasit i
+        <code>SkytingSummaryCards.tsx</code>: liggende <code>#38BDF8</code>, stående <code>#FF4500</code>,
+        total <code>#F0F0F2</code> (regel 11).</li>
+      <li>Prikkstørrelsen i banen er <b>antall skudd</b>. Få skudd gir liten prikk - en 100 %-dag på fem skudd skal
+        ikke lese like tungt som 100 % på tjue.</li>
+      <li>Under fem økter med skyting: <b>«for lite data»</b> på nøkkeltallene. Under ti: «for lite data» på
+        korrelasjonene - <b>samme grense som bolk 4</b> (<code>KORR_MIN_N</code>).
+        <span class="nei">Ingen ny grense, den finnes.</span></li>
+      <li>Skyting-banen og hele seksjonen skjules på <b>«har utøveren skyting i det hele tatt»</b>, aldri på
+        «er valgt periode tom» (regel 20).</li>
+      <li><span class="obs">Verdt å merke seg:</span> dette er den delen av formkartet ingen konkurrent har.
+        CTL/ATL/TSB mot HRV finnes i Intervals.icu og TrainingPeaks. <b>Stående treff % mot form og puls inn
+        finnes ingen andre steder.</b></li>
+    </ul>
+
+    <h3>1c. Laktat per puls - hva som finnes fra før</h3>
+    <ul>
+      <li><span class="nei">Finnes allerede:</span> <code>terskel_laktat_vs_intensitet</code> («Laktat ved samme
+        fart / watt») i <code>TerskelBolk2.tsx</code>, og <code>prestasjon_fart_ved_terskel</code> («Fart / watt ved
+        terskelpuls») i <code>PrestasjonBolk3.tsx</code>. <b>Laktat mot PULS finnes ikke.</b></li>
+      <li><b>Hvorfor puls-aksen trengs i tillegg:</b> i langrenn og skiskyting finnes sjelden watt, og tempo styres av
+        terreng, føre og ski. Da er pulsen den eneste aksen målinger fra ulike dager kan legges i samme bilde på.
+        Watt-aksen er bedre der watt finnes - begge skal stå, de svarer på samme spørsmål med ulik gyldighet.</li>
+      <li><b>X-aksen er puls i prosent av terskelen som gjaldt den dagen</b>, ikke rå puls. Terskelen er versjonert
+        (<code>gjelder_fra</code>), og en måling fra mars skal ikke sammenlignes med en fra september på rå bpm når
+        terskelen har flyttet seg imellom. Terskelen hentes ALLTID via <code>lib/terskel-oppslag</code> (regel 11).
+        Rå puls er en bryter, ikke standard - og brukeren ser hvilken akse som er valgt.</li>
+      <li><b>Tre tredjedeler, ikke to.</b> Eldst og midtre tegnes dempet, siste i aksentfargen - samme språk som
+        sesongsammenligningen bruker for dempet fjorår. Sekvensen er tid, derfor dempes den bakover i stedet for
+        å få hver sin identitetsfarge.</li>
+      <li>Referanselinjene er <b>terskel (100 %)</b> og <b>4 mmol</b>. 4 mmol er en konvensjon, ikke en sannhet om
+        utøveren - den står som tynn stiplet linje, aldri som en grense noe farges etter.</li>
+      <li><b>Kun målte verdier.</b> Planlagt laktat teller aldri som målt (konvensjon). Mangler det målinger nær
+        pulsnivået i begge tredjedeler, står det <b>«for lite data»</b> - aldri en differanse regnet på ett punkt.</li>
+      <li><span class="obs">Åpent:</span> skal kurven kunne deles per bevegelsesform? Laktat ved 90 % av terskel er
+        ikke det samme på rulleski og løping. Utkastet viser alt samlet; per bevegelsesform er riktigere, men krever
+        at det finnes nok målinger per form. <b>Sverre avgjør.</b></li>
+    </ul>
+
+    <h3>2. Ingen dobbel y-akse - hvordan det løses</h3>
+    <ul>
+      <li>Konvensjonen sier <b>aldri dobbel y-akse</b>. Løsningen her er <b>baner</b>: hver bane har sin egen enhet og
+        sin egen skala, stablet pa <b>en felles tidsakse</b>. Det som sammenlignes er <em>nar</em>, aldri
+        <em>hvor mye</em> på tvers av baner.</li>
+      <li><b>Restitusjonsbanen bruker avvik i prosent fra utøverens eget 60-dagers grunnivå</b>, ikke rae ms og slag.
+        Da deler HRV og hvilepuls en ekte akse uten a jukse, og bandet rundt null er +/- 1 standardavvik av utøverens
+        eget grunnivå. Rae verdier står i tooltip og i dagvisningen.</li>
+      <li><span class="obs">ÅPEN SAK:</span> <code>BelastningBolk4.tsx</code> sin custom belastningsgraf har
+        belastningstrendene pa venstre akse og valgt variabel pa høyre - altsa en dobbel y-akse i produksjon i dag.
+        Enten er konvensjonen ment snevrere enn den er skrevet, eller sa er den grafen et unntak som bor skrives ned.
+        <b>Sverre avgjør.</b> Formkartet folger konvensjonen slik den står.</li>
+    </ul>
+
+    <h3>3. Målte fargefunn - ma løses for bygging</h3>
+    <ul>
+      <li><span class="obs">I3 <code>#E8B93C</code> mot I4 <code>#FF8C00</code> ligger for nært.</span> Målt med
+        validatoren: deltaE 5,3 for deuteranopi og <b>10,4 for normålt fargesyn</b> - under 15 er de vanskelige a
+        skille selv med fullt fargesyn. De står rett ved siden av hverandre i en stablet dagsoyle.
+        <b>Tiltak i dette utkastet:</b> 2 px mellomrom mellom hvert sonesegment, alltid samme rekkefolge nedenfra, og
+        en <b>Lav / Med / Høy</b>-bryter som er det anbefalte standardvalget på mobil. Sonefargene selv rores ikke -
+        de er fasit (<code>ZONE_COLORS_V2</code>).</li>
+      <li><span class="obs">Følelse <code>#A855F7</code> mot HRV <code>#8B5CF6</code> er praktisk talt samme farge:</span>
+        målt deltaE <b>0,3 for protanopi</b> og 5,1 for normålt fargesyn. De møtes ikke i dag (custom-grafen viser en
+        variabel om gangen), men de ville møtes her.
+        <b>Løsning i utkastet:</b> følelse far sin egen bane og tegnes i nøytral blekkfarge med prikker - den trenger
+        ingen egen identitetsfarge nar den står alene. HRV beholder <code>#8B5CF6</code> fra
+        <code>lib/helse-farger.ts</code> (en kilde).</li>
+      <li>I lys modus er I1, I3 og I4 under 3:1 mot kortflaten (målt 2,55 / 1,54 / 1,96). Derfor har hver soyle
+        synlige verdier i tooltip og en tabellvisning - farge alene bærer aldri avlesningen.</li>
+    </ul>
+
+    <h3>4. Dagstripa - hva som kan sta der</h3>
+    <ul>
+      <li>Sykdom <code>#E11D48</code> · skade <code>#E11D48</code> med skravur · hviledag (tom celle i
+        <code>--tom</code>) · reise · samling · konkurranse <code>#D4A017</code>.</li>
+      <li><b>Hviledag er fravær av okt, ikke et felt.</b> En dag uten ført økt OG uten planlagt økt tegnes tom.
+        En dag med planlagt økt som ikke er gjennomfort er <em>ikke</em> hviledag - den far åpen kontur.
+        Ingenting er fullfort for brukeren markerer det (konvensjon).</li>
+      <li>Sykdom og skade leses fra samme kilde som bolk 4 bruker i dag. <span class="nei">Ingen ny tabell,
+        ingen ny SQL uten egen godkjenning.</span></li>
+    </ul>
+
+    <h3>5. Tall som er nye, og hvordan de regnes</h3>
+    <ul>
+      <li><b>Monotoni</b> (Foster): snitt av daglig belastning delt pa standardavviket, over sju dager. Høy monotoni =
+        like dager på rad. <b>Vises som tall og trend, aldri som advarsel</b> - veiledningstall er aldri alarmer
+        (konvensjon).</li>
+      <li><b>Lengste strekk uten hviledag</b> og <b>hviledager per 28 dager</b>. Rett telling, ingen tolkning.</li>
+      <li><b>HRV 7-dagers snitt mot 60-dagers grunnivå</b>, med +/- 1 SD-band. Dette er avlesningen restitusjonsbanen
+        bygger pa, gjentatt som tall.</li>
+      <li><b>Sykdomsdager siste 12 måneder</b> og hva som last gikk forut. <span class="nei">Formuleres som
+        observasjon, aldri som årsak.</span> «De tre siste sykdomsperiodene startet i snitt fire dager etter en uke
+        over X timer» er lov. «For mye trening gjor deg syk» er det ikke.</li>
+      <li>Alle fem: under ti dager med verdier -&gt; <b>«for lite data»</b>, aldri et tall (konvensjon).</li>
+    </ul>
+
+    <h3>6. Regler som gjelder uansett</h3>
+    <ul>
+      <li>Kontrollraden står <b>over</b> grafen og er alltid synlig - et skjult filter som pavirker en graf ma aldri
+        være usynlig. Er et filter aktivt, står det som en <b>synlig lapp</b> i kontrollraden.
+        Kortet bruker <code>height="auto"</code> (regel 17).</li>
+      <li>Kontroller skjuler seg <b>bare</b> pa «har brukeren dette i det hele tatt», aldri pa «er valgt periode tom»
+        (regel 20). En skiskytter uten skyting i perioden beholder skytevalget.</li>
+      <li>Klebrig state bærer hvem den gjelder for - trenerruta bytter kun ruteparameter (regel 19).</li>
+      <li>Helsedata er artikkel 9. Banene for restitusjon og følelse, dagvisningens helsekolonne og alle helsetall
+        resolver med <code>resolveHealthTargetUser</code> - <b>aldri</b> <code>can_view_analysis</code>.
+        Fail-closed. Treneren uten <code>can_see_health_data</code> ser kartet uten de to nederste banene, og
+        <b>flaten sier fra at banene er skjult</b> - den later ikke som de ikke finnes.</li>
+      <li>Strava-importerte økter holdes utenfor alt som mates videre til AI/ML-laget (regel 2). Formkartet er
+        visning og teller dem med, men <b>flaten sier fra nar en delmengde vises</b>.</li>
+      <li>Lys og mørk (regel 23). Ingen custom musepeker (regel 30). Treffflater minst 36 px. Kun vanlig
+        bindestrek (regel 31). Snitt kun på førte verdier.</li>
+      <li>Designfiler committes separat fra kode (regel 26).</li>
+    </ul>
+
+    <h3>6b. Plassering og registrering</h3>
+    <ul>
+      <li>Plasseringskartet over er fasit. <b>Ingen ny toppfane.</b> Formkartet og dagvisningen bor på
+        <b>Oversikt</b>, under «Status nå»; dybden bor i fanen som allerede eier emnet - belastning i Belastning,
+        skyting i Skyting, laktat og terskel i Terskel, HRV og sykdom i Helse.</li>
+      <li><b>Hver ny graf og hvert nytt nøkkeltall trenger egen <code>chartKey</code></b> i
+        <code>lib/graf-register.ts</code>, ellers kan de ikke stjernemerkes - «0 nakne grafer» er standarden fra
+        bolk 1. Formkartet og laktatgrafen er brede og trenger <code>bred: true</code> (samme flagg som
+        <code>aca9378</code> innførte).</li>
+      <li><b>Ingen kopier på tvers av faner.</b> Trenger skytefanen et belastningstall, lenker den til kortet i
+        Belastning. To kort som regner det samme er to kilder som før eller siden blir uenige (regel 11).</li>
+      <li>Trenerpanelet arver plasseringen uendret - samme komponenter, samme rekkefølge, med
+        <code>targetUserId</code> hele veien ned. Helsebanene og helsetallene faller bort uten
+        <code>can_see_health_data</code>, og flaten sier fra at de er skjult.</li>
+    </ul>
+
+    <h3>7. Åpent - Sverre avgjør for CC begynner</h3>
+    <ul>
+      <li>Dobbel y-akse i custom belastningsgrafen: unntak eller feil? (punkt 2)</li>
+      <li>TSB-arealet er tegnet kjølig over null og varmt under. Varm tone er <code>#E23A5A</code>, som ogsaa er
+        hvilepuls og I5. De møtes aldri i samme bane, men det er en tredje bruk av samme rode. Godkjennes eller byttes.</li>
+      <li>Skal formkartet ogsaa vises i trenerpanelet pa utøveren? Det er samme flate og samme rettighetsmodell,
+        men det er en egen avgjørelse.</li>
+      <li>Skal dagvisningen kunne åpne økta direkte, eller bare lenke til dagboka?</li>
+      <li>Laktatkurven: samlet, eller delt per bevegelsesform? (punkt 1c)</li>
+      <li>Skal formkartet ha egen bryter for «skjul helsebanene», slik at en utøver kan vise skjermen til andre
+        uten å vise HRV og hvilepuls?</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   Demodata. Deterministisk, ingen tilfeldighet mellom lastinger.
+   Erstattes av ekte data - formen er det som er fasit.
+   ============================================================ */
+const SONER = [
+  {id:'i1', navn:'I1', farge:'#28A86E'},
+  {id:'i2', navn:'I2', farge:'#1A6FD4'},
+  {id:'i3', navn:'I3', farge:'#E8B93C'},
+  {id:'i4', navn:'I4', farge:'#FF8C00'},
+  {id:'i5', navn:'I5', farge:'#E23A5A'},
+];
+const GRUPPER = [
+  {id:'lav',  navn:'Lav (I1+I2)',  farge:'#28A86E', av:['i1','i2']},
+  {id:'med',  navn:'Medium (I3)',  farge:'#E8B93C', av:['i3']},
+  {id:'høy',  navn:'Høy (I4+I5)',  farge:'#E23A5A', av:['i4','i5']},
+];
+const MND = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+
+let frø = 20260916;
+function rnd(){ frø = (frø * 1103515245 + 12345) & 0x7fffffff; return frø / 0x7fffffff; }
+
+function lagDager(n){
+  frø = 20260916;
+  const ut = [], slutt = new Date(2026,8,16);
+  let ctl = 52, atl = 50, hrvBase = 92, hpBase = 45;
+  /* Terskelpuls er VERSJONERT - okta bruker terskelen som gjaldt paa oktas dato. */
+  const terskelTrinn = [{fra:0, hr:168}, {fra:Math.round(n*0.45), hr:170}, {fra:Math.round(n*0.78), hr:172}];
+  for(let i=n-1;i>=0;i--){
+    const d = new Date(slutt); d.setDate(d.getDate()-i);
+    const uke = d.getDay();
+    const idx = n-1-i;
+
+    /* markerte perioder */
+    const syk     = idx>=n-46 && idx<=n-41;
+    const samling = idx>=n-72 && idx<=n-66;
+    const konk    = idx===n-12;
+    const hvile   = !syk && (uke===1 || (rnd()<0.10));
+
+    let tot = 0, soner = {i1:0,i2:0,i3:0,i4:0,i5:0};
+    if(!syk && !hvile){
+      const lang = uke===0 || uke===6;
+      const hard = !lang && rnd()<0.28;
+      tot = (lang?115:65) + rnd()*40 + (samling?45:0);
+      if(hard){
+        soner.i1 = tot*0.30; soner.i2 = tot*0.26; soner.i3 = tot*0.16;
+        soner.i4 = tot*0.19; soner.i5 = tot*0.09;
+      } else {
+        soner.i1 = tot*0.58; soner.i2 = tot*0.33; soner.i3 = tot*0.07;
+        soner.i4 = tot*0.02; soner.i5 = 0;
+      }
+    }
+    const belastning = soner.i1*0.7 + soner.i2*1.0 + soner.i3*1.7 + soner.i4*2.6 + soner.i5*3.4;
+    ctl = ctl + (belastning - ctl)/42;
+    atl = atl + (belastning - atl)/7;
+
+    const trett = Math.max(0, atl - ctl);
+    const hrv = syk ? hrvBase - 22 - rnd()*8
+                    : hrvBase - trett*0.42 + (rnd()-0.5)*9;
+    const hp  = syk ? hpBase + 8 + rnd()*3
+                    : hpBase + trett*0.13 + (rnd()-0.5)*2.4;
+    const søvn = syk ? 5.6 + rnd()*1.2 : 7.0 + rnd()*1.6;
+    let følelse = syk ? 3 : Math.round(7.4 - trett*0.07 + (rnd()-0.5)*1.8);
+    følelse = Math.max(1, Math.min(10, følelse));
+
+    const hardDag = soner.i4 + soner.i5 > 18;
+    const terskelHr = terskelTrinn.filter(t=>t.fra<=idx).slice(-1)[0].hr;
+
+    /* Laktat: maalt paa harde okter og tester. Formkurven bedres gjennom perioden. */
+    let laktat = null;
+    if(tot>0 && !syk && (hardDag ? rnd()<0.80 : rnd()<0.22)){
+      const framgang = idx/n;                    /* 0 -> 1 gjennom perioden */
+      laktat = [];
+      [0.80, 0.86, 0.91, 0.96, 1.01, 1.05].forEach(andel=>{
+        if(rnd()<0.12) return;                   /* ikke alle punkter ført hver gang */
+        const puls = Math.round(terskelHr*andel + (rnd()-0.5)*3);
+        const basis = Math.exp((andel-0.72)*7.6) * 0.62;
+        const verdi = Math.max(0.6, basis - framgang*0.55*basis + (rnd()-0.5)*0.45);
+        laktat.push({puls, mmol:+verdi.toFixed(1), pctTerskel:+(puls/terskelHr*100).toFixed(1)});
+      });
+      if(!laktat.length) laktat = null;
+    }
+
+    /* Skyting - kun dager med økt. Stående faller mer enn liggende når tretthet stiger. */
+    let skyting = null;
+    if(tot>0 && rnd()<0.42){
+      const skudd = konk ? 20 : (hardDag ? 40 : 25);
+      const basisL = 0.93, basisS = 0.86;
+      const trøttEffekt = Math.min(0.16, trett*0.0075);
+      const tL = Math.max(0.4, Math.min(1, basisL - trøttEffekt*0.45 + (rnd()-0.5)*0.11));
+      const tS = Math.max(0.3, Math.min(1, basisS - trøttEffekt      + (rnd()-0.5)*0.15));
+      skyting = {
+        skudd,
+        liggende: Math.round(tL*100),
+        stående:  Math.round(tS*100),
+        pulsInn:  Math.round(158 + trett*0.35 + (rnd()-0.5)*10),
+        skytetidSek: +(24 + trøttEffekt*22 + (rnd()-0.5)*6).toFixed(1),
+      };
+    }
+    ut.push({
+      dato:d, tot:Math.round(tot), soner,
+      plan: hvile||syk ? 0 : Math.round(tot*(0.85 + rnd()*0.3)),
+      ctl, atl, tsb: ctl-atl,
+      hrv:Math.round(hrv), hvilepuls:Math.round(hp),
+      søvn:+søvn.toFixed(1), følelse,
+      syk, samling, konk, hvile, hard:hardDag, skyting, laktat, terskelHr,
+      økter: tot>0 ? lagØkter(tot, soner, hardDag, konk) : []
+    });
+  }
+  return ut;
+}
+function lagØkter(tot, soner, hard, konk){
+  const navn = konk ? 'Sprint, distriktsmesterskap'
+            : hard  ? '5 x 6 min I4, rulleski skøyting'
+                    : (tot>120 ? 'Langtur, rulleski klassisk' : 'Rolig løping');
+  return [{navn, minutter:Math.round(tot), soner}];
+}
+
+/* --------- tilstand --------- */
+let dager = 90, sonemodus = 'fem', valgtDag = null;
+let ALLE = lagDager(180);
+const $ = s => document.querySelector(s);
+const svgNS = 'http://www.w3.org/2000/svg';
+
+function data(){ return ALLE.slice(-dager); }
+function fmtDato(d){ return d.getDate() + '. ' + MND[d.getMonth()]; }
+function serier(){ return sonemodus==='fem' ? SONER : GRUPPER; }
+function sonetid(d, s){ return s.av ? s.av.reduce((a,k)=>a+d.soner[k],0) : d.soner[s.id]; }
+
+/* --------- geometri --------- */
+const M = {v:56, h:16, t:30};
+const BANER = [
+  {id:'status', navn:'Dagen',        h:26,  gap:30},
+  {id:'soner',  navn:'Sonetid',      h:132, gap:22},
+  {id:'form',   navn:'Form',         h:104, gap:22},
+  {id:'rest',   navn:'Restitusjon',  h:104, gap:22},
+  {id:'fol',    navn:'Følelse',      h:62,  gap:22},
+  {id:'skyt',   navn:'Standplass',   h:86,  gap:0},
+];
+function baneY(){
+  let y = M.t, ut = {};
+  for(const b of BANER){ ut[b.id] = {y, h:b.h, navn:b.navn}; y += b.h + b.gap; }
+  return {ut, total:y + 26};
+}
+
+function el(n, a, tekst){
+  const e = document.createElementNS(svgNS, n);
+  for(const k in a) e.setAttribute(k, a[k]);
+  if(tekst!=null) e.textContent = tekst;
+  return e;
+}
+
+function tegn(){
+  const svg = $('#graf'), d = data(), {ut:B, total} = baneY();
+  const W = 1100, bredde = W - M.v - M.h;
+  svg.setAttribute('viewBox', `0 0 ${W} ${total}`);
+  svg.textContent = '';
+
+  const bw = bredde / d.length;
+  const x = i => M.v + i*bw;
+  const visPlan = $('#visPlan').checked, visHard = $('#visHard').checked;
+
+  /* banenavn */
+  for(const id in B){
+    svg.appendChild(el('text', {x:M.v, y:B[id].y-6, class:'lane-navn'}, B[id].navn.toUpperCase()));
+  }
+
+  /* ---- BANE 1: dagstripe ---- */
+  const b1 = B.status;
+  d.forEach((dag,i)=>{
+    let fyll = 'var(--tom)', op = 1, strek = 'none';
+    if(dag.syk)          fyll = '#E11D48';
+    else if(dag.konk)    fyll = '#D4A017';
+    else if(dag.samling) fyll = 'var(--blue)', op = .38;
+    else if(dag.tot>0)   fyll = 'var(--line3)';
+    const r = el('rect', {x:x(i)+.5, y:b1.y, width:Math.max(1,bw-1.5), height:b1.h,
+      fill:fyll, 'fill-opacity':op, rx:3, stroke:strek});
+    svg.appendChild(r);
+  });
+
+  /* ---- BANE 2: sonetid per dag (stablet) ---- */
+  const b2 = B.soner;
+  const maksTid = Math.max(60, ...d.map(dag=>Math.max(dag.tot, dag.plan)));
+  const hSone = v => (v/maksTid) * b2.h;
+  /* rutenett */
+  [0,.5,1].forEach(f=>{
+    const y = b2.y + b2.h - f*b2.h;
+    svg.appendChild(el('line', {x1:M.v, x2:W-M.h, y1:y, y2:y, class:'rutenett'}));
+    svg.appendChild(el('text', {x:M.v-8, y:y+3.5, class:'akse', 'text-anchor':'end'},
+      (Math.round(f*maksTid/60*10)/10).toFixed(1).replace('.',',') + ' t'));
+  });
+  d.forEach((dag,i)=>{
+    /* plan som åpen kontur bak */
+    if(visPlan && dag.plan>0){
+      svg.appendChild(el('rect', {x:x(i)+.5, y:b2.y + b2.h - hSone(dag.plan),
+        width:Math.max(1,bw-1.5), height:hSone(dag.plan), fill:'none',
+        stroke:'var(--line3)', 'stroke-width':1, 'stroke-dasharray':'2 2', rx:2}));
+    }
+    let y = b2.y + b2.h;
+    serier().forEach(s=>{
+      const v = sonetid(dag,s); if(v<=0) return;
+      const h = Math.max(1, hSone(v) - 2);   /* 2 px mellomrom mellom segmentene */
+      y -= h + 2;
+      svg.appendChild(el('rect', {x:x(i)+.5, y, width:Math.max(1,bw-1.5), height:h,
+        fill:s.farge, rx:Math.min(2, bw/3)}));
+    });
+    if(visHard && dag.hard){
+      svg.appendChild(el('circle', {cx:x(i)+bw/2, cy:b2.y-7, r:2.6, fill:'var(--orange)'}));
+    }
+  });
+
+  /* ---- BANE 3: form (CTL, ATL, TSB) - EN akse, samme enhet ---- */
+  const b3 = B.form;
+  const maksF = Math.max(...d.map(dag=>Math.max(dag.ctl,dag.atl))) * 1.15;
+  const minF  = Math.min(0, ...d.map(dag=>dag.tsb)) * 1.3;
+  const yF = v => b3.y + b3.h - ((v-minF)/(maksF-minF))*b3.h;
+  const y0 = yF(0);
+  svg.appendChild(el('line', {x1:M.v, x2:W-M.h, y1:y0, y2:y0, class:'nulllinje'}));
+  svg.appendChild(el('text', {x:M.v-8, y:y0+3.5, class:'akse', 'text-anchor':'end'}, '0'));
+  svg.appendChild(el('text', {x:M.v-8, y:yF(maksF*.85)+3.5, class:'akse', 'text-anchor':'end'},
+    Math.round(maksF*.85)));
+
+  /* TSB som areal - kjølig over null, varmt under */
+  ['over','under'].forEach(del=>{
+    let p = `M ${x(0)+bw/2} ${y0}`;
+    d.forEach((dag,i)=>{
+      const v = del==='over' ? Math.max(0,dag.tsb) : Math.min(0,dag.tsb);
+      p += ` L ${x(i)+bw/2} ${yF(v)}`;
+    });
+    p += ` L ${x(d.length-1)+bw/2} ${y0} Z`;
+    svg.appendChild(el('path', {d:p, fill: del==='over' ? '#1A6FD4' : '#E23A5A',
+      'fill-opacity':.30, stroke:'none'}));
+  });
+  /* CTL og ATL */
+  const linje = (nøkkel, farge, dash) => {
+    let p = '';
+    d.forEach((dag,i)=>{ p += (i?' L ':'M ') + (x(i)+bw/2) + ' ' + yF(dag[nøkkel]); });
+    svg.appendChild(el('path', {d:p, fill:'none', stroke:farge, 'stroke-width':2,
+      'stroke-linejoin':'round', 'stroke-dasharray':dash||'none'}));
+  };
+  linje('ctl', 'var(--snitt)');
+  linje('atl', 'var(--mut)', '4 3');
+
+  /* ---- BANE 4: restitusjon som avvik i % fra eget 60-dagers grunnivå ---- */
+  const b4 = B.rest;
+  const grunn = (nøkkel, i) => {
+    const fra = Math.max(0, i-59);
+    const del = d.slice(fra, i+1).map(o=>o[nøkkel]).filter(v=>v!=null);
+    return del.reduce((a,b)=>a+b,0) / (del.length||1);
+  };
+  const avvik = d.map((dag,i)=>({
+    hrv: (dag.hrv/grunn('hrv',i) - 1) * 100,
+    hp:  (dag.hvilepuls/grunn('hvilepuls',i) - 1) * 100,
+  }));
+  const maksA = Math.max(12, ...avvik.map(a=>Math.max(Math.abs(a.hrv), Math.abs(a.hp))));
+  const yA = v => b4.y + b4.h/2 - (v/maksA)*(b4.h/2);
+  /* +/- 1 SD-band */
+  const sd = Math.sqrt(avvik.reduce((a,o)=>a+o.hrv*o.hrv,0)/avvik.length);
+  svg.appendChild(el('rect', {x:M.v, y:yA(sd), width:bredde, height:yA(-sd)-yA(sd),
+    fill:'var(--line)', 'fill-opacity':.55, rx:3}));
+  svg.appendChild(el('line', {x1:M.v, x2:W-M.h, y1:yA(0), y2:yA(0), class:'nulllinje'}));
+  svg.appendChild(el('text', {x:M.v-8, y:yA(0)+3.5, class:'akse', 'text-anchor':'end'}, 'snitt'));
+  svg.appendChild(el('text', {x:M.v-8, y:yA(maksA*.8)+3.5, class:'akse', 'text-anchor':'end'},
+    '+' + Math.round(maksA*.8) + '%'));
+  svg.appendChild(el('text', {x:M.v-8, y:yA(-maksA*.8)+3.5, class:'akse', 'text-anchor':'end'},
+    '-' + Math.round(maksA*.8) + '%'));
+  [['hrv','#8B5CF6'],['hp','#E23A5A']].forEach(([k,farge])=>{
+    let p = '';
+    avvik.forEach((a,i)=>{ p += (i?' L ':'M ') + (x(i)+bw/2) + ' ' + yA(a[k]); });
+    svg.appendChild(el('path', {d:p, fill:'none', stroke:farge, 'stroke-width':2, 'stroke-linejoin':'round'}));
+  });
+
+  /* ---- BANE 5: følelse (nøytral blekkfarge, egen bane) ---- */
+  const b5 = B.fol;
+  const yFol = v => b5.y + b5.h - ((v-1)/9)*b5.h;
+  [1,5.5,10].forEach(v=>{
+    svg.appendChild(el('line', {x1:M.v, x2:W-M.h, y1:yFol(v), y2:yFol(v), class:'rutenett'}));
+    svg.appendChild(el('text', {x:M.v-8, y:yFol(v)+3.5, class:'akse', 'text-anchor':'end'}, v===5.5?'':v));
+  });
+  let pf = '';
+  d.forEach((dag,i)=>{ pf += (i?' L ':'M ') + (x(i)+bw/2) + ' ' + yFol(dag.følelse); });
+  svg.appendChild(el('path', {d:pf, fill:'none', stroke:'var(--dim)', 'stroke-width':1.5}));
+  d.forEach((dag,i)=>{
+    if(bw > 5 || i % Math.ceil(5/bw) === 0)
+      svg.appendChild(el('circle', {cx:x(i)+bw/2, cy:yFol(dag.følelse), r:Math.min(3.2, Math.max(1.6,bw/3)),
+        fill:'var(--ink2)'}));
+  });
+
+  /* ---- BANE 6: standplassform (kun skiskyttere - skjules på «har brukeren skyting», aldri på tom periode) ---- */
+  const b6 = B.skyt;
+  const yT = v => b6.y + b6.h - ((v-50)/50)*b6.h;   /* 50-100 % */
+  [50,75,100].forEach(v=>{
+    svg.appendChild(el('line', {x1:M.v, x2:W-M.h, y1:yT(v), y2:yT(v), class:'rutenett'}));
+    svg.appendChild(el('text', {x:M.v-8, y:yT(v)+3.5, class:'akse', 'text-anchor':'end'}, v + ' %'));
+  });
+  /* 7-dagers snitt per stilling som linje, enkeltdager som prikker med størrelse = antall skudd */
+  const skytedager = d.map((dag,i)=>({i, s:dag.skyting})).filter(o=>o.s);
+  [['liggende','#38BDF8'],['stående','#FF4500']].forEach(([stilling,farge])=>{
+    let p2 = '';
+    skytedager.forEach((o,k)=>{
+      const vindu = skytedager.slice(Math.max(0,k-6), k+1);
+      const sn = vindu.reduce((a,b)=>a+b.s[stilling],0)/vindu.length;
+      p2 += (k?' L ':'M ') + (x(o.i)+bw/2) + ' ' + yT(sn);
+    });
+    svg.appendChild(el('path', {d:p2, fill:'none', stroke:farge, 'stroke-width':2, 'stroke-linejoin':'round'}));
+    skytedager.forEach(o=>{
+      svg.appendChild(el('circle', {cx:x(o.i)+bw/2, cy:yT(o.s[stilling]),
+        r: Math.max(1.8, Math.min(4, o.s.skudd/12)), fill:farge, 'fill-opacity':.5,
+        stroke:'var(--card)', 'stroke-width':1}));
+    });
+  });
+
+  /* ---- tidsakse ---- */
+  const steg = Math.ceil(d.length/9);
+  d.forEach((dag,i)=>{
+    if(i % steg) return;
+    svg.appendChild(el('text', {x:x(i)+bw/2, y:total-8, class:'akse', 'text-anchor':'middle'}, fmtDato(dag.dato)));
+  });
+
+  /* ---- krysshaar over alle baner ---- */
+  const kryss = el('line', {x1:0,x2:0,y1:M.t,y2:total-24, stroke:'var(--ink)',
+    'stroke-width':1, 'stroke-opacity':.34, 'pointer-events':'none', visibility:'hidden'});
+  svg.appendChild(kryss);
+  const flate = el('rect', {x:M.v, y:0, width:bredde, height:total, fill:'transparent'});
+  svg.appendChild(flate);
+
+  const boks = $('#grafboks'), tip = $('#tip');
+  flate.addEventListener('pointermove', e=>{
+    const r = svg.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * W;
+    const i = Math.max(0, Math.min(d.length-1, Math.floor((px - M.v)/bw)));
+    const dag = d[i];
+    kryss.setAttribute('visibility','visible');
+    kryss.setAttribute('x1', x(i)+bw/2); kryss.setAttribute('x2', x(i)+bw/2);
+    tip.innerHTML = tipInnhold(dag, avvik[i]);
+    tip.style.opacity = 1;
+    const bx = e.clientX - boks.getBoundingClientRect().left;
+    tip.style.left = Math.min(boks.clientWidth-200, Math.max(4, bx+14)) + 'px';
+    tip.style.top = '8px';
+  });
+  flate.addEventListener('pointerleave', ()=>{
+    kryss.setAttribute('visibility','hidden'); tip.style.opacity = 0;
+  });
+  flate.addEventListener('click', e=>{
+    const r = svg.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * W;
+    const i = Math.max(0, Math.min(d.length-1, Math.floor((px - M.v)/bw)));
+    valgtDag = d[i]; tegnDag();
+  });
+}
+
+function tipInnhold(dag, a){
+  const merk = dag.syk ? 'Sykdom' : dag.konk ? 'Konkurranse'
+            : dag.samling ? 'Samling' : dag.hvile ? 'Hviledag' : '';
+  const t = Math.floor(dag.tot/60), m = dag.tot%60;
+  return `<h4>${fmtDato(dag.dato)}</h4>
+    <div class="rad"><span>Trening</span><b>${dag.tot? (t?t+'t ':'')+m+'m' : '-'}</b></div>
+    <div class="rad"><span>Form (TSB)</span><b>${dag.tsb>0?'+':''}${dag.tsb.toFixed(0)}</b></div>
+    <div class="rad"><span>HRV</span><b>${dag.hrv} ms <span style="color:${a.hrv<0?'var(--st-rod)':'var(--st-gronn)'}">${a.hrv>0?'+':''}${a.hrv.toFixed(0)} %</span></b></div>
+    <div class="rad"><span>Hvilepuls</span><b>${dag.hvilepuls} <span style="color:${a.hp>0?'var(--st-rod)':'var(--st-gronn)'}">${a.hp>0?'+':''}${a.hp.toFixed(0)} %</span></b></div>
+    <div class="rad"><span>Søvn</span><b>${dag.søvn} t</b></div>
+    <div class="rad"><span>Følelse</span><b>${dag.følelse} / 10</b></div>
+    ${dag.skyting?`<div class="rad"><span>Treff L / S</span><b>${dag.skyting.liggende} / ${dag.skyting.stående} %</b></div>
+    <div class="rad"><span>Puls inn</span><b>${dag.skyting.pulsInn}</b></div>`:''}
+    ${merk?`<div class="merk">${merk}</div>`:''}`;
+}
+
+/* --------- dagvisning --------- */
+function tegnDag(){
+  const d = valgtDag || data()[data().length-1];
+  $('#dagtittel').textContent = '- ' + fmtDato(d.dato) + ' 2026';
+
+  const ok = $('#dagøkter');
+  if(!d.økter.length){
+    ok.innerHTML = `<p class="und" style="margin:0">${d.syk?'Sykdom ført - ingen økt.':'Hviledag - ingen okt ført.'}</p>`;
+  } else {
+    ok.innerHTML = d.økter.map(o=>{
+      const sum = Object.values(o.soner).reduce((a,b)=>a+b,0) || 1;
+      const stripe = SONER.map(s=>o.soner[s.id]>0
+        ? `<i style="background:${s.farge}; width:${(o.soner[s.id]/sum*100).toFixed(1)}%"></i>` : '').join('');
+      const t = Math.floor(o.minutter/60), m = o.minutter%60;
+      return `<div class="oktrad">
+        <div class="navn"><b>${o.navn}</b><span>${t?t+'t ':''}${m}m${d.konk?' · konkurranse':''}</span></div>
+        <div class="sonestripe">${stripe}</div>
+      </div>`;
+    }).join('');
+  }
+  $('#dagsoner').innerHTML = SONER.map(s=>{
+    const v = d.soner[s.id]; if(!v) return '';
+    return `<span><i class="sw" style="background:${s.farge}"></i>${s.navn} ${Math.round(v)} min</span>`;
+  }).join('');
+
+  const alle = data(), i = alle.indexOf(d);
+  const snitt = (k)=>{ const del = alle.slice(Math.max(0,i-29), i+1).map(o=>o[k]);
+    return del.reduce((a,b)=>a+b,0)/del.length; };
+  const kort = [
+    ['HRV', d.hrv, ' ms', d.hrv-snitt('hrv'), false],
+    ['Hvilepuls', d.hvilepuls, '', d.hvilepuls-snitt('hvilepuls'), true],
+    ['Søvn', d.søvn, ' t', d.søvn-snitt('søvn'), false],
+    ['Følelse', d.følelse, '/10', d.følelse-snitt('følelse'), false],
+  ];
+  $('#daghelse').innerHTML = kort.map(([navn,v,e,delta,omvendt])=>{
+    const bra = omvendt ? delta<0 : delta>0;
+    const kl = Math.abs(delta)<0.4 ? 'flat' : (bra?'opp':'ned');
+    const pil = Math.abs(delta)<0.4 ? '' : (delta>0?'\u2191 ':'\u2193 ');
+    return `<div><div class="n">${v}${e}</div><div class="e">${navn}</div>
+      <div class="d ${kl}">${pil}${Math.abs(delta).toFixed(1).replace('.',',')} mot 30 d</div></div>`;
+  }).join('');
+
+  const skytRad = $('#dagskyting');
+  if(d.skyting){
+    skytRad.hidden = false;
+    skytRad.innerHTML = `<h3 style="margin-top:14px">Standplass</h3>
+      <div class="tall">
+        <div><div class="n">${d.skyting.liggende} %</div><div class="e">Liggende</div></div>
+        <div><div class="n">${d.skyting.stående} %</div><div class="e">Stående</div></div>
+        <div><div class="n">${d.skyting.pulsInn}</div><div class="e">Puls inn</div></div>
+        <div><div class="n">${String(d.skyting.skytetidSek).replace('.',',')} s</div><div class="e">Skytetid</div></div>
+      </div>`;
+  } else skytRad.hidden = true;
+
+  const lakBoks = $('#daglaktat');
+  if(d.laktat){
+    lakBoks.hidden = false;
+    lakBoks.innerHTML = `<h3 style="margin-top:14px">Laktat</h3>` + d.laktat.map(m=>
+      `<div class="oktrad"><div class="navn"><b>${String(m.mmol).replace('.',',')} mmol</b>
+        <span>ved ${m.puls} bpm · ${String(m.pctTerskel).replace('.',',')} % av terskel (${d.terskelHr})</span></div></div>`).join('');
+  } else lakBoks.hidden = true;
+
+  $('#dagnotat').textContent = d.syk
+    ? 'Sykdom ført denne dagen. Tallene vises, men holdes utenfor snitt og trender.'
+    : d.konk ? 'Konkurransedag. Resultatet ligger i konkurransepanelet.'
+    : 'Manuelt førte verdier vinner alltid over klokka og merkes M.';
+}
+
+/* --------- mini-kort --------- */
+function tegnMini(){
+  const d = data();
+  const bel = d.map(o=> o.soner.i1*0.7+o.soner.i2*1.0+o.soner.i3*1.7+o.soner.i4*2.6+o.soner.i5*3.4);
+  const snitt = bel.reduce((a,b)=>a+b,0)/bel.length;
+  const sd = Math.sqrt(bel.reduce((a,b)=>a+(b-snitt)**2,0)/bel.length);
+  const monotoni = sd>0 ? snitt/sd : 0;
+
+  let strekk=0, maks=0;
+  d.forEach(o=>{ if(o.tot>0){ strekk++; maks=Math.max(maks,strekk);} else strekk=0; });
+  const hviledager = d.filter(o=>o.tot===0 && !o.syk).length;
+  const per28 = (hviledager / d.length * 28);
+
+  const sisteSyv = d.slice(-7).map(o=>o.hrv), sisteSeksti = d.slice(-60).map(o=>o.hrv);
+  const hrv7 = sisteSyv.reduce((a,b)=>a+b,0)/sisteSyv.length;
+  const hrv60 = sisteSeksti.reduce((a,b)=>a+b,0)/sisteSeksti.length;
+  const hrvAvvik = (hrv7/hrv60-1)*100;
+
+  const sykdomsdager = d.filter(o=>o.syk).length;
+
+  const kort = [
+    {h:'Monotoni (7 d)', v:monotoni.toFixed(2).replace('.',','), p:'Snitt delt pa standardavvik. Høyt tall = like dager på rad. Veiledning, ikke alarm.', n:d.length},
+    {h:'Lengste strekk uten hviledag', v:maks + ' d', p:'Sammenhengende dager med ført økt i perioden.', n:d.length},
+    {h:'Hviledager per 28 dager', v:per28.toFixed(1).replace('.',','), p:'Dager uten ført og uten planlagt økt. Sykdom telles ikke som hvile.', n:d.length},
+    {h:'HRV 7 d mot 60 d', v:(hrvAvvik>0?'+':'')+hrvAvvik.toFixed(1).replace('.',',')+' %', p:`7-dagers snitt ${hrv7.toFixed(0)} ms mot grunnivå ${hrv60.toFixed(0)} ms.`, n:sisteSeksti.length},
+    {h:'Sykdomsdager i perioden', v:sykdomsdager + ' d', p:'Observasjon. Flaten sier aldri hva som forårsaket dem.', n:d.length},
+  ];
+  $('#mini').innerHTML = kort.map(k=> k.n < 10
+    ? `<div class="mini tomt"><h4>${k.h}</h4><div class="stor forlite">for lite data</div><p>${k.n} av 10 dager med verdier.</p></div>`
+    : `<div class="mini"><h4>${k.h}</h4><div class="stor">${k.v}</div><p>${k.p}</p></div>`
+  ).join('');
+}
+
+/* --------- standplassform --------- */
+function korrelasjon(par){
+  const n = par.length; if(n<2) return {r:null, n};
+  const mx = par.reduce((a,b)=>a+b[0],0)/n, my = par.reduce((a,b)=>a+b[1],0)/n;
+  let sxy=0, sxx=0, syy=0;
+  par.forEach(([x,y])=>{ sxy+=(x-mx)*(y-my); sxx+=(x-mx)**2; syy+=(y-my)**2; });
+  const r = (sxx&&syy) ? sxy/Math.sqrt(sxx*syy) : null;
+  return {r, n};
+}
+function korrTekst(r){
+  if(r==null) return 'ingen sammenheng målt';
+  const a = Math.abs(r);
+  const styrke = a<0.2 ? 'ingen tydelig sammenheng' : a<0.4 ? 'svak sammenheng'
+              : a<0.6 ? 'moderat sammenheng' : 'tydelig sammenheng';
+  return styrke + (a<0.2 ? '' : (r>0 ? ', samme retning' : ', motsatt retning'));
+}
+function scatterSvg(par, farge){
+  if(par.length<2) return '';
+  const W=200,H=86,pad=6;
+  const xs=par.map(p=>p[0]), ys=par.map(p=>p[1]);
+  const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+  const px=v=>pad+((v-x0)/((x1-x0)||1))*(W-2*pad);
+  const py=v=>H-pad-((v-y0)/((y1-y0)||1))*(H-2*pad);
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin-top:8px" aria-hidden="true">`
+    + par.map(([a,b])=>`<circle cx="${px(a).toFixed(1)}" cy="${py(b).toFixed(1)}" r="2.6" fill="${farge}" fill-opacity=".62"/>`).join('')
+    + `</svg>`;
+}
+function tegnSkyting(){
+  const d = data(), sk = d.filter(o=>o.skyting);
+  const harSkyting = ALLE.some(o=>o.skyting);        /* «har brukeren dette», ikke «er perioden tom» */
+  document.getElementById('skyteseksjon').hidden = !harSkyting;
+  if(!harSkyting) return;
+
+  const snittAv = (arr,f)=> arr.length ? arr.reduce((a,b)=>a+f(b),0)/arr.length : null;
+  const siste = sk.slice(-7), alle = sk;
+  const kort = [
+    {h:'Treff stående - 7 økter', v:siste.length?Math.round(snittAv(siste,o=>o.skyting.stående))+' %':null,
+     p:`Mot ${alle.length?Math.round(snittAv(alle,o=>o.skyting.stående)):'-'} % i hele perioden.`, n:siste.length},
+    {h:'Treff liggende - 7 økter', v:siste.length?Math.round(snittAv(siste,o=>o.skyting.liggende))+' %':null,
+     p:`Mot ${alle.length?Math.round(snittAv(alle,o=>o.skyting.liggende)):'-'} % i hele perioden.`, n:siste.length},
+    {h:'Puls inn på standplass', v:siste.length?Math.round(snittAv(siste,o=>o.skyting.pulsInn)):null,
+     p:'Snitt av siste sju økter med skyting. Kun førte verdier.', n:siste.length},
+    {h:'Skytetid per serie', v:siste.length?snittAv(siste,o=>o.skyting.skytetidSek).toFixed(1).replace('.',',')+' s':null,
+     p:'Snitt av siste sju økter med skyting.', n:siste.length},
+  ];
+  document.getElementById('skytetall').innerHTML = kort.map(k=> (k.n<5 || k.v==null)
+    ? `<div class="mini tomt"><h4>${k.h}</h4><div class="stor forlite">for lite data</div><p>${k.n} av 5 økter med skyting.</p></div>`
+    : `<div class="mini"><h4>${k.h}</h4><div class="stor">${k.v}</div><p>${k.p}</p></div>`).join('');
+
+  const grunnHrv = snittAv(d, o=>o.hrv);
+  const korrKort = [
+    {h:'Form (TSB) mot treff stående', farge:'#FF4500',
+     par: sk.map(o=>[o.tsb, o.skyting.stående])},
+    {h:'HRV-avvik mot treff stående', farge:'#8B5CF6',
+     par: sk.map(o=>[(o.hrv/grunnHrv-1)*100, o.skyting.stående])},
+    {h:'Puls inn mot treff stående', farge:'#E23A5A',
+     par: sk.map(o=>[o.skyting.pulsInn, o.skyting.stående])},
+    {h:'Følelse mot skytetid', farge:'#DEDEE6',
+     par: sk.map(o=>[o.følelse, o.skyting.skytetidSek])},
+  ];
+  document.getElementById('skytekorr').innerHTML = korrKort.map(k=>{
+    const {r,n} = korrelasjon(k.par);
+    if(n<10) return `<div class="mini tomt"><h4>${k.h}</h4><div class="stor forlite">for lite data</div>
+      <p>${n} av 10 økter med skyting i perioden.</p></div>`;
+    return `<div class="mini"><h4>${k.h}</h4>
+      <div class="stor" style="font-size:24px">r = ${r.toFixed(2).replace('.',',')}</div>
+      <p>n = ${n} · ${korrTekst(r)}</p>${scatterSvg(k.par, k.farge)}</div>`;
+  }).join('');
+}
+
+/* --------- laktat per puls --------- */
+let laktatAkse = 'pct';
+const BOLKER = [
+  {navn:'Eldst',   farge:'var(--dim)'},
+  {navn:'Midtre',  farge:'var(--mut)'},
+  {navn:'Siste',   farge:'#FF4500'},
+];
+function tegnLaktat(){
+  const d = data();
+  const harLaktat = ALLE.some(o=>o.laktat);
+  document.getElementById('laktatseksjon').hidden = !harLaktat;
+  if(!harLaktat) return;
+
+  const medL = d.map((o,i)=>({o,i})).filter(x=>x.o.laktat);
+  const terskler = [...new Set(d.map(o=>o.terskelHr))];
+  document.getElementById('terskelspenn').textContent =
+    terskler.length===1 ? terskler[0] + ' bpm' : Math.min(...terskler)+'-'+Math.max(...terskler)+' bpm';
+
+  const tredel = Math.ceil(medL.length/3);
+  const punkter = [[],[],[]];
+  medL.forEach((x,k)=>{
+    const b = Math.min(2, Math.floor(k/tredel));
+    x.o.laktat.forEach(m=> punkter[b].push({x: laktatAkse==='pct' ? m.pctTerskel : m.puls, y:m.mmol}));
+  });
+
+  const svg = document.getElementById('laktatgraf'); svg.textContent='';
+  const W=1100, H=340, mv=54, mh=20, mt=16, mb=38;
+  const alleX = punkter.flat().map(p=>p.x), alleY = punkter.flat().map(p=>p.y);
+  if(!alleX.length) return;
+  const x0=Math.min(...alleX)-2, x1=Math.max(...alleX)+2, y1=Math.max(4, Math.max(...alleY)+0.5);
+  const px = v => mv + ((v-x0)/(x1-x0))*(W-mv-mh);
+  const py = v => H-mb - (v/y1)*(H-mt-mb);
+
+  /* rutenett + akser */
+  for(let v=0; v<=y1; v+=1){
+    svg.appendChild(el('line',{x1:mv,x2:W-mh,y1:py(v),y2:py(v),class:'rutenett'}));
+    svg.appendChild(el('text',{x:mv-8,y:py(v)+3.5,class:'akse','text-anchor':'end'}, v + (v===0?' mmol':'')));
+  }
+  const steg = laktatAkse==='pct' ? 5 : 10;
+  for(let v=Math.ceil(x0/steg)*steg; v<=x1; v+=steg){
+    svg.appendChild(el('text',{x:px(v),y:H-14,class:'akse','text-anchor':'middle'},
+      v + (laktatAkse==='pct' ? ' %' : '')));
+  }
+  /* terskellinje: 100 % av terskel, eller snitt-terskel i raa puls */
+  const tx = laktatAkse==='pct' ? 100 : Math.round(terskler.reduce((a,b)=>a+b,0)/terskler.length);
+  if(tx>x0 && tx<x1){
+    svg.appendChild(el('line',{x1:px(tx),x2:px(tx),y1:mt,y2:H-mb,stroke:'var(--line3)','stroke-width':1,'stroke-dasharray':'4 3'}));
+    svg.appendChild(el('text',{x:px(tx)+6,y:mt+12,class:'akse'}, 'Terskel'));
+  }
+  /* 4 mmol-referanse */
+  if(y1>=4){
+    svg.appendChild(el('line',{x1:mv,x2:W-mh,y1:py(4),y2:py(4),stroke:'var(--line3)','stroke-width':1,'stroke-dasharray':'4 3'}));
+    svg.appendChild(el('text',{x:W-mh-4,y:py(4)-5,class:'akse','text-anchor':'end'},'4 mmol'));
+  }
+
+  punkter.forEach((pt,b)=>{
+    if(!pt.length) return;
+    const farge = BOLKER[b].farge;
+    /* glattet kurve: snitt per x-bolk */
+    const bins = {};
+    pt.forEach(p=>{ const k=Math.round(p.x/2)*2; (bins[k]=bins[k]||[]).push(p.y); });
+    const kurve = Object.keys(bins).map(Number).sort((a,b)=>a-b)
+      .map(k=>({x:k, y:bins[k].reduce((a,b)=>a+b,0)/bins[k].length}));
+    if(kurve.length>1){
+      let path=''; kurve.forEach((p,i)=> path += (i?' L ':'M ')+px(p.x)+' '+py(p.y));
+      svg.appendChild(el('path',{d:path,fill:'none',stroke:farge,'stroke-width':b===2?2.4:1.8,
+        'stroke-linejoin':'round','stroke-opacity':b===2?1:.75}));
+    }
+    pt.forEach(p=> svg.appendChild(el('circle',{cx:px(p.x),cy:py(p.y),r:b===2?3.4:2.8,
+      fill:farge,'fill-opacity':b===2?.85:.5, stroke:'var(--card)','stroke-width':1})));
+  });
+
+  document.getElementById('laktatlegend').innerHTML = BOLKER.map((b,i)=>
+    `<span><i class="sw linje" style="background:${b.farge}"></i>${b.navn} tredjedel (${punkter[i].length} målinger)</span>`
+  ).join('') + `<span><i class="sw linje" style="background:var(--line3)"></i>Terskel og 4 mmol</span>`;
+
+  /* noekkeltall: laktat ved 90 % av terskel, foer og naa */
+  const ved = (bolk, mal, vindu=3) => {
+    const nær = punkter[bolk].filter(p=>Math.abs((laktatAkse==='pct'?p.x:p.x/tx*100)-mal)<=vindu);
+    return nær.length ? nær.reduce((a,b)=>a+b.y,0)/nær.length : null;
+  };
+  const kort = [90, 100].map(mal=>{
+    const f = ved(0, mal), n = ved(2, mal);
+    const nok = f!=null && n!=null;
+    return {h:`Laktat ved ${mal} % av terskel`,
+      v: nok ? n.toFixed(1).replace('.',',') + ' mmol' : null,
+      p: nok ? `Mot ${f.toFixed(1).replace('.',',')} mmol i eldste tredjedel - ${(n<f?'ned':'opp')} ${Math.abs(n-f).toFixed(1).replace('.',',')} mmol ved samme relative puls.` : '',
+      n: nok ? 10 : 0};
+  });
+  const alleM = punkter.flat().length;
+  kort.push({h:'Målinger i perioden', v: alleM + '', p:`Fordelt på ${medL.length} økter. Kun målte verdier.`, n:alleM});
+  document.getElementById('laktattall').innerHTML = kort.map(k=> k.n<10
+    ? `<div class="mini tomt"><h4>${k.h}</h4><div class="stor forlite">for lite data</div><p>Mangler målinger nær dette pulsnivået i begge tredjedeler.</p></div>`
+    : `<div class="mini"><h4>${k.h}</h4><div class="stor">${k.v}</div><p>${k.p}</p></div>`).join('');
+}
+document.querySelectorAll('[data-lakt]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-lakt]').forEach(x=>x.removeAttribute('aria-pressed'));
+    b.setAttribute('aria-pressed','true'); laktatAkse=b.dataset.lakt; tegnLaktat();
+  });
+});
+
+/* --------- legend --------- */
+function tegnLegend(){
+  const s = serier().map(x=>`<span><i class="sw" style="background:${x.farge}"></i>${x.navn}</span>`).join('');
+  $('#legend').innerHTML = s + `
+    <span><i class="sw linje" style="background:var(--snitt)"></i>Form (CTL)</span>
+    <span><i class="sw linje" style="background:var(--mut)"></i>Tretthet (ATL)</span>
+    <span><i class="sw linje" style="background:#8B5CF6"></i>HRV</span>
+    <span><i class="sw linje" style="background:#E23A5A"></i>Hvilepuls</span>
+    <span><i class="sw" style="background:var(--ink2); border-radius:50%"></i>Følelse</span>
+    <span><i class="sw" style="background:#E11D48"></i>Sykdom</span>
+    <span><i class="sw" style="background:#D4A017"></i>Konkurranse</span>
+    <span><i class="sw" style="background:var(--tom)"></i>Hviledag</span>
+    <span><i class="sw linje" style="background:#38BDF8"></i>Treff liggende</span>
+    <span><i class="sw linje" style="background:#FF4500"></i>Treff stående</span>`;
+}
+
+/* --------- hendelser --------- */
+document.querySelectorAll('.seg [data-dager]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.seg [data-dager]').forEach(x=>x.removeAttribute('aria-pressed'));
+    b.setAttribute('aria-pressed','true');
+    dager = +b.dataset.dager; valgtDag = null; alt();
+  });
+});
+document.querySelectorAll('.seg [data-soner]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.seg [data-soner]').forEach(x=>x.removeAttribute('aria-pressed'));
+    b.setAttribute('aria-pressed','true');
+    sonemodus = b.dataset.soner; alt();
+  });
+});
+$('#visPlan').addEventListener('change', tegn);
+$('#visHard').addEventListener('change', tegn);
+$('#tema').addEventListener('click', ()=>{
+  const ny = document.documentElement.dataset.tema==='mørk' ? 'lys' : 'mørk';
+  document.documentElement.dataset.tema = ny;
+  $('#tema').textContent = ny==='mørk' ? 'Lys modus' : 'Mørk modus';
+});
+
+function alt(){ tegnLegend(); tegn(); tegnDag(); tegnMini(); tegnSkyting(); tegnLaktat(); }
+alt();
+window.addEventListener('resize', ()=>{ /* SVG skalerer selv - tooltip plasseres på nytt ved hover */ });
+</script>
+</body>
+</html>

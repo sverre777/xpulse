@@ -10,6 +10,7 @@
 // per klikk ut over klokkedata.
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { flateSti } from '@/lib/flate-prefiks'
 import { useRouter } from 'next/navigation'
 import {
   DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors,
@@ -405,7 +406,7 @@ export function UkeOktKort({ w, dateStr, mode, readOnly, targetUserId, onEdit, o
         {planlagt && !readOnly ? (
           <>
             {mode === 'dagbok' && <button type="button" className="xp-hbtn" data-uke-knapp="logg" onClick={() => (onCreateLogg ?? onEdit)(w, dateStr)} style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)', border: 'none', cursor: 'pointer' }}>Logg økta</button>}
-            <button type="button" className="xp-hbtn xp-hbtn-outline" data-uke-knapp="plan" onClick={() => mode === 'plan' ? onEdit(w, dateStr) : router.push(`/app/plan?edit=${w.id}`)} style={{ color: BLAA, cursor: 'pointer', background: 'none' }}>Rediger plan</button>
+            <button type="button" className="xp-hbtn xp-hbtn-outline" data-uke-knapp="plan" onClick={() => mode === 'plan' ? onEdit(w, dateStr) : router.push(flateSti('plan', targetUserId, `?edit=${w.id}`))} style={{ color: BLAA, cursor: 'pointer', background: 'none' }}>Rediger plan</button>
             {kanLive && (
               <button type="button" className="xp-hbtn xp-hbtn-outline inline-flex items-center gap-1.5" data-uke-knapp="live" onClick={() => router.push(`/app/okt/${w.id}`)} style={{ color: GRONN, cursor: 'pointer', background: 'none' }}>
                 <Ikon navn="play" variant="strek" storrelse={14} /> Start live

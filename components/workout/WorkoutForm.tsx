@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { flateSti } from '@/lib/flate-prefiks'
 import { StarRating } from '@/components/ui/StarRating'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { useState, useEffect, useMemo } from 'react'
@@ -969,7 +970,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     if (res.error) { setError(res.error); setMarkingBusy(false); return }
     // Samme oppfølging som LinkWorkoutActions: åpne dagbok-redigering så
     // faktiske verdier kan fylles inn med en gang.
-    router.push(`/app/dagbok?edit=${workoutId}`)
+    router.push(flateSti('dagbok', targetUserId, `?edit=${workoutId}`))
     router.refresh()
   }
 
@@ -1388,7 +1389,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer' }}>
                 Fjern kobling <Ikon navn="lukk" storrelse={14} />
               </button>
-              <a href={`/app/analyse?tab=standardokter&serie=${form.standard_session_series_id}`}
+              <a href={flateSti('analyse', targetUserId, `?tab=standardokter&serie=${form.standard_session_series_id}`)}
                 className="inline-flex items-center gap-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'none' }}>
                 Se utvikling <Ikon navn="neste" storrelse={14} />

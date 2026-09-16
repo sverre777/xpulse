@@ -8,6 +8,7 @@
 // svarer i samme tick (regel 20). Aldri dobbel y-akse.
 
 import { useEffect, useMemo, useState } from 'react'
+import { flateSti } from '@/lib/flate-prefiks'
 import Link from 'next/link'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -115,7 +116,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId, initialConfi
         <p className="py-6 text-center text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Ingen sesonger ennå -{' '}
-          <Link href="/app/periodisering" style={{ color: ORANSJE }}>opprett en i Årsplan</Link>{' '}
+          <Link href={flateSti('periodisering', targetUserId)} style={{ color: ORANSJE }}>opprett en i Årsplan</Link>{' '}
           for å sammenligne.
         </p>
       ) : (
@@ -191,7 +192,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId, initialConfi
               {seasons.length === 1 && (
                 <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Bare én sesong ennå -{' '}
-                  <Link href="/app/periodisering" style={{ color: ORANSJE }}>opprett flere i Årsplan</Link>{' '}
+                  <Link href={flateSti('periodisering', targetUserId)} style={{ color: ORANSJE }}>opprett flere i Årsplan</Link>{' '}
                   for å sammenligne.
                 </p>
               )}

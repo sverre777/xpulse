@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { flateSti } from '@/lib/flate-prefiks'
 import { useRouter } from 'next/navigation'
 import {
   getSameDateLinkCandidates, markCompleted,
@@ -120,7 +121,7 @@ export function LinkWorkoutActions({
       if (res.error) { setError(res.error); return }
       // Hold økten ÅPEN i redigeringsmodus: naviger til dagbok-redigering
       // for samme økt så bruker kan fylle inn faktiske data med en gang.
-      router.push(`/app/dagbok?edit=${workoutId}`)
+      router.push(flateSti('dagbok', targetUserId, `?edit=${workoutId}`))
       router.refresh()
     })
   }

@@ -17,7 +17,9 @@
     "stillestand-utfall": "tsx scripts/stillestand-utfall-selftest.ts",
     "varighet-vern": "tsx scripts/varighet-vern-selftest.ts",
     "klokkerad-selftest": "tsx scripts/klokkerad-selftest.ts",
-    "flate-prefiks": "tsx scripts/flate-prefiks-selftest.ts"
+    "flate-prefiks": "tsx scripts/flate-prefiks-selftest.ts",
+    "rpc-grense": "tsx scripts/rpc-grense-selftest.ts",
+    "inboks-teller": "tsx scripts/inboks-teller-selftest.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

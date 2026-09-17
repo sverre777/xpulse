@@ -187,14 +187,51 @@ b) SUPERSETT SOM ÉN KNAPP.
    · Markeringen er fortsatt klamme i --kant-7 + bokstav. Ingen farge (2b).
    · Samme tre knapper i plan, dagbok og live.
 
-c) BEVIS (regel 40): rekkefølgen står etter reload, i plan OG dagbok OG live.
+c) REDIGERE ØVELSEN PÅ FØRTE SETT - I LIVE (Sverre 17. sep kveld).
+   Har du ført tre sett på feil øvelse, skal du kunne bytte øvelse på kortet
+   og beholde tallene. Reps, kg, tid og RPE står; bare øvelsen byttes.
+   · Bytte = samme velger som «Legg til øvelse» (søk eller skriv eget), fra
+     ⋯-menyen på øvelseskortet. Virker også etter «Logg sett» - ikke bare på
+     tomme kort.
+   · KRAV: settene flytter til en annen øvelse, så PR-merker og «Beste» må
+     regnes PÅ NYTT for det nye navnet (beregnPR via normOvelse). 100 kg er
+     PR for knebøy, ikke for markløft. Et stående PR-merke etter bytte er en
+     oppdiktet rekord. Ferdig-skjermens «Nye rekorder» skal også stemme
+     etter byttet.
+   · Grå forrige-verdier på kortet byttes til det nye navnets historikk.
+   · Samme i plan og dagbok (ActivitiesSection) - der er navnefeltet alt
+     fritt; sjekk at PR-merket regnes på nytt der også.
+   · MÅL FØRST: kan et ført sett i live redigeres (reps/kg) i dag, ved å
+     trykke på det? Hvis ikke, ta det med i samme bolk - samme klasse feil
+     (tastet feil, vil rette uten å slette).
 
-e) TELLEREN I LIVE (Sverre/Cowork 17. sep): stor og klebrig øverst, tydelig
-   tilstand (går / STOPPET / avsluttet), etiketten «Totaltid», og stoppet tid
-   som egen liten linje merket «ikke med» - aldri to tall som ser like ut.
-   Regnestykket røres ikke, bare visningen.
+d) BEVIS (regel 40): rekkefølgen står etter reload, i plan OG dagbok OG live.
    Supersett-koblingen står etter reload. Dra på mobil scroller ikke sida.
    Ingenting i basen endres av en drag som slippes der den startet.
+   Øvelsesbytte: settene har ny øvelse i basen, PR-merket flyttet eller
+   fjernet riktig, «Beste» viser det nye navnets beste.
+
+e) TOTALTID-TELLEREN I LIVE - TYDELIGERE (Sverre 17. sep kveld).
+   Telleren er tallet bolk 3 handler om (totaltid = treningstid, hvile med,
+   stoppet tid ikke). Den skal ikke se ut som en detalj.
+   · Større tall, øverst, alltid synlig (klebrig i toppen når lista scroller),
+     Bebas eller Barlow Condensed som appens øvrige store tall - ingen ny
+     font. Klar tilstand: går, STOPPET (dempet + merke), avsluttet.
+   · Under: «Totaltid» som etikett, og når det finnes stoppet tid: én liten
+     linje «Stoppet: 4:12 (ikke med)». Aldri to tall som ser like ut.
+   · Ikke rør regnestykket - bare visningen. Verdien er den samme som lagres.
+   · Lys og mørk, 390 px.
+
+f) TASTE TALLET DIREKTE I LIVE (Sverre 17. sep kveld).
+   Stepperne (reps ±1, kg ±2,5) blir stående som standard. I TILLEGG: trykk på
+   selve tallet i stepperen åpner et numerisk felt (inputmode="decimal" for kg,
+   "numeric" for reps), forhåndsfylt med dagens verdi, markert, så du kan
+   skrive 82,5 rett inn. Enter eller trykk utenfor lukker. Komma og punktum
+   godtas begge som desimal. Verdien går inn i samme tilstand som stepperen
+   skriver til - ingen ny kilde.
+   · Dette opphever «ingen systemtastatur» fra bolk 2c. Begge veier finnes.
+   · Treffflate 52 px står. Feltet skal ikke ødelegge den.
+   · Bevis: tastet 82,5 lagres som 82.5, og «Beste»/PR regnes med den.
 
 GJELDER ALLE BOLKER
   Lys og mørk (regel 23) · vanlig bindestrek (regel 31) · ingen custom

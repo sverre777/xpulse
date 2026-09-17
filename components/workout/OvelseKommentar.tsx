@@ -14,7 +14,7 @@ export function KommentarKnapp({ harTekst, apen, onClick, aria, storrelse = 36 }
   return (
     <button type="button" onClick={onClick} aria-label={aria} aria-expanded={apen} data-kommentar-knapp data-har-tekst={harTekst ? '1' : '0'}
       style={{ position: 'relative', background: 'none', border: 'none', padding: 0, minWidth: storrelse, minHeight: storrelse, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: harTekst || apen ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)', flex: 'none' }}>
-      <Ikon navn="innboks" variant={harTekst ? 'fyll' : 'strek'} storrelse={18} />
+      <Ikon navn="notat" variant={harTekst ? 'fyll' : 'strek'} storrelse={18} />
       {harTekst && <span aria-hidden="true" style={{ position: 'absolute', top: 6, right: 6, width: 7, height: 7, borderRadius: 999, background: '#FF4500' }} />}
     </button>
   )

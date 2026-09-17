@@ -190,7 +190,7 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                     background: noteOpenId === s.id || s.note ? 'var(--tonet-gronn-2)' : 'var(--card2)',
                     border: '1px solid var(--line2)',
                   }}>
-                  <Ikon navn="for-okt" variant="strek" storrelse={18} />
+                  <Ikon navn="notat" variant={s.note ? 'fyll' : 'strek'} storrelse={18} />
                 </button>
                 <button type="button" aria-label="Fjern serie"
                   onClick={() => removeSeries(s.id)}

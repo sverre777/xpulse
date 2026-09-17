@@ -83,7 +83,7 @@ var SC=[
 var VH=window.innerHeight;
 SC.forEach(function(s,i){var d=document.createElement('div');d.className='sv-s';d.dataset.i=i;d.style.height=(s.vekt*85)+'vh';steg.appendChild(d);
   var p=document.createElement('i');prik.appendChild(p);
-  var c=document.createElement('span');c.innerHTML='<b>'+(i+1)+'</b>'+s.t;stripe.appendChild(c);
+  if(stripe){var c=document.createElement('span');c.innerHTML='<b>'+(i+1)+'</b>'+s.t;stripe.appendChild(c)}
   p.title=s.t;p.addEventListener('click',function(){SV.til(i)})});
 var hopp=document.getElementById('sv-hopp');if(hopp)hopp.addEventListener('click',function(){var r=scroll.getBoundingClientRect();window.scrollTo(0,window.scrollY+r.bottom-window.innerHeight+40)});
 /* første scene skal stå fullt før bla-en starter: sticky-en er 100 vh, blokkene kommer etter */

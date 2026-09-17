@@ -1777,3 +1777,6 @@
 .sv-lag .fv-sk .fv-pop{top:118px;bottom:78px;height:auto;max-height:none;border-radius:22px;border-top-width:1px;padding:14px 14px 18px;z-index:12;box-shadow:0 -10px 30px rgba(0,0,0,.35)}
 .sv-lag .fv-sk .fv-glass,.sv-lag .fv-sk .fv-bunn{z-index:30}
 .sv-lag .fv-sk .fv-plus{z-index:31}
+.sv-etter{padding:8px 0 12px}
+.sv-info{justify-content:center;margin-top:0}
+.sv-info .fv-info-pop{left:50%;transform:translateX(-50%)}

@@ -1,5 +1,6 @@
 'use client'
 
+import { StyrkeSammenlign } from './StyrkeSammenlign'
 import { ChartWrapper } from './ChartWrapper'
 import { Ikon } from '@/components/ui/ikoner'
 import { useState, useMemo, useEffect, useTransition } from 'react'
@@ -255,6 +256,8 @@ export function CompareWorkoutsTab({
             <SammenligningVisning okter={pakker} harSki={harSki} targetUserId={targetUserId} />
             <WeatherCompareRow workouts={detailed} />
             <SplitsCompareChart workouts={detailed} />
+            {/* Styrke bolk 5b: like styrkeøkter øvelse for øvelse (2-4 gjennomføringer). */}
+            <StyrkeSammenlign okter={detailed.map(w => ({ id: w.id, date: w.date, exercises: w.activities.flatMap(a => a.exercises.map(e => ({ exercise_name: e.exercise_name, sets: e.sets.map(s => ({ reps: s.reps, weight_kg: s.weight_kg })) }))) }))} />
           </div>
         ) : (
           <p className="text-xs text-center py-6"

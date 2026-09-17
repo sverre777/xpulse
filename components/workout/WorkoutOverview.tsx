@@ -629,7 +629,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           activities - blokka står MELLOM øktas egne kort og klokkedataene. */}
       {!isPlannedView && (data.planned_activities?.length ?? 0) > 0 && activities.length > 0 && (
         <div className="mb-3.5">
-          <PlanVsActualComparison plan={data.planned_activities ?? []} actual={activities} />
+          <PlanVsActualComparison plan={data.planned_activities ?? []} actual={activities} workoutId={workoutId} targetUserId={targetUserId} />
         </div>
       )}
 

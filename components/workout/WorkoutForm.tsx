@@ -1549,6 +1549,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               <PlanVsActualComparison
                 plan={form.planned_activities ?? []}
                 actual={form.activities}
+                workoutId={workoutId ?? null}
+                targetUserId={targetUserId}
               />
             </div>
           )}

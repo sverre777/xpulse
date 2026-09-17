@@ -188,6 +188,11 @@ b) SUPERSETT SOM ÉN KNAPP.
    · Samme tre knapper i plan, dagbok og live.
 
 c) BEVIS (regel 40): rekkefølgen står etter reload, i plan OG dagbok OG live.
+
+e) TELLEREN I LIVE (Sverre/Cowork 17. sep): stor og klebrig øverst, tydelig
+   tilstand (går / STOPPET / avsluttet), etiketten «Totaltid», og stoppet tid
+   som egen liten linje merket «ikke med» - aldri to tall som ser like ut.
+   Regnestykket røres ikke, bare visningen.
    Supersett-koblingen står etter reload. Dra på mobil scroller ikke sida.
    Ingenting i basen endres av en drag som slippes der den startet.
 

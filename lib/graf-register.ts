@@ -225,6 +225,8 @@ export const GRAFER: Record<string, GrafDef> = {
   // favoritt = øktsett + visning (config). Splits per km står som egen graf.
   sammenlign_oktsett: G('sammenlign', 'Sammenligning av økter', { data: 'selv', config: true, bred: true }),
   sammenlign_splits: G('sammenlign', 'Splits per km'),
+  // Styrke bolk 5b: like styrkeøkter øvelse for øvelse (2-4 gjennomføringer).
+  sammenlign_styrke: G('sammenlign', 'Styrke: øvelse for øvelse'),
 
   // ── Mal-analyse (inne i Sammenligning) ──
   mal_analyse_avg_hr: G('mal_analyse', 'Snittpuls over tid (mal)'),

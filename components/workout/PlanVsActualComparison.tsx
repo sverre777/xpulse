@@ -1,5 +1,9 @@
 'use client'
 
+import type { BesteForOvelse } from '@/lib/live-styrke'
+import { getBesteForExercises } from '@/app/actions/strength-session'
+import { planMotFaktiskOvelser } from '@/lib/styrke-sammenlign'
+import { useEffect, useState } from 'react'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { ActivityRow, findActivityType } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -8,6 +12,9 @@ import { parseDecimal } from '@/lib/parse-decimal'
 interface Props {
   plan: ActivityRow[]
   actual: ActivityRow[]
+  /** Styrke bolk 5: PR-stjerna trenger beste FØR økta - uten workoutId tegnes ingen stjerne. */
+  workoutId?: string | null
+  targetUserId?: string
 }
 
 // Grensen for "innenfor plan" på varighet. >10% avvik → oransje.
@@ -57,7 +64,24 @@ function extras(a: ActivityRow): string[] {
   return out
 }
 
-export function PlanVsActualComparison({ plan, actual }: Props) {
+export function PlanVsActualComparison({ plan, actual, workoutId = null, targetUserId }: Props) {
+  // STYRKE BOLK 5a: én rad per øvelse - planlagt sett × reps × kg mot ført,
+  // PR-stjerne der settet slår beste før økta, «ikke ført» i stedet for 0.
+  const planOvelser = plan.flatMap(a => a.exercises ?? [])
+  const faktiskOvelser = actual.flatMap(a => a.exercises ?? [])
+  const navn = Array.from(new Set([...planOvelser, ...faktiskOvelser].map(o => o.exercise_name.trim()).filter(Boolean)))
+  const nokkel = `${workoutId ?? ''}|${targetUserId ?? ''}|${navn.join('|')}`
+  const [beste, setBeste] = useState<{ nokkel: string; data: Record<string, BesteForOvelse> } | null>(null)
+  useEffect(() => {
+    if (!workoutId || navn.length === 0) return
+    let live = true
+    const n = nokkel
+    getBesteForExercises(navn, targetUserId, workoutId).then(d => { if (live) setBeste({ nokkel: n, data: d }) }).catch(() => {})
+    return () => { live = false }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nokkel])
+  const ovelseRader = planMotFaktiskOvelser(planOvelser, faktiskOvelser, beste?.nokkel === nokkel ? beste.data : {})
+
   const max = Math.max(plan.length, actual.length)
   const rows: { plan: ActivityRow | null; actual: ActivityRow | null }[] = []
   for (let i = 0; i < max; i++) {
@@ -104,6 +128,24 @@ export function PlanVsActualComparison({ plan, actual }: Props) {
           )
         })}
       </div>
+
+      {ovelseRader.length > 0 && (
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--kant-3)' }} data-pva-ovelser>
+          <div className="grid gap-2 px-1 pb-1 text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', gridTemplateColumns: '1fr 72px 72px 22px' }}>
+            <span>Øvelse</span><span>Plan</span><span>Ført</span><span />
+          </div>
+          {ovelseRader.map(r => (
+            <div key={r.ovelse} data-pva-ovelse={r.ovelse} data-pr={r.pr ? '1' : '0'} className="grid gap-2 px-1"
+              style={{ gridTemplateColumns: '1fr 72px 72px 22px', alignItems: 'center', padding: '6px 4px', borderBottom: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
+              <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.ovelse}{r.utenforPlan && <span style={{ color: 'var(--tekst-8-app)', fontWeight: 400 }}> · utenfor plan</span>}</b>
+              <span style={{ color: 'var(--tekst-8-app)', fontVariantNumeric: 'tabular-nums' }}>{r.plan ?? '-'}</span>
+              <span style={{ color: r.faktisk ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)', fontVariantNumeric: 'tabular-nums' }}>{r.faktisk ?? 'ikke ført'}</span>
+              <span style={{ color: '#D4A017', textAlign: 'center' }} aria-label={r.pr ? 'Personlig rekord' : undefined}>{r.pr ? '★' : ''}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Forklaring fargekoder */}
       <div className="mt-3 pt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs"

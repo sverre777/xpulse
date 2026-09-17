@@ -113,6 +113,11 @@ export function LiveSessionView({
   // Stopp: akkumulert stoppet tid + «stoppet siden» - lokalt, ingen SQL.
   const [stoppetSidenMs, setStoppetSidenMs] = useState<number | null>(null)
   const [stoppetSumMs, setStoppetSumMs] = useState(0)
+  // Bolk 8h: pausen mellom sett teller OPP fra «Logg sett» til «Start sett» på neste.
+  // Summen holdes her (ingen SQL, aldri en pause-rad) og vises på ferdig-skjermen.
+  const [pauseSumMs, setPauseSumMs] = useState(0)
+  // Bolk 8e: klokka fryses når økta avsluttes (ferdig-skjermen); «tilbake» regner tida der som stoppet.
+  const [avsluttetMs, setAvsluttetMs] = useState<number | null>(null)
   const [skjerm, setSkjerm] = useState<'live' | 'ferdig'>('live')
   const [varighetMin, setVarighetMin] = useState<string>('')
   const [meny, setMeny] = useState<string | null>(null)
@@ -139,8 +144,14 @@ export function LiveSessionView({
 
   const stoppet = stoppetSidenMs != null
   const stoppetNaa = stoppet ? nowMs - stoppetSidenMs! : 0
-  const elapsedSec = startedAtMs != null ? Math.max(0, (nowMs - startedAtMs - stoppetSumMs - stoppetNaa) / 1000) : 0
-  const restSec = activeSetId == null && lastLogMs != null && !stoppet ? (nowMs - lastLogMs) / 1000 : null
+  const klokkeMs = avsluttetMs ?? nowMs
+  const elapsedSec = startedAtMs != null ? Math.max(0, (klokkeMs - startedAtMs - stoppetSumMs - stoppetNaa) / 1000) : 0
+  // Pausen som går nå: fra siste «Logg sett», frosset mens økta står stoppet (lastLogMs
+  // skyves fram ved Fortsett). Å rette et ført sett avslutter den IKKE - bare «Start sett».
+  const pauseSek = lastLogMs != null ? Math.max(0, ((stoppet ? stoppetSidenMs! : klokkeMs) - lastLogMs) / 1000) : null
+  const pauseIAltSek = (pauseSumMs + (lastLogMs != null && avsluttetMs == null ? Math.max(0, (stoppet ? stoppetSidenMs! : nowMs) - lastLogMs) : 0)) / 1000
+  const stoppetSumSek = (stoppetSumMs + stoppetNaa) / 1000
+  const tilstand: 'gaar' | 'stoppet' | 'avsluttet' = avsluttetMs != null ? 'avsluttet' : stoppet ? 'stoppet' : 'gaar'
 
   // ── Wake lock (best effort - ingen lovnad om at skjermen står på) ──
   useEffect(() => {
@@ -252,13 +263,19 @@ export function LiveSessionView({
     if (stoppet) return
     setDoneSets(prev => { const n = new Set(prev); n.delete(s.id); return n })
     setActiveSetId(s.id)
-    setLastLogMs(null); setRedigerer(null)
+    setRedigerer(null)
     const sp = spokelse(lastByName[normOvelse(ex.exercise_name)], i)
     const harFort = !!(s.reps.trim() || s.weight_kg.trim())
     // Bolk 8g: et uført sett arver settet OVER som startverdi (rort: true - lagres
     // først ved «Logg sett»). Ellers forrige økts tall grått.
     const arv = harFort ? null : startverdiFraForrige(ex, i)
     setTast(harFort ? { reps: s.reps, kg: s.weight_kg, rort: true } : arv ? { reps: arv.reps, kg: arv.kg, rort: true } : { reps: sp.reps, kg: sp.kg, rort: false })
+  }
+  /** «Start sett»: DEN knappen avslutter pausen (bolk 8h) - summen tar med pausen som gikk. */
+  const startSett = (ex: StrengthExerciseRow, s: StrengthSetRow, i: number) => {
+    if (stoppet) return
+    if (lastLogMs != null) { setPauseSumMs(p => p + Math.max(0, Date.now() - lastLogMs)); setLastLogMs(null) }
+    velgSett(ex, s, i)
   }
   const bump = (felt: 'reps' | 'kg', d: number) => {
     hapticTap(8)
@@ -291,11 +308,26 @@ export function LiveSessionView({
 
   // ── Stopp / fortsett / avslutt / avbryt ──────────────────
   const stopp = () => { if (stoppet) return; setActiveSetId(null); setStoppetSidenMs(Date.now()) }
-  const fortsett = () => { if (!stoppet) return; setStoppetSumMs(s => s + (Date.now() - stoppetSidenMs!)); setStoppetSidenMs(null) }
+  const fortsett = () => {
+    if (!stoppet) return
+    const sto = Date.now() - stoppetSidenMs!
+    setStoppetSumMs(s => s + sto); setStoppetSidenMs(null)
+    // Pausen sto også stille: skyv startpunktet fram så den fortsetter der den var.
+    setLastLogMs(l => l != null ? l + sto : l)
+  }
   const tilFerdig = () => {
     if (stoppet) fortsett()
+    const naa = Date.now()
+    // Bolk 8h: en åpen pause legges i summen; 8e: klokka fryses.
+    if (lastLogMs != null) { setPauseSumMs(p => p + Math.max(0, naa - lastLogMs)); setLastLogMs(null) }
+    setAvsluttetMs(naa); setActiveSetId(null)
     setVarighetMin(String(Math.max(1, Math.round(elapsedSec / 60))))
     setSkjerm('ferdig')
+  }
+  /** Tilbake fra ferdig-skjermen: tida der teller som stoppet, klokka går igjen. */
+  const tilbakeTilOkta = () => {
+    if (avsluttetMs != null) setStoppetSumMs(s => s + (Date.now() - avsluttetMs))
+    setAvsluttetMs(null); setSkjerm('live')
   }
   const lagreIDagboka = async () => {
     if (busy) return
@@ -328,12 +360,10 @@ export function LiveSessionView({
       <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: 40 }} data-live-ferdig>
         <div style={topp}>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={() => setSkjerm('live')} style={ikonKnapp} aria-label="Tilbake til økta"><Ikon navn="forrige" variant="strek" storrelse={18} /></button>
-            <span style={{ fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
-              Økta er ferdig
-              <span style={{ display: 'block', fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5, letterSpacing: 0 }}>{fmtClock(elapsedSec)} · {forte} sett</span>
-            </span>
+            <button type="button" onClick={tilbakeTilOkta} style={ikonKnapp} aria-label="Tilbake til økta"><Ikon navn="forrige" variant="strek" storrelse={18} /></button>
+            <span style={{ flex: 1, fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>Økta er ferdig</span>
           </div>
+          <Teller sek={elapsedSec} tilstand="avsluttet" forte={forte} antall={antallSett} stoppetSek={stoppetSumSek} pauseSek={null} pauseIAltSek={pauseIAltSek} neste={null} />
         </div>
         <div style={{ padding: '14px 16px' }}>
           <div style={kort}>
@@ -382,36 +412,20 @@ export function LiveSessionView({
   // ═══ LIVE ═══
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: aktiv ? 300 : 96 }} data-live-styrke>
-      {/* Topp: avbryt (×) · tittel + tid/sett · Stopp */}
+      {/* Topp (klebrig): avbryt (×) · tittel · Stopp, og TELLEREN (bolk 8e/8h) - totaltid stort,
+          tilstand går/STOPPET/avsluttet, «Stoppet: 4:12 (ikke med)», og pausen som teller opp. */}
       <div style={topp}>
         <div className="flex items-center gap-3">
           <button type="button" onClick={cancel} style={ikonKnapp} aria-label="Avbryt økt-modus" data-live-avbryt><Ikon navn="lukk" variant="strek" storrelse={18} /></button>
-          <span style={{ flex: 1, fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
-            Live styrke
-            <span style={{ display: 'block', fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5, letterSpacing: 0 }} data-live-tid>
-              {stoppet ? `Stoppet · ${fmtClock(elapsedSec)}` : `${fmtClock(elapsedSec)} · ${forte} av ${antallSett} sett`}
-            </span>
-          </span>
+          <span style={{ flex: 1, fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>Live styrke</span>
           {!stoppet && (
             <button type="button" onClick={stopp} className="xp-pill xp-pill-ghost" style={{ minHeight: 30, padding: '0 11px', fontSize: 11.5 }} data-live-stopp>Stopp</button>
           )}
         </div>
+        <Teller sek={elapsedSec} tilstand={tilstand} forte={forte} antall={antallSett} stoppetSek={stoppetSumSek} pauseSek={pauseSek} pauseIAltSek={null} neste={neste} />
       </div>
 
       <div style={{ padding: '14px 16px 0', opacity: stoppet ? .34 : 1, pointerEvents: stoppet ? 'none' : 'auto', filter: stoppet ? 'blur(1px)' : 'none', transition: 'opacity .2s' }}>
-        {/* Hvile-ringen: starter automatisk når et sett logges, teller ned til HVILE_MAAL_SEK. Ingen lyd. */}
-        {restSec != null && neste && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 16, background: 'var(--card2)', border: '1px solid var(--line2)', marginBottom: 12 }} data-live-hvile>
-            <HvileRing sek={restSec} />
-            <div style={{ flex: 1, fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-app)', lineHeight: 1.35 }}>
-              Hvile<br /><b style={{ color: 'var(--tekst-1-app)' }}>{neste.ex.exercise_name} · sett {neste.i + 1} av {neste.ex.sets.length}</b>
-            </div>
-            <span style={{ fontFamily: BEBAS, fontSize: 26, color: 'var(--tekst-1-app)', letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums' }}>
-              {fmtClock(Math.max(0, HVILE_MAAL_SEK - restSec))}
-            </span>
-          </div>
-        )}
-
         {exercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--card)', border: '1px dashed var(--line2)', borderRadius: 16, marginBottom: 16 }}>
             <p style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 15, margin: 0 }}>Ingen øvelser lagt til - legg til øvelser for å begynne.</p>
@@ -480,7 +494,7 @@ export function LiveSessionView({
                       ) : active ? (
                         <button type="button" onClick={loggSett} style={settKnapp} data-live-logg-rad>Logg</button>
                       ) : (
-                        <button type="button" onClick={() => velgSett(ex, s, si)} style={settKnapp} data-live-start>Start</button>
+                        <button type="button" onClick={() => startSett(ex, s, si)} style={settKnapp} data-live-start>Start</button>
                       )}
                     </div>
                   )
@@ -515,8 +529,8 @@ export function LiveSessionView({
         {stoppet ? (
           <div data-live-stoppet>
             <div style={{ textAlign: 'center', padding: '6px 0 14px' }}>
-              <div style={{ fontFamily: BEBAS, fontSize: 40, letterSpacing: '0.02em', color: 'var(--tekst-1-app)' }}>{fmtClock(elapsedSec)}</div>
-              <div style={{ ...meta, fontSize: 12 }}>Klokka står. Tiden fra nå teller ikke med.</div>
+              <div style={{ fontFamily: BEBAS, fontSize: 22, letterSpacing: '0.03em', color: 'var(--tekst-1-app)' }}>Klokka står</div>
+              <div style={{ ...meta, fontSize: 12 }}>Tiden fra nå teller ikke med - totaltida står i toppen.</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 9 }}>
               <button type="button" onClick={tilFerdig} className="xp-pill" style={{ ...pillStor, background: 'var(--card2)', color: 'var(--tekst-1-app)', borderColor: 'var(--line2)' }} data-live-avslutt>Avslutt</button>
@@ -615,11 +629,53 @@ function Felt({ fort, verdi, pr, onClick, aria }: { fort: boolean; verdi: string
   )
 }
 
-function HvileRing({ sek }: { sek: number }) {
+/**
+ * Bolk 8e + 8h: telleren i den klebrige toppen. Totaltid stort (Bebas, som appens andre
+ * store tall), tilstand går / STOPPET (dempet + merke) / avsluttet, «Totaltid» som etikett,
+ * «Stoppet: 4:12 (ikke med)» når det finnes stoppet tid, og pausen som teller OPP fra
+ * «Logg sett» - ringen fylles til HVILE_MAAL_SEK som et mykt mål, tallet er tida som har
+ * gått. Bare visning: verdien er den samme som lagres (bolk 3).
+ */
+function Teller({ sek, tilstand, forte, antall, stoppetSek, pauseSek, pauseIAltSek, neste }: {
+  sek: number; tilstand: 'gaar' | 'stoppet' | 'avsluttet'; forte: number; antall: number
+  stoppetSek: number; pauseSek: number | null; pauseIAltSek: number | null
+  neste: { ex: StrengthExerciseRow; i: number } | null
+}) {
+  const dempet = tilstand !== 'gaar'
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, padding: '4px 0 2px' }} data-live-teller>
+      <div style={{ minWidth: 0 }}>
+        <div data-live-tid data-live-tilstand={tilstand}
+          style={{ fontFamily: BEBAS, fontSize: 44, lineHeight: 1, letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums', color: dempet ? 'var(--tekst-8-app)' : 'var(--tekst-1-app)' }}>
+          {fmtClock(sek)}
+        </div>
+        <div style={{ ...meta, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span>Totaltid</span>
+          {tilstand === 'stoppet' && <span data-live-merke="stoppet" style={{ padding: '1px 7px', borderRadius: 999, border: '1px solid var(--line2)', color: 'var(--tekst-3-app)', fontWeight: 700 }}>Stoppet</span>}
+          {tilstand === 'avsluttet' && <span data-live-merke="avsluttet" style={{ padding: '1px 7px', borderRadius: 999, border: '1px solid rgba(40,168,110,.45)', color: GRONN, fontWeight: 700 }}>Avsluttet</span>}
+          <span>· {forte} av {antall} sett</span>
+        </div>
+        {stoppetSek >= 1 && <div data-live-stoppet-tid style={{ ...meta, fontSize: 11.5, marginTop: 2 }}>Stoppet: {fmtClock(stoppetSek)} (ikke med)</div>}
+        {pauseIAltSek != null && pauseIAltSek >= 1 && <div data-live-pause-sum={Math.round(pauseIAltSek)} style={{ ...meta, fontSize: 11.5, marginTop: 2 }}>Pause i alt: {fmtClock(pauseIAltSek)} (med i totaltida)</div>}
+      </div>
+      {pauseSek != null && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }} data-live-pause={Math.floor(pauseSek)}>
+          <HvileRing sek={pauseSek} liten />
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: BEBAS, fontSize: 24, lineHeight: 1, letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums', color: dempet ? 'var(--tekst-8-app)' : 'var(--tekst-1-app)' }}>{fmtClock(pauseSek)}</div>
+            <div style={{ ...meta, fontSize: 11, marginTop: 2, whiteSpace: 'nowrap' }}>Pause{neste ? ` · ${neste.ex.exercise_name} sett ${neste.i + 1}` : ''}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function HvileRing({ sek, liten = false }: { sek: number; liten?: boolean }) {
   const r = 18, omkrets = 2 * Math.PI * r
   const andel = Math.min(1, sek / HVILE_MAAL_SEK)
   return (
-    <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true">
+    <svg width={liten ? 30 : 42} height={liten ? 30 : 42} viewBox="0 0 42 42" aria-hidden="true">
       <circle cx="21" cy="21" r={r} fill="none" stroke="var(--line2)" strokeWidth="4" />
       <circle cx="21" cy="21" r={r} fill="none" stroke={ORANGE} strokeWidth="4" strokeLinecap="round"
         strokeDasharray={omkrets} strokeDashoffset={omkrets * (1 - andel)} transform="rotate(-90 21 21)" style={{ transition: 'stroke-dashoffset .9s linear' }} />

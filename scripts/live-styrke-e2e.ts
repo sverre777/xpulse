@@ -145,7 +145,7 @@ try {
   await p.waitForTimeout(400)
   const f1b = (await felt.nth(1).textContent() ?? '').trim()
   sjekk('sett 1 er ført med 102,5 kg og merket PR (gull)', (await felt.nth(1).getAttribute('data-fort')) === '1' && f1b.startsWith('102,5') && f1b.includes('PR'), f1b)
-  sjekk('hvile-ringen kom opp etter Logg', (await p.locator('[data-live-hvile]').count()) === 1)
+  sjekk('pausen (bolk 8h: teller opp i toppen) kom opp etter Logg', (await p.locator('[data-live-pause]').count()) === 1)
   await p.waitForTimeout(3500)
   const s1 = await settIBasen(idag)
   sjekk('basen: sett 1 = 8 × 102,5, sett 2 og 3 fortsatt tomme (asymmetrien: reps fra forrige lagres ved Logg)',

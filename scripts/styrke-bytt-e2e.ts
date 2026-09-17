@@ -86,9 +86,7 @@ async function iBasen(oktId: string): Promise<Basen> {
     .sort((a, b) => a.sort_order - b.sort_order)
     .map(e => ({ navn: e.exercise_name, sort: e.sort_order, ss: e.superset_group, sett: e.workout_activity_exercise_sets.slice().sort((a, b) => a.set_number - b.set_number).map(s => ({ n: s.set_number, reps: s.reps, kg: s.weight_kg == null ? null : Number(s.weight_kg) })) }))
 }
-const rekkef = (b: Basen) => b.map(e => e.navn).join(',')
 
-const uiRekkef = async (p: Side) => (await p.locator('[data-styrke-ovelse]').evaluateAll(els => els.map(e => e.getAttribute('data-styrke-ovelse')))).join(',')
 async function apneSkjema(p: Side, oktId: string) {
   await p.goto(`${BASE}/app/dagbok?edit=${oktId}`, { waitUntil: 'domcontentloaded' })
   const rediger = p.getByRole('button', { name: /Rediger økt/i }).first(); await rediger.waitFor({ timeout: 60000 }); await rediger.click()

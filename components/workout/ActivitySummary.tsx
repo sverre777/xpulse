@@ -1,5 +1,6 @@
 'use client'
 
+import { StyrkeRad, styrkeSpennAv } from './StyrkeRad'
 import { klokketidForVisning } from '@/lib/klokketid'
 import { fmtKlokkeSek } from '@/lib/segmenter'
 import { useMemo } from 'react'
@@ -29,10 +30,13 @@ import {
 import { PlanGraf, planNokkeltallCeller } from './PlanGraf'
 import { fraTidspunktNotater } from './Punkt'
 import type { TidspunktNotat } from '@/lib/tidspunkt-notater'
-import { fraActivityRows } from '@/lib/plan-graf'
+import { byggPlanBlokker, fraActivityRows } from '@/lib/plan-graf'
 
 interface Props {
   activities: ActivityRow[]
+  /** Styrke bolk 4: planens rader (planned_activities) - settene tegnes som spøkelse bak. */
+  planAktiviteter?: ActivityRow[] | null
+  workoutId?: string | null
   heartZones: HeartZone[]
   sport: Sport
   // Brukerens default pace-enhet — null faller tilbake til 'min_per_km'.
@@ -90,7 +94,7 @@ function ernaeringFraSkjema(rader: NutritionEntryRow[]): NutritionMarker[] {
   return ut
 }
 
-export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
+export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false, planAktiviteter = null, workoutId = null }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid - ekskl. ren pause OG skyting (aktiv pause teller)
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -329,6 +333,11 @@ export function ActivitySummary({ readOnly = false, laktatRader, ernaeringRader,
       {planBlokker && (
         <div className="mb-3" data-plan-graf-kort>
           <PlanGraf blokker={planBlokker} heartZones={heartZones} tetthet="full" punkter={fraTidspunktNotater(tidspunktNotater)} />
+          {/* Styrke bolk 4: settraden under plan-grafen - planens sett som spøkelse bak. */}
+          <StyrkeRad spenn={styrkeSpennAv(byggPlanBlokker(planBlokker, heartZones), activities)}
+            plan={planAktiviteter ? styrkeSpennAv(byggPlanBlokker(fraActivityRows(planAktiviteter), heartZones), planAktiviteter) : []}
+            tilSek={Math.max(1, ...byggPlanBlokker(planBlokker, heartZones).map(b => b.startSek + b.sek), ...(planAktiviteter ? byggPlanBlokker(fraActivityRows(planAktiviteter), heartZones).map(b => b.startSek + b.sek) : []))}
+            workoutId={workoutId} />
         </div>
       )}
 

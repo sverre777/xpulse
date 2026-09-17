@@ -101,6 +101,8 @@ export const GRAFER: Record<string, GrafDef> = {
   oversikt_skytetreff: G('oversikt', 'Skyte-treff'),
   oversikt_hovedsport_km: G('oversikt', 'Hovedsport-km'),
   oversikt_styrkeokter: G('oversikt', 'Styrke-økter'),
+  // Styrke bolk 4: settraden i øktgrafen (StyrkeRad) - «ingen nakne grafer». Ikke en favoritt-flate.
+  styrke_settgraf: G('styrke', 'Settraden i øktgrafen (høyde = kg, tall = reps)', { data: 'selv' }),
   oversikt_hoydemeter: G('oversikt', 'Høydemeter'),
   oversikt_snitt_hrv: G('oversikt', 'Snitt HRV'),
   oversikt_snitt_hvilepuls: G('oversikt', 'Snitt hvilepuls'),

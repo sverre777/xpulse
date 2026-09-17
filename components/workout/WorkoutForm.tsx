@@ -1511,6 +1511,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           <ActivitySummary
             readOnly={readOnly}
             activities={form.activities}
+            planAktiviteter={isPlanMode ? null : (form.planned_activities ?? null)}
+            workoutId={workoutId ?? null}
             heartZones={heartZones}
             sport={form.sport}
             defaultPaceUnit={defaultPaceUnit}

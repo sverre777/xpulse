@@ -26,6 +26,7 @@
 // Skyting og pause er grå (sonefri) som i planen; L/S-markøren og
 // treffet bærer innholdet.
 
+import type { StrengthExerciseRow } from './types'
 import { pulsIVindu, type Segment } from './segmenter'
 import type { PlanBlokkInn, PlanBlokk } from './plan-graf'
 import { zoneForHeartRate, type ExtendedZoneName, type HeartZone } from './heart-zones'
@@ -43,6 +44,8 @@ export interface FaktiskRad {
   standing_shots?: number | null
   gruppe_id?: string | null
   distance_meters?: number | null
+  /** Styrke bolk 4: øvelsene med sett (settraden). */
+  exercises?: StrengthExerciseRow[] | null
 }
 
 const SONE_NAVN: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']

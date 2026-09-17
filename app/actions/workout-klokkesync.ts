@@ -1,5 +1,6 @@
 'use server'
 
+import { tilOvelsesrader } from '@/lib/styrke-rader'
 import { kurvespennSek } from '@/lib/klokketid'
 import { createClient } from '@/lib/supabase/server'
 import { medTid } from '@/lib/ytelse-tid'
@@ -365,6 +366,8 @@ async function getWorkoutKlokkesyncDataIndre(
       id: a.id, activity_type: a.activity_type, movement_name: a.movement_name, movement_subcategory: a.movement_subcategory,
       lap_notes: a.lap_notes, avg_heart_rate: a.avg_heart_rate, prone_shots: a.prone_shots, standing_shots: a.standing_shots,
       gruppe_id: (a.gruppe_id as string | null) ?? null, distance_meters: a.distance_meters,
+      // Styrke bolk 4: øvelsene med sett - settraden under kurven.
+      exercises: tilOvelsesrader(((a as { workout_activity_exercises?: unknown[] }).workout_activity_exercises ?? []) as Parameters<typeof tilOvelsesrader>[0]),
     })),
     distanseKm: (() => { const m = (activities ?? []).reduce((sum, a) => sum + (Number(a.distance_meters) || 0), 0); return m > 0 ? m / 1000 : null })(),
     frakobling,
@@ -510,7 +513,7 @@ async function hentKompakteKurverIndre(workoutIds: string[]): Promise<Record<str
       .select('workout_id, hr_samples, watt_samples, pace_samples, speed_samples, created_at')
       .in('workout_id', ids).order('created_at', { ascending: false }),
     supabase.from('workout_activities')
-      .select('id, workout_id, sort_order, activity_type, movement_name, movement_subcategory, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
+      .select('id, workout_id, sort_order, activity_type, movement_name, movement_subcategory, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id, workout_activity_exercises(id, exercise_name, sort_order, superset_group, workout_activity_exercise_sets(id, set_number, reps, weight_kg, duration_seconds, rpe))')
       .in('workout_id', ids).order('sort_order', { ascending: true }),
     supabase.from('workouts').select('id, merged_into_workout_id').in('merged_into_workout_id', ids),
     supabase.from('workouts').select('id, user_id, planned_snapshot, tidspunkt_notater, date, time_of_day').in('id', ids),

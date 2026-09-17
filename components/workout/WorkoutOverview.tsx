@@ -12,6 +12,7 @@
 // SAMME delte kilde som kalender/analyse (minutt-semantikk på varighet,
 // pause/skyting holdes utenfor treningstid) → tallene matcher dagboken.
 
+import { StyrkeRad, styrkeSpennAv } from './StyrkeRad'
 import { useEffect, useState, type ReactNode, useSyncExternalStore } from 'react'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { hentPlanensRunder, type PlanBlokk as PlanBlokkBak } from '@/app/actions/runder'
@@ -41,7 +42,7 @@ import { fraTidspunktNotater, type GrafPunkt } from './Punkt'
 import { klokkeslettTilSek } from '@/lib/oktbygger-rader'
 import { TrenerChip } from '@/components/coach/TrenerChip'
 import { EndretAvTrener } from '@/components/workout/EndretAvTrener'
-import { fraActivityRows } from '@/lib/plan-graf'
+import { fraActivityRows, byggPlanBlokker } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
 import { useKlokkedata } from '@/components/workout/useKlokkedata'
 import { klokketidForVisning } from '@/lib/klokketid'
@@ -574,6 +575,11 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             <PlanGraf blokker={fraActivityRows(activities)} tetthet="full"
               spokelser={!isPlannedView && visPlanBak_ ? planBakBlokker : []}
               punkter={oversiktPunkter(data.tidspunkt_notater, data.lactate, data.nutrition_entries, data.time_of_day)} />
+            {/* Styrke bolk 4: settraden under plan-grafen; planens sett som spøkelse i dagbok. */}
+            <StyrkeRad spenn={styrkeSpennAv(byggPlanBlokker(fraActivityRows(activities)), activities)}
+              plan={!isPlannedView && data.planned_activities?.length ? styrkeSpennAv(byggPlanBlokker(fraActivityRows(data.planned_activities)), data.planned_activities) : []}
+              tilSek={Math.max(1, ...byggPlanBlokker(fraActivityRows(activities)).map(b => b.startSek + b.sek), ...(!isPlannedView && data.planned_activities?.length ? byggPlanBlokker(fraActivityRows(data.planned_activities)).map(b => b.startSek + b.sek) : []))}
+              workoutId={workoutId} targetUserId={targetUserId} />
             <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
               rpe={isPlannedView ? forventetVist : rpeVist}
               onRpe={canEdit && workoutId ? (isPlannedView ? settForventet : settRpe) : undefined}
@@ -594,7 +600,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                 style={{ width: `${(v.sek / zoneTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
             })}
           </div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2" data-sonefordeling>
             {visningsFordeling(totals.zoneSeconds, utvidetSkala).map(v => {
               if (v.sek <= 0) return null
               return (

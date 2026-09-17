@@ -9,9 +9,8 @@
 //   · trener_kan_skrive_okt: planlagt -> edit_plan, gjennomført -> edit_dagbok
 //   · kan_flette_for / sett_utvidet_skala: utøveren selv OK; trener uten
 //     dagbok-/terskelrett avvises; med rett OK (utfall i basen)
-//   · oppslagsfunksjonene (ovelse_okt m.fl.) svarer en fremmed authenticated
-//     med uuid -> uuid. MÅLT OG RAPPORTERT som åpent punkt (ingen data, men en
-//     grense Sverre skal se).
+//   · oppslagsfunksjonene (ovelse_okt m.fl.): eier og trener med relasjon får
+//     svar, fremmed authenticated får null (131d) - RØD før 131d er kjørt
 // Lager egne testbrukere i prod og rydder dem med telling.
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -67,9 +66,13 @@ try {
   sjekk('etter at utøveren slår på edit_dagbok: trener_kan_skrive_okt(gjennomført) -> true', (await rpc(T, 'trener_kan_skrive_okt', { p_okt: fort.id })).data === true)
   maa(await admin.from('coach_data_permissions').update({ can_edit_dagbok: false }).eq('coach_athlete_relation_id', rel.id), 'slå av dagbok')
 
-  // 4 oppslagsfunksjonene: fremmed authenticated får uuid -> uuid (ÅPENT PUNKT, målt)
-  const o1 = await rpc(F, 'ovelse_okt', { p_ovelse: ex.id }), o2 = await rpc(F, 'sesong_eier', { p_sesong: sesong.id })
-  console.log(`  MÅLT  fremmed authenticated: ovelse_okt -> ${o1.data === fort.id ? 'øktas uuid' : String(o1.data)} · sesong_eier -> ${o2.data === ut.uid ? 'eierens uuid' : String(o2.data)}  (uuid -> uuid, ingen rader - Sverre avgjør om det skal strammes)`)
+  // 4 oppslagsfunksjonene (131d): eier og trener med relasjon får svar, fremmed får null
+  sjekk('ovelse_okt: eieren selv -> øktas uuid', (await rpc(U, 'ovelse_okt', { p_ovelse: ex.id })).data === fort.id)
+  sjekk('ovelse_okt: trener med relasjon -> øktas uuid', (await rpc(T, 'ovelse_okt', { p_ovelse: ex.id })).data === fort.id)
+  sjekk('ovelse_okt: FREMMED authenticated -> null (131d)', (await rpc(F, 'ovelse_okt', { p_ovelse: ex.id })).data === null, String((await rpc(F, 'ovelse_okt', { p_ovelse: ex.id })).data))
+  sjekk('aktivitet_okt: fremmed -> null, trener -> uuid', (await rpc(F, 'aktivitet_okt', { p_aktivitet: akt.id })).data === null && (await rpc(T, 'aktivitet_okt', { p_aktivitet: akt.id })).data === fort.id)
+  sjekk('sesong_eier: fremmed -> null, eier -> egen uuid', (await rpc(F, 'sesong_eier', { p_sesong: sesong.id })).data === null && (await rpc(U, 'sesong_eier', { p_sesong: sesong.id })).data === ut.uid)
+  sjekk('skitest_eier: fremmed -> null (ingen test finnes heller)', (await rpc(F, 'skitest_eier', { p_test: sesong.id })).data === null)
   sjekk('oppslag med tilfeldig uuid -> null', (await rpc(F, 'ovelse_okt', { p_ovelse: '00000000-0000-0000-0000-000000000000' })).data === null)
 
   // 5 sett_utvidet_skala og flett_okter (skrevet om i 131b) - utfall i basen

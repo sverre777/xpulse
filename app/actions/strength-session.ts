@@ -5,6 +5,7 @@ import { planlagtStyrkePerOvelse } from '@/lib/live-styrke'
 import { byggBeste, type BesteForOvelse } from '@/lib/live-styrke'
 import type { StyrkeSett } from '@/lib/styrke-pr'
 import { revalidatePath } from 'next/cache'
+import { tilOvelsesrader } from '@/lib/styrke-rader'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { getAuthUser } from '@/lib/auth'
@@ -16,30 +17,6 @@ import { parseDecimal } from '@/lib/parse-decimal'
 type SetRow = { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }
 type ExRow = { exercise_name: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
 type ActRow = { movement_name: string | null; sort_order: number | null; workout_activity_exercises: ExRow[] | null }
-function tilOvelsesrader(acts: ActRow[]): StrengthExerciseRow[] {
-  const exRows = acts
-    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-    .flatMap(a => (a.workout_activity_exercises ?? []))
-  return exRows
-    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-    .map((ex, ei) => ({
-      id: `ex-${ei}`,
-      exercise_name: ex.exercise_name ?? '',
-      notes: '',
-      superset_group: ex.superset_group ?? null,
-      sets: (ex.workout_activity_exercise_sets ?? [])
-        .slice().sort((a, b) => a.set_number - b.set_number)
-        .map((s, si) => ({
-          id: `ex-${ei}-set-${si}`,
-          set_number: String(s.set_number ?? si + 1),
-          reps: s.reps != null ? String(s.reps) : '',
-          weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
-          duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
-          rpe: s.rpe != null ? String(s.rpe) : '',
-          notes: '',
-        })),
-    }))
-}
 
 /** ＋-knapp bolk 2: sist gjennomførte styrkeøkt (øvelser/sett) — grunnlag for «Siste styrkeøkt» i popupen. */
 export async function hentSisteStyrkeokt(targetUserId?: string): Promise<{ workoutId: string; date: string; title: string; exercises: StrengthExerciseRow[] } | null> {
@@ -412,6 +389,8 @@ export async function getActiveLiveSession(): Promise<ActiveLiveSession | null> 
 export async function getBesteForExercises(
   names: string[],
   targetUserId?: string,
+  /** Styrke bolk 4: beste FØR denne økta - økta selv holdes utenfor. */
+  excludeWorkoutId?: string,
 ): Promise<Record<string, BesteForOvelse>> {
   const wanted = new Set(names.map(n => n.trim().toLowerCase()).filter(Boolean))
   if (wanted.size === 0) return {}
@@ -433,6 +412,7 @@ export async function getBesteForExercises(
     const wa = Array.isArray(r.workout_activities) ? r.workout_activities[0] : r.workout_activities
     const wk = wa ? (Array.isArray(wa.workouts) ? wa.workouts[0] : wa.workouts) : null
     if (!wk || wk.user_id !== resolved.userId || !wk.is_completed) continue
+    if (excludeWorkoutId && wk.id === excludeWorkoutId) continue
     for (const x of r.workout_activity_exercise_sets ?? []) {
       sett.push({ workout_id: wk.id, date: wk.date, title: '', ovelse: r.exercise_name!, set_number: x.set_number, reps: x.reps ?? null, vekt: x.weight_kg ?? null, varighetSek: x.duration_seconds ?? null, rpe: x.rpe ?? null, supersett: false })
     }

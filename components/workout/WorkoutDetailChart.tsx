@@ -1,5 +1,6 @@
 'use client'
 
+import { StyrkeRad, styrkeSpennAv } from './StyrkeRad'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import type { Sport } from '@/lib/types'
@@ -317,6 +318,8 @@ export function WorkoutDetailChart({
   )
   const faktiskBlokker = useMemo(() => byggPlanBlokker(faktiskInn, heartZones), [faktiskInn, heartZones])
   const faktiskSpokelser = useMemo(() => tilSpokelser(faktiskBlokker), [faktiskBlokker])
+  // Styrke bolk 4: styrkeradenes spenn (fra kartets blokker) + øvelsene fra radene.
+  const styrkeSpenn = useMemo(() => styrkeSpennAv(faktiskBlokker, rader), [faktiskBlokker, rader])
   const blokkerMulig = faktiskInn.length > 0
   // Uten rader finnes ikke noe kart — da er kurven det eneste ærlige.
   const visKurve = visning !== 'graf' || !blokkerMulig
@@ -509,6 +512,8 @@ export function WorkoutDetailChart({
             spokelser={visPlan && oppsett === 'bak' ? planBlokker : []}
             punkter={grafPunkter} kilde="faktisk" punktStil={punktStil}
             runder={visRunder ? laps.slice(1).map(l => l.t_start) : []} />
+          {/* Styrke bolk 4: settraden under kartet, samme tidsakse (0..aksSek). */}
+          <StyrkeRad spenn={styrkeSpenn} tilSek={aksSek} workoutId={workoutId} />
         </div>
       )}
 
@@ -598,6 +603,8 @@ export function WorkoutDetailChart({
           </>
         )}
       />}
+      {/* Styrke bolk 4: settraden på EGEN RAD under kurven - kurven ubrutt over, settene under, samme vindu. */}
+      {visKurve && <StyrkeRad spenn={styrkeSpenn} fraSek={(vindu ?? [0, aksSek])[0]} tilSek={(vindu ?? [0, aksSek])[1]} tetthet={skjema ? 'kompakt' : 'full'} workoutId={workoutId} />}
 
       {/* Brush: hvor i økta er vi? Vises kun når det er noe å navigere i. */}
       {visKurve && totalSek > 0 && (

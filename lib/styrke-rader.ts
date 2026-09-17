@@ -4,6 +4,7 @@ import type { StrengthExerciseRow } from './types'
 
 export interface RaaOvelse {
   exercise_name: string | null
+  notes?: string | null
   superset_group?: number | null
   sort_order: number | null
   workout_activity_exercise_sets: { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }[] | null
@@ -19,7 +20,8 @@ export function tilOvelsesrader(acts: RaaAktivitetMedOvelser[] | RaaOvelse[]): S
     .map((ex, ei) => ({
       id: `ex-${ei}`,
       exercise_name: ex.exercise_name ?? '',
-      notes: '',
+      // Bolk 8i: øvelseskommentaren (før sto det '' her - en kommentar skrevet i live forsvant ved reload).
+      notes: ex.notes ?? '',
       superset_group: ex.superset_group ?? null,
       sets: (ex.workout_activity_exercise_sets ?? [])
         .slice().sort((a, b) => a.set_number - b.set_number)

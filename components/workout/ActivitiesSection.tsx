@@ -44,6 +44,7 @@ import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { flyttOvelse, kobleMedNeste, losOppSupersett, leggTilSupersett, nyttSettArver, supersettBokstaver } from '@/lib/styrke-ovelser'
 import { OvelseListe, SorterbarOvelse, OvelseHandtak, type OvelseGrip } from './SorterbarOvelse'
+import { KommentarKnapp, KommentarFelt, KommentarLinje } from './OvelseKommentar'
 import { getLastSessionForExercises, getBesteForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import { fmtBeste, fmtKg, erPr, spokelse, type BesteForOvelse } from '@/lib/live-styrke'
 import { normOvelse } from '@/lib/styrke-pr'
@@ -1727,6 +1728,8 @@ function ExerciseBlock({
   plan: string | null
 }) {
   const [meny, setMeny] = useState(false)
+  // Bolk 8i: øvelseskommentaren (exercise.notes) - samme ikon og felt som live (én komponent).
+  const [kommentarApen, setKommentarApen] = useState(false)
   // Tid-kolonnen (isometriske hold: planke, henging) er ikke i fasitens
   // 26/1fr/1fr/44/62-rutenett - den slås på fra ⋯, og er alltid på når
   // et sett alt har tid ført, så ingenting skjules.
@@ -1814,9 +1817,13 @@ function ExerciseBlock({
             libraryNames={libraryNames}
           />
         </div>
+        <KommentarKnapp harTekst={!!exercise.notes.trim()} apen={kommentarApen} onClick={() => setKommentarApen(k => !k)} aria={`Kommentar til ${exercise.exercise_name.trim() || 'øvelsen'}`} />
         <button type="button" onClick={() => setMeny(m => !m)} aria-label="Handlinger for øvelsen" aria-expanded={meny}
           style={{ background: 'none', border: 0, color: 'var(--tekst-5-app)', minWidth: 36, minHeight: 36, fontSize: 17, cursor: 'pointer' }}>⋯</button>
       </header>
+      {kommentarApen
+        ? <KommentarFelt verdi={exercise.notes} onChange={v => onUpdate({ notes: v })} placeholder={`Kommentar til ${exercise.exercise_name.trim() || 'øvelsen'}`} onLukk={() => setKommentarApen(false)} dataAttr={exercise.exercise_name.trim()} />
+        : <KommentarLinje tekst={exercise.notes} onClick={() => setKommentarApen(true)} dataAttr={exercise.exercise_name.trim()} />}
       {meny && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 10px' }} data-styrke-meny>
           {onMove && <button type="button" className="xp-pill xp-pill-ghost" style={pillLitenStyrke} onClick={() => onMove(-1)}>▲ Opp</button>}

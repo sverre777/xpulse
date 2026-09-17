@@ -15,7 +15,7 @@ import { parseDecimal } from '@/lib/parse-decimal'
 
 // Delt mapping DB → skjemarader (live-økta og «Siste styrkeøkt» leser likt).
 type SetRow = { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }
-type ExRow = { exercise_name: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
+type ExRow = { exercise_name: string | null; notes?: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
 type ActRow = { movement_name: string | null; sort_order: number | null; workout_activity_exercises: ExRow[] | null }
 
 /** ＋-knapp bolk 2: sist gjennomførte styrkeøkt (øvelser/sett) — grunnlag for «Siste styrkeøkt» i popupen. */
@@ -126,6 +126,10 @@ export async function getLastSessionForExercises(
 export interface LiveSessionLoad {
   exercises: StrengthExerciseRow[]
   plannedByName: Record<string, string>
+  /** Bolk 8i/8j: øktkommentaren (workouts.notes - ÉN kilde med skjemaets «Notat») og dagsform, forhåndsfylt i live. */
+  notes?: string
+  dayFormPhysical?: number | null
+  dayFormMental?: number | null
 }
 
 
@@ -140,7 +144,7 @@ export async function getStrengthForLiveSession(
 
   const { data } = await supabase
     .from('workouts')
-    .select('planned_snapshot, workout_activities(movement_name, sort_order, workout_activity_exercises(exercise_name, superset_group, sort_order, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe)))')
+    .select('planned_snapshot, notes, day_form_physical, day_form_mental, workout_activities(movement_name, sort_order, workout_activity_exercises(exercise_name, notes, superset_group, sort_order, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe)))')
     .eq('id', workoutId).eq('user_id', resolved.userId)
     .maybeSingle()
   console.log(`[getStrengthForLive] query ${Date.now() - t0}ms`)
@@ -160,7 +164,8 @@ export async function getStrengthForLiveSession(
   const plannedByName = planlagtStyrkePerOvelse(snap)
 
   const exercises = actualExercises.length > 0 ? actualExercises : plannedExercises
-  return { exercises, plannedByName }
+  const w = data as { notes?: string | null; day_form_physical?: number | null; day_form_mental?: number | null }
+  return { exercises, plannedByName, notes: w.notes ?? '', dayFormPhysical: w.day_form_physical ?? null, dayFormMental: w.day_form_mental ?? null }
 }
 
 // ── Live økt-modus ────────────────────────────────────────
@@ -186,6 +191,8 @@ export async function saveLiveStrength(
   workoutId: string,
   exercises: StrengthExerciseRow[],
   targetUserId?: string,
+  /** Bolk 8i: øktkommentaren (workouts.notes) - skrives bare når den sendes med. */
+  oktNotat?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
   // Planlagt eller gjennomført avgjøres av BASEN (fase 131).
@@ -223,14 +230,25 @@ export async function saveLiveStrength(
     activityId = created.id as string
   }
 
-  // Erstatt øvelsene (cascade sletter settene).
-  const { error: delErr } = await supabase
-    .from('workout_activity_exercises').delete().eq('activity_id', activityId)
-  if (delErr) return { error: delErr.message }
+  // BOLK 8j - TRYGG LAGRING: sett inn de NYE øvelsene FØRST, slett de gamle
+  // ETTERPÅ (id-liste tatt før innsetting). Før slettet vi først - feilet
+  // innsettingen (timeout, nett, RLS-kjeden 17. sep) var øvelsene borte.
+  // Feiler noe nå, ryddes de nye bort og de gamle står.
+  const { data: gamle } = await supabase
+    .from('workout_activity_exercises').select('id').eq('activity_id', activityId)
+  const gamleIds = ((gamle ?? []) as { id: string }[]).map(r => r.id)
+  const nyeIds: string[] = []
+  const rullTilbake = async (feil: string) => {
+    if (nyeIds.length) await supabase.from('workout_activity_exercises').delete().in('id', nyeIds)
+    return { error: feil }
+  }
 
   const valid = validExercises
   for (let i = 0; i < valid.length; i++) {
     const ex = valid[i]
+    // Kun dev: en øvelse som heter «__cc_feil__» får innsettingen til å feile - beviset
+    // for at de gamle øvelsene står (bolk 8j). Finnes ikke i prod-bygget.
+    if (process.env.NODE_ENV !== 'production' && ex.exercise_name.trim() === '__cc_feil__') return rullTilbake('Simulert feil i innsettingen (dev)')
     const { data: insEx, error: exErr } = await supabase
       .from('workout_activity_exercises')
       .insert({
@@ -239,7 +257,8 @@ export async function saveLiveStrength(
         superset_group: ex.superset_group ?? null,
       })
       .select('id').single()
-    if (exErr || !insEx) return { error: exErr?.message ?? 'Feil ved lagring av øvelse' }
+    if (exErr || !insEx) return rullTilbake(exErr?.message ?? 'Feil ved lagring av øvelse')
+    nyeIds.push(insEx.id as string)
 
     const setRows = ex.sets.map((s, si) => {
       const reps = parseInt(s.reps), weight = parseDecimal(s.weight_kg), rpe = parseInt(s.rpe)
@@ -257,8 +276,17 @@ export async function saveLiveStrength(
     }).filter(Boolean)
     if (setRows.length > 0) {
       const { error: setErr } = await supabase.from('workout_activity_exercise_sets').insert(setRows)
-      if (setErr) return { error: setErr.message }
+      if (setErr) return rullTilbake(setErr.message)
     }
+  }
+  if (gamleIds.length) {
+    const { error: delErr } = await supabase.from('workout_activity_exercises').delete().in('id', gamleIds)
+    if (delErr) return { error: delErr.message }
+  }
+  if (oktNotat !== undefined) {
+    const { error: nErr } = await supabase.from('workouts').update({ notes: oktNotat.trim() || null, updated_at: new Date().toISOString() })
+      .eq('id', workoutId).eq('user_id', resolved.userId)
+    if (nErr) return { error: nErr.message }
   }
   return {}
 }
@@ -298,6 +326,8 @@ export async function finishLiveSession(
   workoutId: string,
   totalSeconds: number,
   targetUserId?: string,
+  /** Bolk 8j: kommentar + fysisk/mental form fra ferdig-skjermen - samme kolonner som øktskjemaet. */
+  ekstra?: { notes?: string; dayFormPhysical?: number | null; dayFormMental?: number | null },
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
@@ -310,6 +340,9 @@ export async function finishLiveSession(
     .update({
       is_completed: true, completed_at: now, live_started_at: null,
       duration_minutes: minutes, updated_at: now,
+      ...(ekstra?.notes !== undefined ? { notes: ekstra.notes.trim() || null } : {}),
+      ...(ekstra?.dayFormPhysical !== undefined ? { day_form_physical: ekstra.dayFormPhysical } : {}),
+      ...(ekstra?.dayFormMental !== undefined ? { day_form_mental: ekstra.dayFormMental } : {}),
     })
     .eq('id', workoutId).eq('user_id', resolved.userId)
   if (error) return { error: error.message }

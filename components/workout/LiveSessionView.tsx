@@ -19,6 +19,12 @@ import {
 } from '@/lib/live-styrke'
 import { flyttOvelse, kobleMedNeste, losOppSupersett, leggTilSupersett, startverdiFraForrige, supersettBokstaver } from '@/lib/styrke-ovelser'
 import { OvelseListe, SorterbarOvelse, OvelseHandtak } from './SorterbarOvelse'
+import { KommentarKnapp, KommentarFelt, KommentarLinje } from './OvelseKommentar'
+import { StarRating } from '@/components/ui/StarRating'
+
+/** Bolk 8j: settene speiles til localStorage per økt - feiler lagringen eller lukkes fanen, leses de tilbake. */
+const speilNokkel = (workoutId: string) => `xp-live-speil:${workoutId}`
+const forteSett = (ex: StrengthExerciseRow[]) => ex.reduce((n, e) => n + e.sets.filter(s => s.reps.trim() || s.weight_kg.trim()).length, 0)
 
 // LIVE STYRKE v2 (fasit: design/xpulse-styrke-design.html seksjon 2 + notat).
 //
@@ -87,13 +93,17 @@ const num = (v: string): number | null => { const n = parseDecimal(v); return is
 const settRad = (ex: StrengthExerciseRow) => ex.sets.map(s => s.reps.trim() || '-').join(' / ')
 
 export function LiveSessionView({
-  workoutId, initialExercises, lastByName: lastInn, plannedByName = {}, besteByName: besteInn = {},
+  workoutId, initialExercises, lastByName: lastInn, plannedByName = {}, besteByName: besteInn = {}, initialNotes = '', initialForm = { fysisk: null, mental: null },
 }: {
   workoutId: string
   initialExercises: StrengthExerciseRow[]
   lastByName: Record<string, LastSessionForExercise>
   plannedByName?: Record<string, string>
   besteByName?: Record<string, BesteForOvelse>
+  /** Bolk 8i: øktkommentaren fra basen (workouts.notes) - forhåndsfylt, live legger til. */
+  initialNotes?: string
+  /** Bolk 8j: dagsform fra basen (day_form_physical/mental). */
+  initialForm?: { fysisk: number | null; mental: number | null }
 }) {
   const router = useRouter()
   const [exercises, setExercises] = useState<StrengthExerciseRow[]>(() =>
@@ -132,6 +142,15 @@ export function LiveSessionView({
   const lastByName = useMemo(() => ({ ...lastInn, ...ekstraLast }), [lastInn, ekstraLast])
   const besteByName = useMemo(() => ({ ...besteInn, ...ekstraBeste }), [besteInn, ekstraBeste])
   const [bytter, setBytter] = useState<string | null>(null)
+  // Bolk 8i: kommentar per øvelse (exercise.notes) og for økta (workouts.notes - ÉN kilde med «Notat»).
+  const [oktNotat, setOktNotat] = useState(initialNotes)
+  const [kommentarApen, setKommentarApen] = useState<string | null>(null)
+  // Bolk 8j: dagsform på ferdig-skjermen (samme StarRating og kolonner som øktskjemaet) + feil som vises i skjermen.
+  const [formFysisk, setFormFysisk] = useState<number | null>(initialForm.fysisk)
+  const [formMental, setFormMental] = useState<number | null>(initialForm.mental)
+  const [feil, setFeil] = useState<string | null>(null)
+  const notatRef = useRef(oktNotat)
+  useEffect(() => { notatRef.current = oktNotat }, [oktNotat])
 
   // ── Start/gjenoppta + timer ──────────────────────────────
   useEffect(() => {
@@ -176,15 +195,37 @@ export function LiveSessionView({
     // KLIENT-GUARD: aldri autosave en tom øvelsesliste (sammen med server-guarden).
     if (!exRef.current.some(ex => ex.exercise_name.trim())) return
     dirtyRef.current = false
-    saveLiveStrength(workoutId, exRef.current).catch(() => {})
+    saveLiveStrength(workoutId, exRef.current, undefined, notatRef.current).catch(() => {})
   }, [workoutId])
+  // Bolk 8j: speil settene lokalt ved hver endring; ved mount leses speilet tilbake om basen
+  // har færre førte sett (fanen ble lukket før autosaven / lagringen feilet). Ingen SQL.
+  // Lesingen står FØR skrivingen: ellers ville mount-skrivingen lagt basens (tomme)
+  // tilstand over speilet før det ble lest.
+  const speilLest = useRef(false)
+  useEffect(() => {
+    if (!speilLest.current) return
+    try { localStorage.setItem(speilNokkel(workoutId), JSON.stringify(exercises)) } catch { /* privat modus o.l. */ }
+  }, [exercises, workoutId])
+  useEffect(() => {
+    if (speilLest.current) return
+    try {
+      const raa = localStorage.getItem(speilNokkel(workoutId))
+      if (!raa) return
+      const speil = JSON.parse(raa) as StrengthExerciseRow[]
+      if (Array.isArray(speil) && speil.length > 0 && forteSett(speil) > forteSett(initialExercises)) {
+        setExercises(speil.map((ex, ei) => ({ ...ex, id: ex.id || `sp-${ei}`, sets: (ex.sets ?? []).map((st, i) => ({ ...st, id: st.id || `sp-${ei}-${i}` })) })))
+        setDoneSets(new Set(speil.flatMap(ex => ex.sets.filter(st => st.reps.trim() || st.weight_kg.trim()).map(st => st.id))))
+      }
+    } catch { /* ugyldig speil ignoreres */ }
+    finally { speilLest.current = true }
+  }, [workoutId, initialExercises])
   const mountedRef = useRef(false)
   useEffect(() => {
     if (!mountedRef.current) { mountedRef.current = true; return }
     dirtyRef.current = true
     const t = setTimeout(doSave, 2500)
     return () => clearTimeout(t)
-  }, [exercises, doSave])
+  }, [exercises, oktNotat, doSave])
   useEffect(() => {
     const onHide = () => doSave()
     document.addEventListener('visibilitychange', onHide)
@@ -331,12 +372,15 @@ export function LiveSessionView({
   }
   const lagreIDagboka = async () => {
     if (busy) return
-    setBusy(true)
-    const saved = await saveLiveStrength(workoutId, exercises)
-    if (saved.error) { setBusy(false); void xpAlert(saved.error); return }
+    setBusy(true); setFeil(null)
+    // Bolk 8j: feiler lagringen, blir skjermen stående med settene, feilen vises her og knappen
+    // heter «Prøv igjen». Speilet i localStorage står til økta er lagret.
+    const saved = await saveLiveStrength(workoutId, exercises, undefined, oktNotat).catch(e => ({ error: String(e) }))
+    if (saved.error) { setBusy(false); setFeil(saved.error); return }
     const min = Math.max(1, Math.round(num(varighetMin) ?? elapsedSec / 60))
-    const res = await finishLiveSession(workoutId, min * 60)
-    if (res.error) { setBusy(false); void xpAlert(res.error); return }
+    const res = await finishLiveSession(workoutId, min * 60, undefined, { notes: oktNotat, dayFormPhysical: formFysisk, dayFormMental: formMental }).catch(e => ({ error: String(e) }))
+    if (res.error) { setBusy(false); setFeil(res.error); return }
+    try { localStorage.removeItem(speilNokkel(workoutId)) } catch { /* ok */ }
     hapticTap([15, 60, 20]); showCompletionCheck()
     router.push('/app/dagbok')
   }
@@ -344,8 +388,9 @@ export function LiveSessionView({
     if (busy) return
     if (!await xpConfirm('Avbryte økt-modus? Loggede sett beholdes, men økten markeres ikke som fullført.')) return
     setBusy(true)
-    await saveLiveStrength(workoutId, exercises).catch(() => {})
+    await saveLiveStrength(workoutId, exercises, undefined, oktNotat).catch(() => {})
     await cancelLiveSession(workoutId).catch(() => {})
+    try { localStorage.removeItem(speilNokkel(workoutId)) } catch { /* ok */ }
     router.push('/app/dagbok')
   }
 
@@ -387,6 +432,16 @@ export function LiveSessionView({
               </div>
             </div>
           )}
+          <div style={kort} data-live-ferdig-kommentar>
+            <h3 style={kortH3}>Kommentar og form</h3>
+            <p style={{ ...meta, margin: '6px 0 8px' }}>Samme felt som «Notat» og dagsform i dagboken.</p>
+            <textarea value={oktNotat} onChange={e => setOktNotat(e.target.value)} rows={2} placeholder="Hvordan gikk økta?" aria-label="Kommentar til økta" data-live-okt-notat
+              style={{ width: '100%', resize: 'vertical', background: 'var(--card2)', border: '1px solid var(--line2)', borderRadius: 12, color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14, padding: '8px 12px', outline: 'none', minHeight: 56 }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
+              <div data-live-form="fysisk"><div style={meta}>Fysisk form</div><StarRating value={formFysisk} onChange={setFormFysisk} /></div>
+              <div data-live-form="mental"><div style={meta}>Mental form</div><StarRating value={formMental} onChange={setFormMental} /></div>
+            </div>
+          </div>
           <div style={kort}>
             <h3 style={kortH3}>Varighet</h3>
             <p style={{ ...meta, margin: '6px 0 8px' }}>Fra start til nå, uten tida økta sto stoppet. Rett den om klokka gikk mens du var borte.</p>
@@ -396,9 +451,15 @@ export function LiveSessionView({
               <button type="button" onClick={() => setVarighetMin(v => String((num(v) ?? 0) + 5))} style={stepKnapp} aria-label="5 minutter mer">+5</button>
             </div>
           </div>
+          {feil && (
+            <div role="alert" data-live-feil style={{ ...kort, borderColor: '#E23A5A', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14 }}>
+              <b style={{ color: '#E23A5A' }}>Lagringen feilet:</b> {feil}<br />
+              <span style={meta}>Settene dine står her og er speilet lokalt - ingenting er mistet. Rett det som feiler, og prøv igjen.</span>
+            </div>
+          )}
           <button type="button" onClick={lagreIDagboka} disabled={busy} data-live-lagre
             className="xp-pill" style={{ ...pillStor, width: '100%', background: GRONN, borderColor: GRONN, color: '#fff', opacity: busy ? .6 : 1 }}>
-            Lagre i dagboka
+            {busy ? 'Lagrer…' : feil ? 'Prøv igjen' : 'Lagre i dagboka'}
           </button>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
             <a href={`/app/dagbok?edit=${workoutId}`} className="xp-pill xp-pill-ghost" style={{ flex: 1 }}>Se plan mot faktisk</a>
@@ -418,11 +479,13 @@ export function LiveSessionView({
         <div className="flex items-center gap-3">
           <button type="button" onClick={cancel} style={ikonKnapp} aria-label="Avbryt økt-modus" data-live-avbryt><Ikon navn="lukk" variant="strek" storrelse={18} /></button>
           <span style={{ flex: 1, fontFamily: BEBAS, color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>Live styrke</span>
+          <KommentarKnapp harTekst={!!oktNotat.trim()} apen={kommentarApen === 'okt'} onClick={() => setKommentarApen(k => k === 'okt' ? null : 'okt')} aria="Kommentar til økta" />
           {!stoppet && (
             <button type="button" onClick={stopp} className="xp-pill xp-pill-ghost" style={{ minHeight: 30, padding: '0 11px', fontSize: 11.5 }} data-live-stopp>Stopp</button>
           )}
         </div>
         <Teller sek={elapsedSec} tilstand={tilstand} forte={forte} antall={antallSett} stoppetSek={stoppetSumSek} pauseSek={pauseSek} pauseIAltSek={null} neste={neste} />
+        {kommentarApen === 'okt' && <div style={{ margin: '4px -14px 0' }}><KommentarFelt verdi={oktNotat} onChange={setOktNotat} placeholder="Kommentar til økta" onLukk={() => setKommentarApen(null)} dataAttr="okt" /></div>}
       </div>
 
       <div style={{ padding: '14px 16px 0', opacity: stoppet ? .34 : 1, pointerEvents: stoppet ? 'none' : 'auto', filter: stoppet ? 'blur(1px)' : 'none', transition: 'opacity .2s' }}>
@@ -455,8 +518,12 @@ export function LiveSessionView({
                   )}
                   <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>{ex.sets.length} sett · {settRad(ex)}</span>
                 </span>
+                <KommentarKnapp harTekst={!!ex.notes.trim()} apen={kommentarApen === ex.id} onClick={() => setKommentarApen(k => k === ex.id ? null : ex.id)} aria={`Kommentar til ${ex.exercise_name || 'øvelsen'}`} />
                 <button type="button" onClick={() => setMeny(m => m === ex.id ? null : ex.id)} style={ikonKnapp} aria-label="Handlinger for øvelsen" aria-expanded={meny === ex.id}>⋯</button>
               </header>
+              {kommentarApen === ex.id
+                ? <KommentarFelt verdi={ex.notes} onChange={v => updateExercise(ex.id, { notes: v })} placeholder={`Kommentar til ${ex.exercise_name || 'øvelsen'}`} onLukk={() => setKommentarApen(null)} dataAttr={ex.exercise_name} />
+                : <KommentarLinje tekst={ex.notes} onClick={() => setKommentarApen(ex.id)} dataAttr={ex.exercise_name} />}
               {meny === ex.id && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 10px' }} data-live-meny>
                   <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => { setBytter(ex.id); setMeny(null) }} data-live-bytt-ovelse>Bytt øvelse</button>

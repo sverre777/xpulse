@@ -24,10 +24,12 @@ export default async function OktModusPage({
   // guardet mot å skrive tomt over eksisterende øvelser (saveLiveStrength).
   let exercises: Awaited<ReturnType<typeof getStrengthForLiveSession>>['exercises'] = []
   let plannedByName: Awaited<ReturnType<typeof getStrengthForLiveSession>>['plannedByName'] = {}
+  let oktInn: { notes: string; dayFormPhysical: number | null; dayFormMental: number | null } = { notes: '', dayFormPhysical: null, dayFormMental: null }
   try {
     const load = await getStrengthForLiveSession(id)
     exercises = load.exercises
     plannedByName = load.plannedByName
+    oktInn = { notes: load.notes ?? '', dayFormPhysical: load.dayFormPhysical ?? null, dayFormMental: load.dayFormMental ?? null }
   } catch (e) {
     console.error('[oktModus] getStrengthForLiveSession kastet', e)
   }
@@ -50,6 +52,8 @@ export default async function OktModusPage({
       lastByName={lastByName}
       besteByName={besteByName}
       plannedByName={plannedByName}
+      initialNotes={oktInn.notes}
+      initialForm={{ fysisk: oktInn.dayFormPhysical, mental: oktInn.dayFormMental }}
     />
   )
 }

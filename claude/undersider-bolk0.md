@@ -40,16 +40,22 @@ LOVER NOE APPEN IKKE HAR (strykes/rettes):
    timer per utstyr, men ingen service-påminnelse. Andre halvdel strykes.
 3. Trener-avsnittene på alle sju idretter (148, 290, 432, 574, 716, 858, 999) og FAQ
    «Treneren ser planen, dagboka og analysen din, kan pushe økter…» (172, 322, 606, 890):
-   Siden 1.4 styrer utøveren hva treneren ser og kan endre; alt er AV som standard for nye
-   koblinger. «Treneren ser …» må bli «Treneren ser det du har åpnet for».
+   RETTET av Sverre 17. sep: ved innløsning settes can_edit_plan, can_view_dagbok,
+   can_view_analysis og can_edit_periodization = true (coach-invite.ts, fra
+   coach_default_permissions med fallback true); bare de fire NYE redigeringsrettene (dagbok,
+   terskler, utstyr, tester) er av. Prod: 6 relasjoner, 4 første 6/6, 4 nye 0/6 - de nye vil vise
+   det samme. Riktig tekst: «treneren ser plan, dagbok og analyse fra start; de fire
+   redigeringsrettene er av til du slår dem på». «Treneren ser …»-setningene STÅR; det som legges
+   til er redigeringsrettene (se «mangler» 6).
 4. trener-siden 108 «Utøveren fører fortsatt dagboka selv» og dagbok-og-plan 106 «Treneren … fører
    ikke dagboka for deg»: treneren KAN redigere dagboka når utøveren har åpnet for det, men kan
    aldri markere en økt som gjennomført. Setningene må si det - ikke «fører ikke».
 5. trener-siden 44/46 «Trener-hjem … flagger dem som ligger bak eller har lav restitusjon» og
-   sport-avsnittene «hvem som har lav restitusjon»: helsedata vises bare når utøveren har delt
-   dem - «lav restitusjon» gjelder kun da. Presisering, ikke stryking.
-6. klokkesync 31 (fot) «Apple Health kommer.» - ikke i appen, står som løfte uten «på vei»-merke.
-   Rettes til samme form som Intervals/Whoop («på vei») eller strykes.
+   sport-avsnittene «hvem som har lav restitusjon»: helsedata (søvn, HRV, hvilepuls) vises bare
+   når utøveren har slått på deling - presiseres til «… og, når utøveren deler helsedata, hvem som
+   har lav restitusjon». Ikke stryking.
+6. klokkesync 31 (fot) «Apple Health kommer.» - STRYKES HELT (Sverre 17. sep: ikke i kø, ikke
+   «på vei»).
 7. multisport 792 og FAQ 878 «Live styrkeøkt: 287 øvelser, plan og «sist» per øvelse, START per
    sett» - stemmer, men beskriver 1.3-versjonen; oppdateres (se «mangler» 1).
 
@@ -70,8 +76,9 @@ MANGLER NOE APPEN HAR (én setning der den hører hjemme, bolk 4):
 4. Stillestand til pause + klokketid: klokkesync 70-74 («Samlet eller splittet», «Kilde per verdi»)
    og dagbok-og-plan 67 (dagboka).
 5. Y-aksen mot sonene: dagbok-og-plan 67-71 («Punkter på kurven») eller analyse 58-62 (Soner).
-6. Trener-flaggene (utøveren styrer dagbok/terskler/utstyr/tester, alt av som standard, varsel med
-   gammel og ny verdi): trener-siden 92-94 («Personvern») og alle sju sport-trenersvar.
+6. Trener-redigeringsrettene (dagbok, terskler og soner, utstyr, tester - av til utøveren slår dem
+   på; plan, dagbok, analyse og periodisering er åpne fra start; varsel med gammel og ny verdi;
+   gjennomført er utøverens ord): trener-siden 92-94 («Personvern») og alle sju sport-trenersvar.
 7. Innboksen (teller på uleste, marker lest): trener-siden 71 «Innboks for resten» - én setning.
 
 IKKE RØRT: ai-coach-siden (sier selv at ingenting er live), prisene, klokkelista.

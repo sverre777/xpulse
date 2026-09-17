@@ -19,7 +19,8 @@ import { KompaktKurverProvider } from '@/components/calendar/kompakt-kurver'
 import { SeasonCanvas } from '@/components/periodization/SeasonCanvas'
 import { SerieListe } from '@/components/workout/SerieListe'
 import {
-  oktaRader, oktaPlanBlokker, oktaSegmenter, oktaSamples, oktaLaps, OKTA_LAKTAT, OKTA_ERNAERING, OKTA_TOTAL, kalenderUke, helseData, aarsplan, customBreakdownDemo
+  oktaRader, oktaPlanBlokker, oktaSegmenter, oktaSamples, oktaLaps, OKTA_LAKTAT, OKTA_ERNAERING, OKTA_TOTAL, kalenderUke, helseData, aarsplan, customBreakdownDemo,
+  FORSIDE_SONER, styrkeRader, styrkeSegmenter, styrkeSamples,
 } from '@/lib/forside-eksport-data'
 import type { PlanBlokk } from '@/app/actions/runder'
 
@@ -56,6 +57,9 @@ function ForsideEksportInnhold() {
   const uke = useMemo(() => kalenderUke(), [])
   const helse = useMemo(() => helseData(), [])
   const aars = useMemo(() => aarsplan(), [])
+  const styrkeRad = useMemo(() => styrkeRader(), [])
+  const styrkeSeg = useMemo(() => styrkeSegmenter(), [])
+  const styrkeSamplesData = useMemo(() => styrkeSamples(), [])
   // Planens blokker bak kurven: samme økt som plan, med tidsvinduer.
   const planBak: PlanBlokk[] = useMemo(() => byggPlanBlokker(plan).map((b, i) => (
     { id: `pb-${i}`, type: b.type, navn: b.navn, startSek: b.startSek, sluttSek: b.startSek + b.sek, sone: b.sone ? String(b.sone) : null }
@@ -90,8 +94,15 @@ function ForsideEksportInnhold() {
 
       <Kort navn="oktgraf" bredde={540}>
         <WorkoutDetailChart kurveStandard height={smal ? 170 : 200} sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
-          segmenter={segmenter} heartZones={[]} np={238} rpe={7} onRpe={ingen} forventetRpe={6} planBlokkerInn={planBak}
+          segmenter={segmenter} heartZones={FORSIDE_SONER} np={238} rpe={7} onRpe={ingen} forventetRpe={6} planBlokkerInn={planBak}
           handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
+      </Kort>
+
+      {/* Undersidene bolk 1 (17. sep): styrkeøkt flettet med klokke - settene i plotflata foran pulsen, y-aksen mot sonene. */}
+      <Kort navn="oktgraf-styrke" bredde={540}>
+        <WorkoutDetailChart kurveStandard height={smal ? 170 : 200} sport="running" samples={styrkeSamplesData} laps={[]} lactate={[]} nutrition={[]} shooting={[]}
+          segmenter={styrkeSeg} rader={styrkeRad} heartZones={FORSIDE_SONER} rpe={7} onRpe={ingen}
+          handlinger={{ onOktbygger: ingen, onNotat: ingen }} />
       </Kort>
 
       <Kort navn="hurtigoppsett" bredde={500}>

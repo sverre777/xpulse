@@ -3,6 +3,8 @@
 // resultatet som statisk HTML (scripts/forside-eksport.mjs). Alt her er
 // oppdiktet — ingen ekte brukerdata. Ren logikk, ingen react.
 import type { ActivityRow, CalendarWorkoutSummary } from './types'
+import type { HeartZone } from './heart-zones'
+import type { FaktiskRad } from './gjennomfort-kart'
 import { nyAktivitetsrad } from './aktivitetsrad'
 import { beregnSegmenter, type Segment, type SegmentRad } from './segmenter'
 import { fraActivityRows, type PlanBlokkInn } from './plan-graf'
@@ -223,4 +225,53 @@ export function customBreakdownDemo(): CustomBreakdownInn {
     allNonEnduranceMovements: ['Styrke', 'Annet'],
     hasData: true,
   }
+}
+
+// ── UNDERSIDENE bolk 1 (17. sep): sonene og styrkeflaten ──────────────────────
+// Forside-utøverens soner - samme tall som forsidens oktgraf.js (OKTGRAF_SONER 108-190),
+// så y-aksen i eksporten følger regelen «minst I1-bunn til I5-topp».
+export const FORSIDE_SONER: HeartZone[] = [
+  { zone_name: 'I1', min_bpm: 108, max_bpm: 138 },
+  { zone_name: 'I2', min_bpm: 139, max_bpm: 152 },
+  { zone_name: 'I3', min_bpm: 153, max_bpm: 165 },
+  { zone_name: 'I4', min_bpm: 166, max_bpm: 175 },
+  { zone_name: 'I5', min_bpm: 176, max_bpm: 190 },
+]
+
+/** Styrkeøkta (48 min) flettet med klokka: settene i plotflata foran pulsen (styrke bolk 6d). Samme sett som forsidens settgraf. */
+export const STYRKE_SEK = 48 * 60
+const STYRKE_SETT: Array<[string, Array<[number, number]>]> = [
+  ['Knebøy', [[8, 100], [8, 100], [8, 100]]], ['Markløft', [[6, 120], [6, 120], [6, 120]]],
+  ['Utfall', [[10, 40], [10, 40], [10, 40]]], ['Nedtrekk', [[12, 58], [12, 58], [12, 58]]],
+]
+export function styrkeRader(): FaktiskRad[] {
+  return [{
+    id: 'st-0', activity_type: 'aktivitet', movement_name: 'Styrke', movement_subcategory: 'Maksstyrke',
+    exercises: STYRKE_SETT.map(([navn, sett], ei) => ({
+      id: `st-ex-${ei}`, exercise_name: navn, notes: '', superset_group: null,
+      sets: sett.map(([reps, kg], si) => ({ id: `st-ex-${ei}-${si}`, set_number: String(si + 1), reps: String(reps), weight_kg: String(kg), duration: '', rpe: '', notes: '' })),
+    })),
+  }]
+}
+export function styrkeSegmenter(): Segment[] {
+  const rad: SegmentRad = {
+    id: 'st-0', activity_type: 'aktivitet', movement_name: 'Styrke', duration_seconds: STYRKE_SEK,
+    window_start_seconds: 0, window_duration_seconds: STYRKE_SEK,
+    prone_shots: null, prone_hits: null, standing_shots: null, standing_hits: null, harKlokkeProveniens: true, gruppeId: null,
+  }
+  return beregnSegmenter([rad], STYRKE_SEK)
+}
+/** Pulsen i styrkeøkta: opp mot 150 i settene, ned mot 112 i hvilen - tolv sett på 48 min. */
+export function styrkeSamples() {
+  const hr: Array<{ t: number; hr: number }> = []
+  const rnd = (i: number) => (Math.sin(i * 12.9898) * 43758.5453) % 1
+  let puls = 104
+  for (let t = 0; t < STYRKE_SEK; t += 5) {
+    const i = Math.floor(t / 240)            // 12 «sett-vinduer» à 4 min
+    const iSett = (t % 240) < 70             // 70 s arbeid, resten hvile
+    const maal = iSett ? 138 + (i % 4) * 4 : 112
+    puls += (maal - puls) * (iSett ? 0.12 : 0.06) + rnd(t) * 1.4 - 0.7
+    hr.push({ t, hr: Math.round(puls) })
+  }
+  return { hr_samples: hr, watt_samples: null, pace_samples: null, speed_samples: null, altitude_samples: null, cadence_samples: null }
 }

@@ -4,14 +4,16 @@
 // Inline `style` (med var(--…)) beholdes; utregnede LAYOUT-egenskaper legges til der de
 // ikke er satt inline (Tailwind-klasser finnes ikke på forsiden). Farger beholder var()-
 // referansene, så samme markup virker i lys og mørk via app-token-broen i xpulse.html.
-import { chromium } from 'playwright'
+// playwright finnes ikke i node_modules (bare playwright-core, som E2E-ene bruker mot Chrome) - samme bro her.
+let chromium
+try { ({ chromium } = await import('playwright')) } catch { ({ chromium } = await import('playwright-core')) }
 import { mkdirSync, writeFileSync } from 'fs'
 const BASE = 'http://localhost:3953'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 const UT = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'forside')
 mkdirSync(UT, { recursive: true })
-const browser = await chromium.launch()
+const browser = await chromium.launch({ channel: 'chrome' }).catch(() => chromium.launch())
 for (const [tema, smal] of [['mork', false], ['lys', false], ['mork', true], ['lys', true]]) {
 const ctx = await browser.newContext({ viewport: { width: smal ? 390 : 1200, height: 4000 }, colorScheme: tema === 'lys' ? 'light' : 'dark' })
 const page = await ctx.newPage()

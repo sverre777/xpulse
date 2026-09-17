@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { PulsAkseValg, usePulsAkse, skalaForPuls } from './PulsAkseValg'
 import { KurveBrush } from './KurveBrush'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { SerieListe } from './SerieListe'
@@ -931,6 +932,8 @@ function KurveMedRader({
   /** BOLK 27: FTP for øktas bev.form (klokkepakka) — watt-sone der puls mangler. */
   ftp: number | null
 }) {
+  // Y-aksen (17. sep): samme valg som øktgrafen - hooken står øverst (ingen tidlig retur før den).
+  const pulsAkse = usePulsAkse()
   const kurveSerier: KurveSerie[] = useMemo(() => {
     const ut: KurveSerie[] = []
     const fart = samples?.pace_samples ?? samples?.speed_samples ?? []
@@ -1171,7 +1174,9 @@ function KurveMedRader({
       {pillePunkter.length > 0 && (
         <PunktEtiketter punkter={pillePunkter} synlig={[vindu?.[0] ?? 0, vindu?.[1] ?? totalSek]} segmentVed={segmentVed} />
       )}
+      {kurveSerier.some(x => x.id === 'puls') && <div style={{ margin: '0 0 6px' }}><PulsAkseValg kompakt /></div>}
       <OktKurve
+        skalaFor={skalaForPuls(pulsAkse, heartZones)}
         serier={kurveSerier}
         paaIds={kurveSerier.filter(x => x.id === kurve || paaIds.includes(x.id) || (x.somAreal && (paaIds.length === 0 || paaIds.includes('hoyde')))).map(x => x.id)}
         fokusId={kurve}

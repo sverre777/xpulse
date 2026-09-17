@@ -1,6 +1,7 @@
 'use client'
 
 import { StyrkeRad, styrkeSpennAv } from './StyrkeRad'
+import { PulsAkseValg, usePulsAkse, skalaForPuls } from './PulsAkseValg'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import type { Sport } from '@/lib/types'
@@ -319,6 +320,8 @@ export function WorkoutDetailChart({
   const faktiskBlokker = useMemo(() => byggPlanBlokker(faktiskInn, heartZones), [faktiskInn, heartZones])
   const faktiskSpokelser = useMemo(() => tilSpokelser(faktiskBlokker), [faktiskBlokker])
   // Styrke bolk 4: styrkeradenes spenn (fra kartets blokker) + øvelsene fra radene.
+  // Y-aksen (17. sep): pulsen får minst I1-I5 fra sonene - valget er felles for alle flatene.
+  const pulsAkse = usePulsAkse()
   const styrkeSpenn = useMemo(() => {
     const fraBlokker = styrkeSpennAv(faktiskBlokker, rader)
     if (fraBlokker.length > 0) return fraBlokker
@@ -504,6 +507,7 @@ export function WorkoutDetailChart({
                     onClick={() => setVisRunder(v => !v)} />
                 )}
           </Gruppe>}
+          {visKurve && serier.some(x => x.id === 'hr') && <PulsAkseValg kompakt={kontroller !== 'alle'} />}
         </div>
       </div>
 
@@ -543,6 +547,7 @@ export function WorkoutDetailChart({
         bakgrunn={h => (visPlan ? <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} /> : null)}
         mellomlag={h => (visBlokker && !renStyrke ? <PlanSpokelse blokker={faktiskSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
         fokusFyll={renStyrke ? 0.08 : 0}
+        skalaFor={skalaForPuls(pulsAkse, heartZones)}
         serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}

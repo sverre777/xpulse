@@ -25,17 +25,31 @@ function oktgrafBlokkH(b) { return (b.t === 'sky' || b.t === 'pause') ? .18 : (O
 function oktgrafBlokkFarge(b) { return (b.t === 'sky' || b.t === 'pause') ? '#43434B' : (Z[b.z] || '#8A8A96'); }
 function oktgrafTid(m) { m = Math.round(m); var h = Math.floor(m / 60), mm = m % 60; return h ? h + ':' + (mm < 10 ? '0' : '') + mm + ':00' : mm + ':00'; }
 
+var OKTGRAF_SONER = { I1: [108, 138], I5: [176, 190] };   /* forside-utøverens soner: I1-bunn og I5-topp */
+function oktgrafPulsSpenn(pulsVed, TOT) {
+  var lo = Infinity, hi = -Infinity;
+  for (var m = 0; m <= TOT; m += .25) { var v = pulsVed(m); if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (!isFinite(lo)) { lo = OKTGRAF_SONER.I1[0]; hi = OKTGRAF_SONER.I5[1]; }
+  return { lo: Math.min(OKTGRAF_SONER.I1[0], Math.floor(lo)), hi: Math.max(OKTGRAF_SONER.I5[1], Math.ceil(hi)) };
+}
+/* Tre jevne merker inni spennet (30-steg), aldri på kanten. */
+function oktgrafYmerker(lo, hi) { var ut = []; for (var v = Math.ceil((lo + 5) / 30) * 30; v < hi - 5; v += 30) ut.push(v); return ut.reverse().slice(0, 4); }
 function tegnOktgraf(cfg) {
   var still = !!cfg.still, mob = !!cfg.mob, PH = cfg.PH || (mob ? 140 : 150), TOPP = cfg.TOPP != null ? cfg.TOPP : (mob ? 52 : 84), W = 1000;
   var BL = cfg.blokker, TOT = cfg.tot, pulsVed = cfg.pulsVed, PUNKT = cfg.punkter || [];
   var A = still ? 'a inn' : 'a', PIL = still ? 'pille inn' : 'pille';
   function sti(fn, min, max, inv) { var out = ''; for (var m = 0, i = 0; m <= TOT; m += .25, i++) { var f = (fn(m, i) - min) / (max - min); if (inv) f = 1 - f; out += (i ? 'L' : 'M') + (m / TOT * W).toFixed(1) + ' ' + (PH - f * PH).toFixed(1); } return out; }
-  var kurve = sti(function (m) { return pulsVed(m); }, 90, 190);
+  /* Y-AKSEN (beslutning 17. sep, samme regel som appens lib/puls-akse): aksen spenner alltid
+     minst I1-bunn til I5-topp fra sonene (forside-utøveren: 108-190), utvides når målingene
+     går utenfor, krymper aldri. Før sto den fast på 90-190. */
+  var SP = oktgrafPulsSpenn(pulsVed, TOT), LO = SP.lo, HI = SP.hi;
+  function yAv(v) { return TOPP + PH - (v - LO) / (HI - LO) * PH; }
+  var kurve = sti(function (m) { return pulsVed(m); }, LO, HI);
   var ghost = BL.map(function (b) { return '<rect x="' + (b.s / TOT * W + 1) + '" y="' + (PH - PH * oktgrafBlokkH(b)) + '" width="' + ((b.e - b.s) / TOT * W - 2) + '" height="' + (PH * oktgrafBlokkH(b)) + '" fill="' + oktgrafBlokkFarge(b) + '" opacity="' + (b.t === 'sky' ? .4 : .2) + '" stroke="' + oktgrafBlokkFarge(b) + '" stroke-opacity=".7" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>'; }).join('');
   var vind = BL.filter(function (b) { return b.t === 'sky'; }).map(function (b) { return '<div class="' + A + ' skyv" style="position:absolute;top:' + TOPP + 'px;height:' + PH + 'px;left:' + (b.s / TOT * 100) + '%;width:' + ((b.e - b.s) / TOT * 100) + '%;background:#43434B24;border:1.5px solid #43434B;border-radius:6px"></div>'; }).join('');
   var pil = PUNKT.map(function (p, i) {
     if (mob && p.grp === 'sky' && i === 4) return '';
-    var y = TOPP + PH - (pulsVed(p.m) - 90) / 100 * PH, ly = ((mob && !still) ? [0, 1, 0, 1, 0, 1, 0, 1][i % 8] : (p.niv || 0)) * (mob ? 24 : 28);
+    var y = yAv(pulsVed(p.m)), ly = ((mob && !still) ? [0, 1, 0, 1, 0, 1, 0, 1][i % 8] : (p.niv || 0)) * (mob ? 24 : 28);
     var ikon = p.k === 'skyting' ? ik('skyting', 'f', 'width:13px;height:13px;color:var(--a-mut)') : ik(p.k, 'f', 'width:13px;height:13px;color:' + p.c);
     var tx = (mob && p.grp === 'not') ? 'Notat' : p.tx, off = mob ? 20 : 34;
     return '<div class="' + PIL + '" data-g="' + p.grp + '" style="position:absolute;left:' + (p.m / TOT * 100) + '%;top:0;width:0;height:100%;pointer-events:none">' +
@@ -48,7 +62,7 @@ function tegnOktgraf(cfg) {
     var tx = b.t === 'sky' ? (mob ? b.ls : ik('skyting', 'f', 'width:10px;height:10px;margin-right:2px') + b.ls) : b.t === 'pause' ? '' : (b.t === 'drag' ? (mob ? '' : (b.e - b.s) + ' MIN') : (mob ? '' : (b.t === 'oppv' ? 'OPPV' : 'NEDJ')));
     return '<i style="flex:' + (b.e - b.s) + ';background:' + f + '">' + tx + '</i>';
   }).join('');
-  var ymerk = [180, 150, 120].map(function (v) { var y = TOPP + PH - (v - 90) / 100 * PH; return '<div style="position:absolute;left:0;right:0;top:' + y + 'px;border-top:1px solid var(--a-kant);opacity:.5"></div><span style="position:absolute;left:2px;top:' + (y - 7) + 'px;font-size:10.5px;color:var(--a-mute);background:var(--a-graf);padding:0 2px;line-height:1;z-index:2">' + v + '</span>'; }).join('');
+  var ymerk = oktgrafYmerker(LO, HI).map(function (v) { var y = yAv(v); return '<div style="position:absolute;left:0;right:0;top:' + y + 'px;border-top:1px solid var(--a-kant);opacity:.5"></div><span style="position:absolute;left:2px;top:' + (y - 7) + 'px;font-size:10.5px;color:var(--a-mute);background:var(--a-graf);padding:0 2px;line-height:1;z-index:2">' + v + '</span>'; }).join('');
   function chip(kl, c, ikn, navn, on, skj) { return '<span class="chip ' + kl + (on ? ' on' : '') + (skj ? ' skjul-m' : '') + '" style="--c:' + c + '"><i class="r"></i>' + (ikn ? ik(ikn, 's') : '') + navn + '</span>'; }
   var har = function (g) { return PUNKT.some(function (p) { return p.grp === g; }); };
   var chips = cfg.chips === false ? '' : '<div class="chiprad"><span class="cap skjul-m" style="font-size:10px">Kurver</span>' +

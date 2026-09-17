@@ -47,6 +47,9 @@ export interface KurveSerie {
 }
 
 interface Props {
+  /** Y-aksen (beslutning 17. sep): kalleren kan utvide fokus-seriens spenn - pulsen får
+      minst I1-bunn til I5-topp fra sonene (lib/puls-akse). Uten: auto-tett som før. */
+  skalaFor?: (serie: KurveSerie, spenn: { lo: number; hi: number } | null) => { lo: number; hi: number } | null
   serier: KurveSerie[]
   /** Serier som er påslått (fokus + kontekst). */
   paaIds: string[]
@@ -139,7 +142,7 @@ function fmtTid(sek: number): string {
 
 export function OktKurve({
   serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag, bakgrunn, mellomlag, fokusFyll = 0,
-  krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20, onKlikk,
+  krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20, onKlikk, skalaFor,
 }: Props) {
   const flate = useRef<HTMLDivElement | null>(null)
   const pan = useRef<{ x: number; fra: number; til: number } | null>(null)
@@ -167,7 +170,7 @@ export function OktKurve({
     }
     return Number.isFinite(lo) ? { lo, hi } : null
   }
-  const fokusSpenn = (() => {
+  const fokusSpennRaa = (() => {
     if (!fokus) return null
     let lo = Infinity, hi = -Infinity
     for (const s of [fokus, ...paa.filter(medFokus)]) {
@@ -178,6 +181,8 @@ export function OktKurve({
     }
     return Number.isFinite(lo) ? { lo, hi } : null
   })()
+  // Aksen krymper aldri under regelen kalleren gir (pulsen: sonene), utvides alltid til målingene.
+  const fokusSpenn = skalaFor && fokus ? skalaFor(fokus, fokusSpennRaa) : fokusSpennRaa
 
   // Zoom om et punkt: spennet skaleres, punktet under pekeren står stille.
   // Y-AKSEN DRAS ALDRI — den skalerer automatisk etter fokus-serien i det
@@ -236,7 +241,7 @@ export function OktKurve({
   return (
     <div>
       <div ref={flate}
-        data-oktkurve="1"
+        data-oktkurve="1" data-fokus={fokus?.id ?? ''} data-y-lo={fokusSpenn ? Math.round(fokusSpenn.lo) : ''} data-y-hi={fokusSpenn ? Math.round(fokusSpenn.hi) : ''}
         onWheel={e => {
           if (!onVindu) return
           e.preventDefault()
@@ -325,7 +330,7 @@ export function OktKurve({
           )}
           {/* Fokus-serien sist = øverst, i full styrke. */}
           {fokus && (
-            <path d={sti(fokus, false)} fill="none" stroke={fokus.farge}
+            <path d={sti(fokus, false)} data-serie={fokus.id} fill="none" stroke={fokus.farge}
               strokeWidth={2} vectorEffect="non-scaling-stroke" />
           )}
         </svg>

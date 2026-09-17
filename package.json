@@ -48,7 +48,9 @@
     "styrke-bytt-e2e": "tsx scripts/styrke-bytt-e2e.ts",
     "styrke-teller-e2e": "tsx scripts/styrke-teller-e2e.ts",
     "styrke-kommentar-e2e": "tsx scripts/styrke-kommentar-e2e.ts",
-    "styrke-tomme-sett-e2e": "tsx scripts/styrke-tomme-sett-e2e.ts"
+    "styrke-tomme-sett-e2e": "tsx scripts/styrke-tomme-sett-e2e.ts",
+    "puls-akse": "tsx scripts/puls-akse-selftest.ts",
+    "puls-akse-e2e": "tsx scripts/puls-akse-e2e.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

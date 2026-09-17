@@ -52,16 +52,71 @@ export const CHANGELOG_VERSION = APP_VERSJON
 export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
-  // ── NYE TING etter v1.3 legges HER (øverst, uten version) ──────────────
-  // MERK (Sverre 28. aug): v1.3 er ÅPEN - leveringer legges med version
-  // '1.3', ikke som nye u-versjonerte punkter. Ingen v1.4 før Sverre sier det.
+  // ── NYE TING etter v1.4 legges HER (øverst, uten version) ──────────────
+  // MERK (Sverre 17. sep): v1.4 er kuttet - nye leveringer legges som
+  // u-versjonerte punkter til Sverre sier at v1.5 åpnes.
   //
-  // FORM I v1.3 (Sverre 2. sep): stikkord - én linje per punkt, færre
-  // småting, flere store. Ingen interne navn (bolk, fase, leverandører
-  // bak kulissene). Ett punkt per LEVERING: kutt og match i Øktbyggeren
-  // og plan-grafen legges inn i SAMME punkt når de lander.
+  // FORM (Sverre 2. sep): stikkord - én linje per punkt, færre småting,
+  // flere store. Ingen interne navn (bolk, fase, leverandører bak
+  // kulissene). Ett punkt per LEVERING, ikke per commit.
 
-  // ── v1.3 - åpen fra 26. august 2026 ────────────────────────────────────
+  // ── v1.4 - kuttet 17. september 2026 ───────────────────────────────────
+  {
+    date: '2026-09-17',
+    title: 'Live styrke, ny',
+    body: 'Store trinnknapper, eller trykk på tallet og skriv. Dra øvelsene i rekkefølge, supersett med én knapp, bytt øvelse på førte sett uten å miste tallene, og et nytt sett arver forrige. Totaltid stort øverst, pausen mellom sett teller opp til du starter neste, stopp hele økta og fortsett. Kommentar per øvelse og for økta. Ferdig-skjerm med nye rekorder, kommentar og fysisk og mental form. Lagringen mister ikke sett om nettet svikter.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-17',
+    title: 'Styrke i øktgrafen og analysen',
+    body: 'Settene tegnes som blokker i øktgrafen - høyde er kg, bredde er tid, tallet er reps, gull ring er PR. Plan mot faktisk per øvelse, sammenlign like styrkeøkter, sett for sett under «Øvelse over tid», og muskelgruppe på egne øvelser.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-17',
+    title: 'Styrkeøkt og klokke',
+    body: 'Flett klokka bak en styrkeøkt: settene står, pulsen legges bak.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-17',
+    title: 'Y-aksen i øktgrafene',
+    body: 'Pulsen tegnes alltid mot sonene dine (I1-I5), ikke mot min og maks i økta - en rolig økt ser rolig ut. Velg selv: soner, tett eller fast.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-17',
+    title: 'Utøveren styrer hva treneren kan endre',
+    body: 'Dagbok, terskler og soner, utstyr og tester - i tillegg til plan og periodisering. Alt er av som standard for nye trenerkoblinger, og treneren ser bare det utøveren har åpnet.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-17',
+    title: 'Gjennomført er utøverens ord',
+    body: 'Treneren kan ikke lenger markere en planlagt økt som gjennomført - det gjør utøveren. Endrer treneren en terskel eller en ført økt, får utøveren varsel med gammel og ny verdi.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-16',
+    title: 'Formkartet på Oversikt',
+    body: 'Form, belastning, søvn, helse, skyting og terskler på én tidsakse, med dagvisning og mønsterkort.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-16',
+    title: 'Stillestand blir pause',
+    body: 'Klokkesynkede økter får stillestand som pause automatisk, med knapp og angre. Klokketid vises når økta hadde pauser, og en ren pause kan ha sone.',
+    version: '1.4',
+  },
+  {
+    date: '2026-09-16',
+    title: 'Innboksen teller uleste',
+    body: 'Teller på uleste meldinger og kommentarer, og marker lest.',
+    version: '1.4',
+  },
+
+  // ── v1.3 - 26. august til 17. september 2026 (lukket) ─────────────────
   {
     date: '2026-09-07',
     title: 'Periodene fra årsplanen vises i ukevisningen',

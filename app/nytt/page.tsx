@@ -26,11 +26,18 @@ export default function NyttPage() {
   // seksjon øverst. Versjonsslippet vises alltid i sin helhet under.
   const nyeTing = CHANGELOG.filter(e => !e.version).slice(0, CHANGELOG_VISIBLE)
   const slipp = CHANGELOG.filter(e => e.version === CHANGELOG_VERSION)
+  // Forrige slipp vises i sin helhet under gjeldende (v1.4-kuttet, 17. sep): den
+  // nyeste versjonen som ikke er gjeldende. Eldre blir liggende som historikk i fila.
+  const forrigeVersjon = CHANGELOG.map(e => e.version).find(v => v && v !== CHANGELOG_VERSION) ?? null
+  const forrige = forrigeVersjon ? CHANGELOG.filter(e => e.version === forrigeVersjon) : []
   const seksjoner = [
     ...(nyeTing.length > 0
       ? [{ nokkel: 'nytt', overskrift: `Nytt siden v${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(nyeTing) }]
       : []),
     { nokkel: 'slipp', overskrift: `X-PULSE V${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(slipp) },
+    ...(forrige.length > 0
+      ? [{ nokkel: 'forrige', overskrift: `X-PULSE V${forrigeVersjon}`, grupper: groupChangelogByDate(forrige) }]
+      : []),
   ]
 
   return (

@@ -4,10 +4,10 @@
 // «Hva er nytt» og «Nytt i»-etikettene på funksjonssidene. Hero-en
 // (public/xpulse.html) er statisk HTML og kan ikke lese herfra — der
 // står tallet skrevet inn, og må løftes for hånd sammen med denne.
-export const APP_VERSJON = '1.3'
+export const APP_VERSJON = '1.4'
 
-/** «v1.3» — merket i topplinja. */
+/** «v1.4» — merket i topplinja. */
 export const VERSJONS_MERKE = `v${APP_VERSJON}`
 
-/** «Nytt i V1.3» — etiketten på funksjonssidene. */
+/** «Nytt i V1.4» — etiketten på funksjonssidene. */
 export const NYTT_I_VERSJON = `Nytt i V${APP_VERSJON}`

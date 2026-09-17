@@ -45,6 +45,7 @@ document.documentElement.classList.add('js');</script>
 <link rel="preload" href="/fonts/barlow-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/photos/hero-bg.jpg">
+<link rel="stylesheet" href="/forside/tokens.css">
 <style>
 @font-face { font-family:'Barlow Condensed'; font-style:italic; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-italic-400-latin-ext.woff2') format('woff2'); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family:'Barlow Condensed'; font-style:italic; font-weight:400; font-display:swap; src:url('/fonts/barlow-condensed-italic-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
@@ -68,48 +69,7 @@ document.documentElement.classList.add('js');</script>
 @font-face { font-family:'Bebas Neue'; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/bebas-neue-normal-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family:'Inter'; font-style:normal; font-weight:100 900; font-display:swap; src:url('/fonts/inter-variable-latin.woff2') format('woff2'); }
 
-:root{
-  /* Runde 3: app-flatene inni scenene (app/globals.css, mørk) */
-  --a-flate:#0A0A0B;--a-card:#101014;--a-card2:#15151B;--a-graf:#13131A;--a-felt:#1A1A22;
-  --a-line:#1F1F26;--a-line2:#2A2A33;--a-kant:#1E1E22;
-  --a-ink:#F0F0F2;--a-ink3:#C0C0CC;--a-mut:#8A8A96;--a-mute:#55555F;
-  --tile:#0F0F13;--tile-kant:rgba(255,255,255,.07);
-  --kontroll:rgba(38,38,46,.72);--kontroll-ink:#F2F2F0;
-  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
-  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
-  --orange:#FF4500; --blue:#1A6FD4; --gold:#D4A017; --green:#28A86E; --red:#E23A5A;
-  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A; --hurt:#8B5CF6;
-  /* Merkefarger til klokkesynk-raden. --strava er verifisert mot Stravas
-     brand guidelines; --polar er anslag til den offisielle verdien foreligger. */
-  --strava:#FC5200; --polar:#E4002B;
-  /* Utvidet noytralsett for lysmodus. Morkverdiene er EKSAKT de som
-     alt stod hardkodet i denne fila - vakt 1. Landingssida har sitt
-     EGET sett; det skal ikke forenes med appens. */
-  --hvit:#FFFFFF;
-  --paper2:#F2F0EC;
-  --dim2:#8A8A96;
-  --mute2:#555560;
-  --mute3:#4A4A54;
-  --mute4:#3A3A44;
-  --line3:#2A2A30;
-  --line4:#34343E;
-  --line5:#26262E;
-  --line6:#262629;
-  --line7:#22222A;
-  --line8:#1A1A1E;
-  --surface2:#1E1E26;
-  --bg2:#14141A;
-  --bg3:#141419;
-  --bg4:#141417;
-  --bg5:#121216;
-  --bg6:#12121A;
-  --bg7:#0B0B0F;
-  --bg8:#0A0A0D;
-  --bg9:#09090C;
-  --paper-rgb:242 240 236;
-  --hvit-rgb:255 255 255;
-  --tonet-oransje:#17110C;
-}
+/* Fargetokens (mørk + lys) ligger i /forside/tokens.css - lenket øverst i <head>. */
 
 /* ═══════════════════════════════════════════════════════════════════
    LYSMODUS - steg 1. Kartlegging: design/lysmodus-kartlegging.md
@@ -125,48 +85,6 @@ document.documentElement.classList.add('js');</script>
 
    Verdiene er speilet lyshet (L → 1−L i HSL), samme regel som i appen.
    ═══════════════════════════════════════════════════════════════════ */
-:root[data-tema="lys"]{
-  /* Runde 3: app-flatene inni scenene, lys */
-  --a-flate:#F4F4F6;--a-card:#FFFFFF;--a-card2:#F4F4F7;--a-graf:#F7F7FA;--a-felt:#EDEDF2;
-  --a-line:#D9D9E0;--a-line2:#CCCCD5;--a-kant:#DEDEE5;
-  --a-ink:#101014;--a-ink3:#33333B;--a-mut:#6A6A74;--a-mute:#9A9AA4;
-  --tile:#FFFFFF;--tile-kant:rgba(0,0,0,.07);
-  --kontroll:rgba(255,255,255,.8);--kontroll-ink:#101014;
-  --bg:#EEEEF2;
-  --surface:#EBEBEF;
-  --card:#E4E4EA;
-  --line:#D9D9E0;
-  --line2:#CCCCD5;
-  --paper:#0F0F0D;
-  --dim:#6A6A74;
-  --mute:#A0A0AA;
-  --darker:#F4F4F5;
-  --mid:#ECECEE;
-  --hvit:#000000;
-  --paper2:#13110D;
-  --dim2:#696975;
-  --mute2:#9F9FAA;
-  --mute3:#ABABB5;
-  --mute4:#BBBBC5;
-  --line3:#CFCFD5;
-  --line4:#C1C1CB;
-  --line5:#D1D1D9;
-  --line6:#D6D6D9;
-  --line7:#D5D5DD;
-  --line8:#E1E1E5;
-  --surface2:#D9D9E1;
-  --bg2:#E5E5EB;
-  --bg3:#E6E6EB;
-  --bg4:#E8E8EB;
-  --bg5:#E9E9ED;
-  --bg6:#E5E5ED;
-  --bg7:#F0F0F4;
-  --bg8:#F2F2F5;
-  --bg9:#F3F3F6;
-  --paper-rgb:19 17 13;
-  --hvit-rgb:0 0 0;
-  --tonet-oransje:#F3EDE8;
-}
 /* PÅ FAST MØRK BUNN - fredet i lysmodus.
    Heroen ligger på et fotografi, disiplin-panelene (.dp) har hvert sitt foto
    som bakgrunn, og nav-en ligger på sin egen mørke gradient

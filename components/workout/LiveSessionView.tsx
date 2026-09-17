@@ -38,13 +38,15 @@ import {
 // PASSIV_PAUSE_TYPER ville trukket den ut av treningstida. finishLiveSession
 // skriver bare duration_minutes; ingen aktivitetsrader lages her.
 //
-// Supersett-fargen: #5B8DEF sto ikke i fargefasiten - trener-blå #1A6FD4
-// brukes til Sverre eventuelt vil ha en egen linje i fargefasiten.
+// Supersett får INGEN egen farge (bolk 2b, Sverre 17. sep): klamme i
+// --kant-7 (= designfilas --line3) pluss bokstaven «SS A». Trener-blå lånes
+// ikke til noe som ikke er trener. Plan-chipen er blå fordi fasiten
+// (.chip.plan) sier det - det er planfargen, ikke supersettfargen.
 
 const ORANGE = '#FF4500'
 const GRONN = '#28A86E'
 const GULL = '#D4A017'
-const BLAA = '#1A6FD4'
+const PLAN_BLAA = '#1A6FD4'   // .chip.plan i fasiten
 const FONT = "'Barlow Condensed', sans-serif"
 const BEBAS = "'Bebas Neue', sans-serif"
 
@@ -400,7 +402,7 @@ export function LiveSessionView({
           const ssLetter = ex.superset_group != null ? groupLetters.get(ex.superset_group) : undefined
           const erAktivOvelse = aktiv?.ex.id === ex.id
           return (
-            <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${ssLetter ? BLAA : erAktivOvelse ? ORANGE : 'var(--line)'}`, borderRadius: 16, marginBottom: 12, overflow: 'hidden' }} data-live-ovelse>
+            <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${ssLetter ? 'var(--kant-7)' : erAktivOvelse ? ORANGE : 'var(--line)'}`, borderRadius: 16, marginBottom: 12, overflow: 'hidden' }} data-live-ovelse>
               <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 14px 9px' }}>
                 <span style={{ width: 24, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>
                   {ssLetter ? `SS ${ssLetter}` : idx + 1}
@@ -424,7 +426,7 @@ export function LiveSessionView({
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 11px', alignItems: 'center' }}>
                   {beste && <span style={{ ...chip, ...chipBeste }} data-live-beste>★ Beste <b style={{ color: GULL, fontWeight: 700 }}>{beste}</b></span>}
                   {!beste && !ls && <span style={{ ...chip, color: 'var(--tekst-8-app)' }}>Ingen historikk ennå</span>}
-                  {plan && <span style={{ ...chip, borderColor: 'rgba(26,111,212,.45)', color: BLAA, background: 'rgba(26,111,212,.10)' }}>Plan <b style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>{plan}</b></span>}
+                  {plan && <span style={{ ...chip, borderColor: 'rgba(26,111,212,.45)', color: PLAN_BLAA, background: 'rgba(26,111,212,.10)' }}>Plan <b style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>{plan}</b></span>}
                   {ls && <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>Sist: {summarizeLast(ls)} ({daysAgoLabel(ls.date)})</span>}
                   {ls && <button type="button" onClick={() => repeatLast(ex)} className="xp-pill xp-pill-ghost" style={pillLiten}><Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta forrige</button>}
                 </div>

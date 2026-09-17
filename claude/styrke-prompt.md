@@ -233,6 +233,24 @@ f) TASTE TALLET DIREKTE I LIVE (Sverre 17. sep kveld).
    · Treffflate 52 px står. Feltet skal ikke ødelegge den.
    · Bevis: tastet 82,5 lagres som 82.5, og «Beste»/PR regnes med den.
 
+g) NYTT SETT ARVER FORRIGE SETT (Sverre 17. sep kveld).
+   «+ Legg til sett» (live) og «+ Sett» (plan/dagbok) lager i dag et TOMT sett
+   (makeSet / emptySet). Skal i stedet kopiere reps, kg (og RPE der den
+   finnes) fra settet rett over i SAMME øvelse. Første sett i en øvelse:
+   som i dag (forrige økt grått / bibliotekets default).
+   · PLAN og DAGBOK: verdiene skrives rett inn i det nye settet. Brukeren
+     trykket «+ Sett» selv og kan endre.
+   · LIVE: det nye settet er IKKE ført. Verdiene ligger som startverdi i
+     stepperen/tastaturet (samme sti som «Samme som sist sett» bruker i dag:
+     setTast med rort: true) og lagres først ved «Logg sett». Ellers bryter
+     vi «ingenting fullført før brukeren markerer det», og volum, PR og
+     «Beste» ville telt et sett som ikke er gjort.
+   · «Samme som sist sett»-knappen i tastaturet blir overflødig når dette
+     er inne - fjern den, ikke la to veier gjøre det samme.
+   · Bevis: plan/dagbok: nytt sett har forrige setts tall i basen etter
+     lagring. Live: nytt sett er ikke ført (ikke i doneSets, teller ikke i
+     volum) før «Logg sett»; etter «Logg sett» lagres de arvede tallene.
+
 GJELDER ALLE BOLKER
   Lys og mørk (regel 23) · vanlig bindestrek (regel 31) · ingen custom
   musepeker (regel 30) · treffflater minst 36 px, 52 i live · mobil er

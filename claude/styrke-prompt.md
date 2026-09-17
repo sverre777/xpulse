@@ -279,6 +279,40 @@ h) PAUSETELLER MELLOM SETT I LIVE - TELLER OPP, OG START SETT-KNAPP
      totaltid = arbeid + pause (uendret regnestykke); ingen 'pause'-rad i
      workout_activities etter lagring; ukesum og plan mot faktisk uendret.
 
+i) KOMMENTAR I LIVE STYRKE - PER ØVELSE OG FOR HELE ØKTA (Sverre 17. sep
+   kveld). Synlig i dagboken etterpå.
+   MÅLT FØRST (ikke antatt):
+   · Datamodellen finnes. workout_activity_exercises.notes (per øvelse),
+     workout_activity_exercise_sets.notes (per sett) og workouts.notes (økta).
+   · Live har feltet: makeExercise setter notes: '' og saveLiveStrength
+     (app/actions/strength-session.ts) skriver ex.notes til basen alt i dag.
+     Det som mangler i live er BARE UI-et. Ingen SQL.
+   · finishLiveSession skriver IKKE workouts.notes - øktkommentaren må
+     med der (eller egen liten update).
+   · Dagboken: StrengthEditor i ActivitiesSection viser IKKE øvelsens notes
+     i dag (bare aktivitetsradens «Notat», row.notes, som er en annen
+     kolonne). En kommentar skrevet i live ville altså lagres, men ikke
+     vises. Det er del av bolken.
+   SKAL:
+   · Ikon (kommentar/snakkeboble fra ikonsettet, ingen ny) på hvert
+     øvelseskort i live og ett i toppen for økta. Trykk → lite felt
+     (textarea, 2 rader) rett under kortet/toppen, ikke modal. Skriv, trykk
+     utenfor - lagret i tilstanden, med i neste autosave. Ikonet får en
+     prikk/fylt variant når det finnes tekst, så du ser hvor du har skrevet.
+   · Øvelseskommentar → workout_activity_exercises.notes (finnes).
+     Øktkommentar → workouts.notes (samme felt som «Notat» i øktskjemaet,
+     WorkoutForm form.notes - ÉN kilde, ikke et nytt felt). Har økta alt en
+     notes-tekst fra planen, vises den forhåndsutfylt i live, og live
+     legger til - overskriver ikke uten at brukeren ser det.
+   · Dagbok og plan: øvelseskommentaren vises og kan redigeres i
+     StrengthEditor (samme ikon + felt som live, regel 11: én komponent).
+     Trener med view_dagbok ser den, trener med edit_dagbok kan endre den.
+   · Sett-kommentar (sets.notes) er IKKE bestilt - ikke bygg UI for den.
+   · Bevis (regel 40): skriv «gikk tungt» på knebøy i live, avslutt, åpne
+     økta i dagboken: teksten står på knebøy. Øktkommentar står i «Notat».
+     Åpne og lagre økta i dagboken uten å røre noe: begge står fortsatt
+     (regresjonsvern mot slett-og-reinsert i saveWorkout).
+
 GJELDER ALLE BOLKER
   Lys og mørk (regel 23) · vanlig bindestrek (regel 31) · ingen custom
   musepeker (regel 30) · treffflater minst 36 px, 52 i live · mobil er

@@ -147,7 +147,7 @@
 .opprett{flex:1;height:44px;border-radius:10px;background:var(--orange);color:#fff;font:800 14.5px/44px 'Inter',sans-serif;text-align:center;transition:transform .15s}
 .opprett.trykk{transform:scale(.97);box-shadow:0 0 0 4px rgba(255,69,0,.25)}
 .pg{background:var(--a-graf);border:1px dashed var(--a-kant);border-radius:10px;padding:4px 6px 0;margin:0 16px}
-.pg svg{display:block;width:100%;height:auto;overflow:visible}
+.pg > svg{display:block;width:100%;height:auto;overflow:visible}
 .pg .blk{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform .5s cubic-bezier(.3,.8,.2,1)}
 .pg .blk.inn{transform:scaleY(1)}
 .pg .lbl{opacity:0;transition:opacity .4s}

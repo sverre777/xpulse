@@ -11,6 +11,7 @@
 // klikk uten dra åpner detaljpanelet (eksisterende PeriodModal).
 // Server er sannhet: router.refresh() etter hver operasjon.
 
+import { addDaysISO } from '@/lib/local-date'
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -58,11 +59,6 @@ function toISO(d: Date): string {
 }
 function parseISO(iso: string): Date {
   return new Date(iso + 'T12:00:00')
-}
-function addDaysISO(iso: string, days: number): string {
-  const d = parseISO(iso)
-  d.setDate(d.getDate() + days)
-  return toISO(d)
 }
 function isoWeekNo(d: Date): number {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))

@@ -1,5 +1,6 @@
 'use server'
 
+import { addDaysISO } from '@/lib/local-date'
 import { createClient } from '@/lib/supabase/server'
 import { forsteEmbed } from '@/lib/embed'
 import { resolveTargetUser, resolveHealthTargetUser } from '@/lib/target-user'
@@ -2867,11 +2868,6 @@ function classifyForm(tsb: number): FormStatus {
   return 'overtrent'
 }
 
-function addDaysISO(iso: string, days: number): string {
-  const d = new Date(iso + 'T00:00:00Z')
-  d.setUTCDate(d.getUTCDate() + days)
-  return d.toISOString().slice(0, 10)
-}
 
 function daysBetweenISO(fromIso: string, toIso: string): number {
   const a = new Date(fromIso + 'T00:00:00Z').getTime()

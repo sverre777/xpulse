@@ -44,3 +44,19 @@ export function iSone(d: Date, sone: string = APP_SONE): { dateStr: string; time
 export function iDagISO(naa: Date = new Date()): string {
   return iSone(naa, APP_SONE).dateStr
 }
+
+/**
+ * Legg dager til en YYYY-MM-DD. Ren kalenderaritmetikk i UTC - svaret er
+ * uavhengig av runtime-sonen og av sommertid.
+ *
+ * Fella som bodde i den gamle kopien (lib/workout-activity-insert, målt
+ * 16. sep 2026): `new Date(iso + 'T00:00:00')` er lokal midnatt, og
+ * `toISOString()` leser den tilbake i UTC - i Europe/Oslo er det dagen
+ * FØR. addDaysISO(d, 1) ga da d tilbake, og en dagsløkke gikk evig lokalt
+ * mens den virket på Netlify (UTC). Én implementasjon her (regel 11).
+ */
+export function addDaysISO(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const t = new Date(Date.UTC(y, m - 1, d + days))
+  return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, '0')}-${String(t.getUTCDate()).padStart(2, '0')}`
+}

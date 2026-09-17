@@ -1,5 +1,6 @@
 'use server'
 
+import { addDaysISO } from '@/lib/local-date'
 import { revalidatePath } from 'next/cache'
 import { skrivAudit } from '@/lib/coach-audit'
 import { createClient } from '@/lib/supabase/server'
@@ -579,11 +580,6 @@ export async function getPlanTemplateForPush(
 
 // ── Plan-mal → materialisering ──────────────────────────────
 
-function addDaysISO(anchorISO: string, days: number): string {
-  const d = new Date(anchorISO + 'T00:00:00')
-  d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
-}
 
 function isoWeekKeyForDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00')

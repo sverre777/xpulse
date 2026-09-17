@@ -39,12 +39,10 @@ export function serializeZones(z: ActivityRow['zones']): Record<string, number> 
   return Object.keys(out).length > 0 ? out : null
 }
 
-// Generisk dato-hjelper: legg til (eller trekk fra) dager på en ISO-dato.
-export function addDaysISO(anchorISO: string, days: number): string {
-  const d = new Date(anchorISO + 'T00:00:00')
-  d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
-}
+// Dato-hjelperen bor i lib/local-date (regel 11). Re-eksportert fordi
+// plan-templates importerer den herfra; den gamle kopien her ga samme dato
+// tilbake i Europe/Oslo (lokal midnatt + toISOString).
+export { addDaysISO } from './local-date'
 
 export async function insertActivityTreeForWorkout(
   supabase: SupabaseClient,

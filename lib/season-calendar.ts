@@ -2,6 +2,7 @@
 // Ingen React – rene datofunksjoner pluss små bygge-helpers.
 
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
+import { addDaysISO } from './local-date'
 
 export function toISO(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -28,9 +29,7 @@ export function isoWeekNum(d: Date): number {
 }
 
 export function addDays(iso: string, days: number): string {
-  const d = parseISO(iso)
-  d.setDate(d.getDate() + days)
-  return toISO(d)
+  return addDaysISO(iso, days)   // én implementasjon (lib/local-date)
 }
 
 // Norske måneder.

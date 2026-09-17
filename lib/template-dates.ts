@@ -1,3 +1,4 @@
+import { addDaysISO } from './local-date'
 // Felles dato-helpers for plan- og periodiseringsmaler.
 // Maler lagrer day_offset relativt til mal-start; når start_date er satt
 // kan vi regne ut konkrete kalenderdatoer for visning. Holdes i én fil
@@ -12,10 +13,7 @@ const NORSKE_MND = [
 // Tar en YYYY-MM-DD og adder antall dager. Returnerer YYYY-MM-DD.
 // Bruker UTC-aritmetikk for å unngå sommertid-skift.
 export function addDays(iso: string, days: number): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  const t = Date.UTC(y, m - 1, d) + days * 86400000
-  const out = new Date(t)
-  return `${out.getUTCFullYear()}-${String(out.getUTCMonth() + 1).padStart(2, '0')}-${String(out.getUTCDate()).padStart(2, '0')}`
+  return addDaysISO(iso, days)   // én implementasjon (lib/local-date)
 }
 
 // Antall dager fra startISO til ISO (kan være negativt).

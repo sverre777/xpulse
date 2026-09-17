@@ -82,3 +82,13 @@ MANGLER NOE APPEN HAR (én setning der den hører hjemme, bolk 4):
 7. Innboksen (teller på uleste, marker lest): trener-siden 71 «Innboks for resten» - én setning.
 
 IKKE RØRT: ai-coach-siden (sier selv at ingenting er live), prisene, klokkelista.
+
+## Status etter bolk 4 (CC 17. sep, kveld)
+Rettet: 1 (dra-og-slipp-setningen strøket på langrenn og dagbok-og-plan), 2 (service-påminnelsen
+strøket), 4 (trener-FAQ og dagbok-FAQ sier redigering bare når utøveren har åpnet, gjennomført er
+utøverens ord), 5 (lav restitusjon bare når utøveren deler helsedata - 9 steder), 6 (Apple Health
+strøket), 7 (live styrke 1.4 på multisport). Punkt 3: «Treneren ser …» står, redigeringsrettene lagt
+til (6 sport-trenerpunkter + 4 FAQ + trener-siden). Mangler-lista: alle sju fikk én setning der de
+hører hjemme (formkart 5 idretter + analyse, live styrke dagbok-og-plan + multisport, styrke i
+graf/analyse analyse + multisport, stillestand klokkesync, y-aksen dagbok-og-plan, trener-rettene,
+innboksen). «Nytt i V1.4»-etiketter finnes ikke på undersidene (NYTT_I_VERSJON importeres, brukes ikke).

@@ -28,7 +28,7 @@ const MERKER = {
     { navn: 'Intervals.icu', status: 'På vei', pavei: true },
     { navn: 'Whoop', status: 'På vei', pavei: true },
   ],
-  fot: 'Synken for Garmin, COROS, Wahoo og Zepp går gjennom vår klokkesynk-leverandør. Apple Health kommer.',
+  fot: 'Synken for Garmin, COROS, Wahoo og Zepp går gjennom vår klokkesynk-leverandør.',
 }
 
 const SNARVEIER = [
@@ -72,6 +72,7 @@ export default function KlokkesyncPage() {
           { tittel: 'Samlet eller splittet', tekst: 'Like runder etter hverandre kan vises som én rad - dataene er fortsatt splittet.' },
           { tittel: 'Manuelt vinner', tekst: 'Har du ført tid, distanse eller sone selv, overskrives det aldri av synken.' },
           { tittel: 'Kilde per verdi', tekst: 'Hver verdi vet om den kom fra klokka eller fra deg.' },
+          { tittel: 'Stillestand blir pause', tekst: 'Sto klokka stille, blir det pause i økta - med knapp og angre - og klokketida vises ved siden av treningstida.' },
         ]}
         media={{ type: 'scene', kap: 'Rundene i appen', scener: [{ tittel: 'ØKTA KOMMER INN AV SEG SELV.', fil: 'flyt' }, { tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] }}
         speilvendt

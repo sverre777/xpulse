@@ -61,8 +61,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'Øktbyggeren',
         title: 'BYGG ØKTA SLIK DU TENKER DEN.',
         intro:
-          'Radene er editoren - ingen dra-og-slipp. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone, teknikk eller distanse på én rad, og resten regner seg selv.',
-        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
+          'Radene er editoren. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone, teknikk eller distanse på én rad, og resten regner seg selv.',
+        media: { type: 'scene', kap: 'Terskler og soner i appen', scener: [{ tittel: 'DINE SONER. PER BEVEGELSESFORM.', fil: 'detaljene' }] },
         bullets: [
           { title: 'Hurtigoppsett', body: 'Skriv antall × dragtid / pause og sone - økta genereres som vanlige rader du kan justere fritt.' },
           { title: '58 ferdige øktmaler', body: 'Bygget på Olympiatoppens intensitetsskala: terskel, I4/I5, motbakke, lagtur. Lagre dine egne som maler.' },
@@ -103,8 +103,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'Analyse',
         title: 'KLASSISK VS SKØYTING - SIDE OM SIDE.',
         intro:
-          'Alt kan filtreres på bevegelsesform. Se om du faktisk dekker begge stilarter slik planen sier, hvor mange timer som ligger i I3+, og hvordan formen svarer på det du har gjort. Grafene setter du sammen selv og stjernemerker dem du vil se først.',
-        media: { type: 'scene', kap: 'Økt-grafen med soner, laktat og ernæring', scener: [{ tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] },
+          'Alt kan filtreres på bevegelsesform. Se om du faktisk dekker begge stilarter slik planen sier, hvor mange timer som ligger i I3+, og hvordan formen svarer på det du har gjort - formkartet på Oversikt viser det på én akse. Grafene setter du sammen selv og stjernemerker dem du vil se først.',
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, laktat og ernæring', hoyde: 1140 },
         bullets: [
           { title: 'Filter per teknikk', body: 'Skøyting, klassisk og staking skilles i alle grafer - også de du bygger selv.' },
           { title: 'Belastning og form', body: 'CTL, ATL og TSB på samme kurve som konkurransene dine.' },
@@ -145,12 +145,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon - før samtalen, ikke etter. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
         media: { type: 'foto', bilde: 'langrenn-to-utovere-snoskog', alt: 'To langrennsløpere i snødekt skog', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
           { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - ikke i en meldingstråd.' },
-          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
+          { title: 'Utøveren eier dataene sine', body: 'Plan, dagbok og analyse ser treneren fra start. Redigering av dagbok, terskler, utstyr og tester er av til utøveren slår det på, helsedata deles bare hvis utøveren sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],
@@ -169,7 +169,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         sporsmal: 'Kan treneren min følge meg her?',
-        svar: 'Ja. Treneren ser planen, dagboka og analysen din, kan pushe økter og kommentere i selve økta. Helsedata som HRV og søvn deles kun hvis du selv slår det på, og frakobling fjerner tilgangen umiddelbart.',
+        svar: 'Ja. Treneren ser planen, dagboka og analysen din, kan pushe økter og kommentere i selve økta. Endre dagbok, terskler, utstyr eller tester kan treneren først når du slår det på, og gjennomført markerer du selv. Helsedata som HRV og søvn deles kun hvis du selv slår det på, og frakobling fjerner tilgangen umiddelbart.',
       },
       {
         sporsmal: 'Hva koster det?',
@@ -259,7 +259,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'Analyse',
         title: 'SKYTING OG UTHOLDENHET I SAMME BILDE.',
         intro:
-          'Se treff% mot fart inn på standplass, timer i I3+, terskelutvikling og hvordan formen svarer. Grafene setter du sammen selv, og de du stjernemerker ligger først neste gang.',
+          'Se treff% mot fart inn på standplass, timer i I3+, terskelutvikling og hvordan formen svarer - formkartet på Oversikt viser det på én akse. Grafene setter du sammen selv, og de du stjernemerker ligger først neste gang.',
         media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, skyting og laktat', hoyde: 1140 },
         bullets: [
           { title: 'Skyting mot belastning', body: 'Treffene sett mot hvor hardt du gikk inn - ikke bare mot dagen.' },
@@ -287,12 +287,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon - før samtalen, ikke etter. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
         media: { type: 'foto', bilde: 'skiskyting-staaende-rulleski', alt: 'Skiskytter på standplass med rulleski', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
           { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - også på skyteseriene.' },
-          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
+          { title: 'Utøveren eier dataene sine', body: 'Plan, dagbok og analyse ser treneren fra start. Redigering av dagbok, terskler, utstyr og tester er av til utøveren slår det på, helsedata deles bare hvis utøveren sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],
@@ -319,7 +319,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         sporsmal: 'Kan treneren min se skytingen?',
-        svar: 'Ja, hvis du kobler deg til treneren. Treneren ser plan, dagbok og analyse, og kan kommentere i selve økta. Helsedata deles bare hvis du slår det på.',
+        svar: 'Ja, hvis du kobler deg til treneren. Treneren ser plan, dagbok og analyse, og kan kommentere i selve økta. Endre kan treneren bare det du har åpnet for - dagbok, terskler, utstyr, tester - og gjennomført markerer du selv. Helsedata deles bare hvis du slår det på.',
       },
     ],
   },
@@ -346,7 +346,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'LANGE ØKTER, BYGGET SOM DE SKAL KJØRES.',
         intro:
           'Radene er editoren. Legg langturen inn med drag, terreng og pauser, eller skriv 3 × 20 min i hurtigoppsettet. Ernæring og drikke legges som punkter der de faktisk skjedde.',
-        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
+        media: { type: 'scene', kap: 'Terskler og soner i appen', scener: [{ tittel: 'DINE SONER. PER BEVEGELSESFORM.', fil: 'detaljene' }] },
         bullets: [
           { title: 'Hurtigoppsett', body: 'Skriv antall × dragtid / pause og sone - resten regner seg selv.' },
           { title: 'Terreng og høydemeter', body: 'Stigning per rad gir riktig belastning på lange turer.' },
@@ -401,8 +401,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'Analyse',
         title: 'LANGE ØKTER SETT OVER TID.',
         intro:
-          'Hvor mange timer ligger i I1 og I2, og har mengden faktisk økt? Sett belastningen mot formen og se hvordan kroppen svarer på de lange helgene.',
-        media: { type: 'scene', kap: 'Økt-grafen med soner og ernæringspunkter', scener: [{ tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] },
+          'Hvor mange timer ligger i I1 og I2, og har mengden faktisk økt? Sett belastningen mot formen og se hvordan kroppen svarer på de lange helgene - formkartet på Oversikt viser det på én akse.',
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner og ernæringspunkter', hoyde: 1140 },
         bullets: [
           { title: 'Volum per uke og periode', body: 'Timer og km per bevegelsesform, uke for uke.' },
           { title: 'Belastning og form', body: 'CTL, ATL og TSB på samme kurve som rennene dine.' },
@@ -429,7 +429,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon. Push økter, plan-maler eller hele årsplaner til én utøver eller hele gruppa.',
         media: { type: 'foto', bilde: 'langlop-tiny-planet-tre', alt: 'Langløper i vinterskog', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen.' },
@@ -488,7 +488,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'INTERVALLENE SKRIVES, IKKE TEGNES.',
         intro:
           'Skriv 10 × 400 m eller 4 × 8 min i hurtigoppsettet, så ligger økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone eller pause på én rad, og resten regner seg selv.',
-        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
+        media: { type: 'scene', kap: 'Terskler og soner i appen', scener: [{ tittel: 'DINE SONER. PER BEVEGELSESFORM.', fil: 'detaljene' }] },
         bullets: [
           { title: 'Hurtigoppsett', body: 'Antall × dragtid / pause og sone - økta genereres som rader du kan justere fritt.' },
           { title: '58 ferdige øktmaler', body: 'Terskel, I4/I5, bakkedrag og langtur, bygget på Olympiatoppens intensitetsskala.' },
@@ -529,8 +529,8 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'Analyse',
         title: 'GAP-TEMPO SIER SANNHETEN OM FORMEN.',
         intro:
-          'Tempo justert for stigning gjør at bakkeøkta og flatøkta kan sammenlignes. Se utviklingen i fart ved terskel, timer i I3+, og hvordan formen svarer på det du faktisk har gjort.',
-        media: { type: 'scene', kap: 'Økt-grafen med soner, tempo og laktat', scener: [{ tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] },
+          'Tempo justert for stigning gjør at bakkeøkta og flatøkta kan sammenlignes. Se utviklingen i fart ved terskel, timer i I3+, og hvordan formen svarer på det du faktisk har gjort - formkartet på Oversikt viser det på én akse.',
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, tempo og laktat', hoyde: 1140 },
         bullets: [
           { title: 'GAP over tid', body: 'Stigningsjustert tempo, så terrenget ikke skjuler framgangen.' },
           { title: 'Fart ved terskel', body: 'Tempoet du holder ved terskel, fulgt gjennom sesongen.' },
@@ -571,12 +571,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon - før samtalen, ikke etter.',
         media: { type: 'foto', bilde: 'loping-sti-host', alt: 'Løper på sti om høsten', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
           { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - ikke i en meldingstråd.' },
-          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
+          { title: 'Utøveren eier dataene sine', body: 'Plan, dagbok og analyse ser treneren fra start. Redigering av dagbok, terskler, utstyr og tester er av til utøveren slår det på, helsedata deles bare hvis utøveren sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],
@@ -603,7 +603,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         sporsmal: 'Kan treneren min følge meg her?',
-        svar: 'Ja. Treneren ser plan, dagbok og analyse, kan pushe økter og kommentere i økta. Helsedata deles kun hvis du slår det på.',
+        svar: 'Ja. Treneren ser plan, dagbok og analyse, kan pushe økter og kommentere i økta. Endre kan treneren bare det du har åpnet for, og gjennomført markerer du selv. Helsedata deles kun hvis du slår det på.',
       },
     ],
   },
@@ -630,7 +630,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'WATT-ØKTA SKRIVES PÅ SEKUNDER.',
         intro:
           'Skriv 4 × 8 min eller 30/15 i hurtigoppsettet, og legg watt eller motstand på radene. Økta ligger klar med oppvarming, drag, pauser og nedjogg - og felt som hører til sykkel, ikke til løping.',
-        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
+        media: { type: 'scene', kap: 'Terskler og soner i appen', scener: [{ tittel: 'DINE SONER. PER BEVEGELSESFORM.', fil: 'detaljene' }] },
         bullets: [
           { title: 'Watt og motstand per rad', body: 'Feltene følger bevegelsesformen: watt, motstand, stigning og kadens der det gir mening.' },
           { title: 'Hurtigoppsett', body: 'Antall × dragtid / pause og sone - resten regner seg selv.' },
@@ -672,7 +672,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'FTP STYRER SONENE - OG NP/IF ØKTA.',
         intro:
           'FTP ligger som terskelverdi med dato, og watt-sonene regnes fra den. Hver økt får normalisert effekt, intensitetsfaktor og belastning, så en hard time og en lang tur kan sammenlignes.',
-        media: { type: 'scene', kap: 'Økt-grafen med watt, soner og segmenter', scener: [{ tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med watt, soner og segmenter', hoyde: 1140 },
         bullets: [
           { title: 'Watt-soner fra FTP', body: 'Coggan-soner regnet fra din egen FTP, med historikk når du tester på nytt.' },
           { title: 'NP, IF og TSS', body: 'Normalisert effekt og intensitetsfaktor per økt - belastningen blir riktig, ikke bare lang.' },
@@ -690,7 +690,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         bullets: [
           { title: 'Høydekurve i økta', body: 'Fra klokka, sammen med puls, watt og fart.' },
           { title: 'Stigning per rad', body: 'Før terrenget der det hører hjemme - rolig, kupert, bratt.' },
-          { title: 'Km og timer per sykkel', body: 'Utstyret har sin egen historikk, så service kommer når den skal.' },
+          { title: 'Km og timer per sykkel', body: 'Utstyret har sin egen historikk - km og timer per sykkel, og hva som faktisk brukes.' },
         ],
       },
       {
@@ -713,12 +713,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon - før samtalen, ikke etter.',
         media: { type: 'foto', bilde: 'sykling-hoved', alt: 'Syklist i fart', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
           { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - ikke i en meldingstråd.' },
-          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
+          { title: 'Utøveren eier dataene sine', body: 'Plan, dagbok og analyse ser treneren fra start. Redigering av dagbok, terskler, utstyr og tester er av til utøveren slår det på, helsedata deles bare hvis utøveren sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],
@@ -786,10 +786,10 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'BYGG ØKTA SLIK DU TENKER DEN.',
         intro:
           'Radene er editoren. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Styrke har sitt eget oppsett med øvelser, sett og «sist gang».',
-        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
+        media: { type: 'scene', kap: 'Live styrkeøkt i appen', scener: [{ tittel: 'LØFT MED ÉN HÅND.', fil: 'flyt' }] },
         bullets: [
           { title: 'Hurtigoppsett', body: 'Antall × dragtid / pause og sone - resten regner seg selv.' },
-          { title: 'Live styrkeøkt', body: '287 øvelser, plan og «sist» per øvelse, START per sett - alt havner i dagboka.' },
+          { title: 'Live styrkeøkt', body: 'Store trinnknapper eller skriv tallet, dra øvelsene, supersett med én knapp, pausen teller opp mellom settene, kommentar og form på ferdig-skjermen - alt havner i dagboka.' },
           { title: '58 ferdige øktmaler', body: 'Lagre dine egne som maler, uansett bevegelsesform.' },
         ],
       },
@@ -827,11 +827,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'Analyse',
         title: 'ÉN DAGBOK, HELE BILDET.',
         intro:
-          'Filtrer på bevegelsesform, sett timer i I3+ mot formen, og bygg grafene du selv vil se først. Belastningen samler alt du gjør i én kurve.',
-        media: { type: 'scene', kap: 'Økt-grafen med soner og segmenter', scener: [{ tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] },
+          'Filtrer på bevegelsesform, sett timer i I3+ mot formen, og bygg grafene du selv vil se først. Belastningen samler alt du gjør i én kurve, og formkartet på Oversikt viser formen på én akse.',
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner og segmenter', hoyde: 1140 },
         bullets: [
           { title: 'Filter per bevegelsesform', body: 'Alle grafer og summer kan filtreres - også de du bygger selv.' },
           { title: 'Belastning og form', body: 'CTL, ATL og TSB på tvers av alt du gjør, med konkurransene på samme kurve.' },
+          { title: 'Styrke i grafen og analysen', body: 'Settene tegnes som blokker i øktgrafen, plan mot faktisk per øvelse, og sett for sett over tid.' },
           { title: 'Terskel og tester', body: 'Terskelverdiene styrer sonene overalt - endrer du dem, regnes historikken riktig.' },
         ],
       },
@@ -855,12 +856,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon - før samtalen, ikke etter.',
         media: { type: 'foto', bilde: 'multisport-hoved', alt: 'Utøvere i variert terreng', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
           { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - ikke i en meldingstråd.' },
-          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
+          { title: 'Utøveren eier dataene sine', body: 'Plan, dagbok og analyse ser treneren fra start. Redigering av dagbok, terskler, utstyr og tester er av til utøveren slår det på, helsedata deles bare hvis utøveren sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],
@@ -875,7 +876,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         sporsmal: 'Får jeg med styrketrening?',
-        svar: 'Ja. Live styrkeøkt har 287 øvelser med plan og «sist gang» per øvelse, og alt havner i dagboka når du fullfører.',
+        svar: 'Ja. Live styrkeøkt har 287 øvelser med plan og «sist gang» per øvelse, store trinnknapper eller skriv tallet, pause som teller opp, og nye rekorder, kommentar og form på ferdig-skjermen - alt havner i dagboka når du fullfører.',
       },
       {
         sporsmal: 'Regnes belastningen på tvers?',
@@ -887,7 +888,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         sporsmal: 'Kan treneren min følge meg her?',
-        svar: 'Ja. Treneren ser plan, dagbok og analyse, kan pushe økter og kommentere i økta. Helsedata deles kun hvis du slår det på.',
+        svar: 'Ja. Treneren ser plan, dagbok og analyse, kan pushe økter og kommentere i økta. Endre kan treneren bare det du har åpnet for, og gjennomført markerer du selv. Helsedata deles kun hvis du slår det på.',
       },
     ],
   },
@@ -927,7 +928,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'ØKTA SKRIVES, UANSETT GREN.',
         intro:
           'Skriv 8 × 100 m, 4 × 8 min eller 30/15 i hurtigoppsettet. Feltene følger grenen: watt og kadens på sykkel, tempo på løping, intervaller og pauser i bassenget.',
-        media: { type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 },
+        media: { type: 'scene', kap: 'Terskler og soner i appen', scener: [{ tittel: 'DINE SONER. PER BEVEGELSESFORM.', fil: 'detaljene' }] },
         bullets: [
           { title: 'Hurtigoppsett', body: 'Antall × dragtid / pause og sone - økta genereres som rader du kan justere fritt.' },
           { title: 'Felt per bevegelsesform', body: 'Watt, motstand, stigning, fart og kadens dukker opp der de gir mening.' },
@@ -969,7 +970,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'FTP PÅ SYKKEL, GAP PÅ LØPING.',
         intro:
           'Watt-sonene regnes fra FTP, løpetempoet justeres for stigning, og belastningen fra alle tre grenene samles i én kurve. Da ser du hva uka faktisk kostet.',
-        media: { type: 'scene', kap: 'Økt-grafen med soner, watt og tempo', scener: [{ tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, watt og tempo', hoyde: 1140 },
         bullets: [
           { title: 'NP, IF og TSS', body: 'Normalisert effekt og intensitetsfaktor per sykkeløkt.' },
           { title: 'GAP på løping', body: 'Stigningsjustert tempo, så terrenget ikke skjuler framgangen.' },
@@ -996,12 +997,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         kicker: 'For trenere',
         title: 'HELE GRUPPA PÅ ÉN SKJERM.',
         intro:
-          'Treneren ser hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter.',
+          'Treneren ser hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon - før samtalen, ikke etter.',
         media: { type: 'foto', bilde: 'triatlon-hoved', alt: 'Triatlet i konkurranse', blaa: true },
         bullets: [
           { title: 'Push til gruppa', body: 'Send samme grunnplan til laget og personaliser på toppen. Sonene regnes fra hver utøvers egne terskler.' },
           { title: 'Kommentér i økta', body: 'Tilbakemeldingen ligger der økta ligger - ikke i en meldingstråd.' },
-          { title: 'Utøveren eier dataene sine', body: 'Helsedata deles bare hvis utøveren sier ja. Frakobling fjerner tilgangen umiddelbart.' },
+          { title: 'Utøveren eier dataene sine', body: 'Plan, dagbok og analyse ser treneren fra start. Redigering av dagbok, terskler, utstyr og tester er av til utøveren slår det på, helsedata deles bare hvis utøveren sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ],
       },
     ],

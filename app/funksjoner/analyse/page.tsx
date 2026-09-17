@@ -60,6 +60,7 @@ export default function AnalysePage() {
           { tittel: 'Per bevegelsesform', tekst: 'Løping, sykling, ski og styrke har egne soner, så tallene ikke blander seg.' },
           { tittel: 'Plan mot gjennomført', tekst: 'Planlagt sonefordeling ved siden av den faktiske - grunnlaget for trenerpraten.' },
           { tittel: 'I6-I8 teller med', tekst: 'Hurtighet og spenst ligger i sonesummene der de hører hjemme.' },
+          { tittel: 'Styrke i grafen og analysen', tekst: 'Settene tegnes som blokker i øktgrafen, plan mot faktisk per øvelse, og sett for sett over tid.' },
         ]}
         media={{ type: 'foto', bilde: 'loping-bane-to-utovere', alt: 'To løpere på bane' }}
         speilvendt
@@ -92,6 +93,7 @@ export default function AnalysePage() {
         id="egne" kicker="Egne grafer" tittel="DINE EGNE SPØRSMÅL, DINE EGNE GRAFER."
         ingress="Bygg grafen som svarer på akkurat ditt spørsmål: filtrer på bevegelsesform, teknikk, periode, sone eller økttype. Stjernemerk den, så ligger den først neste gang."
         punkter={[
+          { tittel: 'Formkartet på Oversikt', tekst: 'Form, belastning, søvn, helse og skyting på én tidsakse, med dagvisning og mønsterkort.' },
           { tittel: 'Favoritter først', tekst: 'De du stjernemerker møter deg på Oversikt - i den rekkefølgen du selv drar dem.' },
           { tittel: 'Filter som henger sammen', tekst: 'Periode, bevegelsesform og teknikk kan kombineres fritt, også i egne grafer.' },
           { tittel: 'Treneren ser det samme', tekst: 'Har du gitt treneren tilgang, ser hen dine favoritter - ikke sine egne.' },

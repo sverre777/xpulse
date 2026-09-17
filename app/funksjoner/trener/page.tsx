@@ -34,7 +34,7 @@ export default function TrenerPage() {
         smuler={[{ navn: 'Forsiden', href: '/xpulse.html' }, { navn: 'Funksjoner', href: '/xpulse.html#features' }, { navn: 'For trenere' }]}
         kicker="For trenere"
         overskrift="Trenerverktøy for hele troppen"
-        ingress="Se hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter. Push planer, kommentér i økta, og la utøveren beholde eierskapet til dataene sine."
+        ingress="Se hvem som har trent, hvem som ligger bak plan og - når utøveren deler helsedata - hvem som har lav restitusjon. Før samtalen, ikke etter. Push planer, kommentér i økta, og la utøveren beholde eierskapet til dataene sine."
         bevis={['Status for hele gruppa', 'Push av planmaler', 'Kommentar i økta', 'Side om side', 'Egne terskler per utøver', 'Utøveren eier dataene']}
         ctaSekHref="#troppen"
       />
@@ -47,7 +47,7 @@ export default function TrenerPage() {
 
       <LandingSeksjon
         id="troppen" kicker="Troppen" tittel="HELE GRUPPA PÅ ÉN SKJERM."
-        ingress="Trener-hjem viser utøverne med timer, prosent av plan, sonefordeling og siste økt - og flagger dem som ligger bak eller har lav restitusjon. Klikk deg inn, så ser du det utøveren ser."
+        ingress="Trener-hjem viser utøverne med timer, prosent av plan, sonefordeling og siste økt - og flagger dem som ligger bak - og, når utøveren deler helsedata, dem som har lav restitusjon. Klikk deg inn, så ser du det utøveren ser."
         punkter={[
           { tittel: 'Status nå', tekst: 'Timer, plan, soner, skudd og helse for perioden du velger - i én henting.' },
           { tittel: 'Vis mer per utøver', tekst: 'Detaljpanelet åpner uten å laste siden på nytt, og husker det du allerede har hentet.' },
@@ -74,7 +74,7 @@ export default function TrenerPage() {
         ingress="Tilbakemeldingen står ved siden av økta utøveren førte - ikke i en egen innboks eller en meldingstråd som forsvinner. Det som ikke hører til en økt, tar du i en egen samtale."
         punkter={[
           { tittel: 'Kommentar per økt', tekst: 'Før, under og etter - og utøveren svarer samme sted.' },
-          { tittel: 'Innboks for resten', tekst: 'Beskjeder som ikke hører til en bestemt økt ligger for seg.' },
+          { tittel: 'Innboks for resten', tekst: 'Beskjeder som ikke hører til en bestemt økt ligger for seg, med teller på uleste og marker lest.' },
           { tittel: 'Du ser hva de ser', tekst: 'Trenerens visning er utøverens flate, ikke en egen forenklet versjon.' },
         ]}
         media={{ type: 'app', navn: 'oktkort-gjennomfort', kap: 'Gjennomført økt i dagboka', hoyde: 120 }}
@@ -98,6 +98,7 @@ export default function TrenerPage() {
         ingress="Tilgangen gis av utøveren, ikke av deg. Helsedata som HRV og søvn deles bare hvis utøveren slår det på, og frakobling fjerner tilgangen umiddelbart - håndhevet i databasen, ikke bare i grensesnittet."
         punkter={[
           { tittel: 'Utøveren gir tilgang', tekst: 'Invitasjon og samtykke ligger hos utøveren - alltid.' },
+          { tittel: 'Redigeringsrettene er utøverens', tekst: 'Plan, dagbok og analyse ser du fra start. Dagbok, terskler og soner, utstyr og tester kan du endre først når utøveren slår det på - og hen får varsel med gammel og ny verdi. Gjennomført er alltid utøverens ord.' },
           { tittel: 'Helsedata er et eget valg', tekst: 'Trening kan deles uten at søvn og HRV følger med.' },
           { tittel: 'Frakobling virker med én gang', tekst: 'Tilgangen fjernes i det utøveren kobler fra.' },
         ]}
@@ -111,7 +112,7 @@ export default function TrenerPage() {
         { sporsmal: 'Regnes sonene fra mine terskler eller utøverens?', svar: 'Fra utøverens. Pusher du samme økt til hele gruppa, får hver utøver sonene sine regnet fra sine egne terskler.' },
         { sporsmal: 'Ser jeg helsedataene til utøverne?', svar: 'Bare hvis utøveren slår det på. Trening kan deles uten at HRV og søvn følger med, og frakobling fjerner tilgangen umiddelbart.' },
         { sporsmal: 'Kan jeg sammenligne utøvere?', svar: 'Ja. Side om side viser én kolonne per utøver for samme periode, med felles kurver for belastning og soner. Oppsettet kan lagres.' },
-        { sporsmal: 'Kan jeg planlegge for utøveren?', svar: 'Ja. Du kan bygge planen i utøverens kalender, pushe maler til grupper, og kommentere i selve økta. Utøveren fører fortsatt dagboka selv.' },
+        { sporsmal: 'Kan jeg planlegge for utøveren?', svar: 'Ja. Du kan bygge planen i utøverens kalender, pushe maler til grupper, og kommentere i selve økta. Dagboka kan du redigere bare når utøveren har åpnet for det, og gjennomført er alltid utøverens ord.' },
       ]} />
 
       <AndreIdretter />

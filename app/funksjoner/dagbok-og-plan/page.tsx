@@ -41,11 +41,12 @@ export default function DagbokOgPlanPage() {
 
       <LandingSeksjon
         id="okt" kicker="Øktbyggeren" tittel="BYGG ØKTA SLIK DU TENKER DEN."
-        ingress="Radene er editoren - ingen dra-og-slipp. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone eller distanse på én rad, og resten regner seg selv."
+        ingress="Radene er editoren. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone eller distanse på én rad, og resten regner seg selv."
         punkter={[
           { tittel: 'Hurtigoppsett', tekst: 'Antall × dragtid / pause og sone - økta genereres som vanlige rader du kan justere fritt.' },
           { tittel: '58 ferdige øktmaler', tekst: 'Bygget på Olympiatoppens intensitetsskala. Lagre dine egne som maler.' },
           { tittel: 'Felt per bevegelsesform', tekst: 'Watt, motstand, stigning, fart og kadens dukker opp der de gir mening.' },
+          { tittel: 'Live styrkeøkt', tekst: 'Trinnknapper eller skriv tallet, pausen teller opp mellom settene, kommentar og form på ferdig-skjermen - alt havner i dagboka.' },
         ]}
         media={{ type: 'scene', kap: 'Øktbyggeren i appen', scener: [{ tittel: 'BYGG ØKTA PÅ SEKUNDER.', fil: 'flyt' }] }}
       />
@@ -68,6 +69,7 @@ export default function DagbokOgPlanPage() {
         punkter={[
           { tittel: 'Drag og pause som egne rader', tekst: 'Aktiv tid blir riktig, også når du sto og ventet.' },
           { tittel: 'Punkter på kurven', tekst: 'Laktat, ernæring og notat legges der de skjedde - planlagt teller aldri som målt.' },
+          { tittel: 'Pulsen mot sonene dine', tekst: 'Y-aksen spenner alltid sonene dine, så en rolig økt ser rolig ut. Velg tett eller fast om du vil.' },
           { tittel: 'Uke og dag i samme bilde', tekst: 'Ukevisningen viser sju dager med dagsdetalj under - også på mobil.' },
         ]}
         media={{ type: 'app', navn: 'oktgraf', kap: 'Økt-grafen i dagboka', hoyde: 1140 }}
@@ -103,7 +105,7 @@ export default function DagbokOgPlanPage() {
         { sporsmal: 'Kan jeg lage mine egne maler?', svar: 'Ja. Både enkeltøkter, hele uker og perioder kan lagres som maler, i tillegg til de 58 ferdige øktmalene.' },
         { sporsmal: 'Ser jeg plan og gjennomført ved siden av hverandre?', svar: 'Ja. Den planlagte økta tas vare på, så du ser avviket mellom det du skulle gjøre og det du gjorde - både per økt og per uke.' },
         { sporsmal: 'Virker det på mobil?', svar: 'Ja. Ukevisningen, dagboka og øktbyggeren er bygget for mobil også, med samme data som på PC.' },
-        { sporsmal: 'Kan treneren min skrive i dagboka mi?', svar: 'Treneren kan kommentere i økta og pushe planer, men fører ikke dagboka for deg. Det du fører selv vinner alltid.' },
+        { sporsmal: 'Kan treneren min skrive i dagboka mi?', svar: 'Treneren kan kommentere i økta og pushe planer, og redigere dagboka bare hvis du har åpnet for det. Gjennomført markerer du selv, og det du fører selv vinner alltid.' },
       ]} />
 
       <AndreIdretter />

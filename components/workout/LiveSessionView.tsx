@@ -17,6 +17,8 @@ import { normOvelse } from '@/lib/styrke-pr'
 import {
   erPr, fmtBeste, fmtKg, rekorder, spokelse, tonnasje, HVILE_MAAL_SEK, type BesteForOvelse,
 } from '@/lib/live-styrke'
+import { flyttOvelse, kobleMedNeste, losOppSupersett, leggTilSupersett, startverdiFraForrige, supersettBokstaver } from '@/lib/styrke-ovelser'
+import { OvelseListe, SorterbarOvelse, OvelseHandtak } from './SorterbarOvelse'
 
 // LIVE STYRKE v2 (fasit: design/xpulse-styrke-design.html seksjon 2 + notat).
 //
@@ -190,21 +192,12 @@ export function LiveSessionView({
     const next = [...exercises]; [next[i], next[j]] = [next[j], next[i]]; setExercises(next)
   }
   const addExercise = (name: string) => { if (name.trim()) setExercises([...exercises, makeExercise(name.trim())]) }
-
-  // Supersett: membership via superset_group.
-  const groupLetters = useMemo(() => {
-    const map = new Map<number, string>(); let n = 0
-    for (const e of exercises) if (e.superset_group != null && !map.has(e.superset_group)) { map.set(e.superset_group, String.fromCharCode(65 + n)); n++ }
-    return map
-  }, [exercises])
-  const linkWithPrevious = (id: string) => {
-    const i = exercises.findIndex(e => e.id === id)
-    if (i <= 0) return
-    const existing = exercises.map(e => e.superset_group).filter((g): g is number => g != null)
-    const g = exercises[i - 1].superset_group ?? ((existing.length ? Math.max(...existing) : 0) + 1)
-    setExercises(exercises.map((e, idx) => (idx === i || idx === i - 1) ? { ...e, superset_group: g } : e))
-  }
-  const unlinkExercise = (id: string) => setExercises(exercises.map(e => e.id === id ? { ...e, superset_group: null } : e))
+  // Bolk 8a/8b: dra-og-slipp + supersett - samme hjelper som plan/dagbok (lib/styrke-ovelser).
+  const flytt = (aktivId: string, overId: string | null) => { const next = flyttOvelse(exercises, aktivId, overId); if (next !== exercises) setExercises(next) }
+  const groupLetters = useMemo(() => supersettBokstaver(exercises), [exercises])
+  const supersett = (id: string) => setExercises(kobleMedNeste(exercises, id))
+  const losOpp = (id: string) => setExercises(losOppSupersett(exercises, id))
+  const nyttSupersett = () => setExercises(leggTilSupersett(exercises, () => makeExercise('')))
 
   // «Gjenta forrige»: hele øvelsen fra forrige økt, som FØRT (aktivt valg).
   const repeatLast = (ex: StrengthExerciseRow) => {
@@ -230,7 +223,10 @@ export function LiveSessionView({
     setLastLogMs(null)
     const sp = spokelse(lastByName[normOvelse(ex.exercise_name)], i)
     const harFort = !!(s.reps.trim() || s.weight_kg.trim())
-    setTast(harFort ? { reps: s.reps, kg: s.weight_kg, rort: true } : { reps: sp.reps, kg: sp.kg, rort: false })
+    // Bolk 8g: et uført sett arver settet OVER som startverdi (rort: true - lagres
+    // først ved «Logg sett»). Ellers forrige økts tall grått.
+    const arv = harFort ? null : startverdiFraForrige(ex, i)
+    setTast(harFort ? { reps: s.reps, kg: s.weight_kg, rort: true } : arv ? { reps: arv.reps, kg: arv.kg, rort: true } : { reps: sp.reps, kg: sp.kg, rort: false })
   }
   const bump = (felt: 'reps' | 'kg', d: number) => {
     hapticTap(8)
@@ -252,12 +248,6 @@ export function LiveSessionView({
     setDoneSets(prev => new Set(prev).add(aktiv.sett.id))
     setActiveSetId(null)
     setLastLogMs(Date.now())   // hvile teller mot neste sett
-  }
-  /** «Samme som sist sett»: kopierer settet OVER i denne økta - ikke forrige økt. */
-  const sammeSomSist = () => {
-    if (!aktiv || aktiv.i === 0) return
-    const f = aktiv.ex.sets[aktiv.i - 1]
-    setTast({ reps: f.reps, kg: f.weight_kg, rort: true })
   }
   /** Trykk på et grått felt i lista fyller verdien inn som ført. */
   const fyllSpokelse = (ex: StrengthExerciseRow, s: StrengthSetRow, i: number, felt: 'reps' | 'kg') => {
@@ -396,27 +386,33 @@ export function LiveSessionView({
           </div>
         )}
 
+        <OvelseListe ids={exercises.map(e => e.id)} onFlytt={flytt}>
         {exercises.map((ex, idx) => {
           const key = normOvelse(ex.exercise_name)
           const ls = lastByName[key], plan = plannedByName[key], beste = fmtBeste(besteByName[key])
           const ssLetter = ex.superset_group != null ? groupLetters.get(ex.superset_group) : undefined
           const erAktivOvelse = aktiv?.ex.id === ex.id
           return (
-            <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${ssLetter ? 'var(--kant-7)' : erAktivOvelse ? ORANGE : 'var(--line)'}`, borderRadius: 16, marginBottom: 12, overflow: 'hidden' }} data-live-ovelse>
-              <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 14px 9px' }}>
-                <span style={{ width: 24, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>
+            <SorterbarOvelse key={ex.id} id={ex.id}>
+            {grip => (
+            <div data-styrke-ss={ssLetter} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${ssLetter ? 'var(--kant-7)' : erAktivOvelse ? ORANGE : 'var(--line)'}`, borderRadius: 16, marginBottom: 12, overflow: 'hidden' }} data-live-ovelse>
+              <header style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '13px 10px 9px 8px' }}>
+                <OvelseHandtak dragRef={grip.dragRef} dragListeners={grip.dragListeners} dragAttributes={grip.dragAttributes} dragging={grip.dragging} onMove={dir => moveExercise(ex.id, dir)} />
+                <span style={{ width: ssLetter ? 'auto' : 24, padding: ssLetter ? '0 7px' : 0, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>
                   {ssLetter ? `SS ${ssLetter}` : idx + 1}
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <b style={{ display: 'block', fontFamily: BEBAS, fontSize: 19, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.exercise_name || 'Øvelse'}</b>
+                  {ex.exercise_name.trim() ? (
+                    <b style={{ display: 'block', fontFamily: BEBAS, fontSize: 19, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.exercise_name || 'Øvelse'}</b>
+                  ) : (
+                    <NavnVelger onVelg={navn => updateExercise(ex.id, { exercise_name: navn })} />
+                  )}
                   <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>{ex.sets.length} sett · {settRad(ex)}</span>
                 </span>
                 <button type="button" onClick={() => setMeny(m => m === ex.id ? null : ex.id)} style={ikonKnapp} aria-label="Handlinger for øvelsen" aria-expanded={meny === ex.id}>⋯</button>
               </header>
               {meny === ex.id && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 10px' }} data-live-meny>
-                  {idx > 0 && ssLetter == null && <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => { linkWithPrevious(ex.id); setMeny(null) }}><Ikon navn="koble-flett" variant="strek" storrelse={14} /> Supersett med forrige</button>}
-                  {ssLetter != null && <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => { unlinkExercise(ex.id); setMeny(null) }}>Løs opp supersett</button>}
                   <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => moveExercise(ex.id, -1)}>▲ Opp</button>
                   <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => moveExercise(ex.id, 1)}>▼ Ned</button>
                   <button type="button" className="xp-pill xp-pill-ghost" style={{ ...pillLiten, color: '#E23A5A' }} onClick={() => { removeExercise(ex.id); setMeny(null) }}>Fjern øvelse</button>
@@ -458,14 +454,22 @@ export function LiveSessionView({
                 })}
               </div>
               <div style={{ display: 'flex', gap: 8, padding: '8px 14px 12px' }}>
-                <button type="button" onClick={() => addSet(ex.id)} className="xp-pill xp-pill-ghost" style={{ flex: 1, borderStyle: 'dashed', minHeight: 40 }}>+ Legg til sett</button>
+                <button type="button" onClick={() => addSet(ex.id)} className="xp-pill xp-pill-ghost" style={{ flex: 1, borderStyle: 'dashed', minHeight: 40 }} data-live-legg-til-sett>+ Legg til sett</button>
+                {ssLetter ? (
+                  <button type="button" onClick={() => losOpp(ex.id)} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} data-live-los-opp>Løs opp</button>
+                ) : idx < exercises.length - 1 ? (
+                  <button type="button" onClick={() => supersett(ex.id)} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} data-live-supersett>Supersett</button>
+                ) : null}
                 {ex.sets.length > 1 && <button type="button" onClick={() => removeSet(ex.id, ex.sets[ex.sets.length - 1].id)} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} aria-label="Fjern siste sett">− Sett</button>}
               </div>
             </div>
+            )}
+            </SorterbarOvelse>
           )
         })}
+        </OvelseListe>
 
-        <AddExerciseInline onAdd={addExercise} />
+        <AddExerciseInline onAdd={addExercise} onSupersett={nyttSupersett} />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0 16px' }}>
           <span style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 13 }}>Tonnasje: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b></span>
@@ -505,7 +509,6 @@ export function LiveSessionView({
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
               <RpePicker value={aktiv.sett.rpe} onChange={v => updateSet(aktiv.ex.id, aktiv.sett.id, { rpe: v })} somPille />
-              {aktiv.i > 0 && <button type="button" onClick={sammeSomSist} className="xp-pill xp-pill-ghost" style={pillLiten}>Samme som sist sett</button>}
               <button type="button" onClick={() => setActiveSetId(null)} className="xp-pill xp-pill-ghost" style={pillLiten}>Lukk</button>
             </div>
             <button type="button" onClick={loggSett} className="xp-pill" style={{ ...pillStor, width: '100%', background: GRONN, borderColor: GRONN, color: '#fff' }} data-live-logg>✓ Logg sett</button>
@@ -584,7 +587,32 @@ function RpePicker({ value, onChange, somPille = false }: { value: string; onCha
   )
 }
 
-function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
+/** Tom øvelse (fra «Legg til supersett»): navnet velges på kortet - søk i standardbiblioteket eller skriv eget. Bolk 8c gjenbruker den for «Bytt øvelse». */
+function NavnVelger({ onVelg, start = '' }: { onVelg: (navn: string) => void; start?: string }) {
+  const [q, setQ] = useState(start)
+  const matches = useMemo(() => q.trim() ? searchStandardExercises(q, new Set(), 5) : [], [q])
+  const commit = (navn: string) => { if (navn.trim()) onVelg(navn.trim()) }
+  return (
+    <span style={{ display: 'block', position: 'relative' }} data-live-navnvelger>
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Skriv øvelsen (søk eller eget navn)" autoFocus={!start} aria-label="Øvelsesnavn"
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(q) } }} onBlur={() => { if (matches.length === 0) commit(q) }}
+        style={{ width: '100%', background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 999, color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 15, padding: '7px 12px', minHeight: 36 }} />
+      {matches.length > 0 && (
+        <span style={{ position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 20, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 14, marginTop: 4, overflow: 'hidden' }}>
+          {matches.map(m => (
+            <button key={m.name} type="button" onMouseDown={e => e.preventDefault()} onClick={() => commit(m.name)}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-1-app)', color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 14, padding: '9px 12px', minHeight: 36 }}>
+              {m.name}
+            </button>
+          ))}
+          <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commit(q)} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontFamily: FONT, fontSize: 13, padding: '9px 12px', minHeight: 36 }}>Bruk «{q.trim()}»</button>
+        </span>
+      )}
+    </span>
+  )
+}
+
+function AddExerciseInline({ onAdd, onSupersett }: { onAdd: (name: string) => void; onSupersett: () => void }) {
   const [q, setQ] = useState('')
   const [browse, setBrowse] = useState(false)
   const matches = useMemo(() => q.trim() ? searchStandardExercises(q, new Set(), 6) : [], [q])
@@ -597,6 +625,8 @@ function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
         <button type="button" onClick={() => setBrowse(b => !b)} aria-label="Bla i biblioteket" className={`xp-pill ${browse ? 'xp-pill-primary' : 'xp-pill-ghost'}`} style={{ minHeight: 44 }}>Bla</button>
         <button type="button" onClick={() => commit(q)} disabled={!q.trim()} className="xp-pill xp-pill-primary" style={{ minHeight: 44 }}>Legg til</button>
       </div>
+      {/* Bolk 8b: to tomme, koblede øvelser i ett trykk - samme knapp som plan/dagbok. */}
+      <button type="button" onClick={onSupersett} data-live-legg-til-supersett className="xp-pill xp-pill-ghost" style={{ width: '100%', minHeight: 40, marginTop: 8, borderStyle: 'dashed', borderColor: 'var(--kant-7)' }}>+ Legg til supersett</button>
       {browse && <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 14, marginTop: 6, overflow: 'hidden' }}><StandardExerciseBrowser onPick={commit} /></div>}
       {matches.length > 0 && (
         <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 14, marginTop: 6, overflow: 'hidden' }}>

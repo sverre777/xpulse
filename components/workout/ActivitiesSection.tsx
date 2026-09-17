@@ -42,6 +42,8 @@ import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
+import { flyttOvelse, kobleMedNeste, losOppSupersett, leggTilSupersett, nyttSettArver, supersettBokstaver } from '@/lib/styrke-ovelser'
+import { OvelseListe, SorterbarOvelse, OvelseHandtak, type OvelseGrip } from './SorterbarOvelse'
 import { getLastSessionForExercises, getBesteForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import { fmtBeste, fmtKg, erPr, spokelse, type BesteForOvelse } from '@/lib/live-styrke'
 import { normOvelse } from '@/lib/styrke-pr'
@@ -1608,6 +1610,9 @@ function StrengthEditor({
     if (i < 0 || j < 0 || j >= exercises.length) return
     const next = [...exercises]; [next[i], next[j]] = [next[j], next[i]]; onChange(next)
   }
+  // Bolk 8a/8b: dra-og-slipp + supersett - samme hjelper som live (lib/styrke-ovelser).
+  const flytt = (aktivId: string, overId: string | null) => { const next = flyttOvelse(exercises, aktivId, overId); if (next !== exercises) onChange(next) }
+  const ssBokstaver = supersettBokstaver(exercises)
 
   return (
     <div className="mt-3" data-styrke-editor style={{ padding: '2px 0 0' }}>
@@ -1622,12 +1627,19 @@ function StrengthEditor({
         </p>
       )}
 
+      <OvelseListe ids={exercises.map(e => e.id)} onFlytt={flytt}>
       {exercises.map((ex, idx) => {
         const key = normOvelse(ex.exercise_name)
         return (
-          <ExerciseBlock key={ex.id}
+          <SorterbarOvelse key={ex.id} id={ex.id}>
+            {grip => (
+          <ExerciseBlock
             exercise={ex}
             nr={idx + 1}
+            grip={grip}
+            ssBokstav={ex.superset_group != null ? ssBokstaver.get(ex.superset_group) : undefined}
+            onSupersett={idx < exercises.length - 1 ? () => onChange(kobleMedNeste(exercises, ex.id)) : undefined}
+            onLosOpp={() => onChange(losOppSupersett(exercises, ex.id))}
             planMode={planMode}
             onUpdate={patch => updateExercise(ex.id, patch)}
             onDelete={() => deleteExercise(ex.id)}
@@ -1640,8 +1652,11 @@ function StrengthEditor({
             beste={ex.exercise_name.trim() ? (besteByName[key] ?? null) : null}
             plan={planMode ? null : (plannedStyrke[key] ?? null)}
           />
+            )}
+          </SorterbarOvelse>
         )
       })}
+      </OvelseListe>
 
       {presetQuickAdds.length > 0 && (
         <div className="mt-1 mb-3">
@@ -1659,10 +1674,17 @@ function StrengthEditor({
         </div>
       )}
 
-      <button type="button" onClick={() => addExercise()} data-styrke-legg-til-ovelse
-        className="xp-pill" style={{ width: '100%', minHeight: 40, borderStyle: 'dashed', borderColor: '#FF4500', color: '#FF4500', background: 'none' }}>
-        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Øvelse
-      </button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="button" onClick={() => addExercise()} data-styrke-legg-til-ovelse
+          className="xp-pill" style={{ flex: 1, minHeight: 40, borderStyle: 'dashed', borderColor: '#FF4500', color: '#FF4500', background: 'none' }}>
+          <Ikon navn="legg-til" variant="strek" storrelse={14} /> Øvelse
+        </button>
+        {/* Bolk 8b: to tomme, koblede øvelser i ett trykk. */}
+        <button type="button" onClick={() => onChange(leggTilSupersett(exercises, emptyExercise))} data-styrke-legg-til-supersett
+          className="xp-pill" style={{ flex: 1, minHeight: 40, borderStyle: 'dashed', borderColor: 'var(--kant-7)', color: 'var(--tekst-3-app)', background: 'none' }}>
+          <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til supersett
+        </button>
+      </div>
     </div>
   )
 }
@@ -1673,10 +1695,16 @@ const GULL_STYRKE = '#D4A017'
 const num = (v: string): number | null => { const n = parseDecimal(v); return Number.isFinite(n) ? n : null }
 
 function ExerciseBlock({
-  exercise, nr, planMode, onUpdate, onDelete, onMove, library, presets, libraryNames, lastSession, lastHentet, beste, plan,
+  exercise, nr, planMode, onUpdate, onDelete, onMove, library, presets, libraryNames, lastSession, lastHentet, beste, plan, grip, ssBokstav, onSupersett, onLosOpp,
 }: {
   exercise: StrengthExerciseRow
   nr: number
+  /** Bolk 8a: håndtaket for dra-og-slipp. */
+  grip?: OvelseGrip
+  /** Bolk 8b: «SS A» når øvelsen er i et supersett - klamme i --kant-7, ingen farge. */
+  ssBokstav?: string
+  onSupersett?: () => void
+  onLosOpp?: () => void
   planMode: boolean
   onUpdate: (patch: Partial<StrengthExerciseRow>) => void
   onDelete: () => void
@@ -1730,7 +1758,8 @@ function ExerciseBlock({
       })),
     })
   }
-  const addSet = () => onUpdate({ sets: [...exercise.sets, emptySet(exercise.sets.length + 1)] })
+  // Bolk 8g: nytt sett arver reps/kg/RPE fra settet over (brukeren trykket selv, kan endre).
+  const addSet = () => onUpdate({ sets: nyttSettArver(exercise.sets, emptySet) })
   const removeLastSet = () => {
     if (exercise.sets.length <= 1) return
     onUpdate({ sets: exercise.sets.slice(0, -1) })
@@ -1764,9 +1793,10 @@ function ExerciseBlock({
   const kol = visTid ? '26px 1fr 1fr 1fr 44px 62px' : '26px 1fr 1fr 44px 62px'
 
   return (
-    <div data-styrke-ovelse={exercise.exercise_name.trim() || undefined} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, marginBottom: 12, overflow: 'visible' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px 9px' }}>
-        <span style={{ width: 24, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: STYRKE_FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>{nr}</span>
+    <div data-styrke-ovelse={exercise.exercise_name.trim() || undefined} data-styrke-ss={ssBokstav} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: ssBokstav ? '3px solid var(--kant-7)' : '1px solid var(--line)', borderRadius: 16, marginBottom: 12, overflow: 'visible' }}>
+      <header style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '11px 10px 9px 8px' }}>
+        {grip && <OvelseHandtak dragRef={grip.dragRef} dragListeners={grip.dragListeners} dragAttributes={grip.dragAttributes} dragging={grip.dragging} onMove={onMove} />}
+        <span style={{ width: ssBokstav ? 'auto' : 24, padding: ssBokstav ? '0 7px' : 0, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: STYRKE_FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>{ssBokstav ? `SS ${ssBokstav}` : nr}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <ExerciseNameAutocomplete
             value={exercise.exercise_name}
@@ -1859,6 +1889,12 @@ function ExerciseBlock({
       <div style={{ display: 'flex', gap: 8, padding: '8px 14px 12px' }}>
         <button type="button" onClick={addSet} className="xp-pill xp-pill-ghost" style={{ flex: 1, borderStyle: 'dashed', minHeight: 40 }} data-styrke-legg-til-sett>+ Sett</button>
         {exercise.sets.length > 1 && <button type="button" onClick={removeLastSet} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} aria-label="Fjern siste sett">− Sett</button>}
+        {/* Bolk 8b: én knapp - kobler med den NESTE øvelsen; i gruppe: løs opp. */}
+        {ssBokstav && onLosOpp ? (
+          <button type="button" onClick={onLosOpp} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} data-styrke-los-opp>Løs opp</button>
+        ) : onSupersett ? (
+          <button type="button" onClick={onSupersett} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} data-styrke-supersett>Supersett</button>
+        ) : null}
       </div>
     </div>
   )

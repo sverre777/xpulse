@@ -427,6 +427,9 @@ async function insertActivitiesWithChildren(
       exercise_name: ex.exercise_name.trim(),
       sort_order: i,
       notes: ex.notes || null,
+      // Bolk 8b: supersett-koblingen (samme kobling som live) - før ble den
+      // mistet ved hver lagring fra skjemaet.
+      superset_group: ex.superset_group ?? null,
     }))
     const { data: insertedEx, error: exErr } = await supabase
       .from('workout_activity_exercises')
@@ -1693,6 +1696,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
   }
   type DbExercise = {
     id: string; exercise_name: string; sort_order: number; notes: string | null
+    superset_group?: number | null
     workout_activity_exercise_sets?: DbSet[] | null
   }
   type DbLactate = {
@@ -1765,6 +1769,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
             db_id: ex.id,
             exercise_name: ex.exercise_name,
             notes: ex.notes ?? '',
+            superset_group: ex.superset_group ?? null,
             sets: sets.length > 0 ? sets : [{
               id: crypto.randomUUID(), set_number: '1',
               reps: '', weight_kg: '', duration: '', rpe: '', notes: '',

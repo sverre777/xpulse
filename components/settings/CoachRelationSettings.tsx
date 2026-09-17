@@ -1,5 +1,6 @@
 'use client'
 
+import type { PermissionKey, Rettigheter } from '@/lib/target-user'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import {
@@ -53,19 +54,18 @@ function RelationRow({
   const [isPending, startTransition] = useTransition()
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [perm, setPerm] = useState({
-    can_edit_plan: relation.can_edit_plan,
-    can_view_dagbok: relation.can_view_dagbok,
-    can_view_analysis: relation.can_view_analysis,
-    can_edit_periodization: relation.can_edit_periodization,
-  })
+  // Fase 131: alle åtte flagg bor i coach_data_permissions og eies av utøveren.
+  const [perm, setPerm] = useState<Rettigheter>(relation.rettigheter)
   const [canSeeHealthData, setCanSeeHealthData] = useState<boolean>(initialCanSeeHealthData)
   const [healthPending, startHealthTransition] = useTransition()
 
-  const togglePerm = (key: keyof typeof perm) => {
+  const togglePerm = (key: PermissionKey) => {
     const next = { ...perm, [key]: !perm[key] }
+    // Redigere dagbok forutsetter å se den - slår du av lesing, faller redigering.
+    if (key === 'can_view_dagbok' && !next.can_view_dagbok) next.can_edit_dagbok = false
     setPerm(next)
-    const patch: AthletePermissionsPatch = { [key]: next[key] }
+    const patch: AthletePermissionsPatch = key === 'can_view_dagbok' && !next.can_view_dagbok
+      ? { can_view_dagbok: false, can_edit_dagbok: false } : { [key]: next[key] }
     startTransition(async () => {
       const res = await updateCoachPermissions(relation.id, patch)
       if (res.error) {
@@ -173,33 +173,21 @@ function RelationRow({
         )}
       </div>
 
-      <div className="mt-3 pt-3 grid grid-cols-2 gap-2"
-        style={{ borderTop: '1px solid var(--line)' }}>
-        <PermissionToggle
-          label="Plan (se + endre)"
-          checked={perm.can_edit_plan}
-          onToggle={() => togglePerm('can_edit_plan')}
-          disabled={isPending}
-        />
-        <PermissionToggle
-          label="Dagbok (se)"
-          checked={perm.can_view_dagbok}
-          onToggle={() => togglePerm('can_view_dagbok')}
-          disabled={isPending}
-        />
-        <PermissionToggle
-          label="Analyse (se)"
-          checked={perm.can_view_analysis}
-          onToggle={() => togglePerm('can_view_analysis')}
-          disabled={isPending}
-        />
-        <PermissionToggle
-          label="Årsplan (se + endre)"
-          checked={perm.can_edit_periodization}
-          onToggle={() => togglePerm('can_edit_periodization')}
-          disabled={isPending}
-        />
+      {/* Fase 131: utøveren velger PER OMRÅDE om treneren får se, eller se og
+          redigere. Redigeringsflaggene starter av; treneren kan ikke endre dem. */}
+      <div className="mt-3 pt-3 grid grid-cols-2 gap-2" style={{ borderTop: '1px solid var(--line)' }} data-rettigheter>
+        <PermissionToggle label="Plan (se + endre)" checked={perm.can_edit_plan} onToggle={() => togglePerm('can_edit_plan')} disabled={isPending} nokkel="can_edit_plan" />
+        <PermissionToggle label="Årsplan (se + endre)" checked={perm.can_edit_periodization} onToggle={() => togglePerm('can_edit_periodization')} disabled={isPending} nokkel="can_edit_periodization" />
+        <PermissionToggle label="Dagbok (se)" checked={perm.can_view_dagbok} onToggle={() => togglePerm('can_view_dagbok')} disabled={isPending} nokkel="can_view_dagbok" />
+        <PermissionToggle label="Dagbok (se + redigere gjennomførte økter)" checked={perm.can_edit_dagbok} onToggle={() => togglePerm('can_edit_dagbok')} disabled={isPending || !perm.can_view_dagbok} nokkel="can_edit_dagbok" />
+        <PermissionToggle label="Analyse (se)" checked={perm.can_view_analysis} onToggle={() => togglePerm('can_view_analysis')} disabled={isPending} nokkel="can_view_analysis" />
+        <PermissionToggle label="Terskler og soner (endre)" checked={perm.can_edit_terskler} onToggle={() => togglePerm('can_edit_terskler')} disabled={isPending} nokkel="can_edit_terskler" />
+        <PermissionToggle label="Utstyr (endre inventar)" checked={perm.can_edit_utstyr} onToggle={() => togglePerm('can_edit_utstyr')} disabled={isPending} nokkel="can_edit_utstyr" />
+        <PermissionToggle label="Tester og PR (føre)" checked={perm.can_edit_tester} onToggle={() => togglePerm('can_edit_tester')} disabled={isPending} nokkel="can_edit_tester" />
       </div>
+      <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+        Gjennomførte økter og «marker som gjennomført» krever «Dagbok (se + redigere)». Treneren ser hva du har valgt, men kan ikke endre det.
+      </p>
 
       {/* Helsedata-deling - separat fra grunn-permissions siden HRV/søvn/vekt/
           hvilepuls er privat-data som krever eksplisitt opt-in per trener.
@@ -231,10 +219,11 @@ function RelationRow({
 }
 
 function PermissionToggle({
-  label, checked, onToggle, disabled,
-}: { label: string; checked: boolean; onToggle: () => void; disabled?: boolean }) {
+  label, checked, onToggle, disabled, nokkel,
+}: { label: string; checked: boolean; onToggle: () => void; disabled?: boolean; nokkel?: string }) {
   return (
     <label
+      data-rettighet={nokkel}
       className="flex items-center gap-2 px-2 py-1.5"
       style={{
         cursor: disabled ? 'not-allowed' : 'pointer',

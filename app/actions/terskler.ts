@@ -1,5 +1,7 @@
 'use server'
 
+import { loggEndringer } from '@/lib/coach-audit'
+import type { Endring } from '@/lib/endringslogg'
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
@@ -50,7 +52,7 @@ export async function hentTerskelOversikt(
   | { error: string }
 > {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan', 'read')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_terskler', 'can_view_analysis', 'can_view_dagbok'], 'read')
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: rows, error } = await supabase
@@ -117,7 +119,8 @@ export async function lagreTerskel(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  // Fase 131: terskler og soner har eget flagg - can_edit_plan åpner ikke lenger dette.
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_terskler')
   if ('error' in resolved) return { error: resolved.error }
 
   if (!Number.isFinite(input.threshold_hr) || input.threshold_hr < 60 || input.threshold_hr > 250) {
@@ -127,6 +130,18 @@ export async function lagreTerskel(
     return { error: 'Ugyldig gjelder fra-dato' }
   }
   const { data: { user } } = await supabase.auth.getUser()
+
+  // Varsel med gammel og ny verdi når TRENEREN endrer (avgjort 16. sep): les
+  // versjonen som gjaldt FØR skrivingen, for samme nøkkel og dato.
+  type ForRad = { threshold_hr: number; threshold_pace_sec_km: number | null; ftp_watts: number | null }
+  let for_: ForRad | null = null
+  if (resolved.isCoachImpersonating) {
+    const { data: rader } = await supabase.from('user_thresholds')
+      .select('threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
+      .eq('user_id', resolved.userId).eq('movement_name', input.movement_name).eq('movement_subcategory', input.movement_subcategory)
+      .lte('valid_from', input.valid_from).order('valid_from', { ascending: false }).limit(1)
+    for_ = ((rader ?? [])[0] as ForRad | undefined) ?? null
+  }
 
   const { error } = await supabase
     .from('user_thresholds')
@@ -141,6 +156,27 @@ export async function lagreTerskel(
       created_by: user?.id ?? null,
     }, { onConflict: 'user_id,movement_name,movement_subcategory,valid_from' })
   if (error) return { error: error.message }
+
+  if (resolved.isCoachImpersonating && resolved.coachId) {
+    const navn = input.movement_name ? `${input.movement_name}${input.movement_subcategory ? ` / ${input.movement_subcategory}` : ''}` : 'alle bevegelsesformer'
+    const endringer: Endring[] = []
+    const legg = (felt: string, n: string, fra: number | null | undefined, til: number | null) => { if ((fra ?? null) !== (til ?? null)) endringer.push({ felt, navn: n, fra: fra ?? null, til: til ?? null }) }
+    legg('threshold_hr', 'Terskelpuls', for_?.threshold_hr, Math.round(input.threshold_hr))
+    legg('threshold_pace_sec_km', 'Terskeltempo (s/km)', for_?.threshold_pace_sec_km, input.threshold_pace_sec_km)
+    legg('ftp_watts', 'FTP (watt)', for_?.ftp_watts, input.ftp_watts)
+    // Varsel-svikt skal aldri blokkere lagringen (samme regel som bolk 10).
+    try {
+      await supabase.from('notifications').insert({
+        user_id: resolved.userId,
+        type: 'coach_terskel_edit',
+        title: for_ ? 'Trener endret terskelen din' : 'Trener satte terskel',
+        content: `${navn} fra ${input.valid_from}: ${endringer.length ? endringer.map(e => `${e.navn} ${e.fra ?? '-'} → ${e.til ?? '-'}`).join(' · ') : `terskelpuls ${Math.round(input.threshold_hr)}`}`,
+        link_url: '/app/innstillinger/profil/terskler',
+      })
+    } catch { /* varsel-svikt blokkerer ikke */ }
+    await loggEndringer(supabase, { coachId: resolved.coachId, athleteId: resolved.userId, entityType: 'terskel', entityId: null, actionType: for_ ? 'oppdatert' : 'opprettet' },
+      endringer.length ? endringer : [{ felt: 'threshold_hr', navn: 'Terskelpuls', fra: null, til: Math.round(input.threshold_hr) }])
+  }
   revalider()
   return {}
 }
@@ -155,7 +191,7 @@ export async function hentTerskelForDato(
   targetUserId?: string,
 ): Promise<TerskelVersjon | null | { error: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_view_dagbok'], 'read')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_terskler', 'can_view_analysis', 'can_view_dagbok'], 'read')
   if ('error' in resolved) return { error: resolved.error }
 
   const { data } = await supabase
@@ -184,7 +220,7 @@ export async function hentEgneSoner(
   targetUserId?: string,
 ): Promise<EgneSonerRad[] | { error: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan', 'read')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_terskler', 'can_view_analysis', 'can_view_dagbok'], 'read')
   if ('error' in resolved) return { error: resolved.error }
   const { data, error } = await supabase
     .from('user_heart_zones')

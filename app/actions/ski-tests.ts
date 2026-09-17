@@ -124,7 +124,7 @@ export async function saveSkiTest(
   targetUserId?: string,
 ): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_tester')
   if ('error' in resolved) return { error: resolved.error }
 
   const ugyldig = validerTest(input)
@@ -166,7 +166,7 @@ export async function updateSkiTest(
   targetUserId?: string,
 ): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_tester')
   if ('error' in resolved) return { error: resolved.error }
 
   const ugyldig = validerTest(input)
@@ -210,7 +210,7 @@ export async function updateSkiTest(
 
 export async function deleteSkiTest(id: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_tester')
   if ('error' in resolved) return { error: resolved.error }
   const { error } = await supabase.from('ski_tests').delete().eq('id', id).eq('user_id', resolved.userId)
   if (error) return { error: error.message }

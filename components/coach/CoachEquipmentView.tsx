@@ -29,16 +29,16 @@ interface Props {
   skiTests: SkiTestWithEntries[]
   conditionsTemplates?: UserConditionsTemplate[]
   athleteId?: string
-  canEditPlan?: boolean
+  canEditTester?: boolean
 }
 
 export function CoachEquipmentView({
   equipment, skiEquipment = [], skiTests,
-  conditionsTemplates = [], athleteId, canEditPlan = false,
+  conditionsTemplates = [], athleteId, canEditTester = false,
 }: Props) {
   const [filter, setFilter] = useState<EquipmentCategory | 'all'>('all')
   const [skiTestModalOpen, setSkiTestModalOpen] = useState(false)
-  // Satt = åpne testen for redigering (krever can_edit_plan, som å opprette).
+  // Satt = åpne testen for redigering (krever can_edit_tester, som å opprette).
   const [editTest, setEditTest] = useState<SkiTestWithEntries | null>(null)
 
   const filtered = useMemo(() => {
@@ -80,9 +80,9 @@ export function CoachEquipmentView({
         {filtered.map(e => <EquipmentCard key={e.id} equipment={e} />)}
       </div>
 
-      {/* Trener kan registrere ski-test for utøveren hvis can_edit_plan
+      {/* Trener kan registrere ski-test for utøveren hvis can_edit_tester
           er gitt i relasjonen. Krever minst én aktiv ski-par i parken. */}
-      {canEditPlan && skiCount > 0 && athleteId && skiEquipment.length > 0 && (
+      {canEditTester && skiCount > 0 && athleteId && skiEquipment.length > 0 && (
         <div className="flex justify-end">
           <button type="button"
             onClick={() => setSkiTestModalOpen(true)}
@@ -99,8 +99,8 @@ export function CoachEquipmentView({
 
       {(skiCount > 0 && skiTests.length > 0) ? (
         <SkiTestsBlock equipment={equipment} tests={skiTests}
-          onEdit={canEditPlan && athleteId ? setEditTest : undefined} />
-      ) : (canEditPlan && skiCount > 0 && skiEquipment.length > 0) ? (
+          onEdit={canEditTester && athleteId ? setEditTest : undefined} />
+      ) : (canEditTester && skiCount > 0 && skiEquipment.length > 0) ? (
         <p className="p-4 text-xs"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',

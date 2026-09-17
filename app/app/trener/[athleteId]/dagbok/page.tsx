@@ -25,10 +25,10 @@ export default async function AthleteDagbokTab({ params }: Props) {
     )
   }
 
-  // Coach sees same dagbok layout as athlete, but read-only. Diskusjon-tråder
-  // (uke/måned/økt) vises inne i Calendar/WorkoutModal, ikke som ett fast
-  // panel nederst på siden.
-  const readOnlyContext = { ...viewContext, readOnly: true }
+  // Fase 131: dagboka er lesing for treneren med mindre utøveren har gitt
+  // «Dagbok (se + redigere)». saveWorkout håndhever det samme ut fra basen.
+  // Diskusjon-tråder (uke/måned/økt) vises inne i Calendar/WorkoutModal.
+  const readOnlyContext = { ...viewContext, readOnly: !viewContext.permissions.can_edit_dagbok }
 
   return (
     <section>

@@ -1,5 +1,7 @@
 'use server'
 
+import { flaggForOkt, MANGLER_DAGBOK_RETT } from '@/lib/target-user'
+import { planlagtStyrkePerOvelse } from '@/lib/live-styrke'
 import { byggBeste, type BesteForOvelse } from '@/lib/live-styrke'
 import type { StyrkeSett } from '@/lib/styrke-pr'
 import { revalidatePath } from 'next/cache'
@@ -149,14 +151,6 @@ export interface LiveSessionLoad {
   plannedByName: Record<string, string>
 }
 
-function summarizePlannedSetsStr(sets: { reps: string; weight_kg: string }[]): string {
-  if (sets.length === 0) return ''
-  const r = sets[0].reps, w = sets[0].weight_kg
-  const sameR = sets.every(s => s.reps === r), sameW = sets.every(s => s.weight_kg === w)
-  const wPart = w ? ` @ ${w} kg` : ''
-  if (sameR && r) return `${sets.length}×${r}${sameW ? wPart : ''}`
-  return `${sets.length} sett`
-}
 
 export async function getStrengthForLiveSession(
   workoutId: string,
@@ -185,13 +179,8 @@ export async function getStrengthForLiveSession(
   const plannedExercises = (snap?.activities ?? [])
     .filter(a => (a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke')
     .flatMap(a => a.exercises ?? [])
-  const plannedByName: Record<string, string> = {}
-  for (const ex of plannedExercises) {
-    const key = ex.exercise_name.trim().toLowerCase()
-    if (key && !plannedByName[key]) {
-      plannedByName[key] = summarizePlannedSetsStr((ex.sets ?? []).map(s => ({ reps: s.reps, weight_kg: s.weight_kg })))
-    }
-  }
+  // ÉN kilde for «Plan …»-chipen: samme helper som øktskjemaet bruker (regel 11).
+  const plannedByName = planlagtStyrkePerOvelse(snap)
 
   const exercises = actualExercises.length > 0 ? actualExercises : plannedExercises
   return { exercises, plannedByName }
@@ -222,12 +211,14 @@ export async function saveLiveStrength(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  // Planlagt eller gjennomført avgjøres av BASEN (fase 131).
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: w, error: wErr } = await supabase
-    .from('workouts').select('id').eq('id', workoutId).eq('user_id', resolved.userId).single()
+    .from('workouts').select('id, is_completed').eq('id', workoutId).eq('user_id', resolved.userId).single()
   if (wErr || !w) return { error: wErr?.message ?? 'Fant ikke økten' }
+  if (resolved.isCoachImpersonating && !resolved.rettigheter[flaggForOkt(w.is_completed)]) return { error: MANGLER_DAGBOK_RETT }
 
   // KRITISK GUARD: autosave skal ALDRI skrive en tom øvelsesliste over en med
   // øvelser. En treg/avbrutt last kan gi tomt UI; uten denne guarden ville den
@@ -302,7 +293,7 @@ export async function startLiveSession(
   targetUserId?: string,
 ): Promise<{ error?: string; live_started_at?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: w, error: wErr } = await supabase
@@ -332,7 +323,7 @@ export async function finishLiveSession(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   const now = new Date().toISOString()
@@ -357,7 +348,7 @@ export async function cancelLiveSession(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
   const { error } = await supabase
     .from('workouts')

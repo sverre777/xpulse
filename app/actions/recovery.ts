@@ -15,7 +15,7 @@ export async function saveRecoveryEntry(data: {
   targetUserId?: string
 }): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, data.targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, data.targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   if (!data.type.trim()) return { error: 'Type er påkrevd' }
@@ -46,7 +46,7 @@ export async function saveRecoveryEntry(data: {
 
 export async function deleteRecoveryEntry(id: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   const { error } = await supabase

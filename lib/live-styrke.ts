@@ -124,4 +124,28 @@ export function tonnasje(ovelser: { sett: { reps: number | null; vekt: number | 
 }
 
 /** Neste hvile-mål: 90 s standard - ringen teller ned dit, aldri en alarm. */
+/** Planlagte sett kort: «3×6 @ 105 kg» - samme tekst i live-visningen og i skjemaet. */
+export function summerPlanlagteSett(sets: { reps: string; weight_kg: string }[]): string {
+  if (sets.length === 0) return ''
+  const r = sets[0].reps, w = sets[0].weight_kg
+  const sameR = sets.every(s => s.reps === r), sameW = sets.every(s => s.weight_kg === w)
+  const wPart = w ? ` @ ${w} kg` : ''
+  if (sameR && r) return `${sets.length}×${r}${sameW ? wPart : ''}`
+  return `${sets.length} sett`
+}
+
+/** Plan per øvelsesnavn (normOvelse-nøkkel) fra workouts.planned_snapshot - ÉN kilde for live-visningen og skjemaet. */
+export function planlagtStyrkePerOvelse(snapshot: unknown): Record<string, string> {
+  const snap = snapshot as { activities?: { movement_name?: string | null; exercises?: { exercise_name: string; sets?: { reps: string; weight_kg: string }[] }[] }[] } | null | undefined
+  const ut: Record<string, string> = {}
+  for (const a of snap?.activities ?? []) {
+    if (!((a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke')) continue
+    for (const ex of a.exercises ?? []) {
+      const key = (ex.exercise_name ?? '').trim().toLowerCase()
+      if (key && !ut[key]) ut[key] = summerPlanlagteSett((ex.sets ?? []).map(s => ({ reps: s.reps, weight_kg: s.weight_kg })))
+    }
+  }
+  return ut
+}
+
 export const HVILE_MAAL_SEK = 90

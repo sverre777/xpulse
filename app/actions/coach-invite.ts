@@ -1,5 +1,7 @@
 'use server'
 
+import { getDefaultPermissions } from '@/app/actions/coach-settings'
+import { lesRettigheter, type Rettigheter } from '@/lib/target-user'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, getCurrentTier, hasCoachTier } from '@/lib/subscriptions'
@@ -36,18 +38,11 @@ export interface AthleteCoachRelation {
   coachEmail: string | null
   status: 'pending' | 'active' | 'inactive'
   createdAt: string
-  can_edit_plan: boolean
-  can_view_dagbok: boolean
-  can_view_analysis: boolean
-  can_edit_periodization: boolean
+  /** Fase 131: alle åtte flagg, utøver-eid i coach_data_permissions. */
+  rettigheter: Rettigheter
 }
 
-export interface AthletePermissionsPatch {
-  can_edit_plan?: boolean
-  can_view_dagbok?: boolean
-  can_view_analysis?: boolean
-  can_edit_periodization?: boolean
-}
+export type AthletePermissionsPatch = Partial<Rettigheter>
 
 // ── Utøver: hent aktiv kode + koblinger ─────────────────────
 
@@ -70,7 +65,7 @@ export async function getAthleteCoachSetup(): Promise<
       .limit(1),
     supabase
       .from('coach_athlete_relations')
-      .select('id, coach_id, status, created_at, can_edit_plan, can_view_dagbok, can_view_analysis, can_edit_periodization')
+      .select('id, coach_id, status, created_at, coach_data_permissions(can_edit_plan, can_view_dagbok, can_view_analysis, can_edit_periodization, can_edit_dagbok, can_edit_terskler, can_edit_utstyr, can_edit_tester)')
       .eq('athlete_id', user.id)
       .neq('status', 'inactive')
       .order('created_at', { ascending: false }),
@@ -108,10 +103,7 @@ export async function getAthleteCoachSetup(): Promise<
         coachEmail: c?.email ?? null,
         status: r.status as AthleteCoachRelation['status'],
         createdAt: r.created_at,
-        can_edit_plan: r.can_edit_plan ?? true,
-        can_view_dagbok: r.can_view_dagbok ?? true,
-        can_view_analysis: r.can_view_analysis ?? true,
-        can_edit_periodization: r.can_edit_periodization ?? true,
+        rettigheter: lesRettigheter((r as { coach_data_permissions?: unknown }).coach_data_permissions),
       }
     }),
   }
@@ -164,12 +156,17 @@ export async function updateCoachPermissions(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  const { error } = await supabase
-    .from('coach_athlete_relations')
-    .update(patch)
-    .eq('id', relationId)
-    .eq('athlete_id', user.id)
+  // Fase 131: utøveren eier rettighetene - de bor i coach_data_permissions
+  // («Athlete manages own permissions»). Eierskapet sjekkes her for en pen
+  // feil; RLS håndhever det uansett.
+  const { data: rel } = await supabase.from('coach_athlete_relations').select('id, athlete_id').eq('id', relationId).maybeSingle()
+  if (!rel || rel.athlete_id !== user.id) return { error: 'Du eier ikke denne trener-relasjonen' }
+  const { data: rader, error } = await supabase
+    .from('coach_data_permissions')
+    .upsert({ coach_athlete_relation_id: relationId, ...patch, updated_at: new Date().toISOString() }, { onConflict: 'coach_athlete_relation_id' })
+    .select('coach_athlete_relation_id')
   if (error) return { error: error.message }
+  if (!rader || rader.length === 0) return { error: 'Rettigheten ble ikke lagret - last siden på nytt og prøv igjen.' }
   revalidatePath('/app/innstillinger/trener')
   return {}
 }
@@ -271,13 +268,9 @@ export async function redeemInviteCode(
     if (existing.status !== 'active') {
       const { error: upErr } = await supabase
         .from('coach_athlete_relations')
-        .update({
-          status: 'active',
-          can_edit_plan: true,
-          can_view_dagbok: true,
-          can_view_analysis: true,
-          can_edit_periodization: true,
-        })
+        // Fase 131: flaggene bor i coach_data_permissions og eies av utøveren -
+        // en reaktivert relasjon beholder valgene utøveren gjorde.
+        .update({ status: 'active' })
         .eq('id', existing.id)
       if (upErr) return { error: upErr.message }
     }
@@ -289,15 +282,26 @@ export async function redeemInviteCode(
         coach_id: user.id,
         athlete_id: invite.athlete_id,
         status: 'active',
-        can_edit_plan: true,
-        can_view_dagbok: true,
-        can_view_analysis: true,
-        can_edit_periodization: true,
       })
       .select('id')
       .single()
     if (insErr || !inserted) return { error: insErr?.message ?? 'Kunne ikke opprette kobling' }
     relationId = inserted.id
+    // Fase 131: rettighetsraden. Se-flaggene (og plan/årsplan) som i dag fra
+    // trenerens standardvalg; de fire nye redigeringsflaggene starter NEI.
+    // Raden eies av utøveren - trenerens insert trenger policyen fra 131b
+    // (kun med redigeringsflagg = false). Til den er kjørt feiler denne
+    // stille, og utøveren får raden når hen åpner Innstillinger › Trener.
+    try {
+      const std = await getDefaultPermissions()
+      const d = 'error' in std ? null : std
+      await supabase.from('coach_data_permissions').insert({
+        coach_athlete_relation_id: relationId,
+        can_edit_plan: d?.canEditPlan ?? true, can_view_dagbok: d?.canViewDagbok ?? true,
+        can_view_analysis: d?.canViewAnalysis ?? true, can_edit_periodization: d?.canEditPeriodization ?? true,
+        can_edit_dagbok: false, can_edit_terskler: false, can_edit_utstyr: false, can_edit_tester: false,
+      })
+    } catch { /* se over */ }
   }
 
   // Marker koden som brukt. FAIL-CLOSED (regel 3): før svelget vi feilen her,

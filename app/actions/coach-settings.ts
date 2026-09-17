@@ -1,5 +1,6 @@
 'use server'
 
+import { lesRettigheter, type Rettigheter } from '@/lib/target-user'
 import { revalidatePath } from 'next/cache'
 import { renTidSekPerOkt, renTidMin } from '@/lib/ren-treningstid'
 import { createClient } from '@/lib/supabase/server'
@@ -186,10 +187,8 @@ export interface CoachAthleteRelation {
   athleteEmail: string | null
   primarySport: string | null
   status: 'pending' | 'active' | 'inactive'
-  canEditPlan: boolean
-  canViewDagbok: boolean
-  canViewAnalysis: boolean
-  canEditPeriodization: boolean
+  /** Fase 131: alle åtte flagg, lest fra coach_data_permissions (utøveren eier dem). */
+  rettigheter: Rettigheter
   lastWorkoutDate: string | null
   workoutCount7d: number
   createdAt: string
@@ -204,7 +203,7 @@ export async function getCoachAthleteRelations(): Promise<
 
   const { data: relations, error } = await supabase
     .from('coach_athlete_relations')
-    .select('id, athlete_id, status, created_at, can_edit_plan, can_view_dagbok, can_view_analysis, can_edit_periodization')
+    .select('id, athlete_id, status, created_at, coach_data_permissions(can_edit_plan, can_view_dagbok, can_view_analysis, can_edit_periodization, can_edit_dagbok, can_edit_terskler, can_edit_utstyr, can_edit_tester)')
     .eq('coach_id', user.id)
     .order('created_at', { ascending: false })
   if (error) return { error: error.message }
@@ -268,10 +267,7 @@ export async function getCoachAthleteRelations(): Promise<
       athleteEmail: p?.email ?? null,
       primarySport: p?.primary_sport ?? null,
       status: r.status as 'pending' | 'active' | 'inactive',
-      canEditPlan: r.can_edit_plan,
-      canViewDagbok: r.can_view_dagbok,
-      canViewAnalysis: r.can_view_analysis,
-      canEditPeriodization: r.can_edit_periodization,
+      rettigheter: lesRettigheter((r as { coach_data_permissions?: unknown }).coach_data_permissions),
       lastWorkoutDate: everLastByAthlete.get(r.athlete_id) ?? null,
       workoutCount7d: countByAthlete.get(r.athlete_id) ?? 0,
       createdAt: r.created_at,
@@ -279,30 +275,19 @@ export async function getCoachAthleteRelations(): Promise<
   })
 }
 
-export interface AthletePermissionsPatch {
-  can_edit_plan?: boolean
-  can_view_dagbok?: boolean
-  can_view_analysis?: boolean
-  can_edit_periodization?: boolean
-}
+export type AthletePermissionsPatch = Partial<Rettigheter>
 
+/**
+ * FASE 131: treneren eier IKKE rettighetene lenger - utøveren velger per
+ * område under Innstillinger › Trener. Beholdt som eksport så gamle
+ * kallere får en ærlig feil i stedet for en stille 204.
+ */
 export async function updateAthletePermissions(
   relationId: string,
   patch: AthletePermissionsPatch,
 ): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
-
-  const { error } = await supabase
-    .from('coach_athlete_relations')
-    .update(patch)
-    .eq('id', relationId)
-    .eq('coach_id', user.id)
-  if (error) return { error: error.message }
-
-  revalidatePath('/app/innstillinger/utovere')
-  return {}
+  console.warn(`[coach-settings] updateAthletePermissions kalt for ${relationId} (${Object.keys(patch).join(',')}) - treneren eier ikke flaggene (fase 131)`)
+  return { error: 'Rettighetene velges av utøveren (Innstillinger › Trener). Be utøveren endre dem.' }
 }
 
 export async function endAthleteRelation(relationId: string): Promise<{ error?: string }> {

@@ -49,7 +49,8 @@ export async function savePeriodNote(input: {
   targetUserId?: string
 }): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const required = input.context === 'dagbok' ? 'can_view_dagbok' : 'can_edit_plan'
+  // Fase 131: å SKRIVE et dagboknotat krever dagbok-redigering, ikke bare lesing.
+  const required = input.context === 'dagbok' ? 'can_edit_dagbok' : 'can_edit_plan'
   const resolved = await resolveTargetUser(supabase, input.targetUserId, required)
   if ('error' in resolved) return { error: resolved.error }
 

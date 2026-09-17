@@ -1,5 +1,6 @@
 'use server'
 
+import { MANGLER_DAGBOK_RETT } from '@/lib/target-user'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
@@ -56,7 +57,8 @@ export async function upsertDayState(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_plan')
+    // Fase 131: planlagt hviledag er plan, ført sykdom/hvile/reise er dagbok.
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, input.is_planned ? 'can_edit_plan' : 'can_edit_dagbok')
     if ('error' in resolved) return { error: resolved.error }
 
     const payload = {
@@ -99,8 +101,12 @@ export async function deleteDayState(
 ): Promise<{ error?: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
     if ('error' in resolved) return { error: resolved.error }
+    if (resolved.isCoachImpersonating) {
+      const { data: rad } = await supabase.from('day_states').select('is_planned').eq('id', id).maybeSingle()
+      if (!resolved.rettigheter[rad?.is_planned ? 'can_edit_plan' : 'can_edit_dagbok']) return { error: MANGLER_DAGBOK_RETT }
+    }
 
     // .select() etter delete så vi KAN se om en rad faktisk ble slettet. Uten
     // dette returnerer en delete som treffer 0 rader (manglende DELETE-grant

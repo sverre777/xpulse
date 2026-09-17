@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useBrukerSporter } from '@/components/sport/BrukerSporter'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
@@ -71,7 +71,13 @@ function isIndoorActivityFor(name: string, subcategory: string): boolean {
   return erInnendors(name, subcategory)   // BOLK 27: tabellen er kilden
 }
 
+/** «Plan …»-chip per øvelse (samme kilde som live-visningen: planned_snapshot). Kontekst, så den
+ *  slipper å plumbes gjennom gruppe- og rad-komponentene ned til StrengthEditor. */
+const PlannedStyrkeContext = createContext<Record<string, string>>({})
+const TOM_PLAN: Record<string, string> = {}
+
 interface Props {
+  plannedStyrke?: Record<string, string>
   // Felles knapperad (fasit): Øktbygger står alltid; Plott treff
   // gjelder kun dagbok — betingelsene ligger i AktivitetKnapperad.
   onOktbygger?: () => void
@@ -187,7 +193,7 @@ function fargeForAktivitetstype(t: string): string | undefined {
 }
 
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
+export function ActivitiesSection({ plannedStyrke, rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
   // Skyting kun for skiskyttere: brukerens (eller utøverens) sporter — aldri øktas sport i stedet.
   const effectiveUserSports: Sport[] = useBrukerSporter(userSports)
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
@@ -332,6 +338,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   const harSkyting = rows.some(r => (r.activity_type ?? '').startsWith('skyting'))
 
   return (
+    <PlannedStyrkeContext.Provider value={plannedStyrke ?? TOM_PLAN}>
     <div className="space-y-2">
       {/* Felles knapperad (regel 11) - over radene, i plan OG dagbok.
           Var tidligere to knapper nederst; fasiten flytter dem hit og
@@ -464,6 +471,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
         />
       )}
     </div>
+    </PlannedStyrkeContext.Provider>
   )
 }
 
@@ -1529,6 +1537,7 @@ function StrengthEditor({
   category: string
   planMode?: boolean
 }) {
+  const plannedStyrke = useContext(PlannedStyrkeContext)
   const [library, setLibrary] = useState<UserExercise[]>([])
   // Forrige-økt og beste per øvelsesnavn (normOvelse). null = hentet, ingen historikk.
   const [lastByName, setLastByName] = useState<Record<string, LastSessionForExercise | null>>({})
@@ -1629,6 +1638,7 @@ function StrengthEditor({
             lastSession={ex.exercise_name.trim() ? (lastByName[key] ?? null) : null}
             lastHentet={!ex.exercise_name.trim() || key in lastByName}
             beste={ex.exercise_name.trim() ? (besteByName[key] ?? null) : null}
+            plan={planMode ? null : (plannedStyrke[key] ?? null)}
           />
         )
       })}
@@ -1663,7 +1673,7 @@ const GULL_STYRKE = '#D4A017'
 const num = (v: string): number | null => { const n = parseDecimal(v); return Number.isFinite(n) ? n : null }
 
 function ExerciseBlock({
-  exercise, nr, planMode, onUpdate, onDelete, onMove, library, presets, libraryNames, lastSession, lastHentet, beste,
+  exercise, nr, planMode, onUpdate, onDelete, onMove, library, presets, libraryNames, lastSession, lastHentet, beste, plan,
 }: {
   exercise: StrengthExerciseRow
   nr: number
@@ -1678,6 +1688,8 @@ function ExerciseBlock({
   /** Usann mens oppslaget pågår - da vises ingen chip (verken «Sist» eller «Ingen historikk»). */
   lastHentet: boolean
   beste: BesteForOvelse | null
+  /** Planlagte sett («3×6 @ 105 kg») når økta har en plan - blå chip, grått er fortsatt forrige økt. */
+  plan: string | null
 }) {
   const [meny, setMeny] = useState(false)
   // Tid-kolonnen (isometriske hold: planke, henging) er ikke i fasitens
@@ -1775,6 +1787,7 @@ function ExerciseBlock({
       {harNavn && lastHentet && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', padding: '0 14px 11px' }} data-styrke-chips>
           {besteTekst && <span style={{ ...chipStyrke, borderColor: 'rgba(212,160,23,.5)', color: GULL_STYRKE, background: 'rgba(212,160,23,.10)' }} data-styrke-beste>★ Beste <b style={{ color: GULL_STYRKE }}>{besteTekst}</b></span>}
+          {plan && <span style={{ ...chipStyrke, borderColor: 'rgba(26,111,212,.45)', color: '#1A6FD4', background: 'rgba(26,111,212,.10)' }} data-styrke-plan>Plan <b style={{ color: 'var(--tekst-1-app)' }}>{plan}</b></span>}
           {lastSession ? (
             <span style={chipStyrke} data-styrke-sist>Sist <b style={{ color: 'var(--tekst-1-app)' }}>{summarizeLastSession(lastSession)}</b> · {daysAgoLabel(lastSession.date)}</span>
           ) : (

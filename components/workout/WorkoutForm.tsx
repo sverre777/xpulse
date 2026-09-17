@@ -1675,6 +1675,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
         </p>
         <ActivitiesSection
+          plannedStyrke={defaultValues?.planlagt_styrke}
           targetUserId={targetUserId}
           onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}

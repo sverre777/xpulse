@@ -1,5 +1,6 @@
 'use server'
 
+import { flaggForOkt, MANGLER_DAGBOK_RETT } from '@/lib/target-user'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
@@ -65,15 +66,17 @@ export async function replaceWorkoutNutrition(
   targetUserId?: string,
 ): Promise<{ ok: true } | { error: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: workout, error: ownerErr } = await supabase
     .from('workouts')
-    .select('id, user_id')
+    .select('id, user_id, is_completed')
     .eq('id', workoutId)
     .maybeSingle()
   if (ownerErr) return { error: ownerErr.message }
+  // Fase 131: gjennomført økt = dagbok-rett, avgjort av basen.
+  if (resolved.isCoachImpersonating && !resolved.rettigheter[flaggForOkt(workout?.is_completed)]) return { error: MANGLER_DAGBOK_RETT }
   if (!workout || workout.user_id !== resolved.userId) {
     return { error: 'Forbidden' }
   }

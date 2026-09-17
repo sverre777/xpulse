@@ -309,6 +309,8 @@ export interface WorkoutFormData {
   // Read-only i skjemaet - maskinfelt, skrevet av saveWorkout.
   sist_endret_av_trener_id?: string | null
   sist_endret_av_trener_navn?: string | null
+  /** Planlagte sett per øvelse (normOvelse-nøkkel) fra planned_snapshot - kun lesing, til «Plan …»-chipen. */
+  planlagt_styrke?: Record<string, string>
   sist_endret_av_trener_at?: string | null
   notes: string
   tags: string[]

@@ -29,7 +29,7 @@ export async function settUtvidetSkala(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_terskler')
   if ('error' in resolved) return { error: resolved.error }
   const { data, error } = await supabase.rpc('sett_utvidet_skala', {
     p_bruker: resolved.userId,

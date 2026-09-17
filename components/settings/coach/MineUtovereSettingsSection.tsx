@@ -4,11 +4,10 @@ import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import type { PermissionKey } from '@/lib/target-user'
 import {
-  updateAthletePermissions,
   endAthleteRelation,
   type CoachAthleteRelation,
-  type AthletePermissionsPatch,
 } from '@/app/actions/coach-settings'
 
 const COACH_BLUE = '#1A6FD4'
@@ -22,6 +21,11 @@ const STATUS_LABEL: Record<CoachAthleteRelation['status'], string> = {
   active: 'Aktiv',
   inactive: 'Avsluttet',
 }
+
+const RETTIGHET_ETIKETTER: [PermissionKey, string][] = [
+  ['can_edit_plan', 'Plan'], ['can_edit_periodization', 'Årsplan'], ['can_view_dagbok', 'Dagbok (se)'], ['can_edit_dagbok', 'Dagbok (redigere)'],
+  ['can_view_analysis', 'Analyse'], ['can_edit_terskler', 'Terskler'], ['can_edit_utstyr', 'Utstyr'], ['can_edit_tester', 'Tester'],
+]
 
 const STATUS_COLOR: Record<CoachAthleteRelation['status'], string> = {
   pending: '#F59E0B',
@@ -52,9 +56,6 @@ export function MineUtovereSettingsSection({ initial }: Props) {
         <RelationCard
           key={rel.id}
           relation={rel}
-          onPatch={(patch) =>
-            setRelations(prev => prev.map(r => r.id === rel.id ? { ...r, ...mapPatch(patch) } : r))
-          }
           onEnd={() =>
             setRelations(prev => prev.map(r => r.id === rel.id ? { ...r, status: 'inactive' } : r))
           }
@@ -64,40 +65,17 @@ export function MineUtovereSettingsSection({ initial }: Props) {
   )
 }
 
-function mapPatch(patch: AthletePermissionsPatch): Partial<CoachAthleteRelation> {
-  const out: Partial<CoachAthleteRelation> = {}
-  if (patch.can_edit_plan !== undefined) out.canEditPlan = patch.can_edit_plan
-  if (patch.can_view_dagbok !== undefined) out.canViewDagbok = patch.can_view_dagbok
-  if (patch.can_view_analysis !== undefined) out.canViewAnalysis = patch.can_view_analysis
-  if (patch.can_edit_periodization !== undefined) out.canEditPeriodization = patch.can_edit_periodization
-  return out
-}
 
 function RelationCard({
-  relation, onPatch, onEnd,
+  relation, onEnd,
 }: {
   relation: CoachAthleteRelation
-  onPatch: (p: AthletePermissionsPatch) => void
   onEnd: () => void
 }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const togglePerm = (col: keyof AthletePermissionsPatch, current: boolean) => {
-    const patch: AthletePermissionsPatch = { [col]: !current }
-    onPatch(patch)
-    startTransition(async () => {
-      const res = await updateAthletePermissions(relation.id, patch)
-      if (res.error) {
-        setError(res.error)
-        onPatch({ [col]: current })
-      } else {
-        setError(null)
-        router.refresh()
-      }
-    })
-  }
 
   const handleEnd = async () => {
     if (!await xpConfirm(`Avslutte koblingen til ${relation.athleteName ?? 'utøver'}?`)) return
@@ -147,32 +125,15 @@ function RelationCard({
         </span>
       </div>
 
+      {/* Fase 131: rettighetene velges av UTØVEREN (Innstillinger › Trener). Treneren ser dem, kan ikke endre. */}
       {!inactive && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-          <PermToggle
-            label="Plan (se + endre)"
-            checked={relation.canEditPlan}
-            disabled={isPending}
-            onToggle={() => togglePerm('can_edit_plan', relation.canEditPlan)}
-          />
-          <PermToggle
-            label="Dagbok (se)"
-            checked={relation.canViewDagbok}
-            disabled={isPending}
-            onToggle={() => togglePerm('can_view_dagbok', relation.canViewDagbok)}
-          />
-          <PermToggle
-            label="Analyse (se)"
-            checked={relation.canViewAnalysis}
-            disabled={isPending}
-            onToggle={() => togglePerm('can_view_analysis', relation.canViewAnalysis)}
-          />
-          <PermToggle
-            label="Årsplan (se + endre)"
-            checked={relation.canEditPeriodization}
-            disabled={isPending}
-            onToggle={() => togglePerm('can_edit_periodization', relation.canEditPeriodization)}
-          />
+        <div className="flex flex-wrap gap-1.5 mb-3" data-rettigheter-lesing>
+          {RETTIGHET_ETIKETTER.map(([k, navn]) => (
+            <span key={k} data-rettighet={k} data-gitt={relation.rettigheter[k] ? '1' : '0'} className="xp-pill" style={{ minHeight: 28, padding: '0 10px', fontSize: 11, opacity: relation.rettigheter[k] ? 1 : .45, borderColor: relation.rettigheter[k] ? '#28A86E' : 'var(--line2)', color: relation.rettigheter[k] ? '#28A86E' : 'var(--tekst-8-app)', background: 'none' }}>
+              {relation.rettigheter[k] ? '✓' : '–'} {navn}
+            </span>
+          ))}
+          <span className="text-xs w-full mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Utøveren velger rettighetene selv under Innstillinger › Trener.</span>
         </div>
       )}
 
@@ -215,29 +176,3 @@ function RelationCard({
   )
 }
 
-function PermToggle({
-  label, checked, onToggle, disabled,
-}: { label: string; checked: boolean; onToggle: () => void; disabled?: boolean }) {
-  return (
-    <label
-      className="flex items-center gap-2 px-3 py-2"
-      style={{
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        border: '1px solid var(--line)',
-        backgroundColor: checked ? 'rgba(26,111,212,0.1)' : 'transparent',
-      }}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={onToggle}
-        style={{ accentColor: COACH_BLUE }}
-      />
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-        {label}
-      </span>
-    </label>
-  )
-}

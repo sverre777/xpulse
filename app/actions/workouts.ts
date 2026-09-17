@@ -1,5 +1,7 @@
 'use server'
 
+import { planlagtStyrkePerOvelse } from '@/lib/live-styrke'
+import { flaggForOkt, MANGLER_DAGBOK_RETT } from '@/lib/target-user'
 import { revalidatePath, updateTag } from 'next/cache'
 import { medTid } from '@/lib/ytelse-tid'
 import { lesTidspunktNotater, tilJson } from '@/lib/tidspunkt-notater'
@@ -684,8 +686,21 @@ export async function getActivitiesForWorkout(workoutId: string): Promise<Workou
 export async function saveWorkout(data: WorkoutFormData, workoutId?: string, targetUserId?: string): Promise<{ error?: string; id?: string }> {
   const t0 = Date.now()  // måling av lagringstid - vises i server-loggene
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  // FASE 131: planlagt økt krever can_edit_plan, GJENNOMFØRT økt krever
+  // can_edit_dagbok - avgjort av is_completed I BASEN, aldri av det klienten
+  // sender. Å markere som gjennomført er utøverens faktum og krever også
+  // dagbok-rett («ingenting fullført før brukeren markerer det»).
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
   if ('error' in resolved) return { error: resolved.error }
+  if (resolved.isCoachImpersonating) {
+    let gjennomfortIBasen = false
+    if (workoutId) {
+      const { data: rad } = await supabase.from('workouts').select('is_completed').eq('id', workoutId).eq('user_id', resolved.userId).maybeSingle()
+      gjennomfortIBasen = rad?.is_completed === true
+    }
+    if (!resolved.rettigheter[flaggForOkt(gjennomfortIBasen)]) return { error: gjennomfortIBasen ? MANGLER_DAGBOK_RETT : 'Utøveren har ikke gitt deg rett til å redigere planen.' }
+    if (data.is_completed && !resolved.rettigheter.can_edit_dagbok) return { error: MANGLER_DAGBOK_RETT }
+  }
 
   const movementMinutes = data.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
   const movementKm      = data.movements.reduce((s, m) => s + (parseDecimal(m.distance_km) || 0), 0)
@@ -879,8 +894,14 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
       workoutPayload.sist_endret_av_trener_id = resolved.coachId
       workoutPayload.sist_endret_av_trener_at = new Date().toISOString()
     }
-    const { error } = await supabase.from('workouts').update(workoutPayload).eq('id', workoutId).eq('user_id', resolved.userId)
-    if (error) return { error: error.message }
+    // STILLE 204: avviser WITH CHECK, svarer PostgREST 204 og null rader -
+    // ingen feil. Telles derfor rader tilbake (Sverre 17. sep).
+    const { data: oppdatert, error } = await supabase.from('workouts').update(workoutPayload).eq('id', workoutId).eq('user_id', resolved.userId).select('id')
+    if (error) return { error: dbFeilTekst(error, 'økta') }
+    if (!oppdatert || oppdatert.length === 0) {
+      console.error(`[saveWorkout] 0 rader oppdatert for ${workoutId} (trener=${resolved.coachId ?? '-'})`)
+      return { error: resolved.isCoachImpersonating ? `Økta ble ikke lagret. ${MANGLER_DAGBOK_RETT}` : 'Økta ble ikke lagret - last siden på nytt og prøv igjen.' }
+    }
     // Fase 113/114-vern: les de skjulte kolonnene FØR radene slettes.
     {
       const { data: skjulte } = await supabase.from('workout_activities')
@@ -1261,6 +1282,7 @@ async function synkNokkeldato(
 }
 
 export async function markCompleted(workoutId: string, targetUserId?: string): Promise<{ error?: string }> {
+  // Fase 131: gjennomført er utøverens faktum - treneren trenger dagbok-rett.
   // NB: is_planned bevares — planen skal fortsatt være synlig i Plan-kalenderen
   // etter gjennomføring. Gjennomføring signaliseres med is_completed=true.
   //
@@ -1268,7 +1290,7 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
   // Hvis det ikke finnes aktiviteter enda (bruker har ikke åpnet økten og justert),
   // kopieres de planlagte aktivitetene inn som startpunkt. planned_snapshot bevares.
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: workout, error: wErr } = await supabase
@@ -1320,7 +1342,7 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
 // Brukeren har tilfeldig markert ferdig og vil tilbake til planlagt-tilstand.
 export async function markUncompleted(workoutId: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   const { error } = await supabase.from('workouts')
@@ -1456,8 +1478,12 @@ export async function getSameDateLinkCandidates(
 
 export async function deleteWorkout(id: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
   if ('error' in resolved) return { error: resolved.error }
+  if (resolved.isCoachImpersonating) {
+    const { data: rad } = await supabase.from('workouts').select('is_completed').eq('id', id).eq('user_id', resolved.userId).maybeSingle()
+    if (!resolved.rettigheter[flaggForOkt(rad?.is_completed)]) return { error: MANGLER_DAGBOK_RETT }
+  }
 
   // Bærer økta en flettet kilde, angres fletten FØRST: kilden gjenoppstår
   // komplett (rader, samples, proveniens) i stedet for å dukke opp tom når
@@ -1885,6 +1911,8 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
       sist_endret_av_trener_id: endretId,
       sist_endret_av_trener_navn: endretNavn,
       sist_endret_av_trener_at: endretAt,
+      // Fase 131/styrke: «Plan …»-chipen i skjemaet - samme kilde som live-visningen.
+      planlagt_styrke: planlagtStyrkePerOvelse(snap),
       tags:         snap.tags ?? [],
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
@@ -2099,8 +2127,12 @@ export async function moveWorkout(
 ): Promise<{ ok: true } | { error: string }> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return { error: 'Ugyldig dato' }
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
   if ('error' in resolved) return { error: resolved.error }
+  if (resolved.isCoachImpersonating) {
+    const { data: rad } = await supabase.from('workouts').select('is_completed').eq('id', workoutId).eq('user_id', resolved.userId).maybeSingle()
+    if (!resolved.rettigheter[flaggForOkt(rad?.is_completed)]) return { error: MANGLER_DAGBOK_RETT }
+  }
 
   const update: Record<string, unknown> = { date: newDate }
   if (newTime !== undefined) {
@@ -2126,14 +2158,15 @@ export async function reorderWorkouts(
   if (workoutIds.length === 0) return { ok: true }
   if (workoutIds.length !== sortOrders.length) return { error: 'Mismatch IDs/sortOrders' }
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_edit_dagbok'])
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: existing, error: fetchErr } = await supabase
     .from('workouts')
-    .select('id,user_id')
+    .select('id,user_id,is_completed')
     .in('id', workoutIds)
   if (fetchErr) return { error: fetchErr.message }
+  if (resolved.isCoachImpersonating && (existing ?? []).some(w => !resolved.rettigheter[flaggForOkt(w.is_completed)])) return { error: MANGLER_DAGBOK_RETT }
   if ((existing ?? []).length !== workoutIds.length) {
     return { error: 'Fant ikke alle øktene (kanskje migrasjonen mangler eller RLS blokkerer)' }
   }

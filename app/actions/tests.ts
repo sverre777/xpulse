@@ -212,7 +212,7 @@ export async function savePersonalRecord(
 ): Promise<{ id: string } | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_tester')
     if ('error' in resolved) return { error: resolved.error }
 
     if (!input.record_type.trim()) return { error: 'Type mangler' }
@@ -326,7 +326,7 @@ export async function deletePersonalRecord(
 ): Promise<{ ok: true } | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_tester')
     if ('error' in resolved) return { error: resolved.error }
 
     const { error } = await supabase

@@ -46,7 +46,7 @@ export default async function AthleteUtstyrTab({ params }: Props) {
         skiTests={skiTests}
         conditionsTemplates={templates}
         athleteId={athleteId}
-        canEditPlan={ctx.permissions.can_edit_plan}
+        canEditTester={ctx.permissions.can_edit_tester}
       />
     </section>
   )

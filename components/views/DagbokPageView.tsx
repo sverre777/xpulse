@@ -215,7 +215,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
               initialPlanWeekNote={planWeekNotes[weekKey] ?? ''}
               initialPlanMonthNote={planMonthNotes[monthKey] ?? ''}
               serverNoteKeys={{ week: weekKey, month: monthKey }}
-              readOnly={isCoachView}
+              readOnly={viewContext.readOnly ?? isCoachView}
               targetUserId={targetId}
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}

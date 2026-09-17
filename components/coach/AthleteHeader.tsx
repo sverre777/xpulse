@@ -135,9 +135,13 @@ export function AthleteHeader({ context }: Props) {
           Tilganger:
         </span>
         <PermissionIcon label="Plan (rediger)" granted={permissions.can_edit_plan} />
-        <PermissionIcon label="Dagbok (les)" granted={permissions.can_view_dagbok} />
-        <PermissionIcon label="Analyse (les)" granted={permissions.can_view_analysis} />
         <PermissionIcon label="Årsplan (rediger)" granted={permissions.can_edit_periodization} />
+        <PermissionIcon label="Dagbok (les)" granted={permissions.can_view_dagbok} />
+        <PermissionIcon label="Dagbok (rediger)" granted={permissions.can_edit_dagbok} />
+        <PermissionIcon label="Analyse (les)" granted={permissions.can_view_analysis} />
+        <PermissionIcon label="Terskler" granted={permissions.can_edit_terskler} />
+        <PermissionIcon label="Utstyr" granted={permissions.can_edit_utstyr} />
+        <PermissionIcon label="Tester" granted={permissions.can_edit_tester} />
       </div>
     </section>
   )

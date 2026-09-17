@@ -248,7 +248,8 @@ try {
     coach_id: tr.uid, athlete_id: ut.uid, status: 'active',
     can_edit_plan: true, can_view_dagbok: true, can_view_analysis: true, can_edit_periodization: true,
   }).select('id').single(), 'relasjon') as { id: string }
-  maa(await admin.from('coach_data_permissions').insert({ coach_athlete_relation_id: rel.id, can_see_health_data: false }), 'rettighet')
+  // Fase 131: se-flaggene bor i coach_data_permissions (utøver-eid) - relasjonens gamle kolonner leses ikke lenger.
+  maa(await admin.from('coach_data_permissions').insert({ coach_athlete_relation_id: rel.id, can_see_health_data: false, can_edit_plan: true, can_view_dagbok: true, can_view_analysis: true, can_edit_periodization: true }), 'rettighet')
 
   const t = await loggInn(b, tr.epost)
   const svar: { url: string; type: string; body: string }[] = []

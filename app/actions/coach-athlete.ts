@@ -1,17 +1,14 @@
 'use server'
 
+import { hentTrenerRettigheter, type Rettigheter } from '@/lib/target-user'
 import { createClient } from '@/lib/supabase/server'
 import type { Sport, WorkoutType } from '@/lib/types'
 import { iDagISO } from '@/lib/local-date'
 
 // ── Typer ───────────────────────────────────────────────────
 
-export interface AthletePermissions {
-  can_edit_plan: boolean
-  can_view_dagbok: boolean
-  can_view_analysis: boolean
-  can_edit_periodization: boolean
-}
+/** Fase 131: alle åtte flagg fra coach_data_permissions (utøver-eid). */
+export type AthletePermissions = Rettigheter
 
 export interface AthleteProfile {
   id: string
@@ -76,17 +73,11 @@ async function assertActiveCoach(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Ikke innlogget' }
 
-  const { data, error } = await supabase
-    .from('coach_athlete_relations')
-    .select('id, can_edit_plan, can_view_dagbok, can_view_analysis, can_edit_periodization')
-    .eq('coach_id', user.id)
-    .eq('athlete_id', athleteId)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (error) return { ok: false, error: error.message }
-  if (!data) return { ok: false, error: 'Ingen aktiv relasjon til denne utøveren' }
+  const rel = await hentTrenerRettigheter(supabase, user.id, athleteId)
+  if (rel && 'error' in rel) return { ok: false, error: rel.error }
+  if (!rel) return { ok: false, error: 'Ingen aktiv relasjon til denne utøveren' }
 
-  return { ok: true, coachId: user.id, relation: data }
+  return { ok: true, coachId: user.id, relation: { id: rel.relationId, ...rel.rettigheter } }
 }
 
 // ── Hovedfunksjoner ─────────────────────────────────────────
@@ -124,12 +115,7 @@ export async function getAthleteContext(
       primarySport: p.primary_sport as Sport | null,
       email: p.email,
     },
-    permissions: {
-      can_edit_plan: check.relation.can_edit_plan,
-      can_view_dagbok: check.relation.can_view_dagbok,
-      can_view_analysis: check.relation.can_view_analysis,
-      can_edit_periodization: check.relation.can_edit_periodization,
-    },
+    permissions: (({ id: _id, ...flagg }) => flagg)(check.relation),
     relationId: check.relation.id,
     coachName: coachRes.data?.full_name ?? null,
   }

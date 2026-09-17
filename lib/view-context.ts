@@ -1,12 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
+import { hentTrenerRettigheter, ALLE_RETTIGHETER_PAA, type Rettigheter } from '@/lib/target-user'
 
-export interface ViewPermissions {
-  can_edit_plan: boolean
-  can_view_dagbok: boolean
-  can_view_analysis: boolean
-  can_edit_periodization: boolean
-}
+/** Fase 131: alle åtte flagg, lest fra coach_data_permissions (utøver-eid). */
+export type ViewPermissions = Rettigheter
 
 export interface ViewContext {
   mode: 'self' | 'coach-view'
@@ -17,12 +14,7 @@ export interface ViewContext {
   athleteName?: string | null
 }
 
-export const FULL_PERMISSIONS: ViewPermissions = {
-  can_edit_plan: true,
-  can_view_dagbok: true,
-  can_view_analysis: true,
-  can_edit_periodization: true,
-}
+export const FULL_PERMISSIONS: ViewPermissions = ALLE_RETTIGHETER_PAA
 
 export async function resolveSelfContext(): Promise<ViewContext | null> {
   // Lesebane: identitet fra middleware-validert header — ingen Auth-rundtur.
@@ -44,29 +36,18 @@ export async function resolveCoachContext(
   const user = await getAuthUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  const [relRes, profileRes] = await Promise.all([
-    supabase
-      .from('coach_athlete_relations')
-      .select('id, can_edit_plan, can_view_dagbok, can_view_analysis, can_edit_periodization')
-      .eq('coach_id', user.id)
-      .eq('athlete_id', athleteId)
-      .eq('status', 'active')
-      .maybeSingle(),
+  const [rel, profileRes] = await Promise.all([
+    hentTrenerRettigheter(supabase, user.id, athleteId),
     supabase.from('profiles').select('full_name').eq('id', athleteId).single(),
   ])
-  if (relRes.error) return { error: relRes.error.message }
-  if (!relRes.data) return { error: 'Ingen aktiv relasjon til denne utøveren' }
+  if (rel && 'error' in rel) return { error: rel.error }
+  if (!rel) return { error: 'Ingen aktiv relasjon til denne utøveren' }
 
   return {
     mode: 'coach-view',
     userId: athleteId,
     coachUserId: user.id,
-    permissions: {
-      can_edit_plan: relRes.data.can_edit_plan,
-      can_view_dagbok: relRes.data.can_view_dagbok,
-      can_view_analysis: relRes.data.can_view_analysis,
-      can_edit_periodization: relRes.data.can_edit_periodization,
-    },
+    permissions: rel.rettigheter,
     athleteName: profileRes.data?.full_name ?? null,
   }
 }

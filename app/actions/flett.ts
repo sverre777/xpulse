@@ -101,7 +101,7 @@ export async function flettOkter(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   let soner: { zone_name: string; minutes: number; sort_order: number }[] = []
@@ -199,7 +199,7 @@ export async function angreFlett(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_dagbok')
   if ('error' in resolved) return { error: resolved.error }
 
   const { data, error } = await supabase.rpc('angre_flett', { p_maal: maalId })

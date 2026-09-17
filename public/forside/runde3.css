@@ -1670,3 +1670,11 @@
   .fv-sk{overflow:hidden}
   .fv-mbody{overflow:auto;flex:1;overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch}
 }
+
+/* ── ÉN SCENE ALENE (undersidene bolk 2) - kortet uten spor, stegene under kortet, også på mobil ── */
+.sc-en-vert{width:100%}
+.sc.sc-en{display:block;flex:none;width:100%;max-width:100%;min-height:0;opacity:1;transform:none;cursor:default}
+.sc.sc-en .sc-scene{padding:28px 24px 18px}
+.sc.sc-en .sc-steg{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px 22px;margin:0;padding:0 24px 22px}
+.sc.sc-en .sc-steg li{grid-template-columns:22px auto}
+@media (max-width:900px){.sc.sc-en .sc-scene{padding:14px 12px 10px}.sc.sc-en .sc-steg{display:flex;gap:8px 14px;padding:0 14px 16px}.sc.sc-en .sc-steg li{font-size:12px;grid-template-columns:16px auto;gap:6px}.sc.sc-en .sc-steg li b{width:16px;height:16px}.sc.sc-en .sc-steg li b svg{width:9px;height:9px}}

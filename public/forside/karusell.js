@@ -70,8 +70,45 @@ Scene.prototype.tell=function(el,fra,til,ms,at,fmt){var s=this;this.t(at,functio
   (function f(n){var p=Math.min(1,(n-t0)/ms),v=fra+(til-fra)*(1-Math.pow(1-p,3));e.textContent=fmt?fmt(v):Math.round(v);if(p<1&&!document.hidden)requestAnimationFrame(f);else e.textContent=fmt?fmt(til):til})(t0)})};
 var still=document.createElement('style');still.textContent='.sc.still *{transition:none!important;animation:none!important}';document.head.appendChild(still);
 
+/* ═════════════════ ÉN SCENE ALENE (undersidene bolk 2, 17. sep) ═════════════════
+   enScene(tittel, element, {fil}) monterer ÉN scene fra SC uten kapittelrad, med
+   scenens egne steg-tekster under kortet. Spiller når kortet er minst 50 % i
+   viewport, stopper og nullstiller utenfor, loop av. Scenefila lastes lat per
+   underside - bare den fila scenen ligger i (flyt / trener / detaljene), pluss
+   oktgraf.js som flyt og trener tegner med. prefers-reduced-motion: sluttbildet
+   stille. Samme Scene-motor og samme CSS-variabler som forsiden (lys/mørk følger sida). */
+var SCENER_ALLE={};            /* tittel -> scenedefinisjon, fylt av karusell() i hver scenefil */
+var SCENEFIL_LASTER={};        /* fil -> Promise, så samme fil aldri lastes to ganger */
+function lastScenefil(fil){if(SCENEFIL_LASTER[fil])return SCENEFIL_LASTER[fil];
+  SCENEFIL_LASTER[fil]=new Promise(function(ok,feil){var s=document.createElement('script');s.src='/forside/'+fil+'.js';s.async=true;s.onload=function(){ok()};s.onerror=function(){feil(new Error('fant ikke /forside/'+fil+'.js'))};document.head.appendChild(s)});
+  return SCENEFIL_LASTER[fil]}
+function enScene(tittel,element,opts){opts=opts||{};
+  var trenger=[];if(typeof tegnOktgraf!=='function'&&opts.fil!=='detaljene')trenger.push(lastScenefil('oktgraf'));
+  if(!SCENER_ALLE[tittel]&&opts.fil)trenger.push(lastScenefil('scener-'+opts.fil));
+  return Promise.all(trenger).then(function(){var d=SCENER_ALLE[tittel];if(!d)throw new Error('enScene: fant ikke scenen «'+tittel+'»');
+    var rolig=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    element.classList.add('sc-en-vert');
+    element.innerHTML='<article class="sc on sc-en" aria-label="'+tittel.toLowerCase()+'"><div class="sc-scene"></div><ul class="sc-steg">'+d.steg.map(function(t){return'<li><b>'+HAKE+'</b>'+t+'</li>'}).join('')+'</ul></article>';
+    var kort=element.querySelector('.sc'),S=new Scene(d,kort.querySelector('.sc-scene')),steg=function(){return[].slice.call(kort.querySelectorAll('.sc-steg li'))};
+    var spiller=false,ferdigId=null;
+    function nullstill(){S.stopp();if(ferdigId){clearTimeout(ferdigId);ferdigId=null}if(S.d.rydd)S.d.rydd(S);S.render();steg().forEach(function(l){l.className=''});kort.classList.remove('sc-en-ferdig');spiller=false}
+    function spill(){if(spiller)return;nullstill();spiller=true;S.kjor(0);ferdigId=setTimeout(function(){kort.classList.add('sc-en-ferdig');spiller=false},d.varighet||9000)}
+    function sluttbilde(){S.stopp();S.slutt();steg().forEach(function(l){l.className='ok'});kort.classList.add('sc-en-ferdig')}
+    if(rolig){sluttbilde();return {element:element,scene:S,stopp:function(){}}}
+    S.render();steg().forEach(function(l){l.className=''});
+    var synlig=false;
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){var var_=synlig;synlig=e.intersectionRatio>=.5;
+      if(synlig&&!var_){if(!document.hidden)spill()}else if(!synlig&&var_){nullstill()}})},{threshold:[0,.5,1]});
+    io.observe(kort);
+    var vis=function(){if(document.hidden){nullstill()}else if(synlig){spill()}};document.addEventListener('visibilitychange',vis);
+    var bytt=function(){if(synlig)spill();else nullstill()};MOBIL.addEventListener('change',bytt);
+    return {element:element,scene:S,stopp:function(){io.disconnect();document.removeEventListener('visibilitychange',vis);MOBIL.removeEventListener('change',bytt);nullstill()}}})}
+
 /* ═════════════════ KONTROLLEREN ═════════════════ */
 function karusell(SC,KAP,P){var $=function(id){return document.getElementById(P+id)};
+ SC.forEach(function(d){SCENER_ALLE[d.tittel]=d});
+ /* Undersidene (bolk 2): scenefila kan lastes uten karusell-DOM - da er registreringen over alt den gjør. */
+ if(!$('spor'))return;
  var rolig=matchMedia('(prefers-reduced-motion: reduce)').matches;
  var spor=$('spor'),kapEl=$('kap'),prikkEl=$('prikker'),spillK=$('spill');
  var IKON_PAUSE='<svg viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/></svg>';

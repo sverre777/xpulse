@@ -4,10 +4,10 @@
 // Beviset er RADENE treneren får gjennom PostgREST, ikke hva koden mener:
 //   · trener med relasjon men ALLE se-flagg av: 0 rader på workouts (gjennomført),
 //     0 på workout_activities, 0 på seasons, 0 på personal_records
-//   · samme trener med view_dagbok på: gjennomført økt synlig, planlagt fortsatt ikke
-//     (planlagt krever edit_plan)
-//   · edit_plan på: planlagt synlig
-//   · view_analysis alene: gjennomført økt + personal_records synlig
+//   · view_dagbok på: begge øktene synlige (dagboka viser planlagte også -
+//     trener_kan_lese_okt: view_dagbok eller view_analysis gir hele lista)
+//   · edit_plan alene: BARE planlagt synlig (planen har ikke eget se-flagg)
+//   · view_analysis alene: øktene + personal_records synlig
 // Før 131c er kjørt skal denne være RØD (relasjon alene gir lesing). Det er
 // poenget - testen biter.
 
@@ -48,8 +48,7 @@ try {
   sjekk('alle se-flagg av: 0 rader på personal_records', await tell('personal_records') === 0)
 
   await sett({ can_view_dagbok: true })
-  const wd = await T.from('workouts').select('id').eq('user_id', ut.uid)
-  sjekk('view_dagbok: gjennomført økt synlig, planlagt ikke (planen krever edit_plan)', (wd.data ?? []).length === 1 && wd.data?.[0].id === fort.id, JSON.stringify(wd.data))
+  sjekk('view_dagbok: begge øktene synlige (planlagt hører også til dagboka)', await tell('workouts') === 2, String(await tell('workouts')))
   sjekk('view_dagbok: aktiviteten på den gjennomførte synlig', await tell('workout_activities', 'workout_id', fort.id) === 1)
   sjekk('view_dagbok alene: personal_records fortsatt 0 (krever view_analysis eller edit_tester)', await tell('personal_records') === 0)
 
@@ -58,7 +57,7 @@ try {
   sjekk('edit_plan alene: planlagt synlig, gjennomført ikke', (wp.data ?? []).length === 1 && wp.data?.[0].id === planlagt.id, JSON.stringify(wp.data))
 
   await sett({ can_view_analysis: true })
-  sjekk('view_analysis alene: gjennomført økt + personal_records synlig', await tell('workouts') === 1 && await tell('personal_records') === 1)
+  sjekk('view_analysis alene: øktene + personal_records synlig', await tell('workouts') === 2 && await tell('personal_records') === 1, `${await tell('workouts')} / ${await tell('personal_records')}`)
   sjekk('view_analysis alene: seasons synlig (minst ett flagg)', await tell('seasons') === 1)
 } finally {
   const { data: brukere } = await admin.from('profiles').select('id').like('email', `${PREFIKS}-%`)

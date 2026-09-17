@@ -531,6 +531,8 @@
 .hj-r2{display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr;gap:14px;margin-top:14px}
 .hjk{background:var(--a-card);border:1px solid var(--a-line);border-radius:16px;padding:18px;min-width:0;transition:opacity .5s,transform .5s,box-shadow .5s}
 .hj-inn.mob .hjk{margin-top:12px}
+.hj-inn.mob{transition:transform .8s cubic-bezier(.3,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){.hj-inn.mob{transition:none}}
 .hjk.glod{box-shadow:0 0 0 1px rgba(255,69,0,.5),0 10px 40px rgba(255,69,0,.12)}
 .xp-kh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .xp-kh h2{font:700 14px/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;margin:0;color:var(--a-ink)}

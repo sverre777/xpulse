@@ -360,15 +360,21 @@ SC.push({kap:5,tittel:'ALT SAMLET PÅ HJEM.',tekst:'Dagens økt, uka mot planen,
  steg:['Dagen og uka','Konkurransen og målet','Formen og perioden'],
  mer:['Rad 1: I dag (dagens økt med start-knapp), ukens totaler mot planen, neste A-konkurranse med nedtelling.','Rad 2: helsekortet fra natta, siste hardøkt med full øktgraf, hovedmålet og perioden du står i.','PR-merke når en styrkeøkt satte rekord, «Hva er nytt» når appen har fått noe nytt.','Trenerens Hjem: status nå for hele troppen i én henting - rød, gul, grønn etter dager siden siste logging.'],varighet:9000,
  html:function(){var mob=erMobil(),bredde=mob?380:1180;
-  var innhold=mob?(HJ.idag()+HJ.uke()+HJ.konk()):('<div class="hj-r1">'+HJ.idag()+HJ.uke()+HJ.konk()+'</div><div class="hj-r2">'+HJ.helse()+HJ.hard()+HJ.maal()+HJ.periode()+'</div>');
+  /* Mobil (rettet 17. sep): ALLE sju kortene i én kolonne - konkurransen og målet ved siden av
+     hverandre (steg 2), helse og hardøkt sammen (steg 3). Scenen ruller mellom dem (spill). */
+  var innhold=mob?(HJ.idag()+HJ.uke()+HJ.konk()+HJ.maal()+HJ.helse()+HJ.hard()+HJ.periode()):('<div class="hj-r1">'+HJ.idag()+HJ.uke()+HJ.konk()+'</div><div class="hj-r2">'+HJ.helse()+HJ.hard()+HJ.maal()+HJ.periode()+'</div>');
   return'<div class="hj-ytre"><div class="app hj-ramme"><div class="hj-skala" style="width:'+bredde+'px"><div class="hj-inn '+(mob?'mob':'')+'">'+
   '<div class="hj-hero a"><div class="xp-eyebrow"><span class="xp-beam"></span>Onsdag 16. september · Uke 38</div><h1>God morgen, Ola</h1><p>Uke 38 · <b>4 økter</b> · <b>6t 20min</b></p></div>'+innhold+'</div></div></div></div>'},
- spill:function(S){function skaler(){var y=S.q('.hj-ytre'),sk=S.q('.hj-skala');if(!y||!sk)return;var bredde=parseFloat(sk.style.width),s=Math.min(1,y.clientWidth/bredde);sk.style.transform='scale('+s+')';var maxH=erMobil()?470:560;sk.parentNode.style.height=Math.min(sk.offsetHeight*s,maxH)+'px'}
+ spill:function(S){var skala=1;function skaler(){var y=S.q('.hj-ytre'),sk=S.q('.hj-skala'),inn=S.q('.hj-inn');if(!y||!sk)return;var bredde=parseFloat(sk.style.width),s=Math.min(1,y.clientWidth/bredde);skala=s;sk.style.transform='scale('+s+')';if(inn)inn.style.transform='';var maxH=erMobil()?470:560;sk.parentNode.style.height=Math.min(sk.offsetHeight*s,maxH)+'px'}
+  /* Mobil: rull .hj-inn (translateY, innenfor rammen - hj-skala har transform-origin 0 0) så kortet
+     for steget står øverst. Avstanden måles i uskalerte piksler fra .hj-inn sin topp. */
+  function rull(sel,at){S.t(at,function(){if(!erMobil())return;var inn=S.q('.hj-inn'),k=S.q(sel);if(!inn||!k)return;var fra=inn.getBoundingClientRect().top,y=(k.getBoundingClientRect().top-fra)/skala;inn.style.transform='translateY(-'+Math.max(0,Math.round(y-14))+'px)'})}
   S.t(0,skaler);S.steg(0,0);var kort=function(){return S.qa('.hjk,.hj-hero')};
   S.t(150,function(){kort().forEach(function(k,i){k.style.transitionDelay=(i*110)+'ms';k.classList.add('inn')})});
   S.t(700,function(){S.qa('.gro,.gro2').forEach(function(g){g.classList.add('inn')})});
   S.tell('.hj-c[data-til="380"]',0,380,1000,700,function(v){v=Math.round(v);return Math.floor(v/60)+'t '+(v%60)+'m'});S.tell('.hj-konk .hj-c',140,87,1100,900);
-  S.steg(1,2800);S.t(2800,function(){var k=S.q('.hj-konk');if(k)k.classList.add('glod')});S.steg(2,5200);S.t(5200,function(){var h=S.q('.hj-hardk');if(h)h.classList.add('glod')});S.steg(3,7600)}
+  S.steg(1,2800);rull('.hj-konk',2800);S.til('.hj-konk .hj-ned',3000);S.t(2800,function(){var k=S.q('.hj-konk');if(k)k.classList.add('glod')});
+  S.steg(2,5200);rull('.hj-h4',5200);S.til('.hj-hardk .hj-kurve',5500);S.t(5200,function(){var h=S.q('.hj-hardk');if(h)h.classList.add('glod')});S.bort(7300);S.steg(3,7600)}
 });
 
 /* Utkast-scenene ut - FØR motoren far lista, sa kapittel-tellingen stemmer. */

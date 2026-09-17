@@ -35,7 +35,7 @@ export function Scenekort({ scener }: { scener: SceneValg[] }) {
   }, [scener])
   return (
     <div ref={rot} className="lp-scenekort">
-      {scener.map(s => <div key={s.tittel} className="xp-forside-tokens" data-scenekort={s.tittel} data-scenefil={s.fil} aria-label={s.tittel.toLowerCase()} />)}
+      {scener.map(s => <div key={s.tittel} className="xp-forside-tokens" data-scenekort={s.tittel} data-scenefil={s.fil} role="figure" aria-label={s.tittel.toLowerCase()} />)}
     </div>
   )
 }

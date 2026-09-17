@@ -92,3 +92,28 @@ til (6 sport-trenerpunkter + 4 FAQ + trener-siden). Mangler-lista: alle sju fikk
 hører hjemme (formkart 5 idretter + analyse, live styrke dagbok-og-plan + multisport, styrke i
 graf/analyse analyse + multisport, stillestand klokkesync, y-aksen dagbok-og-plan, trener-rettene,
 innboksen). «Nytt i V1.4»-etiketter finnes ikke på undersidene (NYTT_I_VERSJON importeres, brukes ikke).
+
+## Bolk 5 - QA ETTER (CC 17. sep, sent). Samme måling som FØR (dev, Chrome, transferSize = komprimert)
+LCP er median av fem lastinger (svinger 130-430 ms på dev-serveren; FØR var to lastinger).
+
+| side | 390: FØR -> ETTER | 1440: FØR -> ETTER |
+|---|---|---|
+| skiskyting | 921 -> 923 KB (+0,2 %) · LCP 156-212 -> median 176 ms | 997 -> 999 KB (+0,2 %) · LCP 192-208 -> median 232 ms |
+| analyse | 1003 -> 1005 KB (+0,2 %) · LCP 144 -> 160 ms | 1617 -> 1672 KB (+3,4 %) · LCP 192 -> 212 ms |
+| trener | 976 -> 1055 KB (+8,1 %) · LCP 152-160 -> 172 ms | 1078 -> 1156 KB (+7,2 %) · LCP 172-196 -> 208 ms |
+
+Alle innenfor +10 %. Økningen på trener (+79 KB) er hele raden: tokens.css + runde3.css (+28 KB css)
+og ikoner/karusell/oktgraf/scener-trener (+32 KB js), lastet lat 400 px før raden. Analyse 1440
++55 KB: motoren + scener-detaljene/flyt. Skiskyting: kortene ligger under folden og lastes etter
+3,5 s-vinduet - ikke med i tallet (ekte overført vekt når man scroller: +~60 KB).
+Fragmentene: oktgraf.mork.html er 383 KB rå, 28 KB komprimert fra dev-serveren.
+
+Lighthouse tilgjengelighet (desktop, FØR målt med bolk 0-filene sjekket ut i samme server):
+skiskyting 96 -> 96 (uendret). trener 96 -> 94: prikkene i karusellen er 7 px treffflate og
+kapittelnummer/blå kick har lav kontrast - forsidens egen design, identisk på xpulse.html. To
+funn som var mine (aria-label på div uten rolle, h3 rett etter h1) er rettet (role="figure",
+h2 «Trener-modulen i bruk» over raden). Prikkenes treffflate: lagt i kø.
+
+Skjermbilder: 12 sider × 390 lys, 390 mørk, 1440 (36 stk, hele sida) i scratchpad qa/; sjekket
+maskinelt: kortene spiller, alle fragmenter lastet, 0 brutte bilder, 0 px horisontal overflyt,
+ingen console-feil på noen side i noen kontekst. forside-e2e grønn.

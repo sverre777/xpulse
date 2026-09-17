@@ -41,8 +41,11 @@ export default function TrenerPage() {
       <LandingSnarvei punkter={SNARVEIER} />
 
       {/* Bolk 3 (17. sep): HELE trener-raden - fem scener med forsidens karusell - under innledningen, ikke i stedet for den. */}
-      <section className="lp-us" id="scener" aria-label="Trener-modulen i bruk">
-        <div className="lp-us-inn full"><Scenerad /></div>
+      <section className="lp-us" id="scener" aria-labelledby="scener-h2">
+        <div className="lp-us-inn full">
+          <h2 id="scener-h2" style={{ marginBottom: 18 }}>TRENER-MODULEN I BRUK.</h2>
+          <Scenerad />
+        </div>
       </section>
 
       <LandingSeksjon

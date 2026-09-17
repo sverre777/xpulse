@@ -103,7 +103,7 @@ function enScene(tittel,element,opts){opts=opts||{};
   return forst.then(function(){return(!SCENER_ALLE[tittel]&&opts.fil)?lastScenefil('scener-'+opts.fil):null}).then(function(){var d=SCENER_ALLE[tittel];if(!d)throw new Error('enScene: fant ikke scenen «'+tittel+'»');
     var rolig=matchMedia('(prefers-reduced-motion: reduce)').matches;
     element.classList.add('sc-en-vert');
-    element.innerHTML='<article class="sc on sc-en" aria-label="'+tittel.toLowerCase()+'"><div class="sc-scene"></div><ul class="sc-steg">'+d.steg.map(function(t){return'<li><b>'+HAKE+'</b>'+t+'</li>'}).join('')+'</ul></article>';
+    element.innerHTML='<article class="sc on sc-en"><div class="sc-scene"></div><ul class="sc-steg">'+d.steg.map(function(t){return'<li><b>'+HAKE+'</b>'+t+'</li>'}).join('')+'</ul></article>';
     var kort=element.querySelector('.sc'),S=new Scene(d,kort.querySelector('.sc-scene')),steg=function(){return[].slice.call(kort.querySelectorAll('.sc-steg li'))};
     var spiller=false,ferdigId=null;
     function nullstill(){S.stopp();if(ferdigId){clearTimeout(ferdigId);ferdigId=null}if(S.d.rydd)S.d.rydd(S);S.render();steg().forEach(function(l){l.className=''});kort.classList.remove('sc-en-ferdig');spiller=false}

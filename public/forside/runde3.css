@@ -1678,3 +1678,102 @@
 .sc.sc-en .sc-steg{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px 22px;margin:0;padding:0 24px 22px}
 .sc.sc-en .sc-steg li{grid-template-columns:22px auto}
 @media (max-width:900px){.sc.sc-en .sc-scene{padding:14px 12px 10px}.sc.sc-en .sc-steg{display:flex;gap:8px 14px;padding:0 14px 16px}.sc.sc-en .sc-steg li{font-size:12px;grid-template-columns:16px auto;gap:6px}.sc.sc-en .sc-steg li b{width:16px;height:16px}.sc.sc-en .sc-steg li b svg{width:9px;height:9px}}
+
+/* ── SLIK SER DET FAKTISK UT v3 - scrolly (design/xpulse-faktisk-ut-v3-scrolly-design.html, 17. sep). Tegnerne er faktisk-ut.js, motoren scrolly.js ── */
+.sv{padding:96px 0 0}
+.sv-hode{padding-bottom:18px}
+.sv-hint{display:inline-flex;align-items:center;gap:8px;margin-top:18px;border:1px solid var(--line2);border-radius:999px;padding:8px 14px 8px 10px;font:700 11.5px/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:var(--card)}
+.sv-hint i{width:22px;height:22px;border-radius:999px;background:#FF4500;display:grid;place-items:center;color:#fff}
+.sv-hint svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;animation:svpil 1.6s ease-in-out infinite}
+@keyframes svpil{0%,100%{transform:translateY(-1px)}50%{transform:translateY(2px)}}
+
+.sv-scroll{position:relative}
+.sv-sticky{position:sticky;top:0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.sv-topp{flex:none;display:flex;align-items:center;justify-content:center;gap:14px;padding:22px 16px 6px;padding-top:var(--sv-topp,22px);min-height:64px;text-align:center}
+.sv-topp .nr{font:400 22px/1 'Bebas Neue',sans-serif;letter-spacing:.06em;color:#FF4500;min-width:34px}
+.sv-topp .tt{font:400 26px/1 'Bebas Neue',sans-serif;letter-spacing:.03em;color:var(--paper);transition:opacity .35s,transform .35s}
+.sv-topp .tt.bytt{opacity:0;transform:translateY(6px)}
+.sv-topp .enh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:6px 11px;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.sv-topp .enh svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8}
+.sv-stage{flex:1;position:relative;min-height:0}
+.sv-prikker{flex:none;display:flex;justify-content:center;gap:7px;padding:10px 0 16px}
+.sv-prikker i{width:8px;height:8px;border-radius:999px;background:var(--dim);opacity:.4;transition:width .4s cubic-bezier(.3,.7,.2,1),opacity .3s;position:relative;overflow:hidden;cursor:pointer;padding:0}
+/* Lastestrek som i karusellen: aktiv prikk blir en pille som fylles med scroll-framdriften i scenen */
+.sv-prikker i.on{width:64px;opacity:1;background:color-mix(in srgb,var(--dim) 35%,transparent)}
+.sv-prikker i.on:after{content:'';position:absolute;inset:0;width:calc(var(--p,0)*100%);background:#FF4500;border-radius:999px}
+.sv-prikkrad{flex:none;display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 0 14px}
+.sv-prikkrad .sv-prikker{padding:0}
+.sv-hopp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:7px 12px;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);background:var(--card);cursor:pointer}
+.sv-hopp:hover{color:var(--paper);border-color:var(--dim)}
+.sv-hopp svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Lag = ett rendret skjermbilde. Absolutt sentrert, skalert med --s */
+.sv-lag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--s,1));opacity:0;transition:opacity .5s ease;will-change:opacity;pointer-events:none}
+.sv-lag.inn{opacity:1}
+.sv-lag.pc{width:1320px}
+.sv-lag .fv-pc .fv-inn.fv-g,.sv-lag .fv-pc .fv-inn.fv-l{max-height:560px}
+.sv-lag .fv-tlf{width:390px;height:800px;padding:10px;border-radius:44px;max-width:none}
+.sv-lag .fv-mbody{padding:10px 10px 100px}
+.sv-lag .fv-pc{display:block;position:relative}
+.sv-lag .fv-mbody,.sv-lag .fv-pop,.sv-lag .fv-inn{scroll-behavior:auto}
+.sv-lag .fv-pop{scrollbar-width:none}
+/* Ingen utrop-kort fra v2 her */
+.sv .fv-call,.sv .fv-hint2{display:none}
+
+/* Utrop-kort v3: står i ro ved siden av telefonen, forsvinner ved scenebytte */
+.sv-call{position:absolute;width:236px;top:calc(50% + var(--hh,340px) * var(--y,0));transform:translateY(-50%) translateX(var(--dx,0)) rotate(var(--rot,0deg));background:var(--a-card,#15151B);border:1px solid var(--line2);border-left:3px solid #FF4500;border-radius:14px;padding:11px 14px 12px;box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:'Barlow Condensed',sans-serif;color:var(--a-ink,#F2F2F0);opacity:0;pointer-events:none;z-index:6;transition:opacity .4s ease,transform .6s cubic-bezier(.3,.7,.2,1)}
+.sv-call.v{right:calc(50% + var(--hv,160px) + 26px);--rot:-2deg;--dx:-14px}
+.sv-call.h{left:calc(50% + var(--hv,160px) + 26px);--rot:2deg;--dx:14px}
+.sv-call.vis{opacity:1;--dx:0px}
+.sv-call:after{content:'';position:absolute;top:50%;width:26px;height:1px;background:var(--line2)}
+.sv-call.v:after{right:-27px}.sv-call.h:after{left:-27px}
+.sv-call small{display:block;font:700 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#FF4500;margin-bottom:5px}
+.sv-call b{display:block;font:400 21px/1.05 'Bebas Neue',sans-serif;letter-spacing:.02em;margin-bottom:5px;color:var(--paper)}
+.sv-call p{font-size:12.5px;line-height:1.4;color:var(--dim)}
+.sv-call .tall{display:flex;gap:10px;margin-top:7px}
+.sv-call .tall span{display:flex;flex-direction:column;gap:2px;font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.sv-call .tall span b{font:400 18px/1 'Bebas Neue',sans-serif;color:#FF4500;margin:0}
+.sv-call .tall span b.g{color:#28A86E}
+/* PC-scener: kortene ligger over rammens nedre hjørner */
+.sv-stage.pc .sv-call.v{right:auto;left:max(8px,calc(50% - var(--hv,560px) - 20px))}
+.sv-stage.pc .sv-call.h{left:auto;right:max(8px,calc(50% - var(--hv,560px) - 20px))}
+.sv-stage.pc .sv-call:after{display:none}
+:root[data-tema="lys"] .sv-call{box-shadow:0 18px 50px rgba(20,20,40,.18)}
+
+/* Etter scrollen */
+.sv-etter{padding:26px 0 20px}
+.sv-etter .fv-fork{margin-top:0}
+.sv-scenestripe{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.sv-scenestripe span{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:999px;padding:6px 11px;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.sv-scenestripe span b{color:#FF4500;font-weight:700}
+
+@media (max-width:900px){
+  .sv{padding:60px 0 0}
+  .sv-topp{padding:14px 12px 4px;padding-top:var(--sv-topp,14px);min-height:50px;gap:10px}
+  .sv-topp .tt{font-size:21px}
+  .sv-topp .enh{display:none}
+  .sv-call{width:172px;padding:9px 11px 10px}
+  .sv-call.v{right:auto;left:0;--rot:0deg;--dx:-10px}
+  .sv-call.h{left:auto;right:0;--rot:0deg;--dx:10px}
+  .sv-call:after{display:none}
+  .sv-call b{font-size:17px}.sv-call p{font-size:11.5px}
+  .sv-call .tall span b{font-size:16px}
+  /* PC-scener på mobil: ramma er liten, kortene legges under den i stedet for oppå */
+  .sv-stage.pc .sv-call.v{left:0;top:calc(50% + var(--hh,100px) + 16px);transform:none}
+  .sv-stage.pc .sv-call.h{right:0;top:calc(50% + var(--hh,100px) + 112px);transform:none}
+  .sv-prikker i.on{width:44px}
+  .sv-hopp{padding:6px 10px;font-size:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sv-lag,.sv-call,.sv-topp .tt{transition:none}
+    .sv-hint svg{animation:none}
+}
+
+/* v3-krav (Sverre 17. sep): på mobil skal GlassTopp («Dagbok · uke 38») og GlassLinje (Hjem · Plan · Dagbok ·
+   Analyse · Mer) være synlige i ALLE scener - også når dagen er åpnet. I prod åpner dagen inline i kalenderen;
+   her legges dagen som et ark INNE i rammen, under glass-toppen og over bunnlinja, uten scrim. Gjelder bare
+   scrolly-laget (.sv-lag) - forsidens gamle popup-stil røres ikke. */
+.sv-lag .fv-sk .fv-pop-scrim{display:none}
+.sv-lag .fv-sk .fv-pop{top:118px;bottom:78px;height:auto;max-height:none;border-radius:22px;border-top-width:1px;padding:14px 14px 18px;z-index:12;box-shadow:0 -10px 30px rgba(0,0,0,.35)}
+.sv-lag .fv-sk .fv-glass,.sv-lag .fv-sk .fv-bunn{z-index:30}
+.sv-lag .fv-sk .fv-plus{z-index:31}

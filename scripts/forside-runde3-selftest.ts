@@ -46,20 +46,20 @@ async function main() {
     ok('alle #-ankere peker på noe som finnes', ankre.length === 0, ankre.join(' '))
     ok('heroen: variant B, undertittel og piller', await p.evaluate(() => !!document.querySelector('h1.h7-b') && !!document.querySelector('.h7-sub') && getComputedStyle(document.querySelector('.h7 .btn.pri')!).borderRadius === '999px'))
 
-    // #inside bytter tilstand ved klikk
-    const st = () => p.evaluate(() => { const S = (window as unknown as { FV: { STATE: { vis: string; pc: { visning: string; modus: string }; mob: { visning: string; modus: string } } } }).FV.STATE; const s = S[S.vis as 'pc' | 'mob']; return `${S.vis}/${s.visning}/${s.modus}` })
-    ok('#inside starter pc/maned/grid', (await st()) === 'pc/maned/grid', await st())
-    await p.locator('#inside .fv-ytre [data-yvis="uke"]').first().click(); await p.waitForTimeout(300)
-    ok('klikk Uke -> uke', (await st()) === 'pc/uke/grid', await st())
-    await p.locator('#inside .fv-ytre [data-yvis="maned"]').first().click(); await p.locator('#inside .fv-ytre [data-ymodus="liste"]').first().click(); await p.waitForTimeout(300)
-    ok('klikk Måned + Liste -> maned/liste', (await st()) === 'pc/maned/liste', await st())
-    await p.locator('#inside .fv-ytre [data-v="mob"]').first().click(); await p.waitForTimeout(300)
-    ok('klikk Mobil -> mob (liste som standard)', (await st()) === 'mob/maned/liste', await st())
-    await p.locator('#inside .fv-ytre [data-v="pc"]').first().click(); await p.locator('#inside .fv-ytre [data-ymodus="grid"]').first().click(); await p.waitForTimeout(300)
-    await p.locator('#fv-pc [data-dag="2026-09-15"]').first().click(); await p.waitForTimeout(400)
-    ok('en dag åpner (tir 15. sep) med øktgraf og helsekort', await p.evaluate(() => { const b = document.querySelector('.fv-pop'); return !!b && /Tirsdag 15. september/.test(b.textContent!) && !!b.querySelector('.og') && /Hvilepuls/.test(b.textContent!) }))
-    await p.evaluate(() => (document.querySelector('.fv-pop .x') as HTMLElement).click()); await p.waitForTimeout(300)
-    ok('... og lukker', await p.evaluate(() => !document.querySelector('.fv-pop')))
+    // #inside v3 scrolly (17. sep): sju scener styrt av sidebla-en, telefonen står fast
+    const svTil = (i: number) => p.evaluate((i: number) => { const w = window as unknown as { SV: { SC: { vekt: number }[] } }; const r = document.getElementById('sv-scroll')!.getBoundingClientRect(); let acc = 0; for (let j = 0; j < i; j++) acc += w.SV.SC[j].vekt * .85 * innerHeight; window.scrollTo(0, scrollY + r.top + acc + w.SV.SC[i].vekt * .85 * innerHeight * .55) }, i)
+    ok('#inside: sju scener, sju prikker, hopp over-knapp', await p.evaluate(() => document.querySelectorAll('#sv-steg .sv-s').length === 7 && document.querySelectorAll('#sv-prikker i').length === 7 && !!document.getElementById('sv-hopp')))
+    await svTil(0); await p.waitForTimeout(700)
+    ok('scene 1: måned som liste på mobil, to kort', await p.evaluate(() => document.getElementById('sv-nr')!.textContent === '1' && !!document.querySelector('#sv-stage .sv-lag.inn.mob .fv-ml') && document.querySelectorAll('#sv-stage .sv-call.vis').length === 2))
+    await svTil(2); await p.waitForTimeout(900)
+    // (ingen navngitte hjelpefunksjoner inni evaluate - tsx setter inn __name som ikke finnes i sida)
+    ok('scene 3: dagen åpner inne i rammen (tir 15. sep) med øktgraf - glass-topp og bunnlinje står', await p.evaluate(`(() => { const lag = document.querySelector('#sv-stage .sv-lag.inn.mob'); const pop = lag && lag.querySelector('.fv-pop'); const sr = document.getElementById('sv-stage').getBoundingClientRect(); const inn = function (el) { if (!el) return false; const r = el.getBoundingClientRect(); return r.top >= sr.top - 2 && r.bottom <= sr.bottom + 2 }; const scrim = lag && lag.querySelector('.fv-pop-scrim'); return !!pop && /Tirsdag 15. september/.test(pop.textContent) && !!pop.querySelector('.og') && inn(lag.querySelector('.fv-glass')) && inn(lag.querySelector('.fv-bunn')) && (!scrim || getComputedStyle(scrim).display === 'none') })()`))
+    ok('scene 3: knapperaden bruker appens ikoner (hviledag, reisedag, sykdom, skade, recovery), ingen utkast-tegn', await p.evaluate(() => { const k = document.querySelector('#sv-stage .fv-pop .knapper'); return !!k && k.querySelectorAll('svg').length >= 7 && !/[⌖✓▶↗]/.test(k.textContent!) }))
+    await svTil(5); await p.waitForTimeout(900)
+    ok('scene 6: PC-rammen med månedsrutenettet', await p.evaluate(() => document.getElementById('sv-nr')!.textContent === '6' && !!document.querySelector('#sv-stage .sv-lag.inn.pc .fv-g')))
+    ok('den aktive prikken fylles med framdriften', await p.evaluate(() => { const v = parseFloat(document.querySelector('#sv-prikker i.on')!.getAttribute('style')!.replace(/.*--p:\s*([\d.]+).*/, '$1')); return v > 0.3 && v < 0.8 }))
+    await p.evaluate(() => (document.getElementById('sv-hopp') as HTMLElement).click()); await p.waitForTimeout(2500)   // sida ruller mykt (scroll-behavior: smooth)
+    ok('«Hopp over» går forbi scrollen', await p.evaluate(() => document.getElementById('sv-scroll')!.getBoundingClientRect().bottom <= innerHeight + 60))
 
     // karusellen: klikk på prikk 2 -> scene 2 aktiv
     for (const [pre, navn] of [['', 'flyt'], ['d', 'dflyt'], ['t', 'tflyt']]) {

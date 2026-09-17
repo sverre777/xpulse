@@ -1556,6 +1556,7 @@ section[id],header[id]{scroll-margin-top:108px}
 <script defer src="/forside/scener-flyt.js"></script>
 <script defer src="/forside/scener-detaljene.js"></script>
 <script defer src="/forside/faktisk-ut.js"></script>
+<script defer src="/forside/scrolly.js"></script>
 <script defer src="/forside/scener-trener.js"></script>
 
 <!-- ═══════════ FORSIDE v7 bolk 1: DU FORTJENER ÉN APP. IKKE TRE. - rett under heroen, scrolldrevet (bolk 0-motoren) ═══════════ -->
@@ -1573,39 +1574,26 @@ section[id],header[id]{scroll-margin-top:108px}
 
 
 <!-- ═══════════ NY SEKSJON: INNI APPEN ═══════════ -->
-<section class="fv" id="inside">
-  <div class="wrap">
+<section class="fv sv" id="inside">
+  <div class="wrap sv-hode">
     <div class="label">Inni appen - ekte flater, fiktive data</div>
     <h2>SLIK SER DET <span class="o">FAKTISK UT.</span></h2>
     <p class="lead">Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.</p>
+    <div class="sv-hint"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></i>Bla nedover - dagboken blar med</div>
+  </div>
 
-    <div class="fv-ytre">
-      <span class="fv-tag">Interaktiv</span>
-      <div class="fv-visbryter" role="tablist" aria-label="Velg enhet">
-        <button type="button" data-v="pc" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6"/></svg>PC</button>
-        <button type="button" data-v="mob"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 5h3"/></svg>Mobil</button>
-      </div>
-      <div class="fv-visbryter" role="tablist" aria-label="Velg visning">
-        <button type="button" data-yvis="uke">Uke</button>
-        <button type="button" data-yvis="maned" class="on">Måned</button>
-        <button type="button" data-yvis="aar">År</button>
-      </div>
-      <div class="fv-visbryter" id="fv-ymodus" role="tablist" aria-label="Kalender eller liste">
-        <button type="button" data-ymodus="grid" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M9 9v12M15 9v12"/></svg>Kalender</button>
-        <button type="button" data-ymodus="liste"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Liste</button>
-      </div>
+  <div class="sv-scroll" id="sv-scroll">
+    <div class="sv-sticky">
+      <div class="sv-topp"><span class="nr" id="sv-nr">1</span><span class="tt" id="sv-tt">Måned som liste</span><span class="enh" id="sv-enh"></span></div>
+      <div class="sv-stage" id="sv-stage"></div>
+      <div class="sv-prikkrad"><div class="sv-prikker" id="sv-prikker"></div><button type="button" class="sv-hopp" id="sv-hopp">Hopp over<svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></div>
     </div>
+    <div id="sv-steg"></div>
+  </div>
 
-    <div id="fv-pc" class="fv-pc" aria-label="Kalenderen i appen, PC"></div>
-    <div id="fv-mob" class="fv-mobwrap" aria-label="Kalenderen i appen, mobil"></div>
-    <div class="fv-fork">
-      <span class="f"><i class="fylt"></i>Fylt = gjennomført</span>
-      <span class="f"><i class="stip"></i>Stiplet = hentet fra planen</span>
-      <span class="fv-info-wrap">
-        <button type="button" class="fv-info" aria-label="Om visningen" aria-expanded="false">i</button>
-        <div class="fv-info-pop" role="tooltip"><p><b>Interaktiv.</b> Trykk på Uke, Måned eller År, bytt mellom kalender og liste i måneden, og trykk på en dag for å åpne den - akkurat som i dagboken. Der ser du dagens økter og helsekortet fra klokka. Knappene i dagen er bare til å se på her.</p><p><span class="f"><i class="puls"></i>Rød linje = puls fra klokka</span><span class="f"><i class="kant"></i>Kanten = intensiteten i økta</span><span class="f"><i class="per"></i>Stripen over uka = perioden, grønn rolig · gul medium · rød hard</span></p></div>
-      </span>
-    </div>
+  <div class="wrap sv-etter">
+    <div class="sv-scenestripe" id="sv-stripe"></div>
+    <div class="fv-fork"><p><b>Det du så:</b> dagboken i appen, i den rekkefølgen en utøver bruker den. Måneden som liste og som kalender, en dag åpnet med øktgrafen og helsekortet fra klokka, uka med begge øktene, og til slutt det samme på PC med hele året. Alt er samme data - kortene ved siden av peker bare på det som er på skjermen.</p><p><span class="f"><i class="fylt"></i>Fylt = gjennomført</span><span class="f"><i class="stip"></i>Stiplet = hentet fra planen</span><span class="f"><i class="puls"></i>Rød linje = puls fra klokka</span><span class="f"><i class="kant"></i>Kanten = intensiteten i økta</span><span class="f"><i class="per"></i>Stripen over uka = perioden, grønn rolig · gul medium · rød hard</span></p></div>
   </div>
 </section>
 

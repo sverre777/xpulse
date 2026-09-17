@@ -1,6 +1,7 @@
 'use client'
 
 import { useErMobilNav } from '@/lib/er-app'
+import { useEffect } from 'react'
 import { GlassTopp } from '@/components/layout/GlassTopp'
 import { ToppTittelPC } from '@/components/layout/ToppTittelPC'
 import Link from 'next/link'
@@ -45,6 +46,12 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
   const pathname = usePathname()
 
   const glassNav = useErMobilNav()
+  // PC-linja er sticky 52 px - samme --app-topp-h som MainNav/GlassTopp (hooken før tidlig retur).
+  useEffect(() => {
+    if (glassNav) return
+    document.documentElement.style.setProperty('--app-topp-h', '52px')
+    return () => { document.documentElement.style.removeProperty('--app-topp-h') }
+  }, [glassNav])
   if (glassNav) {
     return <><RollebytteSkjelett /><GlassTopp rolle="coach" userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} /></>
   }

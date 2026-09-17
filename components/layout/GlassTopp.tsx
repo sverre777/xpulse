@@ -9,7 +9,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { tittelForRute, useToppTittelOverstyring } from '@/lib/topp-tittel'
@@ -63,6 +63,13 @@ export interface GlassToppProps extends AvatarMenyProps {
 }
 
 export function GlassTopp(props: GlassToppProps) {
+  // Pillas høyde som ÉN CSS-variabel (som --xp-bunnlinje fra GlassLinje): alt som er
+  // sticky under topplinja (live styrkes teller) legger seg under den, aldri bak.
+  // 8 + 52 + 6 = 66 px pluss safe-area-top. PC-linja setter samme variabel i MainNav.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--app-topp-h', 'calc(env(safe-area-inset-top, 0px) + 66px)')
+    return () => { document.documentElement.style.removeProperty('--app-topp-h') }
+  }, [])
   const { rolle, userName, unreadInboxCount = 0, klokkesyncBadge, onSynk } = props
   const pathname = usePathname() ?? ''
   const sp = useSearchParams()

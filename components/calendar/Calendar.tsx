@@ -3079,8 +3079,8 @@ export function Calendar({
           I måneds-visning pinnes headeren øverst på mobil (mobil-listen);
           bakgrunn satt så innholdet ikke skinner gjennom under scroll. */}
       <div
-        className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3 ${view === 'måned' ? 'sticky top-[52px] z-20 md:static' : ''}`}
-        style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-3)' }}>
+        className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3 ${view === 'måned' ? 'sticky z-20 md:static' : ''}`}
+        style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-3)', top: view === 'måned' ? 'var(--app-topp-h, 0px)' : undefined }}>
         {/* View switcher + (måned, desktop) layout-toggle Kalender/Liste */}
         <div className="flex items-center gap-2 self-center md:self-auto">
           <div className="xp-seg-pill">

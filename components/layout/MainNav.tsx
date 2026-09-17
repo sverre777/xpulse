@@ -1,6 +1,7 @@
 'use client'
 
 import { useErMobilNav } from '@/lib/er-app'
+import { useEffect } from 'react'
 import { GlassTopp } from './GlassTopp'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -64,6 +65,14 @@ export function MainNav({
   const accent = iTrenerkontekst ? COACH_BLUE : ATHLETE_ORANGE
 
   const glassNav = useErMobilNav()
+  // PC-linja er sticky 52 px: samme variabel som GlassTopp setter på mobil (--app-topp-h),
+  // så sticky innhold under (live styrkes teller) vet hvor den skal ligge. Hooken står
+  // før den tidlige returen.
+  useEffect(() => {
+    if (glassNav) return
+    document.documentElement.style.setProperty('--app-topp-h', '52px')
+    return () => { document.documentElement.style.removeProperty('--app-topp-h') }
+  }, [glassNav])
   // Navigasjon v2 bolk 2: på app-mobil erstattes hele mobil-linja av glass-topplinja.
   if (glassNav) {
     return <><RollebytteSkjelett /><GlassTopp rolle={activeRole === 'coach' ? 'coach' : 'athlete'} userName={userName} hasAthleteRole={hasAthleteRole} hasCoachRole={hasCoachRole} hasCoachTier={hasCoachTier} unreadInboxCount={unreadInboxCount} klokkesyncBadge={klokkesyncBadge} /></>

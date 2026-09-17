@@ -134,7 +134,7 @@ export function LiveSessionView({
   // Tastaturets verdier for det aktive settet. rort = brukeren har trykket.
   const [tast, setTast] = useState<{ reps: string; kg: string; rort: boolean }>({ reps: '', kg: '', rort: false })
   // Bolk 8f: trykk på tallet i stepperen åpner et numerisk felt - skriver til SAMME tast-tilstand.
-  const [redigerer, setRedigerer] = useState<'reps' | 'kg' | null>(null)
+  const [redigerer, setRedigerer] = useState<'reps' | 'kg' | 'min' | null>(null)
   // Bolk 8c: «Bytt øvelse» - forrige/beste for navn som ikke var med ved lasting hentes her
   // og legges oppå propsene. PR-merker og «Beste» regnes mot det NYE navnet.
   const [ekstraLast, setEkstraLast] = useState<Record<string, LastSessionForExercise>>({})
@@ -213,8 +213,12 @@ export function LiveSessionView({
       if (!raa) return
       const speil = JSON.parse(raa) as StrengthExerciseRow[]
       if (Array.isArray(speil) && speil.length > 0 && forteSett(speil) > forteSett(initialExercises)) {
-        setExercises(speil.map((ex, ei) => ({ ...ex, id: ex.id || `sp-${ei}`, sets: (ex.sets ?? []).map((st, i) => ({ ...st, id: st.id || `sp-${ei}-${i}` })) })))
-        setDoneSets(new Set(speil.flatMap(ex => ex.sets.filter(st => st.reps.trim() || st.weight_kg.trim()).map(st => st.id))))
+        // Utsatt ett hakk (ikke synkront i effekten - react-hooks-linten): speilet leses
+        // tilbake rett etter mount, skrive-effekten over ser det i neste render.
+        void Promise.resolve().then(() => {
+          setExercises(speil.map((ex, ei) => ({ ...ex, id: ex.id || `sp-${ei}`, sets: (ex.sets ?? []).map((st, i) => ({ ...st, id: st.id || `sp-${ei}-${i}` })) })))
+          setDoneSets(new Set(speil.flatMap(ex => ex.sets.filter(st => st.reps.trim() || st.weight_kg.trim()).map(st => st.id))))
+        })
       }
     } catch { /* ugyldig speil ignoreres */ }
     finally { speilLest.current = true }
@@ -447,7 +451,12 @@ export function LiveSessionView({
             <p style={{ ...meta, margin: '6px 0 8px' }}>Fra start til nå, uten tida økta sto stoppet. Rett den om klokka gikk mens du var borte.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button type="button" onClick={() => setVarighetMin(v => String(Math.max(1, (num(v) ?? 0) - 5)))} style={stepKnapp} aria-label="5 minutter mindre">−5</button>
-              <div style={{ ...verdiBoks, flex: 1 }}><em style={verdiEm}>{varighetMin || '-'}</em><i style={verdiI}>min</i></div>
+              {/* Trykk på tallet = tastefelt (som 8f), samme varighetMin som stepperne, minst 1. */}
+              <div style={{ flex: 1 }}>
+                <TallBoks felt="min" enhet="min" verdi={varighetMin} rort redigerer={redigerer === 'min'} onApne={() => setRedigerer('min')}
+                  onLukk={() => { setRedigerer(null); setVarighetMin(v => String(Math.max(1, Math.round(num(v) ?? 0)))) }}
+                  onSkriv={v => setVarighetMin(v.replace(/[^0-9]/g, ''))} />
+              </div>
               <button type="button" onClick={() => setVarighetMin(v => String((num(v) ?? 0) + 5))} style={stepKnapp} aria-label="5 minutter mer">+5</button>
             </div>
           </div>
@@ -644,7 +653,7 @@ export function LiveSessionView({
  * ingen ny kilde. Boksen er fortsatt 52 px.
  */
 function TallBoks({ felt, enhet, verdi, rort, redigerer, onApne, onLukk, onSkriv }: {
-  felt: 'reps' | 'kg'; enhet: string; verdi: string; rort: boolean; redigerer: boolean
+  felt: 'reps' | 'kg' | 'min'; enhet: string; verdi: string; rort: boolean; redigerer: boolean
   onApne: () => void; onLukk: () => void; onSkriv: (v: string) => void
 }) {
   if (redigerer) {
@@ -830,7 +839,7 @@ function AddExerciseInline({ onAdd, onSupersett }: { onAdd: (name: string) => vo
 }
 
 // ── Stiler ───────────────────────────────────────────────
-const topp: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 10, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '8px 16px 12px' }
+const topp: React.CSSProperties = { position: 'sticky', top: 'var(--app-topp-h, 0px)', zIndex: 10, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '8px 16px 12px' }
 const ikonKnapp: React.CSSProperties = { background: 'none', border: 'none', color: 'var(--tekst-5-app)', minWidth: 36, minHeight: 36, fontSize: 17, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
 const kort: React.CSSProperties = { background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: 14, marginBottom: 12 }
 const kortH3: React.CSSProperties = { margin: 0, fontFamily: BEBAS, fontSize: 18, letterSpacing: '0.03em', fontWeight: 400, color: 'var(--tekst-1-app)' }

@@ -73,7 +73,7 @@ begin
     return jsonb_build_object('error', 'Økta er allerede flettet med en synket økt'); 
   end if; 
  
-  -- KRAV 2: backup som FØRSTE steg, før noe endres. 
+  /* KRAV 2: backup som FØRSTE steg, før noe endres. */ 
   select coalesce(array_agg(id), '{}') into v_maal_akt 
     from public.workout_activities where workout_id = p_maal; 
   select coalesce(array_agg(id), '{}') into v_kilde_akt 
@@ -111,10 +111,10 @@ begin
   update public.workouts set merge_backup = v_backup 
     where id = p_kilde; 
  
-  -- Modus-spesifikt. 
+  /* Modus-spesifikt. */ 
   if p_modus = 'legg_bak' then 
-    -- Økta di er sjefen: radene urørt. Inn: puls, totaltid 
-    -- (klokka VINNER), soner på øktnivå. 
+    /* Økta di er sjefen: radene urørt. Inn: puls, totaltid */ 
+    /* (klokka VINNER), soner på øktnivå. */ 
     update public.workouts set 
       avg_heart_rate = v_kilde.avg_heart_rate, 
       max_heart_rate = v_kilde.max_heart_rate, 
@@ -131,26 +131,26 @@ begin
            coalesce((s->>'sort_order')::int, 0) 
       from jsonb_array_elements(coalesce(p_soner, '[]'::jsonb)) s; 
   else 
-    -- Bytt ut: klokkas rader ERSTATTER målets — ved eierbytte. 
-    -- Målets originalrader PARKERES på den konsumerte (skjulte) 
-    -- kilden med alle barn intakt; klokkas rader flyttes inn. 
-    -- Tags, skjema-data, økttype, tittel, notater røres ALDRI 
-    -- (de henger på workout_id = p_maal og flyttes ikke). 
-    -- SKYTING-rader er skjema-data, ikke runder (fasit: «Notater, 
-    -- følelse, skyting og tags står») — de fredes og blir stående 
-    -- på målet med seriene sine. Angringen tåler det: radene står 
-    -- i maal_aktivitet_ids og er allerede hjemme. 
-    -- STYRKE (fase 132, styrke bolk 6c): styrkerader er brukerens sett og 
-    -- reps, ikke runder - de fredes pa linje med skyteradene og blir 
-    -- staende pa malet med ovelsene sine. Klokkas runder legges ved siden. 
+    /* Bytt ut: klokkas rader ERSTATTER målets - ved eierbytte. */ 
+    /* Målets originalrader PARKERES på den konsumerte (skjulte) */ 
+    /* kilden med alle barn intakt; klokkas rader flyttes inn. */ 
+    /* Tags, skjema-data, økttype, tittel, notater røres ALDRI */ 
+    /* (de henger på workout_id = p_maal og flyttes ikke). */ 
+    /* SKYTING-rader er skjema-data, ikke runder (fasit: «Notater, */ 
+    /* følelse, skyting og tags står») - de fredes og blir stående */ 
+    /* på målet med seriene sine. Angringen tåler det: radene står */ 
+    /* i maal_aktivitet_ids og er allerede hjemme. */ 
+    /* STYRKE (fase 132, styrke bolk 6c): styrkerader er brukerens sett og */ 
+    /* reps, ikke runder - de fredes på linje med skyteradene og blir */ 
+    /* stående på målet med øvelsene sine. Klokkas runder legges ved siden. */ 
     update public.workout_activities set workout_id = p_kilde 
       where id = any(v_maal_akt) 
         and activity_type not in ( 
           'skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 
           'skyting_innskyting', 'skyting_basis') 
         and coalesce(movement_name, '') <> 'Styrke'; 
-    -- Målt antall, ikke listelengde: skyting-radene over parkeres 
-    -- ikke, og returen skal si det som faktisk skjedde (én sannhet). 
+    /* Målt antall, ikke listelengde: skyting-radene over parkeres */ 
+    /* ikke, og returen skal si det som faktisk skjedde (én sannhet). */ 
     get diagnostics v_n_park = row_count; 
     update public.workout_activities set workout_id = p_maal 
       where id = any(v_kilde_akt); 
@@ -170,9 +170,9 @@ begin
       where id = p_maal; 
   end if; 
  
-  -- Begge moduser: pulskurve/samples og PROVENIENS følger målet. 
-  -- Strava-merkingen i imported_activities flytter MED (regel 2: 
-  -- AI/ML-filteret ser den på målet). 
+  /* Begge moduser: pulskurve/samples og PROVENIENS følger målet. */ 
+  /* Strava-merkingen i imported_activities flytter MED (regel 2: */ 
+  /* AI/ML-filteret ser den på målet). */ 
   update public.workout_samples set workout_id = p_maal 
     where workout_id = p_kilde; 
   get diagnostics v_n_samples = row_count; 
@@ -180,7 +180,7 @@ begin
     where workout_id = p_kilde; 
   get diagnostics v_n_prov = row_count; 
  
-  -- Kilden konsumeres: skjult, aldri slettet. 
+  /* Kilden konsumeres: skjult, aldri slettet. */ 
   update public.workouts set 
     merged_into_workout_id = p_maal, 
     merge_mode = p_modus, 

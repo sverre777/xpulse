@@ -180,11 +180,25 @@ function liste(mob){
 var VALGT='2026-09-15';
 function detaljGraf(o){var c=oktgrafOppsett(o);c.still=true;c.chips=false;c.knapper=false;c.mob=true;c.PH=76;c.TOPP=72;c.akse=3;c.klasse='fv-og fv-og-liten';
   return tegnOktgraf(c)}
-/* Styrke-grafen fra design/xpulse-styrke-design.html (UTKAST): sett som grå blokker, høyde = kg, tall = reps, klamme = øvelse */
-function styrkeGraf(o){var W=320,H=130,x=6,s='',maks=0;o.sett.forEach(function(e){e[1].forEach(function(st){maks=Math.max(maks,st[1])})});var bw=20,gap=3,ovgap=13;
-  o.sett.forEach(function(e){var x0=x;e[1].forEach(function(st,i){var bh=Math.max(14,st[1]/maks*(H-44));s+='<rect x="'+x+'" y="'+(H-26-bh)+'" width="'+bw+'" height="'+bh+'" rx="2" fill="'+Z.S+'"'+(e[2]&&i===2?' stroke="#D4A017" stroke-width="1.5"':'')+'/><text x="'+(x+bw/2)+'" y="'+(H-26-bh+11)+'" text-anchor="middle" font-size="8.5" font-weight="700" fill="#F0F0F2" font-family="Barlow Condensed,sans-serif">'+st[0]+'</text>';x+=bw+gap;if(i<2)s+='<rect x="'+(x-gap)+'" y="'+(H-29)+'" width="'+gap+'" height="3" fill="'+Z.P+'"/>'});
-    var x1=x-gap;s+='<path d="M'+x0+' '+(H-20)+'v4h'+(x1-x0)+'v-4" fill="none" stroke="var(--a-mute)" stroke-width="1"/><text x="'+((x0+x1)/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="var(--a-mut)" font-family="Barlow Condensed,sans-serif">'+e[0]+' · '+e[1][0][1]+' kg</text>';x+=ovgap});
-  return'<svg class="fv-graf" viewBox="0 0 '+W+' '+H+'">'+s+'</svg><div class="fv-graf-ak"><span style="color:#D4A017">◯ PR i settet</span><span>hvile</span></div>'}
+/* Settgrafen - SAMME utlegg som appens settrad (lib/styrke-graf.leggUtSett + components/workout/StyrkeRad, styrke bolk 4):
+   sett som blokker i styrkegrått (aldri sonefarger), høyde = kg mot maks kg, bredde = tid etter enhetene
+   sett 2,2 / hvile 0,8 / mellomrom 1,2, tallet i blokka = reps, kg-etikett nederst når blokka er høy nok,
+   hvile i pausegrå, øvelsen som klamme under, kroppsvekt = fast lav høyde (0,2), gull ring = PR i settet.
+   HTML-blokker, ikke SVG: tallene skal ikke strekkes. Forside-illustrasjon - data fra STYRKE_SETT. */
+var SG_GRAA='#6E6E78',SG_HVILE='#43434B',SG_GULL='#D4A017',SG_FONT="'Barlow Condensed',sans-serif";
+function styrkeGraf(o){var H=64,BUNN=22,ES=2.2,EH=0.8,EO=1.2,ov=o.sett,maks=0,tot=0,n=0;
+  ov.forEach(function(e){e[1].forEach(function(st){maks=Math.max(maks,st[1]);n++});tot+=e[1].length*ES+Math.max(0,e[1].length-1)*EH});tot+=Math.max(0,ov.length-1)*EO;
+  var pct=function(u){return (u/tot*100).toFixed(3)+'%'},t=0,s='';
+  s+='<span style="position:absolute;left:0;top:-14px;font-family:'+SG_FONT+';font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--a-mut);white-space:nowrap">Styrke · '+n+' sett</span>';
+  s+='<div style="position:absolute;left:0;width:100%;top:0;height:'+H+'px;border-radius:4px;background:'+SG_GRAA+'24;border:1px solid '+SG_GRAA+'"></div>';
+  ov.forEach(function(e,oi){var fra=t;e[1].forEach(function(st,i){var kg=st[1],reps=st[0],andel=kg>0&&maks>0?Math.max(.12,kg/maks):.2,h=Math.max(8,Math.round(andel*H)),pr=e[2]&&i===e[1].length-1;
+      s+='<div class="fv-sg-sett" data-pr="'+(pr?1:0)+'" style="position:absolute;left:'+pct(t)+';width:'+pct(ES)+';bottom:'+BUNN+'px;height:'+h+'px;border-radius:3px;background:'+SG_GRAA+';opacity:.92;display:flex;flex-direction:column;align-items:center;justify-content:space-between;overflow:hidden;box-sizing:border-box'+(pr?';outline:1.6px solid '+SG_GULL+';outline-offset:1px':'')+'">'
+        +'<span style="font-family:'+SG_FONT+';font-size:10.5px;font-weight:600;color:#F0F0F2;line-height:1;margin-top:2px">'+reps+'</span>'
+        +(kg>0&&andel*H>=26?'<span style="font-family:'+SG_FONT+';font-size:9px;color:rgba(255,255,255,.62);line-height:1;margin-bottom:2px">'+String(kg).replace('.',',')+'</span>':'')+'</div>';
+      t+=ES;if(i<e[1].length-1){s+='<div class="fv-sg-hvile" style="position:absolute;left:'+pct(t)+';width:'+pct(EH)+';bottom:'+BUNN+'px;height:7px;border-radius:2px;background:'+SG_HVILE+'"></div>';t+=EH}});
+    s+='<div class="fv-sg-klamme" style="position:absolute;left:'+pct(fra)+';width:'+pct(t-fra)+';top:'+(H+5)+'px;border-top:1px solid var(--a-mute);text-align:center;font-family:'+SG_FONT+';font-size:10.5px;letter-spacing:.04em;color:var(--a-mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:3px">'+e[0]+'</div>';
+    if(oi<ov.length-1)t+=EO});
+  return'<div class="fv-settgraf" data-sett="'+n+'" style="position:relative;height:'+(H+BUNN)+'px;margin:20px 0 4px">'+s+'</div><div class="fv-graf-ak"><span style="color:'+SG_GULL+'">◯ PR i settet</span><span>hvile</span></div>'}
 function oktkort(o){var st=o.sp==='Styrke';
   var nk=o.ok?(st?[['Tonnasje',(Math.round(o.kg/100)/10).toString().replace('.',',')+' t'],['Belastning',o.tss||38],['Opplevd',(o.rpe||6)+'/10'],['Varighet',tidT(o.dur)]]:[['Snittpuls',o.puls||(o.z[3]+o.z[4]+o.z[5]>15?152:134)],['I3-tid',(o.z[3])+' min'],['Belastning',(o.tss||Math.round(o.dur*.8))+' TSS'],['Opplevd',(o.rpe||5)+'/10']])
     :[['Varighet',tidT(o.dur)],['I'+(o.z[5]>=5?5:o.z[4]>=10?4:o.z[3]>=20?3:1)+'-tid',(o.z[5]>=5?o.z[5]:o.z[4]>=10?o.z[4]:o.z[3]>=20?o.z[3]:o.z[1])+' min'],[o.plan?'Skyting':'Distanse',o.plan?o.plan+' skudd':(o.km||0)+' km'],['Distanse',(o.km||0)+' km']];

@@ -34,7 +34,7 @@ import {
   paceFromDistanceDuration, type PaceUnit,
 } from '@/lib/pace-utils'
 import { presetsForCategory } from '@/lib/exercise-presets'
-import { searchStandardExercises } from '@/lib/standard-exercises'
+import { searchStandardExercises, STANDARD_EXERCISES, MUSKELGRUPPE_VALG } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { shootingSummary, SHOOTING_TYPES_V2, POSISJONSSTYRTE_SKYTETYPER, skytetypeAvPosisjoner } from '@/lib/shooting'
 import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
@@ -1754,6 +1754,11 @@ function ExerciseBlock({
 
   const besteTekst = fmtBeste(beste ?? undefined)
   const harNavn = exercise.exercise_name.trim() !== ''
+  // Bolk 7b: en NY egen øvelse (ikke i eget bibliotek, ikke i standardbiblioteket)
+  // får velge muskelgruppe når den opprettes - «Ukjent» er gyldig og forvalgt.
+  // Bare ved føring: planlagring lærer ikke biblioteket.
+  const navnNorm = exercise.exercise_name.trim().toLowerCase()
+  const nyEgen = !planMode && harNavn && !libraryNames.has(navnNorm) && !STANDARD_NAVN.has(navnNorm)
   // Plan: «Sett like? 3 × 6 × 105» når alle settene er fylt likt.
   const like = planMode && exercise.sets.length > 1 && exercise.sets.every(s => s.reps.trim() && s.reps === exercise.sets[0].reps && s.weight_kg === exercise.sets[0].weight_kg)
   const kol = visTid ? '26px 1fr 1fr 1fr 44px 62px' : '26px 1fr 1fr 44px 62px'
@@ -1781,6 +1786,16 @@ function ExerciseBlock({
           {onMove && <button type="button" className="xp-pill xp-pill-ghost" style={pillLitenStyrke} onClick={() => onMove(1)}>▼ Ned</button>}
           {!harTid && <button type="button" className="xp-pill xp-pill-ghost" style={pillLitenStyrke} onClick={() => setVisTidValg(v => !v)}>{visTidValg ? 'Skjul tid' : 'Tid (hold)'}</button>}
           <button type="button" className="xp-pill xp-pill-ghost" style={{ ...pillLitenStyrke, color: '#E23A5A' }} onClick={onDelete}>Slett øvelse</button>
+        </div>
+      )}
+
+      {nyEgen && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '0 14px 10px' }} data-styrke-ny-egen>
+          <span style={{ fontFamily: STYRKE_FONT, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>Ny øvelse · muskelgruppe</span>
+          <select value={exercise.kategori ?? 'ukjent'} onChange={e => onUpdate({ kategori: e.target.value })} data-styrke-muskelgruppe aria-label="Muskelgruppe for ny øvelse"
+            style={{ height: 30, borderRadius: 999, border: '1px solid var(--line2)', background: 'var(--card2)', color: 'var(--tekst-1-app)', fontFamily: STYRKE_FONT, fontSize: 12.5, padding: '0 10px' }}>
+            {MUSKELGRUPPE_VALG.map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
+          </select>
         </div>
       )}
 
@@ -1849,6 +1864,7 @@ function ExerciseBlock({
   )
 }
 
+const STANDARD_NAVN = new Set(STANDARD_EXERCISES.map(e => e.name.trim().toLowerCase()))
 const chipStyrke: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 5, height: 26, padding: '0 10px', borderRadius: 999, border: '1px solid var(--line2)', fontFamily: STYRKE_FONT, fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--tekst-5-app)', background: 'var(--card2)' }
 const pillLitenStyrke: React.CSSProperties = { minHeight: 30, padding: '0 11px', fontSize: 11.5, letterSpacing: '0.06em' }
 const settknappStyrke: React.CSSProperties = { height: 36, borderRadius: 999, border: 0, background: '#FF4500', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: STYRKE_FONT, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', padding: '0 4px', whiteSpace: 'nowrap', cursor: 'pointer' }

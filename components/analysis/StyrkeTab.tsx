@@ -12,8 +12,8 @@ import {
 } from 'recharts'
 import type { StyrkeAnalyse } from '@/app/actions/styrke-analyse'
 import {
-  ovelseOverTid, styrkePerUke, fordeling, periodeTall, PR_TYPE_NAVN, normOvelse,
-  type OvelseOktPunkt, type PrHendelse, type PrType,
+  ovelseOverTid, styrkePerUke, fordeling, periodeTall, PR_TYPE_NAVN, normOvelse, settPerOkt,
+  type OvelseOktPunkt, type PrHendelse, type PrType, type OktMedSett,
 } from '@/lib/styrke-pr'
 import { STANDARD_EXERCISE_CATEGORIES } from '@/lib/standard-exercises'
 import { ChartWrapper } from './ChartWrapper'
@@ -60,7 +60,7 @@ function bruk(data: StyrkeAnalyse, range: DateRange) {
     naa: periodeTall(data.sett, data.pr, varighet, range.from, range.to),
     for: periodeTall(data.sett, data.pr, varighet, forrige.from, forrige.to),
     uker: styrkePerUke(inn, varighet),
-    ford: fordeling(inn),
+    ford: fordeling(inn, data.egneKategorier),
     prInn: data.pr.filter(h => h.date >= range.from && h.date <= range.to),
   }
 }
@@ -192,7 +192,50 @@ export function OvelseGraf({ data, range, initialConfig }: { data: StyrkeAnalyse
           </ResponsiveContainer>
         </div>
       )}
+      {harVerdi && <SettForSett okter={settPerOkt(data.sett, ovelse).filter(o => o.date >= range.from && o.date <= range.to)} punkter={punkter} prType={PR_FOR_VARIABEL[variabel]} />}
     </ChartWrapper>
+  )
+}
+
+/**
+ * Bolk 7a: sett for sett under «Øvelse over tid» - én kolonne per økt (samme
+ * rekkefølge og samme x-plassering som punktene: YAxis 48 px til venstre, 8 px
+ * marg til høyre, kategoriaksen deler bredden likt). Høyde = kg (mot maks kg i
+ * utvalget), tallet = reps, gull ring rundt PR-økta. Da ser man om framgangen
+ * kom fra vekt, reps eller flere sett. Kroppsvekt (uten kg) tegnes lavt, hold
+ * (sekunder) viser «45 s».
+ */
+function SettForSett({ okter, punkter, prType }: { okter: OktMedSett[]; punkter: (OvelseOktPunkt & { label: string })[]; prType?: PrType }) {
+  if (okter.length === 0) return null
+  const H = 56
+  const erPr = (id: string) => { const p = punkter.find(x => x.workout_id === id); return p ? (p.pr.length > 0 && (prType ? p.pr.includes(prType) : true)) : false }
+  return (
+    <div data-sett-for-sett={okter.length} style={{ padding: '6px 8px 0 48px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${okter.length}, minmax(0, 1fr))`, alignItems: 'end' }}>
+        {okter.map(o => {
+          const pr = erPr(o.workout_id)
+          return (
+            <div key={o.workout_id} data-sfs-okt={o.workout_id} data-pr={pr ? '1' : '0'} title={`${fmtDato(o.date)} · ${o.sett.length} sett`}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 2, height: H + 18, padding: '14px 3px 2px', margin: '0 2px',
+                borderRadius: 10, outline: pr ? `1.5px solid ${GULL}` : 'none', outlineOffset: -1, minWidth: 0 }}>
+              {o.sett.map(st => {
+                const andel = st.vekt != null && o.maksVekt > 0 ? st.vekt / o.maksVekt : (st.reps != null || st.varighetSek != null ? 0.18 : 0)
+                const h = andel > 0 ? Math.max(4, Math.round(andel * H)) : 0
+                const tall = st.reps != null ? String(st.reps) : st.varighetSek != null ? `${st.varighetSek} s` : ''
+                return (
+                  <div key={st.set_number} data-sfs-sett data-kg={st.vekt ?? ''} data-reps={st.reps ?? ''} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, flex: '1 1 0', minWidth: 0, maxWidth: 22 }}>
+                    <span style={{ fontFamily: FONT, fontSize: 10, lineHeight: '12px', color: 'var(--tekst-5-app)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{tall}</span>
+                    <span style={{ display: 'block', width: '100%', height: h, minHeight: h === 0 ? 1 : undefined, borderRadius: '3px 3px 1px 1px',
+                      background: h === 0 ? 'var(--kant-3)' : pr ? GULL : 'var(--tekst-10, #8a8f98)', opacity: h === 0 ? 0.6 : 0.85 }} />
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+      <p style={{ fontFamily: FONT, fontSize: 11, color: 'var(--tekst-8-app)', margin: '6px 0 0' }}>Sett for sett · høyde = kg · tall = reps · <span style={{ color: GULL }}>ring</span> = PR-økta</p>
+    </div>
   )
 }
 
@@ -219,7 +262,8 @@ function Muskelgrupper({ ford }: { ford: ReturnType<typeof fordeling> }) {
   if (ford.grupper.length === 0) return null
   const rader = ford.grupper.map(g => ({ navn: GRUPPE_NAVN.get(g.key) ?? g.key, sett: g.sett }))
   return (
-    <ChartWrapper chartKey="styrke_muskelgrupper" title="Fordeling per muskelgruppe" subtitle="Sett i perioden · gruppe fra standardbiblioteket (egne øvelser = ukjent)" height={Math.max(220, 34 * rader.length + 40)}>
+    <div data-muskelgrupper={ford.grupper.map(g => `${g.key}:${g.sett}`).join(',')}>
+    <ChartWrapper chartKey="styrke_muskelgrupper" title="Fordeling per muskelgruppe" subtitle="Sett i perioden · gruppe fra standardbiblioteket, egne øvelser etter muskelgruppen du valgte (ellers ukjent)" height={Math.max(220, 34 * rader.length + 40)}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={rader} layout="vertical" margin={{ top: 4, right: 16, bottom: 0, left: 8 }}>
           <CartesianGrid stroke={CHART_GRID} horizontal={false} />
@@ -230,6 +274,7 @@ function Muskelgrupper({ ford }: { ford: ReturnType<typeof fordeling> }) {
         </BarChart>
       </ResponsiveContainer>
     </ChartWrapper>
+    </div>
   )
 }
 

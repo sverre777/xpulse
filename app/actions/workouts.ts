@@ -1,6 +1,7 @@
 'use server'
 
 import { planlagtStyrkePerOvelse } from '@/lib/live-styrke'
+import { erMuskelgruppeNokkel } from '@/lib/standard-exercises'
 import { flaggForOkt, MANGLER_DAGBOK_RETT } from '@/lib/target-user'
 import { revalidatePath, updateTag } from 'next/cache'
 import { medTid } from '@/lib/ytelse-tid'
@@ -197,13 +198,16 @@ async function learnUserExercises(
 ): Promise<void> {
   const now = new Date().toISOString()
   // Dedup per navn (siste verdier vinner). Unngår mange sekvensielle rundturer.
+  // Bolk 7b: category er MUSKELGRUPPE (valgt av brukeren når øvelsen opprettes,
+  // 'ukjent' er gyldig) - ikke lenger øktas underkategori. Settes bare ved
+  // insert; en øvelse som alt finnes får aldri kategorien overskrevet.
   const byName = new Map<string, { category: string | null; reps: number | null; weight: number | null }>()
   for (const a of activities) {
     if (a.movement_name !== 'Styrke') continue
-    const category = a.movement_subcategory || null
     for (const ex of a.exercises ?? []) {
       const name = ex.exercise_name.trim()
       if (!name) continue
+      const category = erMuskelgruppeNokkel(ex.kategori) ? ex.kategori : null
       let defaultReps: number | null = null
       let defaultWeight: number | null = null
       for (let i = ex.sets.length - 1; i >= 0; i--) {
@@ -239,7 +243,6 @@ async function learnUserExercises(
     if (ex) {
       ops.push(
         supabase.from('user_exercises').update({
-          category: v.category,
           default_reps: v.reps,
           default_weight_kg: v.weight,
           times_used: (ex.times_used ?? 0) + 1,

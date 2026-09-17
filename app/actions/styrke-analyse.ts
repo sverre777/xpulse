@@ -9,6 +9,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { beregnPR, normOvelse, type StyrkeSett, type PrHendelse } from '@/lib/styrke-pr'
+import { erMuskelgruppeNokkel } from '@/lib/standard-exercises'
 
 export interface StyrkeAnalyse {
   harData: boolean
@@ -24,6 +25,8 @@ export interface StyrkeAnalyse {
   manuellePR: { subcategory: string | null; custom_label: string | null; value: number; unit: string; achieved_at: string }[]
   /** Sann når taket på 10 000 sett ble nådd — eldste historikk er da utenfor PR-grunnlaget. */
   takNaadd: boolean
+  /** Bolk 7b: muskelgruppe valgt på egne øvelser (nøkkel = normOvelse(navn), verdi = gruppe eller 'ukjent'). Gamle verdier (øktas underkategori) er filtrert bort. */
+  egneKategorier: Record<string, string>
 }
 
 const SIDE = 1000
@@ -101,9 +104,22 @@ export async function hentStyrkeAnalyse(targetUserId?: string): Promise<StyrkeAn
     .select('subcategory, custom_label, value, unit, achieved_at')
     .eq('user_id', userId).eq('sport', 'styrke').order('achieved_at', { ascending: false }).limit(50)
 
+  // Bolk 7b: brukerens egne muskelgrupper. Leses gjennom RLS - i trenerkontekst
+  // kan lista være tom (da gjelder standardbiblioteket / ukjent).
+  const { data: egneRader } = await supabase
+    .from('user_exercises')
+    .select('name, category')
+    .eq('user_id', userId)
+    .not('category', 'is', null)
+    .limit(500)
+  const egneKategorier: Record<string, string> = {}
+  for (const r of (egneRader ?? []) as { name: string; category: string | null }[]) {
+    if (erMuskelgruppeNokkel(r.category)) egneKategorier[normOvelse(r.name)] = r.category
+  }
+
   return {
     harData: sett.length > 0,
-    sett, varighetMin, ovelser,
+    sett, varighetMin, ovelser, egneKategorier,
     pr: beregnPR(sett),
     manuellePR: ((prRader ?? []) as { subcategory: string | null; custom_label: string | null; value: number | string; unit: string; achieved_at: string }[])
       .map(r => ({ subcategory: r.subcategory, custom_label: r.custom_label, value: Number(r.value), unit: r.unit, achieved_at: r.achieved_at })),

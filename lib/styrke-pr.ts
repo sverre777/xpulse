@@ -4,7 +4,7 @@
 // Estimert 1RM = Epley: vekt × (1 + reps / 30). Ingenting skrives til DB —
 // PR-er er beregning, ikke tabell (tillegget 6. sep).
 
-import { STANDARD_EXERCISES, type StandardExerciseCategory } from './standard-exercises'
+import { STANDARD_EXERCISES, erMuskelgruppeNokkel, type Muskelgruppe } from './standard-exercises'
 
 export interface StyrkeSett {
   workout_id: string
@@ -46,10 +46,37 @@ export function epley1RM(vekt: number, reps: number): number {
 
 export const normOvelse = (n: string) => n.trim().toLowerCase()
 
-/** Muskelgruppe/bevegelsesmønster fra standardbiblioteket (navn-match, ellers 'ukjent'). */
+/**
+ * Muskelgruppe: brukerens eget valg på egen øvelse vinner (bolk 7b, nøkkel =
+ * normOvelse(navn), verdi = muskelgruppe eller 'ukjent'), ellers navn-match i
+ * standardbiblioteket, ellers 'ukjent'. Gamle verdier i user_exercises.category
+ * (øktas underkategori) er ikke muskelgrupper og telles som ukjent.
+ */
 const KATEGORI_BY_NAVN = new Map(STANDARD_EXERCISES.map(e => [normOvelse(e.name), e.category]))
-export function muskelgruppeFor(ovelse: string): StandardExerciseCategory | 'ukjent' {
-  return KATEGORI_BY_NAVN.get(normOvelse(ovelse)) ?? 'ukjent'
+export function muskelgruppeFor(ovelse: string, egne?: Record<string, string>): Muskelgruppe {
+  const n = normOvelse(ovelse)
+  const egen = egne?.[n]
+  if (erMuskelgruppeNokkel(egen)) return egen
+  return KATEGORI_BY_NAVN.get(n) ?? 'ukjent'
+}
+
+export interface SettIOkt { set_number: number; reps: number | null; vekt: number | null; varighetSek: number | null }
+export interface OktMedSett { workout_id: string; date: string; sett: SettIOkt[]; /** Maks kg over hele øvelsen i utvalget - skalaen for høyden. */ maksVekt: number }
+/** Bolk 7a: sett for sett per økt for én øvelse, kronologisk (samme rekkefølge som ovelseOverTid). */
+export function settPerOkt(sett: StyrkeSett[], ovelse: string): OktMedSett[] {
+  const n = normOvelse(ovelse)
+  const per = new Map<string, OktMedSett>()
+  let maks = 0
+  for (const s of sett) {
+    if (normOvelse(s.ovelse) !== n) continue
+    const o = per.get(s.workout_id) ?? { workout_id: s.workout_id, date: s.date, sett: [], maksVekt: 0 }
+    o.sett.push({ set_number: s.set_number, reps: s.reps, vekt: s.vekt, varighetSek: s.varighetSek })
+    if (s.vekt != null && s.vekt > maks) maks = s.vekt
+    per.set(s.workout_id, o)
+  }
+  return [...per.values()]
+    .map(o => ({ ...o, maksVekt: maks, sett: o.sett.slice().sort((a, b) => a.set_number - b.set_number) }))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.workout_id.localeCompare(b.workout_id))
 }
 
 export interface OvelseOktPunkt {
@@ -160,10 +187,11 @@ export function styrkePerUke(sett: StyrkeSett[], varighetMin: Map<string, number
 }
 
 /** Fordeling per muskelgruppe (sett) og per øvelse (sett) i utvalget. */
-export function fordeling(sett: StyrkeSett[]): { grupper: { key: string; sett: number }[]; ovelser: { ovelse: string; sett: number; tonnasje: number }[] } {
+export function fordeling(sett: StyrkeSett[], egne?: Record<string, string>): { grupper: { key: string; sett: number }[]; ovelser: { ovelse: string; sett: number; tonnasje: number }[] } {
   const g = new Map<string, number>(), o = new Map<string, { ovelse: string; sett: number; tonnasje: number }>()
   for (const s of sett) {
-    g.set(muskelgruppeFor(s.ovelse), (g.get(muskelgruppeFor(s.ovelse)) ?? 0) + 1)
+    const mg = muskelgruppeFor(s.ovelse, egne)
+    g.set(mg, (g.get(mg) ?? 0) + 1)
     const k = normOvelse(s.ovelse); const r = o.get(k) ?? { ovelse: s.ovelse, sett: 0, tonnasje: 0 }
     r.sett += 1; r.tonnasje += s.vekt != null && s.reps != null ? s.vekt * s.reps : 0; o.set(k, r)
   }

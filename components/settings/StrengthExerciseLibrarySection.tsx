@@ -7,6 +7,7 @@ import {
 } from '@/app/actions/user-exercises'
 import type { UserExercise } from '@/lib/user-exercise-types'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { MUSKELGRUPPE_VALG, erMuskelgruppeNokkel, muskelgruppeLabel } from '@/lib/standard-exercises'
 
 interface Props {
   initial: UserExercise[]
@@ -167,9 +168,9 @@ function ExerciseRow({
             {item.name}
           </span>
           {item.category && (
-            <span className="text-xs tracking-widest uppercase"
+            <span className="text-xs tracking-widest uppercase" data-ovelse-kategori={item.category}
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              {item.category}
+              {muskelgruppeLabel(item.category) ?? item.category}
             </span>
           )}
         </div>
@@ -275,10 +276,14 @@ function ExerciseForm({
         </div>
 
         <div>
-          <Label>Kategori (valgfritt)</Label>
-          <input value={category} onChange={e => setCategory(e.target.value)}
-            placeholder="F.eks. Helkropp, Bein, Overkropp, Core"
-            style={iSt} />
+          <Label>Muskelgruppe</Label>
+          {/* Bolk 7b: velges når øvelsen opprettes; «Ukjent» er et gyldig valg. En gammel
+              fritekstverdi (øktas underkategori) står som eget valg til brukeren bytter. */}
+          <select value={category} onChange={e => setCategory(e.target.value)} style={iSt} data-ovelse-muskelgruppe>
+            {!isEdit && <option value="">Velg muskelgruppe</option>}
+            {isEdit && !erMuskelgruppeNokkel(category) && <option value={category}>{category ? `${category} (gammel verdi)` : 'Ikke satt'}</option>}
+            {MUSKELGRUPPE_VALG.map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
+          </select>
         </div>
 
         <div>

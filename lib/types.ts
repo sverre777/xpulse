@@ -773,6 +773,10 @@ export interface StrengthExerciseRow {
   // Fase 80: supersett-gruppe (øvelser med samme nr logges rundebasert).
   // null/undefined = vanlig øvelse. Settes i live økt-modus.
   superset_group?: number | null
+  // Styrke bolk 7b: muskelgruppe valgt når en NY egen øvelse opprettes fra
+  // skjemaet ('bein' … 'spesifikk' eller 'ukjent'). Brukes bare ved første
+  // lagring (insert i user_exercises) - aldri for øvelser som alt finnes.
+  kategori?: string | null
 }
 
 // Form-row — alle tall-felt som string for input-binding.

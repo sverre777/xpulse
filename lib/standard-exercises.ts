@@ -34,6 +34,21 @@ export const STANDARD_EXERCISE_CATEGORIES: { key: StandardExerciseCategory; labe
   { key: 'spesifikk', label: 'Utholdenhetsspesifikk' },
 ]
 
+/** Styrke bolk 7b: muskelgruppe på egne øvelser. «ukjent» er et gyldig valg (lagres som 'ukjent'). */
+export type Muskelgruppe = StandardExerciseCategory | 'ukjent'
+export const MUSKELGRUPPE_VALG: { key: Muskelgruppe; label: string }[] = [
+  ...STANDARD_EXERCISE_CATEGORIES,
+  { key: 'ukjent', label: 'Ukjent' },
+]
+const MUSKELGRUPPE_NOKLER = new Set<string>(MUSKELGRUPPE_VALG.map(v => v.key))
+/** Sann for de ti standardgruppene + 'ukjent'. Gamle verdier i user_exercises.category (øktas underkategori, f.eks. «Eksplosiv/Plyometri») er ikke muskelgrupper. */
+export function erMuskelgruppeNokkel(v: string | null | undefined): v is Muskelgruppe {
+  return v != null && MUSKELGRUPPE_NOKLER.has(v)
+}
+export function muskelgruppeLabel(v: string | null | undefined): string | null {
+  return erMuskelgruppeNokkel(v) ? (MUSKELGRUPPE_VALG.find(x => x.key === v)?.label ?? v) : null
+}
+
 export interface StandardExercise {
   name: string
   category: StandardExerciseCategory

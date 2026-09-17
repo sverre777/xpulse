@@ -498,6 +498,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
    like på PC; på mobil krymper etiketten og RPE så feltene faktisk får plass
    (Sverre 14. sep: «50» ble klippet). */
 .xp-settrad { grid-template-columns: 36px 1fr 1fr 1fr 60px 22px; }
+/* Styrke v2: grå forrige-verdier er input-plassholdere (aldri innhold) i --tekst-10 (fasit --spok). */
+.xp-styrke-felt::placeholder { color: var(--tekst-10); opacity: 1; }
 
 /* Intervallbyggerens drag-rad: antall × dragtid × sone / pause. Sone-velgeren
    trenger bare plass til «I3», og antall til to siffer - resten går til

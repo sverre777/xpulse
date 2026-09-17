@@ -30,7 +30,8 @@
     "live-styrke-e2e": "tsx scripts/live-styrke-e2e.ts",
     "formkart": "tsx scripts/formkart-selftest.ts",
     "formkart-e2e": "tsx scripts/formkart-e2e.ts",
-    "local-date": "tsx scripts/local-date-selftest.ts"
+    "local-date": "tsx scripts/local-date-selftest.ts",
+    "styrke-skjema-e2e": "tsx scripts/styrke-skjema-e2e.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

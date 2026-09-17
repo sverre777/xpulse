@@ -42,7 +42,9 @@ import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
-import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
+import { getLastSessionForExercises, getBesteForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
+import { fmtBeste, fmtKg, erPr, spokelse, type BesteForOvelse } from '@/lib/live-styrke'
+import { normOvelse } from '@/lib/styrke-pr'
 import type { UserExercise } from '@/lib/user-exercise-types'
 import {
   getUserMovementTypes, createUserMovementType,
@@ -1356,6 +1358,7 @@ function ActivityRowItem({
               exercises={row.exercises}
               onChange={ex => onUpdate({ exercises: ex })}
               category={row.movement_subcategory}
+              planMode={isPlanMode}
             />
           )}
 
@@ -1507,16 +1510,29 @@ function summarizeLastSession(ls: LastSessionForExercise): string {
   return `${sets.length} sett · ${reps}${allSameW ? wPart : ''}`
 }
 
+// ØVELSER-KORTET (styrke v2, fasit design/xpulse-styrke-design.html seksjon 1
+// + notatet). Samme kort i plan og dagbok - forskjellen er hva som står i
+// feltene: i plan skriver du målet, i dagbok ligger forrige GJENNOMFØRTE økts
+// tall grått som PLASSHOLDER (sett 1 mot sett 1, aldri planen, aldri snittet)
+// til du taster over dem. Plassholderen er input-ets placeholder og lagres
+// ALDRI - lagrer du uten å taste, blir settet stående tomt i basen (samme
+// regel som live styrke v2, motsatt av live-TASTATURET som lagrer aktivt
+// valg). «Før» på rada fyller plassholderen inn som ført (hvit); «Gjenta»
+// gjør det for hele øvelsen. Ny øvelse: «Ingen historikk ennå», aldri 0.
+// «Beste» = maks reps på tyngste vekt (maks_reps-PR), gull. Trenerens
+// visning er readOnly gjennom skjemaets fieldset - ingen nye lenker her.
 function StrengthEditor({
-  exercises, onChange, category,
+  exercises, onChange, category, planMode = false,
 }: {
   exercises: StrengthExerciseRow[]
   onChange: (ex: StrengthExerciseRow[]) => void
   category: string
+  planMode?: boolean
 }) {
   const [library, setLibrary] = useState<UserExercise[]>([])
-  // Forrige-økt per øvelsesnavn (lower). null = hentet, ingen historikk.
+  // Forrige-økt og beste per øvelsesnavn (normOvelse). null = hentet, ingen historikk.
   const [lastByName, setLastByName] = useState<Record<string, LastSessionForExercise | null>>({})
+  const [besteByName, setBesteByName] = useState<Record<string, BesteForOvelse | null>>({})
 
   useEffect(() => {
     let cancelled = false
@@ -1526,31 +1542,26 @@ function StrengthEditor({
     return () => { cancelled = true }
   }, [])
 
-  // Hent forrige-økt for øvelser vi ikke har slått opp ennå (debounced).
+  // Hent forrige-økt + beste for øvelser vi ikke har slått opp ennå (debounced).
   const exerciseNames = useMemo(
     () => exercises.map(e => e.exercise_name.trim()).filter(Boolean),
     [exercises],
   )
   useEffect(() => {
-    const missing = exerciseNames.filter(n => !(n.toLowerCase() in lastByName))
+    const missing = exerciseNames.filter(n => !(normOvelse(n) in lastByName))
     if (missing.length === 0) return
     let cancelled = false
     // Marker alle forsøkte navn som hentet (success ELLER feil) så vi ALDRI
-    // re-fyrer på samme navn — ellers kan en treg/feilende spørring gi en
-    // refire-loop som flommer serveren og gjør alt tregt.
-    const settle = (map: Record<string, LastSessionForExercise>) => {
+    // re-fyrer på samme navn - ellers kan en treg/feilende spørring gi en
+    // refire-loop som flommer serveren.
+    const settle = (last: Record<string, LastSessionForExercise>, beste: Record<string, BesteForOvelse>) => {
       if (cancelled) return
-      setLastByName(prev => {
-        const next = { ...prev }
-        for (const n of missing) {
-          const k = n.toLowerCase()
-          next[k] = map[k] ?? null
-        }
-        return next
-      })
+      setLastByName(prev => { const next = { ...prev }; for (const n of missing) next[normOvelse(n)] = last[normOvelse(n)] ?? null; return next })
+      setBesteByName(prev => { const next = { ...prev }; for (const n of missing) next[normOvelse(n)] = beste[normOvelse(n)] ?? null; return next })
     }
     const t = setTimeout(() => {
-      getLastSessionForExercises(missing).then(settle).catch(() => settle({}))
+      Promise.all([getLastSessionForExercises(missing), getBesteForExercises(missing)])
+        .then(([l, b]) => settle(l, b)).catch(() => settle({}, {}))
     }, 500)
     return () => { cancelled = true; clearTimeout(t) }
   }, [exerciseNames, lastByName])
@@ -1583,10 +1594,15 @@ function StrengthEditor({
     onChange(exercises.map(e => e.id === id ? { ...e, ...patch } : e))
   const deleteExercise = (id: string) =>
     onChange(exercises.filter(e => e.id !== id))
+  const moveExercise = (id: string, dir: -1 | 1) => {
+    const i = exercises.findIndex(e => e.id === id), j = i + dir
+    if (i < 0 || j < 0 || j >= exercises.length) return
+    const next = [...exercises]; [next[i], next[j]] = [next[j], next[i]]; onChange(next)
+  }
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
-      <div className="text-xs tracking-widest uppercase mb-3"
+    <div className="mt-3" data-styrke-editor style={{ padding: '2px 0 0' }}>
+      <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Øvelser
       </div>
@@ -1597,35 +1613,35 @@ function StrengthEditor({
         </p>
       )}
 
-      <div className="space-y-3">
-        {exercises.map(ex => (
+      {exercises.map((ex, idx) => {
+        const key = normOvelse(ex.exercise_name)
+        return (
           <ExerciseBlock key={ex.id}
             exercise={ex}
+            nr={idx + 1}
+            planMode={planMode}
             onUpdate={patch => updateExercise(ex.id, patch)}
             onDelete={() => deleteExercise(ex.id)}
+            onMove={idx > 0 || idx < exercises.length - 1 ? dir => moveExercise(ex.id, dir) : undefined}
             library={library}
             presets={presets}
             libraryNames={libraryNames}
-            lastSession={ex.exercise_name.trim() ? (lastByName[ex.exercise_name.trim().toLowerCase()] ?? null) : null}
+            lastSession={ex.exercise_name.trim() ? (lastByName[key] ?? null) : null}
+            lastHentet={!ex.exercise_name.trim() || key in lastByName}
+            beste={ex.exercise_name.trim() ? (besteByName[key] ?? null) : null}
           />
-        ))}
-      </div>
+        )
+      })}
 
       {presetQuickAdds.length > 0 && (
-        <div className="mt-3">
+        <div className="mt-1 mb-3">
           <div className="text-xs tracking-widest uppercase mb-1.5"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Foreslått
           </div>
           <div className="flex flex-wrap gap-1.5">
             {presetQuickAdds.map(name => (
-              <button key={name} type="button" onClick={() => addExercise(name)}
-                className="text-xs tracking-widest uppercase"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)',
-                  background: 'none', border: '1px solid var(--kant-5)',
-                  padding: '4px 10px', cursor: 'pointer',
-                }}>
+              <button key={name} type="button" onClick={() => addExercise(name)} className="xp-pill xp-pill-ghost" style={{ minHeight: 32, padding: '0 11px', fontSize: 11.5 }}>
                 {name}
               </button>
             ))}
@@ -1633,61 +1649,86 @@ function StrengthEditor({
         </div>
       )}
 
-      <button type="button" onClick={() => addExercise()}
-        className="mt-3 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
-          background: 'none', border: '1px dashed #FF4500', cursor: 'pointer', width: '100%',
-        }}>
-        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til øvelse
+      <button type="button" onClick={() => addExercise()} data-styrke-legg-til-ovelse
+        className="xp-pill" style={{ width: '100%', minHeight: 40, borderStyle: 'dashed', borderColor: '#FF4500', color: '#FF4500', background: 'none' }}>
+        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Øvelse
       </button>
     </div>
   )
 }
 
+const STYRKE_FONT = "'Barlow Condensed', sans-serif"
+const STYRKE_BEBAS = "'Bebas Neue', sans-serif"
+const GULL_STYRKE = '#D4A017'
+const num = (v: string): number | null => { const n = parseDecimal(v); return Number.isFinite(n) ? n : null }
+
 function ExerciseBlock({
-  exercise, onUpdate, onDelete, library, presets, libraryNames, lastSession,
+  exercise, nr, planMode, onUpdate, onDelete, onMove, library, presets, libraryNames, lastSession, lastHentet, beste,
 }: {
   exercise: StrengthExerciseRow
+  nr: number
+  planMode: boolean
   onUpdate: (patch: Partial<StrengthExerciseRow>) => void
   onDelete: () => void
+  onMove?: (dir: -1 | 1) => void
   library: UserExercise[]
   presets: string[]
   libraryNames: Set<string>
   lastSession: LastSessionForExercise | null
+  /** Usann mens oppslaget pågår - da vises ingen chip (verken «Sist» eller «Ingen historikk»). */
+  lastHentet: boolean
+  beste: BesteForOvelse | null
 }) {
+  const [meny, setMeny] = useState(false)
+  // Tid-kolonnen (isometriske hold: planke, henging) er ikke i fasitens
+  // 26/1fr/1fr/44/62-rutenett - den slås på fra ⋯, og er alltid på når
+  // et sett alt har tid ført, så ingenting skjules.
+  const harTid = exercise.sets.some(s => s.duration.trim() !== '')
+  const [visTidValg, setVisTidValg] = useState(false)
+  const visTid = harTid || visTidValg
+
   const updateSet = (id: string, patch: Partial<StrengthSetRow>) =>
     onUpdate({ sets: exercise.sets.map(s => s.id === id ? { ...s, ...patch } : s) })
 
-  // «Gjenta forrige»: fyll alle sett med forrige økts verdier på ett tap.
+  // Plassholderen for sett i: forrige økts sett i (ekstra sett står tomme).
+  const spok = (i: number) => {
+    if (planMode) return { reps: '', kg: '', tid: '' }
+    const sp = spokelse(lastSession ?? undefined, i)
+    const d = lastSession?.sets[i]?.duration_seconds
+    return { ...sp, tid: d != null ? String(d) : '' }
+  }
+  // «Før»: fyller plassholderen inn som ført på DENNE rada.
+  const forRad = (s: StrengthSetRow, i: number) => {
+    const sp = spok(i)
+    updateSet(s.id, {
+      reps: s.reps.trim() || sp.reps, weight_kg: s.weight_kg.trim() || sp.kg,
+      duration: s.duration.trim() || (visTid ? sp.tid : ''),
+    })
+  }
+  // «Gjenta»: hele øvelsen fra forrige økt, som ført (knappen fantes fra før).
   const repeatLast = () => {
     if (!lastSession || lastSession.sets.length === 0) return
     onUpdate({
       sets: lastSession.sets.map((s, i) => ({
         ...emptySet(i + 1),
         reps: s.reps != null ? String(s.reps) : '',
-        weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
+        weight_kg: s.weight_kg != null ? fmtKg(s.weight_kg) : '',
         duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
         rpe: s.rpe != null ? String(s.rpe) : '',
       })),
     })
   }
-  const addSet = () => {
-    const n = exercise.sets.length + 1
-    onUpdate({ sets: [...exercise.sets, emptySet(n)] })
-  }
-  const deleteSet = (id: string) => {
-    const next = exercise.sets.filter(s => s.id !== id)
-      .map((s, i) => ({ ...s, set_number: String(i + 1) }))
-    onUpdate({ sets: next })
+  const addSet = () => onUpdate({ sets: [...exercise.sets, emptySet(exercise.sets.length + 1)] })
+  const removeLastSet = () => {
+    if (exercise.sets.length <= 1) return
+    onUpdate({ sets: exercise.sets.slice(0, -1) })
   }
 
-  // Fyll inn default reps/vekt fra biblioteket — men bare hvis første sett
+  // Fyll inn default reps/vekt fra biblioteket - men bare hvis første sett
   // fortsatt er tomt (ikke overskriv det brukeren allerede har skrevet).
   const applyLibraryDefaults = (item: UserExercise) => {
     const first = exercise.sets[0]
-    const shouldFill =
-      !!first && !first.reps && !first.weight_kg && !first.rpe
+    const shouldFill = !!first && !first.reps && !first.weight_kg && !first.rpe
     const patch: Partial<StrengthExerciseRow> = { exercise_name: item.name }
     if (shouldFill && (item.default_reps != null || item.default_weight_kg != null)) {
       patch.sets = exercise.sets.map((s, i) => i === 0 ? {
@@ -1699,90 +1740,114 @@ function ExerciseBlock({
     onUpdate(patch)
   }
 
-  return (
-    <div style={{ border: '1px solid var(--kant-5)', backgroundColor: 'var(--kant-2)', padding: '10px' }}>
-      <div className="flex items-center gap-2 mb-2">
-        <ExerciseNameAutocomplete
-          value={exercise.exercise_name}
-          onChange={name => onUpdate({ exercise_name: name })}
-          onPickLibrary={applyLibraryDefaults}
-          library={library}
-          presets={presets}
-          libraryNames={libraryNames}
-        />
-        <button type="button" onClick={onDelete}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', padding: '0 6px' }}
-          title="Slett øvelse"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
-      </div>
+  const besteTekst = fmtBeste(beste ?? undefined)
+  const harNavn = exercise.exercise_name.trim() !== ''
+  // Plan: «Sett like? 3 × 6 × 105» når alle settene er fylt likt.
+  const like = planMode && exercise.sets.length > 1 && exercise.sets.every(s => s.reps.trim() && s.reps === exercise.sets[0].reps && s.weight_kg === exercise.sets[0].weight_kg)
+  const kol = visTid ? '26px 1fr 1fr 1fr 44px 62px' : '26px 1fr 1fr 44px 62px'
 
-      {/* Forrige-økt-hint på samme øvelse (nøkles på navn, kontekst-uavhengig)
-          + «Gjenta forrige» som fyller alle sett med forrige verdier på ett tap. */}
-      {lastSession && (
-        <div className="flex items-center gap-2 flex-wrap mb-2" style={{ marginTop: '-2px' }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-7)', fontSize: '12px', fontStyle: 'italic' }}>
-            Sist: {summarizeLastSession(lastSession)} ({daysAgoLabel(lastSession.date)})
-          </span>
-          <button type="button" onClick={repeatLast}
-            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80 inline-flex items-center gap-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', background: 'none', border: '1px solid #3A2418', padding: '2px 8px', cursor: 'pointer' }}>
-            <Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta forrige
-          </button>
+  return (
+    <div data-styrke-ovelse={exercise.exercise_name.trim() || undefined} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, marginBottom: 12, overflow: 'visible' }}>
+      <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px 9px' }}>
+        <span style={{ width: 24, height: 24, borderRadius: 999, background: 'var(--card2)', color: 'var(--tekst-8-app)', display: 'grid', placeItems: 'center', fontFamily: STYRKE_FONT, fontSize: 12, fontWeight: 700, flex: 'none' }}>{nr}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ExerciseNameAutocomplete
+            value={exercise.exercise_name}
+            onChange={name => onUpdate({ exercise_name: name })}
+            onPickLibrary={applyLibraryDefaults}
+            library={library}
+            presets={presets}
+            libraryNames={libraryNames}
+          />
+        </div>
+        <button type="button" onClick={() => setMeny(m => !m)} aria-label="Handlinger for øvelsen" aria-expanded={meny}
+          style={{ background: 'none', border: 0, color: 'var(--tekst-5-app)', minWidth: 36, minHeight: 36, fontSize: 17, cursor: 'pointer' }}>⋯</button>
+      </header>
+      {meny && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 10px' }} data-styrke-meny>
+          {onMove && <button type="button" className="xp-pill xp-pill-ghost" style={pillLitenStyrke} onClick={() => onMove(-1)}>▲ Opp</button>}
+          {onMove && <button type="button" className="xp-pill xp-pill-ghost" style={pillLitenStyrke} onClick={() => onMove(1)}>▼ Ned</button>}
+          {!harTid && <button type="button" className="xp-pill xp-pill-ghost" style={pillLitenStyrke} onClick={() => setVisTidValg(v => !v)}>{visTidValg ? 'Skjul tid' : 'Tid (hold)'}</button>}
+          <button type="button" className="xp-pill xp-pill-ghost" style={{ ...pillLitenStyrke, color: '#E23A5A' }} onClick={onDelete}>Slett øvelse</button>
         </div>
       )}
 
-      {/* Set rows - Tid-kolonnen er for isometriske hold (planke, statisk
-          muskeldraining). Bruker kan fylle reps/kg/tid uavhengig. */}
-      <div className="space-y-1.5">
-        <div className="grid gap-2 px-1 text-xs tracking-widest uppercase xp-settrad"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
-          }}>
-          <span>Sett</span>
-          <span>Reps</span>
-          <span>Vekt (kg)</span>
-          <span>Tid (s/m:ss)</span>
-          <span>RPE</span>
-          <span></span>
+      {harNavn && lastHentet && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', padding: '0 14px 11px' }} data-styrke-chips>
+          {besteTekst && <span style={{ ...chipStyrke, borderColor: 'rgba(212,160,23,.5)', color: GULL_STYRKE, background: 'rgba(212,160,23,.10)' }} data-styrke-beste>★ Beste <b style={{ color: GULL_STYRKE }}>{besteTekst}</b></span>}
+          {lastSession ? (
+            <span style={chipStyrke} data-styrke-sist>Sist <b style={{ color: 'var(--tekst-1-app)' }}>{summarizeLastSession(lastSession)}</b> · {daysAgoLabel(lastSession.date)}</span>
+          ) : (
+            <span style={chipStyrke} data-styrke-ingen-historikk>Ingen historikk ennå</span>
+          )}
+          {lastSession && !planMode && (
+            <button type="button" onClick={repeatLast} className="xp-pill xp-pill-ghost" style={pillLitenStyrke} data-styrke-gjenta>
+              <Ikon navn="gjenta-forrige" variant="strek" storrelse={14} /> Gjenta
+            </button>
+          )}
         </div>
-        {exercise.sets.map(s => (
-          <div key={s.id} className="grid gap-2 items-center xp-settrad">
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px', textAlign: 'center',
-            }}>{s.set_number}</span>
-            <input value={s.reps}
-              onChange={e => updateSet(s.id, { reps: e.target.value })}
-              inputMode="numeric" placeholder="-"
-              style={{ ...iSt, textAlign: 'center' }} />
-            <input value={s.weight_kg}
-              onChange={e => updateSet(s.id, { weight_kg: e.target.value })}
-              inputMode="decimal" placeholder="-"
-              style={{ ...iSt, textAlign: 'center' }} />
-            <input value={s.duration}
-              onChange={e => updateSet(s.id, { duration: e.target.value })}
-              inputMode="numeric" placeholder="-"
-              title="Sekunder (90) eller MM:SS (1:30)"
-              style={{ ...iSt, textAlign: 'center' }} />
-            <input value={s.rpe}
-              onChange={e => updateSet(s.id, { rpe: e.target.value })}
-              inputMode="numeric" placeholder="-"
-              style={{ ...iSt, textAlign: 'center' }} />
-            <button type="button" onClick={() => deleteSet(s.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)' }}
-              title="Slett sett"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
-          </div>
-        ))}
-      </div>
+      )}
 
-      <button type="button" onClick={addSet}
-        className="mt-2 text-xs tracking-widest uppercase"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
-          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-        }}>
-        <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til sett
-      </button>
+      <div style={{ borderTop: '1px solid var(--line)' }}>
+        <div className="xp-styrke-rad" style={{ display: 'grid', gridTemplateColumns: kol, gap: 7, padding: '8px 14px 5px', fontFamily: STYRKE_FONT, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>
+          <span /><span>Reps</span><span>Kg</span>{visTid && <span>Tid</span>}<span>RPE</span><span />
+        </div>
+        {exercise.sets.map((s, i) => {
+          const sp = spok(i)
+          const fort = s.reps.trim() !== '' || s.weight_kg.trim() !== '' || s.duration.trim() !== ''
+          const pr = !planMode && erPr(beste ?? undefined, num(s.reps), num(s.weight_kg)) != null
+          const fylt = (v: string) => v.trim() !== ''
+          return (
+            <div key={s.id} className="xp-styrke-rad" data-styrke-sett={i + 1} data-fort={fort ? '1' : '0'}
+              style={{ display: 'grid', gridTemplateColumns: kol, gap: 7, alignItems: 'center', padding: '7px 14px', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
+              <span style={{ fontFamily: STYRKE_FONT, fontSize: 13, color: fort ? '#28A86E' : 'var(--tekst-8-app)', textAlign: 'center' }}>{fort ? <Ikon navn="fullfort" variant="strek" storrelse={14} /> : i + 1}</span>
+              <input value={s.reps} onChange={e => updateSet(s.id, { reps: e.target.value })} inputMode="numeric"
+                placeholder={sp.reps || '-'} aria-label={`Sett ${i + 1} reps`} className="xp-styrke-felt" style={feltStyrke(fylt(s.reps), false)} />
+              <span style={{ position: 'relative', minWidth: 0 }}>
+                <input value={s.weight_kg} onChange={e => updateSet(s.id, { weight_kg: e.target.value })} inputMode="decimal"
+                  placeholder={sp.kg || '-'} aria-label={`Sett ${i + 1} kg`} className="xp-styrke-felt" style={{ ...feltStyrke(fylt(s.weight_kg), pr), width: '100%' }} />
+                {pr && <small data-styrke-pr style={{ position: 'absolute', right: 7, bottom: 3, fontFamily: STYRKE_FONT, fontSize: 9, letterSpacing: '0.04em', color: GULL_STYRKE, fontWeight: 700, pointerEvents: 'none' }}>PR</small>}
+              </span>
+              {visTid && (
+                <input value={s.duration} onChange={e => updateSet(s.id, { duration: e.target.value })} inputMode="numeric"
+                  placeholder={sp.tid || '-'} title="Sekunder (90) eller MM:SS (1:30)" aria-label={`Sett ${i + 1} tid`} className="xp-styrke-felt" style={feltStyrke(fylt(s.duration), false)} />
+              )}
+              <input value={s.rpe} onChange={e => updateSet(s.id, { rpe: e.target.value })} inputMode="numeric" placeholder="-" aria-label={`Sett ${i + 1} RPE`}
+                style={{ height: 36, borderRadius: 999, border: '1px solid var(--line2)', background: 'var(--card2)', color: s.rpe ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)', fontFamily: STYRKE_FONT, fontSize: 12.5, fontWeight: 700, textAlign: 'center', minWidth: 0, width: '100%' }} />
+              {planMode ? <span /> : fort ? (
+                <span data-styrke-fort style={{ ...settknappStyrke, background: 'rgba(40,168,110,.14)', color: '#28A86E', border: '1px solid rgba(40,168,110,.35)' }}>Ført</span>
+              ) : (
+                <button type="button" onClick={() => forRad(s, i)} data-styrke-for style={settknappStyrke} aria-label={`Før sett ${i + 1}${sp.reps || sp.kg ? ' med forrige økts tall' : ''}`}>Før</button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {like && (
+        <p style={{ margin: '4px 14px 0', fontFamily: STYRKE_FONT, fontSize: 11.5, color: 'var(--tekst-8-app)' }} data-styrke-sett-like>
+          Sett like? {exercise.sets.length} × {exercise.sets[0].reps} × {exercise.sets[0].weight_kg || '-'}
+        </p>
+      )}
+      <div style={{ display: 'flex', gap: 8, padding: '8px 14px 12px' }}>
+        <button type="button" onClick={addSet} className="xp-pill xp-pill-ghost" style={{ flex: 1, borderStyle: 'dashed', minHeight: 40 }} data-styrke-legg-til-sett>+ Sett</button>
+        {exercise.sets.length > 1 && <button type="button" onClick={removeLastSet} className="xp-pill xp-pill-ghost" style={{ minHeight: 40 }} aria-label="Fjern siste sett">− Sett</button>}
+      </div>
     </div>
   )
+}
+
+const chipStyrke: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 5, height: 26, padding: '0 10px', borderRadius: 999, border: '1px solid var(--line2)', fontFamily: STYRKE_FONT, fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--tekst-5-app)', background: 'var(--card2)' }
+const pillLitenStyrke: React.CSSProperties = { minHeight: 30, padding: '0 11px', fontSize: 11.5, letterSpacing: '0.06em' }
+const settknappStyrke: React.CSSProperties = { height: 36, borderRadius: 999, border: 0, background: '#FF4500', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: STYRKE_FONT, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', padding: '0 4px', whiteSpace: 'nowrap', cursor: 'pointer' }
+/** Felt i settrada: ført (hvit, kant-3) eller tom med grå plassholder (--tekst-10 via .xp-styrke-felt). */
+function feltStyrke(fort: boolean, pr: boolean): React.CSSProperties {
+  return {
+    height: 44, borderRadius: 10, minWidth: 0, textAlign: 'center',
+    border: `1px solid ${pr ? 'rgba(212,160,23,.55)' : fort ? 'var(--kant-3)' : 'var(--line2)'}`,
+    background: fort ? 'var(--card2)' : 'var(--card)', color: 'var(--tekst-1-app)',
+    fontFamily: STYRKE_BEBAS, fontSize: 20, letterSpacing: '0.02em', fontVariantNumeric: 'tabular-nums',
+    boxShadow: pr ? 'inset 0 0 0 1px rgba(212,160,23,.18)' : 'none', outline: 'none',
+  }
 }
 
 // Autocomplete for styrke-øvelsesnavn.

@@ -3,13 +3,14 @@
    karusell.js, ikonene i ikoner.js (generert). Tekstene er sjekket mot
    appkoden og skal ikke skrives om.
 
-   ÉN SCENE ER UTKAST og ikke bygget i appen: «Formkartet» (Analyser).
-   «Live styrke v2» (Tren) er bygget 17. sep (bolk 8) - scene 4 følger
-   LiveSessionView.tsx, ikke designfila. De ligger her ferdig, men filtreres ut av SC for
+   INGEN SCENER ER UTKAST LENGER (17. sep): «Live styrke v2» (Tren, bolk 8)
+   følger LiveSessionView.tsx, «Formkartet» (Analyser) er levert. UTKAST_TITLER
+   står tom; VIS_UTKAST_SCENER har ingen virkning før noen legger inn et nytt
+   utkast. De ligger her ferdig, men filtreres ut av SC for
    karusell() kalles nar VIS_UTKAST_SCENER er false (Sverre slo dem PA 16. sep). Forsiden skal aldri
    vise noe som ikke finnes i appen. Kapittel «Tren» beholder helse-scenen. */
 var VIS_UTKAST_SCENER = true; /* Sverre 16. sep: vis dem na - live styrke v2 og formkartet er pa vei inn i appen */
-var UTKAST_TITLER = ['SE HELE FORMEN PÅ ÉN AKSE.']; /* «Løft med én hånd» er bygget (bolk 8, 17. sep) og er ikke utkast lenger */
+var UTKAST_TITLER = []; /* tom 17. sep: «Løft med én hånd» (bolk 8) og «Formkartet» er begge bygget - ingen utkast igjen */
 
 function oktbyggerIkon(){var farger=['#1A6FD4','#E23A5A','#28A86E','#FF4500'];var d=IK.oktbygger.f.split(/(?=M)/);
   return '<svg viewBox="0 0 24 24" aria-hidden="true">'+d.map(function(x,i){return'<path d="'+x+'" fill="'+farger[Math.min(i,3)]+'"/>'}).join('')+'</svg>';}

@@ -260,6 +260,40 @@
 .lv-nk .bebas{font-size:28px;line-height:1.1}
 .lv-nk small,.lv-rek small{display:block;color:var(--a-mut);font-size:12px}
 .lv-rek{display:flex;gap:9px;align-items:center;padding:8px 0;border-top:1px solid var(--a-line)}
+/* S4 etter bolk 8 (17. sep): teller i den klebrige toppen, pause som teller opp, håndtak, notat-ikon, kortfot, tastefelt, form */
+.lv-bar.topp{display:block;padding:8px 16px 8px}
+.lv-rad1{display:flex;align-items:center;gap:8px}
+.lv-teller{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:4px 0 2px}
+.lv-tid{font:400 44px/1 'Bebas Neue',sans-serif;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--a-ink)}
+.lv-tid.dempet{color:var(--a-mut)}
+.lv-etk{display:flex;align-items:center;gap:6px;margin-top:3px;font:700 11px 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--a-mut)}
+.lv-merke{padding:1px 7px;border-radius:999px;border:1px solid rgba(40,168,110,.45);color:#28A86E}
+.lv-linje{font-size:11.5px;color:var(--a-mut);margin-top:2px}
+.lv-pause{display:none;align-items:center;gap:8px;text-align:right}
+.lv-pause.vis{display:flex}
+.lv-pt{font:400 24px/1 'Bebas Neue',sans-serif;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.lv-pl{font-size:11px;color:var(--a-mut);margin-top:2px;white-space:nowrap}
+.lv-ikon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;color:var(--a-mut)}
+.lv-ikon .prikk{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:999px;background:#FF4500}
+.lv-ov{margin-bottom:12px}
+.lv-ov.ss{border-left-color:var(--a-line2)}
+.lv-ov header{gap:6px;padding:11px 10px 9px 8px}
+.lv-nr{width:auto;min-width:24px;padding:0 6px}
+.lv-notat{padding:0 14px 10px;font-size:13px;font-style:italic;color:var(--a-mut)}
+.lv-notat.felt{margin:8px 0 0;padding:8px 12px;border:1px solid var(--a-line2);border-radius:12px;background:var(--a-card2);font-style:normal;color:var(--a-ink);min-height:44px}
+.lv-fot{display:flex;gap:8px;padding:8px 14px 12px}
+.lv-fot .lv-pill{flex:none}
+.lv-fot .lv-pill.dash{flex:1;border-style:dashed}
+.lv-ss{display:flex;width:100%;border-style:dashed;margin-bottom:12px;min-height:40px}
+.lv-ditt{color:var(--a-mut);font-size:12px}
+.lv-v.felt{border-color:#FF4500;box-shadow:0 0 0 2px rgba(255,69,0,.18)}
+.lv-v.felt em::after{content:'';display:inline-block;width:1.5px;height:24px;background:#FF4500;margin-left:2px;vertical-align:-3px;animation:lvblink .8s steps(1) infinite}
+@keyframes lvblink{50%{opacity:0}}
+.lv-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.lv-form small{display:block;color:var(--a-mut);font-size:12px}
+.lv-stj{display:flex;gap:2px;margin-top:2px}
+.lv-stj i{width:16px;height:16px;border-radius:2px;background:var(--a-line2);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.lv-stj i.on{background:#E8B93C}
 .lv-rek:first-of-type{border-top:0}
 .lv-rek b{font-size:14px}
 

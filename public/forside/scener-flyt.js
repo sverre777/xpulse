@@ -3,12 +3,13 @@
    karusell.js, ikonene i ikoner.js (generert). Tekstene er sjekket mot
    appkoden og skal ikke skrives om.
 
-   TO SCENER ER UTKAST og ikke bygget i appen: «Live styrke v2» (Tren) og
-   «Formkartet» (Analyser). De ligger her ferdig, men filtreres ut av SC for
+   ÉN SCENE ER UTKAST og ikke bygget i appen: «Formkartet» (Analyser).
+   «Live styrke v2» (Tren) er bygget 17. sep (bolk 8) - scene 4 følger
+   LiveSessionView.tsx, ikke designfila. De ligger her ferdig, men filtreres ut av SC for
    karusell() kalles nar VIS_UTKAST_SCENER er false (Sverre slo dem PA 16. sep). Forsiden skal aldri
    vise noe som ikke finnes i appen. Kapittel «Tren» beholder helse-scenen. */
 var VIS_UTKAST_SCENER = true; /* Sverre 16. sep: vis dem na - live styrke v2 og formkartet er pa vei inn i appen */
-var UTKAST_TITLER = ['LØFT MED ÉN HÅND.', 'SE HELE FORMEN PÅ ÉN AKSE.'];
+var UTKAST_TITLER = ['SE HELE FORMEN PÅ ÉN AKSE.']; /* «Løft med én hånd» er bygget (bolk 8, 17. sep) og er ikke utkast lenger */
 
 function oktbyggerIkon(){var farger=['#1A6FD4','#E23A5A','#28A86E','#FF4500'];var d=IK.oktbygger.f.split(/(?=M)/);
   return '<svg viewBox="0 0 24 24" aria-hidden="true">'+d.map(function(x,i){return'<path d="'+x+'" fill="'+farger[Math.min(i,3)]+'"/>'}).join('')+'</svg>';}
@@ -110,46 +111,56 @@ SC.push({kap:0,tittel:'LAGRE DEN SOM MAL.',tekst:'Én knapp i skjemaet. Neste ga
   S.t(6800,function(){S.q('.toast').classList.remove('inn')});S.steg(3,7200)}
 });
 
-/* ── 4 · LIVE STYRKE (design/xpulse-styrke-design.html seksjon 2 - utkastet, ikke bygget ennå) ── */
+/* ── 4 · LIVE STYRKE (bolk 8, 17. sep - fasit er components/workout/LiveSessionView.tsx, ikke designfila) ── */
 function fmtTid(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
-SC.push({kap:1,tittel:'LØFT MED ÉN HÅND.',tekst:'Live styrke er laget for hansker og tommel: store trinnknapper, forrige økt i grått, hvilen teller ned, og nye rekorder står klare når økta er ferdig.',
- steg:['Trinnknapper, ikke tastatur','Hvilen teller ned','Rekordene og dagboka'],
- mer:['Start live fra en planlagt styrkeøkt eller rett fra +-knappen. Øvelsene kommer ferdig fra malen.','Vekt og reps justeres med store trinnknapper, forrige økt står i grått som referanse, hvileringen teller ned mellom settene.','Nye rekorder regnes automatisk (1RM etter Epley, maks reps ved vekt) og står klare når økta er ferdig.','«Lagre i dagboka» skriver settene inn på økta, med tonnasje og PR-merke på Hjem.'],varighet:12500,
+SC.push({kap:1,tittel:'LØFT MED ÉN HÅND.',tekst:'Live styrke er laget for hansker og tommel: store trinnknapper - eller trykk på tallet og skriv. Forrige økt i grått, totaltid og pause stort i toppen, og nye rekorder står klare når økta er ferdig.',
+ steg:['Trinn, eller trykk tallet og skriv','Pausen teller opp til neste sett','Ferdig: form, kommentar, rekorder'],
+ mer:['Start live fra en planlagt styrkeøkt eller rett fra +-knappen. Øvelsene kommer ferdig fra malen - dra dem i håndtaket, koble to med «Supersett», legg til et supersett i ett trykk.','Reps og kg med store trinnknapper, eller trykk på tallet og skriv 102,5 rett inn. Et nytt sett arver settet over; forrige økt står i grått som referanse.','Totaltid står stort og klebrig i toppen. Etter «Logg sett» teller pausen opp - «Start» på neste sett stanser den. Pausen er med i totaltida, stoppet tid er det ikke.','Ferdig-skjermen: totaltid, pause i alt, kommentar til økta, fysisk og mental form, og nye rekorder (est. 1RM etter Epley, maks reps ved vekt). «Lagre i dagboka» skriver alt inn på økta.'],varighet:13500,
  html:function(){function rad(n,r,kg,rpe,ferdig,pr){return'<div class="lv-r '+(ferdig?'ferdig':'')+'" data-s="'+n+'"><span class="lv-n">'+(ferdig?'✓':n)+'</span><span class="lv-f '+(ferdig?'fort':'spok')+' fr">'+r+'</span><span class="lv-f '+(ferdig?'fort':'spok')+' fk">'+kg+(pr?'<small>PR</small>':'')+'</span><span class="lv-rpe">'+rpe+'</span><span class="lv-k '+(ferdig?'ferdig':'')+'">'+(ferdig?'✓':'Start')+'</span></div>'}
+  function kort(nr,navn,under,chips,rader,ss){return'<div class="lv-ov'+(ss?' ss':'')+'"><header>'+ik('flytt','s','width:16px;height:16px;color:var(--a-mute)')+'<span class="lv-nr">'+(ss?'SS A':nr)+'</span><span class="lv-navn"><b>'+navn+'</b><span>'+under+'</span></span><span class="lv-ikon">'+ik('notat','s','width:16px;height:16px')+'</span><span class="lv-hnd">⋯</span></header>'+chips+'<div class="lv-sett">'+rader+'</div><div class="lv-fot"><span class="lv-pill dash">+ Legg til sett</span><span class="lv-pill">'+(ss?'Løs opp':'Supersett')+'</span></div></div>'}
+  function teller(tid,merke,sett,ekstra){return'<div class="lv-teller"><div><div class="lv-tid'+(merke?' dempet':'')+'">'+tid+'</div><div class="lv-etk">Totaltid'+(merke?'<span class="lv-merke">'+merke+'</span>':'')+'<span>· '+sett+'</span></div>'+(ekstra||'')+'</div><div class="lv-pause"><svg width="30" height="30" viewBox="0 0 42 42"><circle cx="21" cy="21" r="18" fill="none" stroke="var(--a-line2)" stroke-width="4"/><circle class="lv-ring" cx="21" cy="21" r="18" fill="none" stroke="#FF4500" stroke-width="4" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 21 21)" style="transition:stroke-dashoffset .3s linear"/></svg><div><div class="lv-pt">0:00</div><div class="lv-pl">Pause · Markløft sett 1</div></div></div></div>'}
   return'<div class="ls-wrap"><div class="lv-ramme"><div class="lv-skala"><div class="lv">'+
   '<div class="lv-sl"><span>09:41</span><span>100 %</span></div>'+
-  '<div class="lv-bar"><span class="lv-x">×</span><span class="lv-tit">Live styrke<span class="lv-sub">24:18 · <b class="lv-antall">4</b> av 12 sett</span></span><span class="lv-pill">Stopp</span></div>'+
-  '<div class="lv-inn"><div class="lv-hvile"><svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="18" fill="none" stroke="var(--a-line2)" stroke-width="4"/><circle class="lv-ring" cx="21" cy="21" r="18" fill="none" stroke="#FF4500" stroke-width="4" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="100" transform="rotate(-90 21 21)" style="transition:stroke-dashoffset .35s linear"/></svg><div class="lv-l">Hvile<br><b>Knebøy · sett <span class="lv-hs">3</span> av 3</b></div><span class="lv-t">0:06</span></div>'+
-  '<div class="lv-ov"><header><span class="lv-nr">1</span><span class="lv-navn"><b>Knebøy</b><span>3 sett · 8 / 8 / <i class="lv-tre">-</i></span></span><span class="lv-hnd">⋯</span></header>'+
-  '<div class="lv-chips"><span class="lv-chip beste">★ Beste <b>8 × 100 kg</b></span><span class="lv-chip plan">Plan <b>3 × 8 × 100</b></span></div>'+
-  '<div class="lv-sett">'+rad(1,8,100,8,1,1)+rad(2,8,100,9,1)+rad(3,8,95,'-',0)+'</div></div></div>'+
-  '<div class="lv-tast"><div class="lv-hvem"><b>Knebøy · sett 3</b><span>Grått = forrige økt</span></div>'+
-  '<div class="lv-step"><span class="lv-b">−</span><div class="lv-v"><em class="spok vr">8</em><i>reps</i></div><span class="lv-b">+</span></div>'+
-  '<div class="lv-step"><span class="lv-b lv-minus">−2,5</span><div class="lv-v"><em class="spok vk2">95</em><i>kg</i></div><span class="lv-b lv-pluss">+2,5</span></div>'+
-  '<div class="lv-pr"><span class="lv-pill lv-rpe8">RPE <b class="rpev">-</b></span><span class="lv-pill">Samme som sist sett</span><span class="lv-pill">Notat</span></div>'+
+  '<div class="lv-bar topp"><div class="lv-rad1"><span class="lv-x">×</span><span class="lv-tit">Live styrke</span><span class="lv-ikon">'+ik('notat','f','width:16px;height:16px')+'<i class="prikk"></i></span><span class="lv-pill">Stopp</span></div>'+teller('24:18','','<b class="lv-antall">4</b> av 12 sett')+'</div>'+
+  '<div class="lv-inn">'+
+  kort(1,'Knebøy','3 sett · 8 / 8 / <i class="lv-tre">-</i>','<div class="lv-chips"><span class="lv-chip beste">★ Beste <b>8 × 100 kg</b></span><span class="lv-chip plan">Plan <b>3 × 8 × 100</b></span></div><div class="lv-notat">gikk tungt i dag</div>',rad(1,8,100,8,1,1)+rad(2,8,100,9,1)+rad(3,8,100,'-',0))+
+  kort(2,'Markløft','3 sett · - / - / -','',rad(1,6,120,'-',0))+
+  '<span class="lv-pill dash lv-ss">+ Legg til supersett</span></div>'+
+  '<div class="lv-tast"><div class="lv-hvem"><b>Knebøy · sett 3</b><span class="lv-ditt">Ditt tall</span></div>'+
+  '<div class="lv-step"><span class="lv-b">−</span><div class="lv-v"><em class="vr">8</em><i>reps</i></div><span class="lv-b">+</span></div>'+
+  '<div class="lv-step"><span class="lv-b lv-minus">−2,5</span><div class="lv-v lv-vk"><em class="vk2">100</em><i>kg</i></div><span class="lv-b lv-pluss">+2,5</span></div>'+
+  '<div class="lv-pr"><span class="lv-pill lv-rpe8">RPE <b class="rpev">-</b></span><span class="lv-pill">Lukk</span></div>'+
   '<span class="lv-logg">✓ Logg sett</span></div>'+
-  '<div class="lv-ferdig"><div class="lv-sl"><span>10:29</span><span>98 %</span></div><div class="lv-bar"><span class="lv-x">‹</span><span class="lv-tit">Økta er ferdig<span class="lv-sub">48 min · 12 sett</span></span></div>'+
+  '<div class="lv-ferdig"><div class="lv-sl"><span>10:29</span><span>98 %</span></div><div class="lv-bar topp"><div class="lv-rad1"><span class="lv-x">‹</span><span class="lv-tit">Økta er ferdig</span></div>'+teller('48:12','Avsluttet','12 av 12 sett','<div class="lv-linje">Pause i alt: 14:20 (med i totaltida)</div><div class="lv-linje">Stoppet: 2:05 (ikke med)</div>')+'</div>'+
   '<div class="lv-inn"><div class="lv-kort"><h4>Nøkkeltall</h4><div class="lv-nk"><div><div class="bebas">7 840</div><small>kg tonnasje</small></div><div><div class="bebas">12</div><small>sett · 4 øvelser</small></div><div><div class="bebas" style="color:#D4A017">2</div><small>nye PR-er</small></div></div></div>'+
-  '<div class="lv-kort"><h4>Nye rekorder</h4><div class="lv-rek"><span class="lv-chip beste">★</span><div><b>Knebøy</b><small>8 × 100 kg · est. 1RM 127 kg (før 120)</small></div></div><div class="lv-rek"><span class="lv-chip beste">★</span><div><b>Markløft</b><small>Maks reps ved 120 kg: 6 (før 5)</small></div></div></div>'+
+  '<div class="lv-kort"><h4>Nye rekorder</h4><div class="lv-rek"><span class="lv-chip beste">★</span><div><b>Knebøy</b><small>8 × 102,5 kg · est. 1RM 130 kg (før 127)</small></div></div><div class="lv-rek"><span class="lv-chip beste">★</span><div><b>Markløft</b><small>Maks reps ved 120 kg: 6 (før 5)</small></div></div></div>'+
+  '<div class="lv-kort"><h4>Kommentar og form</h4><div class="lv-notat felt">Bra økt - tungt på markløft</div><div class="lv-form"><div><small>Fysisk form</small><span class="lv-stj"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div><small>Mental form</small><span class="lv-stj"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div></div></div>'+
   '<span class="lv-logg lv-lagre">Lagre i dagboka</span><div class="lv-pr" style="margin-top:9px"><span class="lv-pill">Se plan mot faktisk</span><span class="lv-pill">Utvikling</span></div></div></div>'+
   '</div></div></div>'+
-  '<div class="app dbk pop"><div class="cap">Dagboka · ons 16. sep</div><div class="dbk-kort"><b>Styrke basis <span>48 min</span></b><small>Styrke · 12 sett · 7 840 kg · 2 PR</small></div>'+
-  [['Knebøy','3 × 8 · 100 kg ★'],['Markløft','3 × 6 · 120 kg ★'],['Utfall','3 × 8 · 24 kg'],['Pullups','3 × 8']].map(function(r){return'<div class="dbk-rad"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'}).join('')+'</div></div>'},
+  '<div class="app dbk pop"><div class="cap">Dagboka · ons 16. sep</div><div class="dbk-kort"><b>Styrke basis <span>48 min</span></b><small>Styrke · 12 sett · 7 840 kg · 2 PR · ★★★★☆ / ★★★☆☆</small></div>'+
+  [['Knebøy','3 × 8 · 100-102,5 kg ★'],['Markløft','3 × 6 · 120 kg ★'],['Utfall','3 × 8 · 24 kg'],['Pullups','3 × 8']].map(function(r){return'<div class="dbk-rad"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'}).join('')+'<div class="dbk-rad"><span>Notat</span><b>Bra økt - tungt på markløft</b></div></div></div>'},
  spill:function(S){S.steg(0,0);
-  var hv=6;for(var k=1;k<=6;k++)(function(k){S.t(200+k*330,function(){var t=S.q('.lv-t');if(t)t.textContent=fmtTid(6-k);S.q('.lv-ring').style.strokeDashoffset=100+(13*k/6)})})(k);
-  S.t(2400,function(){S.q('.lv-hvile').classList.add('klar');S.q('.lv-l').innerHTML='Klar<br><b>Knebøy · sett 3</b>'});
-  S.til('[data-s="3"] .lv-k',2400,true);S.t(3150,function(){var r=S.q('[data-s="3"]');r.classList.add('aktiv');var k=r.querySelector('.lv-k');k.textContent='Pågår';S.q('.lv-tast').classList.add('aktiv')});
-  S.til('.lv-pluss',3500,true);S.t(4250,function(){var e=S.q('.vk2');e.textContent='97,5';e.classList.remove('spok');S.q('[data-s="3"] .fk').textContent='97,5';S.q('.lv-pluss').classList.add('trykk');setTimeout(function(){var p=S.q('.lv-pluss');p&&p.classList.remove('trykk')},160)});
-  S.t(4800,function(){var e=S.q('.vk2');e.textContent='100';S.q('[data-s="3"] .fk').textContent='100';var p=S.q('.lv-pluss');p.classList.add('trykk');setTimeout(function(){p.classList.remove('trykk')},160);S.q('.mark')});
-  S.t(4900,function(){S.mark.classList.add('klikk');setTimeout(function(){S.mark.classList.remove('klikk')},160)});
-  S.til('.lv-rpe8',5200,true);S.t(5950,function(){S.q('.rpev').textContent='8';S.q('.vr').classList.remove('spok');S.q('[data-s="3"] .lv-rpe').textContent='8';S.q('[data-s="3"] .fr').classList.remove('spok')});
-  S.steg(1,6300);S.til('.lv-tast .lv-logg',6300,true);S.t(7050,function(){S.q('.lv-tast .lv-logg').classList.add('trykk')});
-  S.t(7250,function(){var r=S.q('[data-s="3"]');r.className='lv-r ferdig';r.innerHTML='<span class="lv-n">✓</span><span class="lv-f fort">8</span><span class="lv-f fort">100</span><span class="lv-rpe">8</span><span class="lv-k ferdig">✓</span>';
+  /* totaltida går hele tida */
+  for(var k=1;k<=26;k++)(function(k){S.t(k*500,function(){var t=S.q('.lv:not(.lv-ferdig) .lv-tid');if(t)t.textContent=fmtTid(24*60+18+k*0.5|0)})})(k);
+  /* Start på sett 3: tastaturet åpner med settet over som startverdi (arv) */
+  S.til('[data-s="3"] .lv-k',300,true);S.t(1050,function(){var r=S.q('[data-s="3"]');r.classList.add('aktiv');r.querySelector('.lv-k').textContent='Logg';S.q('.lv-tast').classList.add('aktiv')});
+  /* trykk på tallet -> tastefelt, skriv 102,5 */
+  S.til('.lv-vk',1500,true);S.t(2250,function(){var v=S.q('.lv-vk');v.classList.add('felt');S.q('.vk2').textContent='100'});
+  S.t(2750,function(){S.q('.vk2').textContent='10'});S.t(2950,function(){S.q('.vk2').textContent='102'});S.t(3150,function(){S.q('.vk2').textContent='102,'});S.t(3350,function(){S.q('.vk2').textContent='102,5';S.q('[data-s="3"] .fk').textContent='102,5'});
+  S.t(3900,function(){S.q('.lv-vk').classList.remove('felt')});
+  S.til('.lv-rpe8',4100,true);S.t(4850,function(){S.q('.rpev').textContent='8';S.q('[data-s="3"] .lv-rpe').textContent='8'});
+  /* Logg sett -> ført med PR, pausen teller OPP */
+  S.til('.lv-tast .lv-logg',5100,true);S.t(5850,function(){S.q('.lv-tast .lv-logg').classList.add('trykk')});
+  S.t(6050,function(){var r=S.q('[data-s="3"]');r.className='lv-r ferdig';r.innerHTML='<span class="lv-n">✓</span><span class="lv-f fort">8</span><span class="lv-f fort">102,5<small>PR</small></span><span class="lv-rpe">8</span><span class="lv-k ferdig">✓</span>';
    S.q('.lv-tast').classList.remove('aktiv');S.q('.lv-tast .lv-logg').classList.remove('trykk');S.q('.lv-antall').textContent='5';S.q('.lv-tre').textContent='8';
-   var h=S.q('.lv-hvile');h.classList.remove('klar');S.q('.lv-l').innerHTML='Hvile<br><b>Neste: Markløft · sett 1</b>';S.q('.lv-t').textContent='1:30';S.q('.lv-ring').style.strokeDashoffset=0});
-  for(var j=1;j<=4;j++)(function(j){S.t(7250+j*380,function(){S.q('.lv-t').textContent=fmtTid(90-j);S.q('.lv-ring').style.strokeDashoffset=113*j/90})})(j);
-  S.steg(2,9000);S.bort(9000);S.t(9000,function(){S.q('.lv-ferdig').classList.add('inn')});
-  S.til('.lv-lagre',9600,true);S.t(10350,function(){S.q('.lv-lagre').classList.add('trykk')});S.inn('.dbk',10700);S.bort(10900);S.steg(3,11300)}
+   S.q('.lv:not(.lv-ferdig) .lv-pause').classList.add('vis')});
+  S.steg(1,6300);
+  for(var j=1;j<=8;j++)(function(j){S.t(6050+j*400,function(){var p=S.q('.lv:not(.lv-ferdig) .lv-pt');if(p)p.textContent=fmtTid(j);var r=S.q('.lv:not(.lv-ferdig) .lv-ring');if(r)r.style.strokeDashoffset=113-113*j/90})})(j);
+  /* Start på Markløft sett 1 stanser pausen */
+  S.til('.lv-ov:nth-of-type(2) [data-s="1"] .lv-k',8600,true);S.t(9350,function(){S.q('.lv:not(.lv-ferdig) .lv-pause').classList.remove('vis');var r=S.q('.lv-ov:nth-of-type(2) [data-s="1"]');r.classList.add('aktiv');r.querySelector('.lv-k').textContent='Logg';S.q('.lv-tast').classList.add('aktiv');S.q('.lv-hvem b').textContent='Markløft · sett 1';S.q('.lv-ditt').textContent='Grått = forrige økt';S.q('.vr').textContent='6';S.q('.vr').classList.add('spok');S.q('.vk2').textContent='120';S.q('.vk2').classList.add('spok')});
+  /* ferdig-skjermen */
+  S.steg(2,10300);S.bort(10300);S.t(10300,function(){S.q('.lv-ferdig').classList.add('inn')});
+  S.til('.lv-lagre',11000,true);S.t(11750,function(){S.q('.lv-lagre').classList.add('trykk')});S.inn('.dbk',12100);S.bort(12300);S.steg(3,12700)}
 });
 
 /* ── 5 · HELSE ── */

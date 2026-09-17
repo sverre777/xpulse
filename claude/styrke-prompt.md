@@ -251,6 +251,34 @@ g) NYTT SETT ARVER FORRIGE SETT (Sverre 17. sep kveld).
      lagring. Live: nytt sett er ikke ført (ikke i doneSets, teller ikke i
      volum) før «Logg sett»; etter «Logg sett» lagres de arvede tallene.
 
+h) PAUSETELLER MELLOM SETT I LIVE - TELLER OPP, OG START SETT-KNAPP
+   (Sverre 17. sep kveld).
+   I DAG (målt i LiveSessionView.tsx): etter «Logg sett» starter en
+   hvile-ring som teller NED fra HVILE_MAAL_SEK (90 s) til 0 og så står, og
+   den slutter i det du trykker på et sett (velgSett nuller lastLogMs). Tida
+   mellom settene ses altså ikke som tid, og forsvinner så fort du velger
+   neste sett. Ingen hviletid lagres.
+   SKAL:
+   · Flyten er eksplisitt: «Start sett» → settet er aktivt (tastatur/stepper)
+     → «Logg sett» → pausen teller OPP fra 0 → «Start sett» på neste sett
+     stanser pausen. Det er DEN knappen som avslutter pausen, ikke at man
+     rører et felt.
+   · Pausen vises som tid som går (0:47, 1:12 ...) i den klebrige toppen
+     sammen med totaltid (bolk 8e): totaltid stort, «Pause 0:47» under eller
+     ved siden, tydelig at pausen ER med i totaltida. Toppen følger med ned
+     når lista scroller.
+   · HVILE_MAAL_SEK (90 s) kan stå som et mykt mål (ringen fylles til 90 s),
+     men tallet som vises er tida som HAR gått, ikke tida som er igjen.
+   · Stopp (hele økta) fryser også pausetelleren, som i dag.
+   · LAGRING: pausen mellom sett lagres ALDRI som rad med activity_type
+     'pause' (bolk 3, PASSIV_PAUSE_TYPER-fella). Den er styrketid og ligger
+     inne i totaltida. Ikke ny kolonne, ingen SQL: hviletida holdes i
+     komponent-tilstand og vises som sum «Pause i alt» på ferdig-skjermen.
+     Vil Sverre ha hvile per sett i basen senere, er det egen beslutning.
+   · Bevis (regel 40): Logg → pausen teller opp → Start sett stanser den;
+     totaltid = arbeid + pause (uendret regnestykke); ingen 'pause'-rad i
+     workout_activities etter lagring; ukesum og plan mot faktisk uendret.
+
 GJELDER ALLE BOLKER
   Lys og mørk (regel 23) · vanlig bindestrek (regel 31) · ingen custom
   musepeker (regel 30) · treffflater minst 36 px, 52 i live · mobil er

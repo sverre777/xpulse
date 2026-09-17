@@ -39,7 +39,8 @@
     "styrke-graf": "tsx scripts/styrke-graf-selftest.ts",
     "styrke-graf-e2e": "tsx scripts/styrke-graf-e2e.ts",
     "styrke-sammenlign": "tsx scripts/styrke-sammenlign-selftest.ts",
-    "styrke-sammenlign-e2e": "tsx scripts/styrke-sammenlign-e2e.ts"
+    "styrke-sammenlign-e2e": "tsx scripts/styrke-sammenlign-e2e.ts",
+    "styrke-flett-e2e": "tsx scripts/styrke-flett-e2e.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

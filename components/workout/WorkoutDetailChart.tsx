@@ -319,7 +319,19 @@ export function WorkoutDetailChart({
   const faktiskBlokker = useMemo(() => byggPlanBlokker(faktiskInn, heartZones), [faktiskInn, heartZones])
   const faktiskSpokelser = useMemo(() => tilSpokelser(faktiskBlokker), [faktiskBlokker])
   // Styrke bolk 4: styrkeradenes spenn (fra kartets blokker) + øvelsene fra radene.
-  const styrkeSpenn = useMemo(() => styrkeSpennAv(faktiskBlokker, rader), [faktiskBlokker, rader])
+  const styrkeSpenn = useMemo(() => {
+    const fraBlokker = styrkeSpennAv(faktiskBlokker, rader)
+    if (fraBlokker.length > 0) return fraBlokker
+    // Flettet ren styrkeøkt (bolk 6d): styrkeraden fra live har ingen klokkevindu
+    // og gir ingen blokk - da er økta si sjef og settene spres over hele kurven.
+    const styrkeRader = rader.filter(r => r.movement_name === 'Styrke' && (r.exercises?.length ?? 0) > 0)
+    if (styrkeRader.length === 0 || rader.some(r => r.movement_name !== 'Styrke') || totalSek <= 0) return []
+    const del = totalSek / styrkeRader.length
+    return styrkeRader.map((r, i) => ({ id: r.id, startSek: i * del, sek: del, ovelser: r.exercises! }))
+  }, [faktiskBlokker, rader, totalSek])
+  // Styrke bolk 6d: ren styrkeøkt med klokke (flettet) - pulskurven BAK settene
+  // med svak fylling, INGEN soneflater. Blandet økt beholder bolk 4-raden under.
+  const renStyrke = styrkeSpenn.length > 0 && rader.length > 0 && rader.every(r => r.movement_name === 'Styrke')
   const blokkerMulig = faktiskInn.length > 0
   // Uten rader finnes ikke noe kart — da er kurven det eneste ærlige.
   const visKurve = visning !== 'graf' || !blokkerMulig
@@ -529,7 +541,8 @@ export function WorkoutDetailChart({
 
       {visKurve && <OktKurve
         bakgrunn={h => (visPlan ? <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} /> : null)}
-        mellomlag={h => (visBlokker ? <PlanSpokelse blokker={faktiskSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
+        mellomlag={h => (visBlokker && !renStyrke ? <PlanSpokelse blokker={faktiskSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
+        fokusFyll={renStyrke ? 0.08 : 0}
         serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}
@@ -541,6 +554,8 @@ export function WorkoutDetailChart({
         onKrysshaar={setKrysshaarSek}
         overlay={h => (
           <>
+            {/* Styrke bolk 6d: settene FORAN pulskurven, samme tidsakse og vindu. */}
+            {renStyrke && <StyrkeRad modus="lag" spenn={styrkeSpenn} fraSek={h.fraSek} tilSek={h.tilSek} workoutId={workoutId} />}
             {/* Planens omriss oppå blokkene i BEGGE (Sverre 5. sep) - til å sammenlikne. */}
             {visPlan && visBlokker && <PlanSpokelse blokker={planBlokker} pct={h.pct} slag="omriss" />}
             {/* Testkrok (E2E): synlig vindu og antall punkter - ingen visning. */}
@@ -604,7 +619,7 @@ export function WorkoutDetailChart({
         )}
       />}
       {/* Styrke bolk 4: settraden på EGEN RAD under kurven - kurven ubrutt over, settene under, samme vindu. */}
-      {visKurve && <StyrkeRad spenn={styrkeSpenn} fraSek={(vindu ?? [0, aksSek])[0]} tilSek={(vindu ?? [0, aksSek])[1]} tetthet={skjema ? 'kompakt' : 'full'} workoutId={workoutId} />}
+      {visKurve && !renStyrke && <StyrkeRad spenn={styrkeSpenn} fraSek={(vindu ?? [0, aksSek])[0]} tilSek={(vindu ?? [0, aksSek])[1]} tetthet={skjema ? 'kompakt' : 'full'} workoutId={workoutId} />}
 
       {/* Brush: hvor i økta er vi? Vises kun når det er noe å navigere i. */}
       {visKurve && totalSek > 0 && (

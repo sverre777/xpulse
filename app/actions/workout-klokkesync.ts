@@ -131,7 +131,8 @@ async function getWorkoutKlokkesyncDataIndre(
         window_start_seconds, window_duration_seconds,
         external_id, strava_lap_index, gruppe_id,
         prone_hits, prone_shots, standing_hits, standing_shots,
-        activity_type, movement_name, movement_subcategory
+        activity_type, movement_name, movement_subcategory,
+        workout_activity_exercises(id, exercise_name, sort_order, superset_group, workout_activity_exercise_sets(id, set_number, reps, weight_kg, duration_seconds, rpe))
       `)
       .eq('workout_id', workoutId)
       .order('sort_order', { ascending: true }),

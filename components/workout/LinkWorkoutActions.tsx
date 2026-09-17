@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { flateSti } from '@/lib/flate-prefiks'
 import { useRouter } from 'next/navigation'
 import {
@@ -281,16 +281,26 @@ function PickerModal({
                 : 'Ingen synkede økter å koble til innen ±3 dager.'}
             </p>
           )}
-          {(candidates ?? []).map(c => {
+          {/* Styrke bolk 6a: TO GRUPPER - konsekvensen er ulik. Mot en plan markeres
+              økta samtidig som gjennomført; mot en ført økt gjør den ikke det. */}
+          {candidates !== null && candidates.length > 0 && ([
+            { nokkel: 'planlagt', tittel: 'Planlagte økter', linje: 'Flett med en plan, og økta markeres samtidig som gjennomført.', liste: candidates.filter(c => c.is_planned && !c.is_completed) },
+            { nokkel: 'fort', tittel: 'Førte økter i dagboka', linje: 'Flett med en ført økt, og den står som den er - klokka legges bak.', liste: candidates.filter(c => !(c.is_planned && !c.is_completed)) },
+          ] as const).filter(g => g.liste.length > 0).map(g => (
+            <div key={g.nokkel} data-picker-gruppe={g.nokkel}>
+              <p className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', margin: '6px 0 2px' }}>{g.tittel}</p>
+              <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', margin: '0 0 6px' }}>{g.linje}</p>
+              <div className="space-y-2">
+              {g.liste.map(c => {
             const isSelected = c.id === selectedId
             return (
-              <button key={c.id} type="button"
+              <button key={c.id} type="button" data-picker-kandidat={c.id}
                 onClick={() => setSelectedId(c.id)}
                 className="w-full p-3 text-left transition-colors"
                 style={{
                   backgroundColor: isSelected ? 'rgba(40,168,110,0.12)' : 'var(--flate-12-alt)',
                   border: `2px solid ${isSelected ? '#28A86E' : 'var(--kant-3)'}`,
-                  cursor: 'pointer',
+                  borderRadius: 12, cursor: 'pointer',
                 }}>
                 <div className="flex items-start gap-2">
                   <span style={{
@@ -308,9 +318,6 @@ function PickerModal({
                           Strava
                         </span>
                       )}
-                      {c.is_planned && (
-                        <span style={{ color: 'var(--tekst-5-app)', marginLeft: '6px', fontSize: '11px' }}>planlagt</span>
-                      )}
                     </div>
                     <div className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {new Date(`${c.date}T00:00:00`).toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -322,7 +329,10 @@ function PickerModal({
                 </div>
               </button>
             )
-          })}
+              })}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="px-5 py-4 flex justify-end gap-2"
@@ -364,8 +374,13 @@ function FlettDialog({
   onClose: () => void
 }) {
   // «Bytt ut» øverst og forvalgt (Sverre 28. aug) — det er modusen som
-  // kommer til å bli brukt mest.
+  // kommer til å bli brukt mest. UNNTAK (styrke bolk 6b): er målet en
+  // styrkeøkt forvelges «Legg bak» - å bytte tolv sett mot fire
+  // klokkerunder er nesten alltid feil. Forvalget settes når grunnlaget
+  // kommer, og aldri etter at brukeren har valgt selv.
   const [modus, setModus] = useState<FlettModus>('bytt_ut')
+  const brukerValgte = useRef(false)
+  const velgModus = (m: FlettModus) => { brukerValgte.current = true; setModus(m) }
   const [grunnlag, setGrunnlag] = useState<FlettGrunnlag | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -376,6 +391,7 @@ function FlettDialog({
       if (cancelled) return
       if ('error' in res) { setError(res.error); return }
       setGrunnlag(res)
+      if (res.maalErStyrke && !brukerValgte.current) setModus('legg_bak')
     })
     return () => { cancelled = true }
   }, [maalId, kildeId, targetUserId])
@@ -421,26 +437,26 @@ function FlettDialog({
           </p>
         </div>
 
-        <div className="p-4 space-y-3">
-          <button type="button" onClick={() => setModus('bytt_ut')} style={radioStyle(modus === 'bytt_ut')}>
+        <div className="p-4 space-y-3" data-flett-dialog data-modus={modus} data-maal-styrke={grunnlag?.maalErStyrke ? '1' : '0'}>
+          <button type="button" onClick={() => velgModus('bytt_ut')} style={radioStyle(modus === 'bytt_ut')} data-flett-valg="bytt_ut">
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
               {modus === 'bytt_ut' ? '●' : '○'} BYTT UT AKTIVITETENE - klokkas runder inn
             </div>
             <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Klokkas runder, rundetider, distanse og soner erstatter
-              aktivitetene i økta. Notater, følelse, skyting og tags står.
+              aktivitetene i økta. Notater, følelse, skyting, styrke og tags står.
             </p>
             <p className="text-xs mt-2 px-2 py-1" style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
               border: '1px dashed var(--kant-3)',
             }}>
               {grunnlag
-                ? <>Aktivitetene dine: <b>{grunnlag.maalRader} {grunnlag.maalRader === 1 ? 'rad' : 'rader'} erstattes</b> · Inn: <b>{grunnlag.kildeRader} {grunnlag.kildeRader === 1 ? 'runde' : 'runder'} fra klokka</b></>
+                ? <>Aktivitetene dine: <b>{grunnlag.maalRader} {grunnlag.maalRader === 1 ? 'rad' : 'rader'} erstattes</b>{grunnlag.maalStyrkeRader > 0 && <> · <b>styrke{grunnlag.maalStyrkeRader === 1 ? 'raden' : 'radene'} står</b></>} · Inn: <b>{grunnlag.kildeRader} {grunnlag.kildeRader === 1 ? 'runde' : 'runder'} fra klokka</b></>
                 : 'Henter tall …'}
             </p>
           </button>
 
-          <button type="button" onClick={() => setModus('legg_bak')} style={radioStyle(modus === 'legg_bak')}>
+          <button type="button" onClick={() => velgModus('legg_bak')} style={radioStyle(modus === 'legg_bak')} data-flett-valg="legg_bak">
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
               {modus === 'legg_bak' ? '●' : '○'} LEGG BAK - økta di er sjefen
             </div>

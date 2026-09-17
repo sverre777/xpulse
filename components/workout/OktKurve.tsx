@@ -58,6 +58,8 @@ interface Props {
   hoyde?: number
   /** Annoteringer oppå plot-flaten. Får hjelpere til å regne posisjon. */
   overlay?: (h: KurveHjelpere) => React.ReactNode
+  /** Styrke bolk 6d: svak fylling under fokus-serien (0-1). Flettet styrkeøkt: 0.08 - kurven bak, settene foran. */
+  fokusFyll?: number
   /** Innhold rett under plot-flaten (segmentbånd), samme x-skala. */
   underlag?: (h: KurveHjelpere) => React.ReactNode
   /** Lag BAK alt i plotflata (planens spøkelser): tegnes før høyde-arealet. */
@@ -136,7 +138,7 @@ function fmtTid(sek: number): string {
 }
 
 export function OktKurve({
-  serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag, bakgrunn, mellomlag,
+  serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag, bakgrunn, mellomlag, fokusFyll = 0,
   krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20, onKlikk,
 }: Props) {
   const flate = useRef<HTMLDivElement | null>(null)
@@ -317,6 +319,10 @@ export function OktKurve({
             <path key={s.id} d={sti(s, false)} fill="none" stroke={s.farge}
               strokeWidth={2} opacity={0.9} vectorEffect="non-scaling-stroke" />
           ))}
+          {/* Styrke bolk 6d: svak fylling under pulsen bak settene. */}
+          {fokus && fokusFyll > 0 && (
+            <path d={sti(fokus, true)} fill={fokus.farge} opacity={fokusFyll} stroke="none" data-fokus-fyll={fokusFyll} />
+          )}
           {/* Fokus-serien sist = øverst, i full styrke. */}
           {fokus && (
             <path d={sti(fokus, false)} fill="none" stroke={fokus.farge}

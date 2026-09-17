@@ -34,7 +34,7 @@ export interface StyrkeSpenn {
   ovelser: StrengthExerciseRow[]
 }
 
-export function StyrkeRad({ spenn, plan = [], fraSek = 0, tilSek, tetthet = 'full', workoutId, targetUserId }: {
+export function StyrkeRad({ spenn, plan = [], fraSek = 0, tilSek, tetthet = 'full', workoutId, targetUserId, modus = 'rad' }: {
   spenn: StyrkeSpenn[]
   /** Planens styrkerader - tegnes som spøkelse bak. */
   plan?: StyrkeSpenn[]
@@ -45,6 +45,8 @@ export function StyrkeRad({ spenn, plan = [], fraSek = 0, tilSek, tetthet = 'ful
   /** Til PR-ringen: beste før denne økta. Uten workoutId tegnes ingen PR. */
   workoutId?: string | null
   targetUserId?: string
+  /** 'rad' = egen rad under kurven (bolk 4). 'lag' = inne i plotflata, settene FORAN pulskurven (bolk 6d, flettet styrkeøkt). */
+  modus?: 'rad' | 'lag'
 }) {
   const brukte = spenn.filter(s => s.sek > 0 && s.ovelser.some(o => o.exercise_name.trim() && o.sets.length > 0))
   const navn = Array.from(new Set(brukte.flatMap(s => s.ovelser.map(o => o.exercise_name.trim()).filter(Boolean))))
@@ -69,23 +71,26 @@ export function StyrkeRad({ spenn, plan = [], fraSek = 0, tilSek, tetthet = 'ful
   const maksKg = Math.max(0, ...alleKg)
   const utlegg: { s: StyrkeSpenn; u: StyrkeUtlegg }[] = brukte.map(s => ({ s, u: leggUtSett(s.ovelser, s.startSek, s.sek, { beste: besteMap, maksKg }) }))
   const planUtlegg = plan.filter(s => s.sek > 0).map(s => leggUtSett(s.ovelser, s.startSek, s.sek, { maksKg }))
-  const H = kompakt ? 34 : 64, BUNN = kompakt ? 0 : 22   // plass til klammer og navn
+  const lag = modus === 'lag'
+  const H = kompakt ? 34 : 64, BUNN = kompakt || lag ? 0 : 22   // plass til klammer og navn
+  // I plotflata: høyder i prosent av flata (design 3b: settene 72 % av kurvehøyden på det meste).
+  const hoydeAv = (andel: number) => lag ? `${Math.max(6, andel * 72)}%` : `${Math.max(8, andel * H)}px`
   const antallSett = utlegg.reduce((a, x) => a + x.u.sett.length, 0)
 
   return (
-    <div data-styrke-rad data-antall-sett={antallSett} data-tetthet={tetthet} style={{ position: 'relative', height: H + BUNN, marginTop: kompakt ? 2 : 6 }} aria-label={`Styrke: ${antallSett} sett`}>
-      {!kompakt && utlegg.map(({ s, u }) => (
+    <div data-styrke-rad data-antall-sett={antallSett} data-tetthet={tetthet} data-modus={modus} style={lag ? { position: 'absolute', inset: 0, pointerEvents: 'none' } : { position: 'relative', height: H + BUNN, marginTop: kompakt ? 2 : 6 }} aria-label={`Styrke: ${antallSett} sett`}>
+      {!kompakt && !lag && utlegg.map(({ s, u }) => (
         <span key={`t${s.id}`} style={{ position: 'absolute', left: pct(s.startSek), top: -14, fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', whiteSpace: 'nowrap' }}>
           Styrke · {u.sett.length} sett
         </span>
       ))}
       {/* Spennet som svak ramme - «styrkebåndet» imellom sonefargene i en blandet økt */}
-      {utlegg.map(({ s }) => (
+      {!lag && utlegg.map(({ s }) => (
         <div key={`r${s.id}`} data-styrke-spenn style={{ position: 'absolute', left: pct(s.startSek), width: bredde(s.startSek, s.startSek + s.sek), top: 0, height: H, borderRadius: 4, background: `${STYRKE_GRAA}24`, border: `1px solid ${STYRKE_GRAA}` }} />
       ))}
       {/* Planens sett som spøkelse - stiplet, dempet, bak */}
       {planUtlegg.flatMap((u, ui) => u.sett.map((st, i) => (
-        <div key={`p${ui}-${i}`} data-styrke-plan-sett style={{ position: 'absolute', left: pct(st.fraSek), width: bredde(st.fraSek, st.tilSek), bottom: BUNN, height: `${st.hoyde * H}px`, borderRadius: 3, border: `1px dashed ${STYRKE_GRAA}`, opacity: 0.55, pointerEvents: 'none' }} />
+        <div key={`p${ui}-${i}`} data-styrke-plan-sett style={{ position: 'absolute', left: pct(st.fraSek), width: bredde(st.fraSek, st.tilSek), bottom: BUNN, height: hoydeAv(st.hoyde), borderRadius: 3, border: `1px dashed ${STYRKE_GRAA}`, opacity: 0.55, pointerEvents: 'none' }} />
       )))}
       {utlegg.map(({ s, u }) => (
         <div key={s.id}>
@@ -94,13 +99,13 @@ export function StyrkeRad({ spenn, plan = [], fraSek = 0, tilSek, tetthet = 'ful
           ))}
           {u.sett.map((st, i) => (
             <div key={`s${i}`} data-sett={st.settNr} data-ovelse={st.ovelse} data-kg={st.kg} data-pr={st.pr ? '1' : '0'} title={`${st.ovelse} · sett ${st.settNr}${st.reps != null ? ` · ${st.reps} reps` : ''}${st.kg > 0 ? ` · ${String(st.kg).replace('.', ',')} kg` : ''}${st.tidSek != null ? ` · ${st.tidSek} s` : ''}${st.pr ? ' · PR' : ''}`}
-              style={{ position: 'absolute', left: pct(st.fraSek), width: bredde(st.fraSek, st.tilSek), bottom: BUNN, height: `${Math.max(8, st.hoyde * H)}px`, borderRadius: 3, background: STYRKE_GRAA, opacity: 0.92,
+              style={{ position: 'absolute', left: pct(st.fraSek), width: bredde(st.fraSek, st.tilSek), bottom: BUNN, height: hoydeAv(st.hoyde), borderRadius: 3, background: STYRKE_GRAA, opacity: 0.92, boxShadow: lag ? '0 0 0 1px var(--card)' : 'none',
                 outline: st.pr ? `1.6px solid ${GULL}` : 'none', outlineOffset: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', overflow: 'hidden' }}>
               {!kompakt && <span style={{ fontFamily: FONT, fontSize: 10.5, fontWeight: 600, color: '#F0F0F2', lineHeight: 1, marginTop: 2 }}>{st.merke}</span>}
-              {!kompakt && st.kg > 0 && st.hoyde * H >= 26 && <span style={{ fontFamily: FONT, fontSize: 9, color: 'rgba(255,255,255,.62)', lineHeight: 1, marginBottom: 2 }}>{String(st.kg).replace('.', ',')}</span>}
+              {!kompakt && !lag && st.kg > 0 && st.hoyde * H >= 26 && <span style={{ fontFamily: FONT, fontSize: 9, color: 'rgba(255,255,255,.62)', lineHeight: 1, marginBottom: 2 }}>{String(st.kg).replace('.', ',')}</span>}
             </div>
           ))}
-          {!kompakt && u.klammer.map((k, i) => (
+          {!kompakt && !lag && u.klammer.map((k, i) => (
             <div key={`k${i}`} data-klamme={k.ovelse} style={{ position: 'absolute', left: pct(k.fraSek), width: bredde(k.fraSek, k.tilSek), top: H + 5, borderTop: '1px solid var(--kant-7)', textAlign: 'center', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingTop: 2 }}>
               {k.ovelse}
             </div>

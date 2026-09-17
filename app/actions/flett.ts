@@ -20,6 +20,9 @@ import {
 export type FlettModus = 'legg_bak' | 'bytt_ut'
 
 export interface FlettGrunnlag {
+  /** Styrkerader på målet - fredes i modus B (fase 132), styrer forvalget. */
+  maalStyrkeRader: number
+  maalErStyrke: boolean
   maalTittel: string
   maalErPlanlagt: boolean
   maalRader: number
@@ -71,20 +74,26 @@ export async function hentFlettGrunnlag(
   if (!maal || !kilde) return { error: 'Fant ikke begge økter' }
 
   // maalRader teller kun radene som faktisk byttes i modus B —
-  // skyting-rader fredes av fletten (fasit: «skyting og tags står»)
-  // og skal ikke skremme i konsekvens-linja.
-  const [maalAkt, kildeAkt] = await Promise.all([
+  // skyting-rader OG styrkerader (fase 132, styrke bolk 6c) fredes av
+  // fletten og skal ikke skremme i konsekvens-linja.
+  const [maalAkt, kildeAkt, styrkeAkt] = await Promise.all([
     supabase.from('workout_activities')
       .select('id', { count: 'exact', head: true }).eq('workout_id', maalId)
-      .not('activity_type', 'in', '(skyting_liggende,skyting_staaende,skyting_kombinert,skyting_innskyting,skyting_basis)'),
+      .not('activity_type', 'in', '(skyting_liggende,skyting_staaende,skyting_kombinert,skyting_innskyting,skyting_basis)')
+      .or('movement_name.is.null,movement_name.neq.Styrke'),
     supabase.from('workout_activities')
       .select('id', { count: 'exact', head: true }).eq('workout_id', kildeId),
+    supabase.from('workout_activities')
+      .select('id', { count: 'exact', head: true }).eq('workout_id', maalId).eq('movement_name', 'Styrke'),
   ])
 
   return {
     maalTittel: maal.title,
     maalErPlanlagt: maal.is_planned,
     maalRader: maalAkt.count ?? 0,
+    // Styrke bolk 6b: «Legg bak» forvelges når målet er en styrkeøkt.
+    maalStyrkeRader: styrkeAkt.count ?? 0,
+    maalErStyrke: (styrkeAkt.count ?? 0) > 0,
     kildeTittel: kilde.title,
     kildeRader: kildeAkt.count ?? 0,
     kildeVarighetMin: kilde.duration_minutes,

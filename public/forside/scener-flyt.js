@@ -243,15 +243,10 @@ SC.push({kap:3,tittel:'FØR DET KLOKKA IKKE VET.',tekst:'Skyting, laktat, ernær
 });
 
 /* ── 8 · PLOTT TREFF ── */
-function vimpelSvg(r,l,sz){var flag=l<=0?'<path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/>':(l>=5?'<path d="M32,10 c8,-3 13,3 21,0 c8,-3 13,3 21,0 l0,13 c-8,3 -13,-3 -21,0 c-8,3 -13,-3 -21,0 Z" fill="#E23A5A"/>':'<g transform="rotate('+(-{1:15,2:35,3:55,4:75}[l])+' 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g>');
- var inner='<line x1="32" y1="12" x2="32" y2="84" stroke="var(--a-mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--a-mut)"/>'+flag;
- return'<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 92 92">'+(r==='V'?'<g transform="translate(92 0) scale(-1 1)">'+inner+'</g>':inner)+'</svg>'}
-function taakeSvg(f){if(!f)return'<svg width="18" height="14" viewBox="0 0 18 14"><circle cx="9" cy="7" r="5" fill="none" stroke="#28A86E" stroke-width="2"/></svg>';var s='';for(var i=0;i<f;i++)s+='<path d="M2,'+(3+i*4)+' c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="var(--a-mut)" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="'+(.5+.17*i)+'"/>';return'<svg width="18" height="14" viewBox="0 0 18 14">'+s+'</svg>'}
-
-var SERIER=[{ls:'L',navn:'LIGGENDE',gc:'#38BDF8',sc:'#1A6FD4',plass:'30:00-33:00',vind:['H',2,'H2',0,'God sikt'],skudd:[[.02,-.04],[-.06,.03],[.05,.05],[.01,.08],[-.03,-.07]],tid:'27,9',puls:164,treff:5},
- {ls:'S',navn:'STÅENDE',gc:'#FF4500',sc:'#E23A5A',plass:'43:00-46:00',vind:['V',1,'V1',1,'Lett tåke'],skudd:[[.18,-.12],[-.22,.1],[.61,.2],[.05,.24],[-.15,-.2]],tid:'29,0',puls:158,treff:4}];
-function blinkSvg(ser,i){var s=ser.skudd[i];return'<svg viewBox="0 0 62 62"><circle class="skive" cx="31" cy="31" r="26" fill="#F2F2F0" stroke="var(--a-line2)" stroke-width="2" style="transition:fill .4s"/>'+(ser.ls==='L'?'<circle cx="31" cy="31" r="12" fill="none" stroke="#8A8A96" stroke-width="1" stroke-dasharray="4 3"/>':'')+
- '<g class="skudd"><circle cx="'+(31+s[0]*52)+'" cy="'+(31+s[1]*52)+'" r="8" fill="'+ser.sc+'" stroke="#0A0A0B" stroke-width="1"/><text x="'+(31+s[0]*52)+'" y="'+(31+s[1]*52+3.3)+'" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="9.5" fill="#fff">'+(i+1)+'</text></g></svg>'}
+/* vimpelSvg ligger i karusell.js (delt med detaljene-scenene, 17. sep). */
+/* taakeSvg ligger i karusell.js (delt med detaljene-scenene, 17. sep). */
+/* SERIER (skyteseriene) ligger i karusell.js - delt av flyt-scene 7 og detaljene-scenene (undersidene laster detaljene alene). */
+/* blinkSvg ligger i karusell.js (delt med detaljene-scenene, 17. sep). */
 /* Scene «Plott hvert skudd» er flyttet til «Detaljene som avgjør» (16. sep). */
 
 /* ── 9 · FORMKARTET (design/xpulse-formkart-design.html - utkastet, ikke bygget ennå) ── */

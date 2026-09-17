@@ -1,4 +1,5 @@
 import { AppFragment } from './AppFragment'
+import { Scenekort, type SceneValg } from './Scenekort'
 
 // UNDERSIDENE v2 bolk B4 - én seksjon: kicker, H2, ingress og tre punktbokser med
 // oransje venstrekant, med media vekselvis til høyre og venstre. Media er enten et
@@ -11,6 +12,8 @@ export type LandingMedia =
   | { type: 'app'; navn: string; kap: string; hoyde?: number }
   | { type: 'foto'; bilde: string; alt: string; blaa?: boolean }
   | { type: 'merker'; merker: { navn: string; status: string; pavei?: boolean }[]; fot?: string }
+  /** Bolk 3: ett eller to animasjonskort fra forsiden (enScene) - erstatter et statisk fragment. */
+  | { type: 'scene'; scener: SceneValg[]; kap?: string }
 
 interface Props {
   id?: string
@@ -48,6 +51,12 @@ export function LandingSeksjon({ id, kicker, tittel, ingress, punkter, media, sp
             <div className="lp-skjerm">
               <div className="lp-sk-topp"><span className="lp-sk-kap">{media.kap}</span></div>
               <AppFragment navn={media.navn} hoyde={media.hoyde} />
+            </div>
+          )}
+          {media?.type === 'scene' && (
+            <div className="lp-sk">
+              {media.kap && <div className="lp-sk-topp"><span className="lp-sk-kap">{media.kap}</span></div>}
+              <Scenekort scener={media.scener} />
             </div>
           )}
           {media?.type === 'foto' && (

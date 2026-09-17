@@ -47,7 +47,7 @@ export default function DagbokOgPlanPage() {
           { tittel: '58 ferdige øktmaler', tekst: 'Bygget på Olympiatoppens intensitetsskala. Lagre dine egne som maler.' },
           { tittel: 'Felt per bevegelsesform', tekst: 'Watt, motstand, stigning, fart og kadens dukker opp der de gir mening.' },
         ]}
-        media={{ type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 }}
+        media={{ type: 'scene', kap: 'Øktbyggeren i appen', scener: [{ tittel: 'BYGG ØKTA PÅ SEKUNDER.', fil: 'flyt' }] }}
       />
 
       <LandingSeksjon
@@ -58,7 +58,7 @@ export default function DagbokOgPlanPage() {
           { tittel: 'Uke- og planmaler', tekst: 'Hele uker og perioder kan lagres og settes inn på nytt, for deg eller for gruppa.' },
           { tittel: 'Årsplanen over ukene', tekst: 'Periodene fra årsplanen ligger som stripe over ukene i planen.' },
         ]}
-        media={{ type: 'app', navn: 'kalender-uke', kap: 'Plan-kalenderen med uke og periodestripe', hoyde: 420 }}
+        media={{ type: 'scene', kap: 'Årsplanen i appen', scener: [{ tittel: 'MAL SESONGEN.', fil: 'flyt' }] }}
         speilvendt
       />
 

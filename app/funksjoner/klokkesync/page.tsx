@@ -73,7 +73,7 @@ export default function KlokkesyncPage() {
           { tittel: 'Manuelt vinner', tekst: 'Har du ført tid, distanse eller sone selv, overskrives det aldri av synken.' },
           { tittel: 'Kilde per verdi', tekst: 'Hver verdi vet om den kom fra klokka eller fra deg.' },
         ]}
-        media={{ type: 'app', navn: 'samlet-bryter', kap: 'Samlet eller splittet i økta', hoyde: 120 }}
+        media={{ type: 'scene', kap: 'Rundene i appen', scener: [{ tittel: 'ØKTA KOMMER INN AV SEG SELV.', fil: 'flyt' }, { tittel: 'FØR DET KLOKKA IKKE VET.', fil: 'flyt' }] }}
         speilvendt
       />
 

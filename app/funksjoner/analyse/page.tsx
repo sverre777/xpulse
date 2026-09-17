@@ -50,7 +50,7 @@ export default function AnalysePage() {
           { tittel: 'Konkurranser på kurven', tekst: 'A-, B- og C-løp vises i belastningsgrafen, så toppformen kan etterprøves.' },
           { tittel: 'RPE når watt mangler', tekst: 'Har økta hverken puls eller watt, brukes opplevd belastning - ingen hull i kurven.' },
         ]}
-        media={{ type: 'app', navn: 'custom-graf', kap: 'Egen graf: timer per uke fordelt på soner', hoyde: 520 }}
+        media={{ type: 'scene', kap: 'Laktat, terskel og belastning i appen', scener: [{ tittel: 'LAKTAT, TERSKEL OG BELASTNING.', fil: 'detaljene' }] }}
       />
 
       <LandingSeksjon
@@ -84,7 +84,7 @@ export default function AnalysePage() {
           { tittel: 'Sykdom og skade som lag', tekst: 'Periodene legges over belastningskurven, så mønsteret blir synlig.' },
           { tittel: 'Sier fra ved for lite data', tekst: 'Under ti punkter vises ingen korrelasjon - bare at grunnlaget er for tynt.' },
         ]}
-        media={{ type: 'app', navn: 'helse', kap: 'Helse: søvn, hvilepuls og HRV', hoyde: 780 }}
+        media={{ type: 'scene', kap: 'Formkartet på Oversikt', scener: [{ tittel: 'SE HELE FORMEN PÅ ÉN AKSE.', fil: 'flyt' }] }}
         speilvendt
       />
 

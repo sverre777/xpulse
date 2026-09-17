@@ -3,6 +3,7 @@ import { LandingShell } from '@/components/landing/LandingShell'
 import { LandingHero } from '@/components/landing/LandingHero'
 import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
 import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
+import { Scenerad } from '@/components/landing/Scenerad'
 import { LandingFaq } from '@/components/landing/LandingFaq'
 import { AndreIdretter } from '@/components/landing/AndreIdretter'
 import { LandingBand } from '@/components/landing/LandingBand'
@@ -38,6 +39,11 @@ export default function TrenerPage() {
         ctaSekHref="#troppen"
       />
       <LandingSnarvei punkter={SNARVEIER} />
+
+      {/* Bolk 3 (17. sep): HELE trener-raden - fem scener med forsidens karusell - under innledningen, ikke i stedet for den. */}
+      <section className="lp-us" id="scener" aria-label="Trener-modulen i bruk">
+        <div className="lp-us-inn full"><Scenerad /></div>
+      </section>
 
       <LandingSeksjon
         id="troppen" kicker="Troppen" tittel="HELE GRUPPA PÅ ÉN SKJERM."

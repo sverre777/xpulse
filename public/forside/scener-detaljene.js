@@ -178,5 +178,6 @@ var MER1={
  'SE HELE FORMEN PÅ ÉN AKSE.':['Sonetid per dag, form (CTL), tretthet (ATL) og overskudd (TSB)','Restitusjon: HRV og hvilepuls som avvik fra ditt eget grunnivå','Følelse og dagstatus (hviledag, sykdom, konkurranse) på samme akse','Les én dag, eller se 30, 60 og 180 dager','NB: formkartet er designutkast - ikke bygget ennå'],
  'SAMME ØKT. ÅTTE GANGER.':['Merk en økt som standardøkt, så følges hver gjennomføring','Velg variabel: snittpuls, laktat maks, treff %, skytetid, opplevd og mer','Per drag - én linje per drag-indeks','Beste gjennomføring markert, og hver verdi mot forrige og mot beste','Vær og føre i tabellen'],
  'ALT SAMLET PÅ HJEM.':['I dag: dagens økt og neste økt','Ukens totaler mot planen, med soner og skudd','Nedtelling til neste A-konkurranse','Helse, siste hardøkt, hovedmål og periode','Alt hentes i én samlet henting - ingen kort som laster etter']};
-SC.forEach(function(s){if(MER1[s.tittel])s.mer=MER1[s.tittel]});
+/* «Les mer»-tekstene til to flyt-scener - bare når flyt-fila er lastet (undersidene laster detaljene alene). */
+if(typeof SC!=='undefined')SC.forEach(function(s){if(MER1[s.tittel])s.mer=MER1[s.tittel]});
 karusell(SC2, KAP2, 'd');

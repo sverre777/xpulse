@@ -1,10 +1,13 @@
 /* FORSIDENS TOKENS - ÉN kilde (regel 11). Flyttet ut av public/xpulse.html 17. sep
    (undersidene bolk 2) så scenekortene (enScene) kan bruke dem på undersidene også.
-   xpulse.html lenker denne fila først i <head>; der gjelder :root som før.
-   På undersidene (Next, appens tokens i globals.css) settes de SCOPET på
-   .xp-forside-tokens, så --card/--line/--bg her ikke kolliderer med appens.
+   xpulse.html lenker denne fila først i <head> og har <html class="xp-forside">,
+   så der gjelder de som før (på rota). På undersidene (Next, appens tokens i
+   globals.css) gjelder de BARE inni .xp-forside-tokens - aldri på :root: 14 av
+   navnene (--card, --line, --line2, --dim, --blue, --gold, --green, --hurt,
+   --orange, --i1..--i5) finnes også i appen, og et AppFragment utenfor
+   wrapperen skal ha appens verdier.
    Mørkverdiene er eksakt de som sto inline (vakt 1); lys under. */
-:root,.xp-forside-tokens{
+.xp-forside,.xp-forside-tokens{
   /* Runde 3: app-flatene inni scenene (app/globals.css, mørk) */
   --a-flate:#0A0A0B;--a-card:#101014;--a-card2:#15151B;--a-graf:#13131A;--a-felt:#1A1A22;
   --a-line:#1F1F26;--a-line2:#2A2A33;--a-kant:#1E1E22;
@@ -49,7 +52,7 @@
 /* LYSMODUS - kartlegging: design/lysmodus-kartlegging.md, tvil: design/lysmodus-tvil.md.
    Kun nøytraler; --orange, --blue, --gold, --green, --red, sonefargene og merkefargene
    gjelder i begge tema. Verdiene er speilet lyshet (L -> 1-L i HSL), som i appen. */
-:root[data-tema="lys"],:root[data-tema="lys"] .xp-forside-tokens{
+.xp-forside[data-tema="lys"],[data-tema="lys"] .xp-forside-tokens{
   /* Runde 3: app-flatene inni scenene, lys */
   --a-flate:#F4F4F6;--a-card:#FFFFFF;--a-card2:#F4F4F7;--a-graf:#F7F7FA;--a-felt:#EDEDF2;
   --a-line:#D9D9E0;--a-line2:#CCCCD5;--a-kant:#DEDEE5;

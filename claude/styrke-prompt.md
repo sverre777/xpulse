@@ -313,6 +313,45 @@ i) KOMMENTAR I LIVE STYRKE - PER ØVELSE OG FOR HELE ØKTA (Sverre 17. sep
      Åpne og lagre økta i dagboken uten å røre noe: begge står fortsatt
      (regresjonsvern mot slett-og-reinsert i saveWorkout).
 
+j) FERDIG-SKJERMEN I LIVE: KOMMENTAR + FYSISK OG MENTAL FORM, OG EN
+   LAGRING SOM IKKE KAN MISTE SETT (Sverre 17. sep, etter en live-økt som
+   «ble slettet»).
+   MÅLT FØRST (Cowork, edge-loggen + basen, 17. sep):
+   · Ingen økt er slettet. Begge live-øktene fra i dag (04:04 og 08:22 UTC)
+     ligger i basen som planlagt, ikke fullført, med live_started_at satt -
+     den ene med 0 øvelser, den andre med 1 øvelse og 0 sett.
+   · Økta 08:22 gikk INNI 131b-vinduet (policyene som tok 30-40 s): GET på
+     økta med øvelser og sett ga 500 kl. 08:30, og den ene autosaven kl.
+     08:24 skrev DELETE øvelser + 1 øvelse uten sett. «Lagre i dagboka»
+     nådde aldri basen (ingen PATCH på workouts). Settene finnes ikke -
+     de kom aldri fram. Årsaken (RLS-kjeden) er rettet av hastefiksen, men
+     to svakheter i lagringen sto igjen og står fortsatt:
+     1. saveLiveStrength sletter øvelsene FØR den setter inn nye. Feiler
+        innsettingen (timeout, nett, RLS), er øvelsene borte. Ikke atomisk.
+     2. Feiler lagringen på ferdig-skjermen, får brukeren bare en xpAlert,
+        og settene ligger kun i React-tilstand. Lukker han fanen, er de
+        borte.
+   SKAL:
+   · Ferdig-skjermen får: kommentarfelt for økta (samme felt som 8i:
+     workouts.notes), «Fysisk form» og «Mental form» som stjerner - SAMME
+     StarRating og SAMME kolonner som øktskjemaet (WorkoutForm:
+     day_form_physical, day_form_mental). finishLiveSession tar med notes
+     og de to formfeltene i UPDATE-en. Ingen ny kolonne, ingen SQL.
+     Dagboken viser dem der de alltid har stått.
+   · saveLiveStrength gjøres trygg: sett inn de nye øvelsene FØRST, slett
+     de gamle ETTERPÅ (id-liste tatt før innsetting), eller én RPC som gjør
+     alt i én transaksjon. Feiler noe, står de gamle. Server-guarden mot
+     tom liste beholdes.
+   · lagreIDagboka: ved feil blir skjermen stående med settene, feilen
+     vises i skjermen (ikke bare alert), og knappen heter «Prøv igjen».
+     I tillegg: settene speiles til localStorage per workoutId ved hver
+     endring, og ResumeSessionBanner/gjenoppta leser dem tilbake om basen
+     har færre sett enn speilet. Slettes når økta er lagret. (Samme sti
+     som «Stopp er lokalt» - ingen SQL.)
+   · Bevis (regel 40): simuler feil i innsettingen (kast etter delete i
+     dev) - øvelsene står. Lagre med kommentar + 4/3 stjerner - står i
+     dagboken. Lukk fanen midt i økta, åpne igjen - settene er der.
+
 GJELDER ALLE BOLKER
   Lys og mørk (regel 23) · vanlig bindestrek (regel 31) · ingen custom
   musepeker (regel 30) · treffflater minst 36 px, 52 i live · mobil er

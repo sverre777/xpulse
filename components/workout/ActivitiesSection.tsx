@@ -76,6 +76,10 @@ function isIndoorActivityFor(name: string, subcategory: string): boolean {
 /** «Plan …»-chip per øvelse (samme kilde som live-visningen: planned_snapshot). Kontekst, så den
  *  slipper å plumbes gjennom gruppe- og rad-komponentene ned til StrengthEditor. */
 const PlannedStyrkeContext = createContext<Record<string, string>>({})
+// Bolk 8c: «Beste» og forrige i øvelseskortet regnes for RIKTIG utøver og med
+// økta selv holdt utenfor (beste FØR økta, som StyrkeRad) - ellers konkurrerer en
+// lagret økt med seg selv og PR-merket kan aldri vises i skjemaet.
+const StyrkeOktContext = createContext<{ workoutId: string | null; targetUserId?: string }>({ workoutId: null })
 const TOM_PLAN: Record<string, string> = {}
 
 interface Props {
@@ -340,6 +344,7 @@ export function ActivitiesSection({ plannedStyrke, rows, onChange, sport, userSp
   const harSkyting = rows.some(r => (r.activity_type ?? '').startsWith('skyting'))
 
   return (
+    <StyrkeOktContext.Provider value={{ workoutId, targetUserId }}>
     <PlannedStyrkeContext.Provider value={plannedStyrke ?? TOM_PLAN}>
     <div className="space-y-2">
       {/* Felles knapperad (regel 11) - over radene, i plan OG dagbok.
@@ -474,6 +479,7 @@ export function ActivitiesSection({ plannedStyrke, rows, onChange, sport, userSp
       )}
     </div>
     </PlannedStyrkeContext.Provider>
+    </StyrkeOktContext.Provider>
   )
 }
 
@@ -1540,6 +1546,7 @@ function StrengthEditor({
   planMode?: boolean
 }) {
   const plannedStyrke = useContext(PlannedStyrkeContext)
+  const okt = useContext(StyrkeOktContext)
   const [library, setLibrary] = useState<UserExercise[]>([])
   // Forrige-økt og beste per øvelsesnavn (normOvelse). null = hentet, ingen historikk.
   const [lastByName, setLastByName] = useState<Record<string, LastSessionForExercise | null>>({})
@@ -1571,11 +1578,11 @@ function StrengthEditor({
       setBesteByName(prev => { const next = { ...prev }; for (const n of missing) next[normOvelse(n)] = beste[normOvelse(n)] ?? null; return next })
     }
     const t = setTimeout(() => {
-      Promise.all([getLastSessionForExercises(missing), getBesteForExercises(missing)])
+      Promise.all([getLastSessionForExercises(missing, okt.targetUserId), getBesteForExercises(missing, okt.targetUserId, okt.workoutId ?? undefined)])
         .then(([l, b]) => settle(l, b)).catch(() => settle({}, {}))
     }, 500)
     return () => { cancelled = true; clearTimeout(t) }
-  }, [exerciseNames, lastByName])
+  }, [exerciseNames, lastByName, okt.targetUserId, okt.workoutId])
 
   const presets = presetsForCategory(category)
   const libraryNames = useMemo(

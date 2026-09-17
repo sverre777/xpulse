@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { StrengthExerciseRow, StrengthSetRow } from '@/lib/types'
 import {
-  startLiveSession, finishLiveSession, cancelLiveSession, saveLiveStrength,
+  startLiveSession, finishLiveSession, cancelLiveSession, saveLiveStrength, getLastSessionForExercises, getBesteForExercises,
   type LastSessionForExercise,
 } from '@/app/actions/strength-session'
 import { searchStandardExercises } from '@/lib/standard-exercises'
@@ -87,7 +87,7 @@ const num = (v: string): number | null => { const n = parseDecimal(v); return is
 const settRad = (ex: StrengthExerciseRow) => ex.sets.map(s => s.reps.trim() || '-').join(' / ')
 
 export function LiveSessionView({
-  workoutId, initialExercises, lastByName, plannedByName = {}, besteByName = {},
+  workoutId, initialExercises, lastByName: lastInn, plannedByName = {}, besteByName: besteInn = {},
 }: {
   workoutId: string
   initialExercises: StrengthExerciseRow[]
@@ -118,6 +118,15 @@ export function LiveSessionView({
   const [meny, setMeny] = useState<string | null>(null)
   // Tastaturets verdier for det aktive settet. rort = brukeren har trykket.
   const [tast, setTast] = useState<{ reps: string; kg: string; rort: boolean }>({ reps: '', kg: '', rort: false })
+  // Bolk 8f: trykk på tallet i stepperen åpner et numerisk felt - skriver til SAMME tast-tilstand.
+  const [redigerer, setRedigerer] = useState<'reps' | 'kg' | null>(null)
+  // Bolk 8c: «Bytt øvelse» - forrige/beste for navn som ikke var med ved lasting hentes her
+  // og legges oppå propsene. PR-merker og «Beste» regnes mot det NYE navnet.
+  const [ekstraLast, setEkstraLast] = useState<Record<string, LastSessionForExercise>>({})
+  const [ekstraBeste, setEkstraBeste] = useState<Record<string, BesteForOvelse>>({})
+  const lastByName = useMemo(() => ({ ...lastInn, ...ekstraLast }), [lastInn, ekstraLast])
+  const besteByName = useMemo(() => ({ ...besteInn, ...ekstraBeste }), [besteInn, ekstraBeste])
+  const [bytter, setBytter] = useState<string | null>(null)
 
   // ── Start/gjenoppta + timer ──────────────────────────────
   useEffect(() => {
@@ -192,6 +201,29 @@ export function LiveSessionView({
     const next = [...exercises]; [next[i], next[j]] = [next[j], next[i]]; setExercises(next)
   }
   const addExercise = (name: string) => { if (name.trim()) setExercises([...exercises, makeExercise(name.trim())]) }
+  /** PR-merkene på FØRTE sett i én øvelse, regnet mot beste for navnet (bolk 8c: etter bytte er et stående merke en oppdiktet rekord). */
+  const regnPrPaaNytt = (ex: StrengthExerciseRow, beste: BesteForOvelse | undefined) => {
+    setPrSets(prev => {
+      const n = new Set(prev)
+      for (const s of ex.sets) { if (!doneSets.has(s.id)) continue; if (erPr(beste, num(s.reps), num(s.weight_kg))) n.add(s.id); else n.delete(s.id) }
+      return n
+    })
+  }
+  /** Bolk 8c: bytt øvelse på kortet - settene (reps, kg, tid, RPE) står, bare navnet byttes. */
+  const byttOvelse = (exId: string, navn: string) => {
+    const ex = exercises.find(e => e.id === exId); const n = navn.trim()
+    setBytter(null)
+    if (!ex || !n || n === ex.exercise_name) return
+    const nyEx = { ...ex, exercise_name: n }
+    setExercises(exercises.map(e => e.id === exId ? nyEx : e))
+    const key = normOvelse(n)
+    if (key in besteByName || key in lastByName) { regnPrPaaNytt(nyEx, besteByName[key]); return }
+    regnPrPaaNytt(nyEx, undefined)
+    Promise.all([getLastSessionForExercises([n]), getBesteForExercises([n], undefined, workoutId)]).then(([l, b]) => {
+      setEkstraLast(prev => ({ ...prev, ...l })); setEkstraBeste(prev => ({ ...prev, ...b }))
+      regnPrPaaNytt(nyEx, b[key])
+    }).catch(() => {})
+  }
   // Bolk 8a/8b: dra-og-slipp + supersett - samme hjelper som plan/dagbok (lib/styrke-ovelser).
   const flytt = (aktivId: string, overId: string | null) => { const next = flyttOvelse(exercises, aktivId, overId); if (next !== exercises) setExercises(next) }
   const groupLetters = useMemo(() => supersettBokstaver(exercises), [exercises])
@@ -220,7 +252,7 @@ export function LiveSessionView({
     if (stoppet) return
     setDoneSets(prev => { const n = new Set(prev); n.delete(s.id); return n })
     setActiveSetId(s.id)
-    setLastLogMs(null)
+    setLastLogMs(null); setRedigerer(null)
     const sp = spokelse(lastByName[normOvelse(ex.exercise_name)], i)
     const harFort = !!(s.reps.trim() || s.weight_kg.trim())
     // Bolk 8g: et uført sett arver settet OVER som startverdi (rort: true - lagres
@@ -246,7 +278,7 @@ export function LiveSessionView({
     setPrSets(prev => { const n = new Set(prev); if (pr) n.add(aktiv.sett.id); else n.delete(aktiv.sett.id); return n })
     hapticTap(pr ? [15, 40, 15] : 15)
     setDoneSets(prev => new Set(prev).add(aktiv.sett.id))
-    setActiveSetId(null)
+    setActiveSetId(null); setRedigerer(null)
     setLastLogMs(Date.now())   // hvile teller mot neste sett
   }
   /** Trykk på et grått felt i lista fyller verdien inn som ført. */
@@ -402,10 +434,10 @@ export function LiveSessionView({
                   {ssLetter ? `SS ${ssLetter}` : idx + 1}
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  {ex.exercise_name.trim() ? (
+                  {ex.exercise_name.trim() && bytter !== ex.id ? (
                     <b style={{ display: 'block', fontFamily: BEBAS, fontSize: 19, letterSpacing: '0.03em', color: 'var(--tekst-1-app)', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.exercise_name || 'Øvelse'}</b>
                   ) : (
-                    <NavnVelger onVelg={navn => updateExercise(ex.id, { exercise_name: navn })} />
+                    <NavnVelger start={bytter === ex.id ? ex.exercise_name : ''} onVelg={navn => bytter === ex.id ? byttOvelse(ex.id, navn) : updateExercise(ex.id, { exercise_name: navn })} onAvbryt={() => setBytter(null)} />
                   )}
                   <span style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', fontSize: 11.5 }}>{ex.sets.length} sett · {settRad(ex)}</span>
                 </span>
@@ -413,6 +445,7 @@ export function LiveSessionView({
               </header>
               {meny === ex.id && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px 10px' }} data-live-meny>
+                  <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => { setBytter(ex.id); setMeny(null) }} data-live-bytt-ovelse>Bytt øvelse</button>
                   <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => moveExercise(ex.id, -1)}>▲ Opp</button>
                   <button type="button" className="xp-pill xp-pill-ghost" style={pillLiten} onClick={() => moveExercise(ex.id, 1)}>▼ Ned</button>
                   <button type="button" className="xp-pill xp-pill-ghost" style={{ ...pillLiten, color: '#E23A5A' }} onClick={() => { removeExercise(ex.id); setMeny(null) }}>Fjern øvelse</button>
@@ -499,12 +532,12 @@ export function LiveSessionView({
             </div>
             <div style={stepperRad}>
               <button type="button" onClick={() => bump('reps', -1)} style={stepKnapp} aria-label="En rep mindre">−</button>
-              <div style={verdiBoks}><em style={{ ...verdiEm, color: tast.rort ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }} data-live-tast-reps>{tast.reps || '-'}</em><i style={verdiI}>reps</i></div>
+              <TallBoks felt="reps" enhet="reps" verdi={tast.reps} rort={tast.rort} redigerer={redigerer === 'reps'} onApne={() => setRedigerer('reps')} onLukk={() => setRedigerer(null)} onSkriv={v => setTast(t => ({ ...t, reps: v, rort: true }))} />
               <button type="button" onClick={() => bump('reps', 1)} style={stepKnapp} aria-label="En rep mer">+</button>
             </div>
             <div style={stepperRad}>
               <button type="button" onClick={() => bump('kg', -1)} style={stepKnapp} aria-label="2,5 kg mindre">−2,5</button>
-              <div style={verdiBoks}><em style={{ ...verdiEm, color: tast.rort ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }} data-live-tast-kg>{tast.kg || '-'}</em><i style={verdiI}>kg</i></div>
+              <TallBoks felt="kg" enhet="kg" verdi={tast.kg} rort={tast.rort} redigerer={redigerer === 'kg'} onApne={() => setRedigerer('kg')} onLukk={() => setRedigerer(null)} onSkriv={v => setTast(t => ({ ...t, kg: v, rort: true }))} />
               <button type="button" onClick={() => bump('kg', 1)} style={stepKnapp} aria-label="2,5 kg mer">+2,5</button>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -520,6 +553,36 @@ export function LiveSessionView({
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * Bolk 8f: tallet i stepperen. Trykk åpner et numerisk felt (inputmode decimal for kg,
+ * numeric for reps), forhåndsfylt og markert; Enter eller trykk utenfor lukker. Komma og
+ * punktum godtas (num() leser begge). Skriver til samme tast-tilstand som stepperen -
+ * ingen ny kilde. Boksen er fortsatt 52 px.
+ */
+function TallBoks({ felt, enhet, verdi, rort, redigerer, onApne, onLukk, onSkriv }: {
+  felt: 'reps' | 'kg'; enhet: string; verdi: string; rort: boolean; redigerer: boolean
+  onApne: () => void; onLukk: () => void; onSkriv: (v: string) => void
+}) {
+  if (redigerer) {
+    return (
+      <div style={verdiBoks}>
+        <input autoFocus value={verdi} inputMode={felt === 'kg' ? 'decimal' : 'numeric'} aria-label={`Skriv ${enhet}`} data-live-tast-felt={felt}
+          onFocus={e => e.currentTarget.select()}
+          onChange={e => onSkriv(e.target.value.replace(/[^0-9.,]/g, ''))}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); onLukk() } }}
+          onBlur={onLukk}
+          style={{ ...verdiEm, width: '100%', minWidth: 0, background: 'none', border: 'none', outline: 'none', textAlign: 'right', padding: 0 }} />
+        <i style={verdiI}>{enhet}</i>
+      </div>
+    )
+  }
+  return (
+    <button type="button" onClick={onApne} aria-label={`Skriv ${enhet} direkte`} style={{ ...verdiBoks, cursor: 'text', width: '100%' }} data-live-tast-apne={felt}>
+      <em style={{ ...verdiEm, color: rort ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }} data-live-tast-reps={felt === 'reps' ? '' : undefined} data-live-tast-kg={felt === 'kg' ? '' : undefined}>{verdi || '-'}</em><i style={verdiI}>{enhet}</i>
+    </button>
   )
 }
 
@@ -588,14 +651,15 @@ function RpePicker({ value, onChange, somPille = false }: { value: string; onCha
 }
 
 /** Tom øvelse (fra «Legg til supersett»): navnet velges på kortet - søk i standardbiblioteket eller skriv eget. Bolk 8c gjenbruker den for «Bytt øvelse». */
-function NavnVelger({ onVelg, start = '' }: { onVelg: (navn: string) => void; start?: string }) {
+function NavnVelger({ onVelg, onAvbryt, start = '' }: { onVelg: (navn: string) => void; onAvbryt?: () => void; start?: string }) {
   const [q, setQ] = useState(start)
-  const matches = useMemo(() => q.trim() ? searchStandardExercises(q, new Set(), 5) : [], [q])
-  const commit = (navn: string) => { if (navn.trim()) onVelg(navn.trim()) }
+  const matches = useMemo(() => q.trim() && q.trim() !== start ? searchStandardExercises(q, new Set(), 5) : [], [q, start])
+  const commit = (navn: string) => { if (navn.trim()) onVelg(navn.trim()); else onAvbryt?.() }
   return (
     <span style={{ display: 'block', position: 'relative' }} data-live-navnvelger>
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Skriv øvelsen (søk eller eget navn)" autoFocus={!start} aria-label="Øvelsesnavn"
-        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(q) } }} onBlur={() => { if (matches.length === 0) commit(q) }}
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Skriv øvelsen (søk eller eget navn)" autoFocus aria-label="Øvelsesnavn"
+        onFocus={e => { if (start) e.currentTarget.select() }}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(q) } if (e.key === 'Escape') { e.preventDefault(); onAvbryt?.() } }} onBlur={() => { if (matches.length === 0) commit(q) }}
         style={{ width: '100%', background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 999, color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 15, padding: '7px 12px', minHeight: 36 }} />
       {matches.length > 0 && (
         <span style={{ position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 20, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 14, marginTop: 4, overflow: 'hidden' }}>

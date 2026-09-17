@@ -116,6 +116,20 @@ function zoneSeconds(zones: ActivityLike['zones'], k: ExtendedZoneName): number 
   return Number.isFinite(n) && n > 0 ? n : 0
 }
 
+/**
+ * REGNESTYKKET FOR TRENINGSTID - og de to behandlingene av å stå stille
+ * (styrke bolk 3, Sverre 16. sep 2026, bevisst):
+ *   · En STYRKERAD bærer hele sin varighet inkludert hvile mellom sett.
+ *     48 min styrke med 18 min arbeid ER 48 min trening. Hvilen lages aldri
+ *     som pause-rad (finishLiveSession legger resten av totaltida på raden).
+ *   · En PAUSE-RAD (PASSIV_PAUSE_TYPER: stillestand under en løpetur) trekkes
+ *     fra treningstida.
+ * I en blandet økt teller derfor 20 min stillestand under styrkedelen som
+ * trening, mens 20 min stillestand under løpedelen er pause. Det er to ulike
+ * behandlinger av det samme i samme økt - styrke er arbeid og hvile i
+ * veksling, løping er ikke det. Endres regelen, endres den HER, ikke i en
+ * kaller.
+ */
 export function computeActivityTotals(
   activities: ActivityLike[],
   heartZones: HeartZone[],

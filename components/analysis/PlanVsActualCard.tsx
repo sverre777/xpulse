@@ -176,7 +176,7 @@ function Stat({
   pct: number | null
 }) {
   return (
-    <div className="p-3" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
+    <div data-pva-stat={label} className="p-3" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}

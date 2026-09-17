@@ -336,6 +336,27 @@ export async function finishLiveSession(
     })
     .eq('id', workoutId).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
+
+  // BOLK 3 (styrke, tidsreglene): TOTALTID = TRENINGSTID, hvile mellom sett
+  // er MED. Hvilen skal ALDRI bli en pause-rad - den ligger INNE i
+  // styrkeradens varighet. saveLiveStrength lager styrkeraden uten
+  // duration_seconds; her får den resten av totaltida etter at de andre
+  // radene (løping før og etter i en blandet økt) har fått sitt. Uten dette
+  // teller computeActivityTotals bare de andre radene, og 30 min styrke
+  // forsvinner fra ukesum, plan mot faktisk og årsplan-framdrift (målt
+  // 17. sep: en ren styrkeøkt reddes av duration_minutes-fallbacken, en
+  // blandet gjør det ikke).
+  const { data: rader } = await supabase.from('workout_activities')
+    .select('id, movement_name, activity_type, duration_seconds')
+    .eq('workout_id', workoutId)
+  // Kolonnen har default 0 - en styrkerad uten ført varighet står som 0, ikke null (målt 17. sep).
+  const styrke = (rader ?? []).find(r => r.movement_name === 'Styrke' && !(Number(r.duration_seconds) > 0))
+  if (styrke) {
+    const andre = (rader ?? []).filter(r => r.id !== styrke.id).reduce((s, r) => s + (Number(r.duration_seconds) || 0), 0)
+    const styrkeSek = Math.max(60, Math.round(totalSeconds || 0) - andre)
+    const { error: sErr } = await supabase.from('workout_activities').update({ duration_seconds: styrkeSek }).eq('id', styrke.id)
+    if (sErr) console.error('[finishLiveSession] styrkeradens varighet ble ikke satt:', sErr.message)
+  }
   revalidatePath('/app/dagbok')
   revalidatePath('/app/plan')
   return {}

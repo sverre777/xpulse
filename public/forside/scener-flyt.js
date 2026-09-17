@@ -368,7 +368,7 @@ SC.push({kap:5,tittel:'ALT SAMLET PÅ HJEM.',tekst:'Dagens økt, uka mot planen,
  spill:function(S){var skala=1;function skaler(){var y=S.q('.hj-ytre'),sk=S.q('.hj-skala'),inn=S.q('.hj-inn');if(!y||!sk)return;var bredde=parseFloat(sk.style.width),s=Math.min(1,y.clientWidth/bredde);skala=s;sk.style.transform='scale('+s+')';if(inn)inn.style.transform='';var maxH=erMobil()?470:560;sk.parentNode.style.height=Math.min(sk.offsetHeight*s,maxH)+'px'}
   /* Mobil: rull .hj-inn (translateY, innenfor rammen - hj-skala har transform-origin 0 0) så kortet
      for steget står øverst. Avstanden måles i uskalerte piksler fra .hj-inn sin topp. */
-  function rull(sel,at){S.t(at,function(){if(!erMobil())return;var inn=S.q('.hj-inn'),k=S.q(sel);if(!inn||!k)return;var fra=inn.getBoundingClientRect().top,y=(k.getBoundingClientRect().top-fra)/skala;inn.style.transform='translateY(-'+Math.max(0,Math.round(y-14))+'px)'})}
+  function rull(sel,at){S.t(at,function(){if(!erMobil())return;var inn=S.q('.hj-inn'),k=S.q(sel);if(!inn||!k)return;k=k.closest('.hjk')||k;var fra=inn.getBoundingClientRect().top,y=(k.getBoundingClientRect().top-fra)/skala;inn.style.transform='translateY(-'+Math.max(0,Math.round(y-14))+'px)'})}
   S.t(0,skaler);S.steg(0,0);var kort=function(){return S.qa('.hjk,.hj-hero')};
   S.t(150,function(){kort().forEach(function(k,i){k.style.transitionDelay=(i*110)+'ms';k.classList.add('inn')})});
   S.t(700,function(){S.qa('.gro,.gro2').forEach(function(g){g.classList.add('inn')})});

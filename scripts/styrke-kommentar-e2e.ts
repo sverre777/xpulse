@@ -135,20 +135,19 @@ try {
   sjekk('8i: etter reload står øvelseskommentaren (lasteren tar med notes - før ble den satt til tom)', ((await kn.locator('[data-kommentar-linje="Knebøy"]').textContent().catch(() => '')) ?? '').trim() === 'gikk tungt')
 
   // ── 8j: speilet - logg et sett og lukk/åpne FØR autosaven (2,5 s) rekker å skrive
-  //    (autosaven over lagret aldri de tomme settene - «tomme sett lagres aldri» - så legg til ett)
-  await kn.locator('[data-live-legg-til-sett]').click(); await m.waitForTimeout(200)
+  //    (beslutning A: de to tomme settene står som rader etter autosaven)
   await kn.locator('.xp-live-settrad[data-sett="1"] [data-live-start]').first().click(); await m.locator('[data-live-tastatur]').waitFor()
   await m.locator('[data-live-logg]').click(); await m.waitForTimeout(150)
   await m.reload({ waitUntil: 'domcontentloaded' }); await m.locator('[data-live-styrke]').waitFor({ timeout: 60000 }); await m.waitForTimeout(1200)
   const rad1 = kn.locator('.xp-live-settrad[data-sett="1"]')
   sjekk('8j: settet er der etter lukk/åpne selv om basen ikke rakk å få det (speilet i localStorage)', (await rad1.locator('[data-fort]').nth(1).getAttribute('data-fort')) === '1' && ((await rad1.locator('[data-fort]').nth(1).textContent()) ?? '').startsWith('100'))
   await m.waitForTimeout(3500); db = await iBasen(live)
-  sjekk('8j: speilet skrives så til basen (sett 1 = 8 × 100)', db[0].sett.length === 1 && db[0].sett[0].reps === 8 && db[0].sett[0].kg === 100, JSON.stringify(db[0].sett))
+  sjekk('8j: speilet skrives så til basen (sett 1 = 8 × 100)', db[0].sett.filter(s => s.reps != null).length === 1 && db[0].sett[0].reps === 8 && db[0].sett[0].kg === 100, JSON.stringify(db[0].sett))
 
   // ── 8j: trygg lagring - simulert feil i innsettingen (dev-sentinel «__cc_feil__»): de gamle øvelsene står
   await m.locator('#xp-live-add-exercise').fill('__cc_feil__'); await m.getByRole('button', { name: /^Legg til$/ }).first().click(); await m.waitForTimeout(3800)
   db = await iBasen(live)
-  sjekk('8j: innsettingen feiler -> de gamle øvelsene og settet STÅR i basen (ingen sletting først)', db.length === 2 && db[0].navn === 'Knebøy' && db[0].sett.length === 1 && db[0].notes === 'gikk tungt' && !db.some(e => e.navn === '__cc_feil__'), JSON.stringify(db.map(e => [e.navn, e.sett.length])))
+  sjekk('8j: innsettingen feiler -> de gamle øvelsene og settet STÅR i basen (ingen sletting først)', db.length === 2 && db[0].navn === 'Knebøy' && db[0].sett.filter(s => s.reps != null).length === 1 && db[0].notes === 'gikk tungt' && !db.some(e => e.navn === '__cc_feil__'), JSON.stringify(db.map(e => [e.navn, e.sett.length])))
   // ferdig-skjermen: form + kommentar, feilen vises i skjermen, «Prøv igjen»
   await m.locator('[data-live-stopp]').click(); await m.locator('[data-live-avslutt]').click(); await m.locator('[data-live-ferdig]').waitFor()
   sjekk('8j: ferdig-skjermen har kommentarfeltet forhåndsfylt (samme felt som «Notat»)', (await m.locator('[data-live-okt-notat]').inputValue()) === 'Fra planen: rolig - bra økt')
@@ -179,7 +178,7 @@ try {
   const notat = p.locator('textarea').filter({ hasText: /Fra planen/ })
   sjekk('dagbok: øktkommentaren står i «Notat» (ÉN kilde)', (await notat.count()) >= 1 || (await p.locator('textarea').evaluateAll(els => els.some(e => (e as HTMLTextAreaElement).value === 'Fra planen: rolig - bra økt'))))
   await lagre(p); w = await oktRad(live); db = await iBasen(live)
-  sjekk('regresjonsvern: åpne + lagre uten å røre noe - kommentar, notat, form og settet står', db[0].notes === 'gikk tungt' && w.notes === 'Fra planen: rolig - bra økt' && w.day_form_physical === 4 && db[0].sett.length === 1, JSON.stringify({ n: db[0].notes, w }))
+  sjekk('regresjonsvern: åpne + lagre uten å røre noe - kommentar, notat, form og settet står', db[0].notes === 'gikk tungt' && w.notes === 'Fra planen: rolig - bra økt' && w.day_form_physical === 4 && db[0].sett.filter(s => s.reps != null).length === 1, JSON.stringify({ n: db[0].notes, w }))
 } finally {
   if (b) await b.close()
   const r = await rydd(PREFIKS)

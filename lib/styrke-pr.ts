@@ -47,6 +47,18 @@ export function epley1RM(vekt: number, reps: number): number {
 export const normOvelse = (n: string) => n.trim().toLowerCase()
 
 /**
+ * Beslutning A (17. sep): et sett er FØRT når det har tall (reps, kg, tid eller RPE).
+ * Planlagte tomme sett ligger som rader uten tall (saveLiveStrength) - alle som
+ * teller «N sett» (analyse, Hjem, beste, forrige, settraden) filtrerer med denne.
+ */
+export function erFortSett(s: { reps?: number | string | null; weight_kg?: number | string | null; vekt?: number | null; duration?: string | null; duration_seconds?: number | string | null; varighetSek?: number | null; rpe?: number | string | null }): boolean {
+  const tall = (v: number | string | null | undefined) => v != null && v !== '' && Number.isFinite(Number(String(v).replace(',', '.')))
+  // Skjemaets tid («90» eller «1:30») er en streng - ført når den ikke er tom.
+  const tid = typeof s.duration === 'string' ? s.duration.trim() !== '' : false
+  return tall(s.reps) || tall(s.weight_kg) || tall(s.vekt) || tid || tall(s.duration_seconds) || tall(s.varighetSek) || tall(s.rpe)
+}
+
+/**
  * Muskelgruppe: brukerens eget valg på egen øvelse vinner (bolk 7b, nøkkel =
  * normOvelse(navn), verdi = muskelgruppe eller 'ukjent'), ellers navn-match i
  * standardbiblioteket, ellers 'ukjent'. Gamle verdier i user_exercises.category

@@ -1,6 +1,6 @@
 'use server'
 
-import { beregnPR, type StyrkeSett } from '@/lib/styrke-pr'
+import { beregnPR, type StyrkeSett, erFortSett } from '@/lib/styrke-pr'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
@@ -1223,6 +1223,7 @@ async function styrkePrOkter(
     const ex = r.workout_activity_exercises; const w = ex?.workout_activities?.workouts
     if (!ex || !w || !ex.exercise_name || w.merged_into_workout_id) continue
     if (!(w.is_completed === true || (w.is_planned === false && w.live_started_at == null))) continue
+    if (!erFortSett(r)) continue   // beslutning A: tomme rader teller ikke
     const vekt = r.weight_kg != null ? Number(r.weight_kg) : null
     sett.push({ workout_id: w.id, date: w.date, title: w.title ?? 'Styrke', ovelse: ex.exercise_name.trim(), set_number: r.set_number, reps: r.reps ?? null, vekt: vekt != null && Number.isFinite(vekt) ? vekt : null, varighetSek: r.duration_seconds ?? null, rpe: r.rpe ?? null, supersett: ex.superset_group != null })
   }

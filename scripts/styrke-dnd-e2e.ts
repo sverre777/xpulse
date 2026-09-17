@@ -212,27 +212,27 @@ try {
   sjekk('live i basen (autosave): Knebøy 0, Markløft 1, Benkpress 2, Roing 3 · Benkpress og Roing i samme supersett', rekkef(db) === 'Knebøy,Markløft,Benkpress,Roing' && db[2].ss != null && db[2].ss === db[3].ss && db[0].ss == null, `${rekkef(db)} ${JSON.stringify(db.map(e => e.ss))}`)
   await m.reload({ waitUntil: 'domcontentloaded' }); await m.locator('[data-live-styrke]').waitFor({ timeout: 60000 }); await m.waitForTimeout(1500)
   sjekk('live etter reload: rekkefølge og supersett står', (await liveRekkef()) === 'Knebøy,Markløft,Benkpress,Roing' && (await m.locator('[data-live-styrke] [data-styrke-ss="A"]').count()) === 2, await liveRekkef())
-  // 4) g i live. Merk: autosaven (drag/supersett over) lagrer aldri tomme sett, så etter
-  //    reload har Knebøy 0 sett i basen (samme regel som før bolk 8 - «tomme sett lagres aldri»).
-  //    Legg til to sett, logg sett 1 med 62,5, så arver sett 2 som STARTVERDI - ikke ført før Logg.
+  // 4) g i live. Beslutning A: de 3 planlagte tomme settene står som rader uten tall etter
+  //    autosaven, så Knebøy har 3 sett etter reload. Logg sett 1 med 62,5, så arver sett 2 som
+  //    STARTVERDI - ikke ført før Logg.
   const kn = m.locator('[data-live-styrke] [data-sorterbar-ovelse]').nth(0)
-  await kn.locator('[data-live-legg-til-sett]').click(); await kn.locator('[data-live-legg-til-sett]').click(); await m.waitForTimeout(200)
+  sjekk('beslutning A: Knebøy har 3 sett etter reload (tomme rader står)', (await kn.locator('.xp-live-settrad').count()) === 3)
   await kn.locator('.xp-live-settrad[data-sett="1"] [data-live-start]').first().click(); await m.locator('[data-live-tastatur]').waitFor()
   const t0r = (await m.locator('[data-live-tast-reps]').textContent() ?? '').trim(), t0k = (await m.locator('[data-live-tast-kg]').textContent() ?? '').trim()
   sjekk('live: sett 1 starter på forrige økts 8 / 60 grått (ingen sett over å arve fra)', t0r === '8' && t0k === '60' && ((await m.locator('[data-live-tastatur]').textContent()) ?? '').includes('Grått'), `${t0r} / ${t0k}`)
   await m.getByRole('button', { name: /2,5 kg mer/ }).first().click(); await m.locator('[data-live-logg]').click(); await m.waitForTimeout(300)
   await kn.locator('[data-live-legg-til-sett]').click(); await m.waitForTimeout(200)
-  sjekk('live: «+ Legg til sett» gir sett 3, ikke ført (data-fort=0)', (await kn.locator('.xp-live-settrad').count()) === 3 && (await kn.locator('.xp-live-settrad[data-sett="3"] [data-fort]').first().getAttribute('data-fort')) === '0')
+  sjekk('live: «+ Legg til sett» gir sett 4, ikke ført (data-fort=0)', (await kn.locator('.xp-live-settrad').count()) === 4 && (await kn.locator('.xp-live-settrad[data-sett="4"] [data-fort]').first().getAttribute('data-fort')) === '0')
   await m.waitForTimeout(3500); db = await iBasen(live)
   const knDb = db.find(e => e.navn === 'Knebøy')!
-  sjekk('live i basen: bare sett 1 (8 × 62,5) er ført - de nye settene teller ikke', knDb.sett.length === 1 && knDb.sett[0].kg === 62.5, JSON.stringify(knDb.sett))
+  sjekk('live i basen: bare sett 1 (8 × 62,5) er ført - de andre er rader uten tall', knDb.sett.length === 4 && knDb.sett.filter(s => s.reps != null || s.kg != null).length === 1 && knDb.sett[0].kg === 62.5, JSON.stringify(knDb.sett))
   await kn.locator('.xp-live-settrad[data-sett="2"] [data-live-start]').first().click(); await m.locator('[data-live-tastatur]').waitFor()
   const tr = (await m.locator('[data-live-tast-reps]').textContent() ?? '').trim(), tk = (await m.locator('[data-live-tast-kg]').textContent() ?? '').trim()
   const merke = (await m.locator('[data-live-tastatur]').textContent()) ?? ''
   sjekk('live: sett 2 starter på settet OVER (8 / 62,5) som «Ditt tall» - ikke forrige økt grått', tr === '8' && tk === '62,5' && merke.includes('Ditt tall'), `${tr} / ${tk}`)
   await m.locator('[data-live-logg]').click(); await m.waitForTimeout(3800); db = await iBasen(live)
   const kn2 = db.find(e => e.navn === 'Knebøy')!
-  sjekk('live i basen etter Logg: sett 2 = 8 × 62,5 (arvet og lagret ved Logg)', kn2.sett.length === 2 && kn2.sett[1].reps === 8 && kn2.sett[1].kg === 62.5, JSON.stringify(kn2.sett))
+  sjekk('live i basen etter Logg: sett 2 = 8 × 62,5 (arvet og lagret ved Logg)', kn2.sett.filter(s => s.reps != null).length === 2 && kn2.sett[1].reps === 8 && kn2.sett[1].kg === 62.5, JSON.stringify(kn2.sett))
   const { count: pauser } = await admin.from('workout_activities').select('*', { count: 'exact', head: true }).eq('workout_id', live).eq('activity_type', 'pause')
   sjekk('ingen pause-rad ble laget', (pauser ?? 0) === 0)
 } finally {

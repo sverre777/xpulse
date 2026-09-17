@@ -6,6 +6,7 @@ import { byggBeste, type BesteForOvelse } from '@/lib/live-styrke'
 import type { StyrkeSett } from '@/lib/styrke-pr'
 import { revalidatePath } from 'next/cache'
 import { tilOvelsesrader } from '@/lib/styrke-rader'
+import { erFortSett } from '@/lib/styrke-pr'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { getAuthUser } from '@/lib/auth'
@@ -105,6 +106,7 @@ export async function getLastSessionForExercises(
     const existing = result[key]
     if (existing && existing.date >= wk.date) continue   // behold nyeste
     const sets = (r.workout_activity_exercise_sets ?? [])
+      .filter(s => erFortSett(s))   // beslutning A: tomme rader er ikke «sist»
       .map(s => ({
         set_number: s.set_number,
         reps: s.reps ?? null,
@@ -260,10 +262,13 @@ export async function saveLiveStrength(
     if (exErr || !insEx) return rullTilbake(exErr?.message ?? 'Feil ved lagring av øvelse')
     nyeIds.push(insEx.id as string)
 
+    // BESLUTNING A (Sverre 17. sep): planlagte TOMME sett lagres som rader uten tall,
+    // så settstrukturen (3 sett) overlever autosaven og står etter reload. «N sett»
+    // i analyse/Hjem/beste/forrige teller FØRTE sett (rader med tall), ikke rader -
+    // filteret ligger hos hver leser (erFortSett i lib/styrke-pr).
     const setRows = ex.sets.map((s, si) => {
       const reps = parseInt(s.reps), weight = parseDecimal(s.weight_kg), rpe = parseInt(s.rpe)
       const duration = parseDurationToSeconds(s.duration)
-      if (!Number.isFinite(reps) && !Number.isFinite(weight) && duration === null && !Number.isFinite(rpe) && !s.notes) return null
       return {
         exercise_id: insEx.id as string,
         set_number: parseInt(s.set_number) || (si + 1),
@@ -273,7 +278,7 @@ export async function saveLiveStrength(
         rpe: Number.isFinite(rpe) ? rpe : null,
         notes: s.notes || null,
       }
-    }).filter(Boolean)
+    })
     if (setRows.length > 0) {
       const { error: setErr } = await supabase.from('workout_activity_exercise_sets').insert(setRows)
       if (setErr) return rullTilbake(setErr.message)
@@ -447,6 +452,7 @@ export async function getBesteForExercises(
     if (!wk || wk.user_id !== resolved.userId || !wk.is_completed) continue
     if (excludeWorkoutId && wk.id === excludeWorkoutId) continue
     for (const x of r.workout_activity_exercise_sets ?? []) {
+      if (!erFortSett(x)) continue   // beslutning A: tomme rader gir verken beste eller grunnlinje
       sett.push({ workout_id: wk.id, date: wk.date, title: '', ovelse: r.exercise_name!, set_number: x.set_number, reps: x.reps ?? null, vekt: x.weight_kg ?? null, varighetSek: x.duration_seconds ?? null, rpe: x.rpe ?? null, supersett: false })
     }
   }

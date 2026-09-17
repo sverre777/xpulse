@@ -8,7 +8,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
-import { beregnPR, normOvelse, type StyrkeSett, type PrHendelse } from '@/lib/styrke-pr'
+import { beregnPR, normOvelse, erFortSett, type StyrkeSett, type PrHendelse } from '@/lib/styrke-pr'
 import { erMuskelgruppeNokkel } from '@/lib/standard-exercises'
 
 export interface StyrkeAnalyse {
@@ -82,6 +82,7 @@ export async function hentStyrkeAnalyse(targetUserId?: string): Promise<StyrkeAn
     // Samme fullført-regel som resten av analysen: gjennomført, eller loggført uten plan og uten aktiv live-økt.
     if (w.merged_into_workout_id) continue
     if (!(w.is_completed === true || (w.is_planned === false && w.live_started_at == null))) continue
+    if (!erFortSett(r)) continue   // beslutning A: «N sett» teller førte sett, ikke rader
     const vekt = r.weight_kg != null ? Number(r.weight_kg) : null
     sett.push({
       workout_id: w.id, date: w.date, title: w.title ?? 'Styrke', ovelse: ex.exercise_name.trim(),

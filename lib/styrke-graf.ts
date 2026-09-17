@@ -15,7 +15,7 @@
 import type { StrengthExerciseRow } from './types'
 import { parseDecimal } from './parse-decimal'
 import { erPr, type BesteForOvelse } from './live-styrke'
-import { normOvelse } from './styrke-pr'
+import { normOvelse, erFortSett } from './styrke-pr'
 
 export const STYRKE_GRAA = '#6E6E78'   // ZONE_COLORS_V2.Styrke
 export const HVILE_GRAA = '#43434B'    // pausegrå på tidslinja
@@ -66,7 +66,10 @@ export function leggUtSett(
   sek: number,
   valg: { beste?: Record<string, BesteForOvelse | undefined>; maksKg?: number } = {},
 ): StyrkeUtlegg {
-  const brukte = ovelser.filter(o => o.exercise_name.trim() && o.sets.length > 0)
+  // Beslutning A: tomme rader (planlagte sett uten tall) tegnes ikke - bare førte sett.
+  const brukte = ovelser
+    .map(o => ({ ...o, sets: o.sets.filter(s => erFortSett(s)) }))
+    .filter(o => o.exercise_name.trim() && o.sets.length > 0)
   const tom: StyrkeUtlegg = { sett: [], hvile: [], klammer: [], maksKg: valg.maksKg ?? 0 }
   if (brukte.length === 0 || sek <= 0) return tom
   const settTot = brukte.reduce((a, o) => a + o.sets.length, 0)

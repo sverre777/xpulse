@@ -511,10 +511,15 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 /* ── Mobil + reduced motion ── */
 @media (max-width: 560px) {
-  .xp-ib-hode, .xp-ib-rad { gap: 4px; grid-template-columns: 34px 6px 106px 38px 6px minmax(0,1fr) 22px; }
-  .xp-ib-hode.xp-ib-kompakt, .xp-ib-rad.xp-ib-kompakt { grid-template-columns: 34px 6px 106px 38px 6px minmax(0,1fr); }
-  .xp-ib-rad .xp-ib-modus button { padding: 4px 5px !important; font-size: 9.5px !important; }
-  .xp-ib-tid { width: 46px; flex: 0 0 46px; }
+  /* Sverre 18. sep (mobil): Tid og Pause like brede. Tid/km-feltet og pause-feltet deler plassen likt
+     (begge 1fr, tid-feltet fyller sin gruppe ved siden av TID|KM-bryteren); de andre står som før. */
+  .xp-ib-hode, .xp-ib-rad { gap: 3px; grid-template-columns: 30px 6px minmax(0,1fr) 36px 6px minmax(0,1fr) 20px; }
+  .xp-ib-hode.xp-ib-kompakt, .xp-ib-rad.xp-ib-kompakt { grid-template-columns: 30px 6px minmax(0,1fr) 36px 6px minmax(0,1fr); }
+  .xp-ib-rad .xp-ib-modus button { padding: 4px 4px !important; font-size: 9.5px !important; }
+  .xp-ib-rad .xp-ib-modus { flex: 0 0 auto; }
+  .xp-ib-tid { width: auto; flex: 1 1 0; min-width: 36px; }
+  /* pause-feltet like bredt som tid-feltet: samme kolonnebredde minus bryteren (44 px + 4 px gap) som tid-gruppa bærer. Høyrestilt så raden er symmetrisk. */
+  .xp-ib-rad > input[placeholder="MM:SS"] { width: calc(100% - 48px) !important; justify-self: end; }   /* !important: FELT setter width:100% inline */
   .xp-settrad { grid-template-columns: 22px 1fr 1fr 1fr 44px 20px; gap: 5px; }
   /* Live styrke: settraden pakker om i stedet for å presse knappene ut
      (Sverre 14. sep). Feltene krymper, «Start/logg» får egen linje ved behov. */

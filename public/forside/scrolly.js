@@ -63,7 +63,8 @@ var SC=[
    {s:'h',y:-.32,cap:'Ukevisning',b:'Sju dager, én skjerm.',p:'Periodebanner, ukesum og fylte chips per dag. Trykk på en dag for detaljene under.'},
    {s:'v',y:.3,cap:'Valgt dag',b:'Tirsdag med begge øktene.',p:'Terskel komb med graf og styrkeøkta med settene - samme data som i måneden.'}
   ]},
- {t:'Samme på PC',e:'pc',key:'pg',vekt:.65,
+ /* Sverre 18. sep: scene 6 gikk for fort på mobil (0,65 = 55 vh mot 85 for de andre) - full vekt der; PC beholder den korte. */
+ {t:'Samme på PC',e:'pc',key:'pg',vekt:window.matchMedia('(max-width:900px)').matches?1:.65,
   sett:function(){R.sett({aapen:null,pc:{visning:'maned',modus:'grid'}})},
   rull:function(l,p){var r=l.querySelector('.fv-inn');if(r)r.scrollTop=idagPos(r)+p*240},
   kort:[

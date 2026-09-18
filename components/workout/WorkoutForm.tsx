@@ -1210,12 +1210,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <div>
               <label className="xp-label sf17-label" htmlFor="sf17-dato">Dato</label>
               <input id="sf17-dato" type="date" value={form.date} onChange={e => set('date', e.target.value)}
-                required style={iSt} className="sf17-in" />
+                required style={{ ...iSt, textAlign: 'center' }} className="sf17-in sf17-midt" />
             </div>
             <div>
               <label className="xp-label sf17-label" htmlFor="sf17-kl">Kl. <span className="xp-opt">(valgfritt)</span></label>
               <input id="sf17-kl" type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
-                style={iSt} className="sf17-in" />
+                style={{ ...iSt, textAlign: 'center' }} className="sf17-in sf17-midt" />
             </div>
             <div className="sf17-sted">
               <label className="xp-label sf17-label" htmlFor="sf17-sted">Sted <span className="xp-opt">(valgfritt)</span></label>

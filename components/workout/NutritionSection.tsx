@@ -117,11 +117,11 @@ function NutritionRow({
   readOnly: boolean
 }) {
   return (
-    <div className="grid gap-2"
-      style={{
-        gridTemplateColumns: 'minmax(0, 70px) minmax(0, 1fr) minmax(0, 80px) minmax(0, 80px) minmax(0, 80px) minmax(0, 90px) auto',
-        background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', padding: 8,
-      }}>
+    /* Sverre 18. sep (mobil): sju kolonner fikk ikke plass - Type-velgeren ble klemt bort og
+       krysset havnet utenfor. Under 640 px: min · Type (bred) · × på første rekke, de fire
+       gram-feltene to og to under (.xp-ern-rad i globals.css). Over 640 px som før. */
+    <div className="grid gap-2 xp-ern-rad"
+      style={{ background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', padding: 8 }}>
       <input
         type="number" min="0" inputMode="numeric"
         placeholder="min"
@@ -135,6 +135,7 @@ function NutritionRow({
         value={entry.nutrition_type}
         onChange={e => onChange({ nutrition_type: e.target.value as NutritionType })}
         disabled={readOnly}
+        className="xp-ern-type"
         style={inputStyle}>
         <option value="">Type …</option>
         {NUTRITION_TYPES.map(t => (
@@ -175,7 +176,7 @@ function NutritionRow({
       />
       {!readOnly && (
         <button type="button" onClick={onRemove}
-          aria-label="Fjern rad"
+          aria-label="Fjern rad" className="xp-ern-x"
           style={{
             background: 'none', border: 'none', color: 'var(--tekst-8-app)',
             cursor: 'pointer', fontSize: 18, padding: '0 6px',

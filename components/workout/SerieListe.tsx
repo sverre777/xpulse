@@ -72,8 +72,8 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
 
   return (
     <>
-      {/* Serie-rader: nr · L/S · skudd · treff · tid · puls · notat · lukk.
-          Under 680px bryter puls-gruppen til egen linje (w-full). */}
+      {/* Serie-rader: nr · L/S · skudd · treff | tid · puls · maks | plott · vind · notat · lukk.
+          Under 680px bryter gruppe 2 og 3 til hver sin linje (w-full). */}
       {series.map((s, i) => (
         <div key={s.id} style={{ borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>
           <div className="flex flex-wrap items-center" style={{ gap: 6, padding: '6px 0' }}>
@@ -103,11 +103,6 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                 placeholder="Treff" title="Treff (valgfritt - teller i % kun når ført)"
                 inputMode="numeric" style={{ ...nSt, width: 58 }} />
             )}
-            {!planMode && (
-              <input value={s.time_seconds} onChange={e => updSeries(s.id, { time_seconds: e.target.value })}
-                placeholder="Tid s" title="Skytetid for serien (sekunder)"
-                inputMode="decimal" style={{ ...nSt, width: 62 }} />
-            )}
             {showPoints && (
               <input value={s.points} onChange={e => updSeries(s.id, { points: e.target.value })}
                 placeholder="Poeng" title="Ring-/poengsum for serien (kan leses fra skyteplottet)"
@@ -126,7 +121,12 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
               </button>
             )}
             {!planMode && (
+              /* Sverre 18. sep (mobil): Tid · Puls · Maks på én rekke, ikonene på rekka under -
+                 før havnet krysset utenfor kortet. Over 680 px står alt på én linje som før. */
               <div className="flex items-center w-full min-[680px]:w-auto" style={{ gap: 6 }}>
+                <input value={s.time_seconds} onChange={e => updSeries(s.id, { time_seconds: e.target.value })}
+                  placeholder="Tid s" title="Skytetid for serien (sekunder)"
+                  inputMode="decimal" style={{ ...nSt, width: 62 }} />
                 <input value={s.avg_heart_rate} onChange={e => updSeries(s.id, { avg_heart_rate: e.target.value })}
                   placeholder="Puls" title="Snittpuls under serien"
                   inputMode="numeric" style={{ ...nSt, width: 60 }} />
@@ -148,6 +148,10 @@ export function SerieListe({ series, onChange, planMode, showPoints, autoPuls, e
                     AUTO {autoPuls.get(s.id)}
                   </button>
                 ) : null)}
+              </div>
+            )}
+            {!planMode && (
+              <div className="flex items-center w-full min-[680px]:w-auto" style={{ gap: 6 }}>
                 <button type="button" aria-label="Skuddplott for serien"
                   onClick={() => setPlotTarget(s.id)}
                   title="Plott hvor skuddene satt (valgfritt)"

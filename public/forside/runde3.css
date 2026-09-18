@@ -29,7 +29,7 @@
 .fb-kap::-webkit-scrollbar{display:none}
 .kap{flex:0 0 auto;display:flex;align-items:center;gap:9px;height:44px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--line2);font:700 13px/1 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);position:relative;overflow:hidden;transition:color .3s,border-color .3s,background .3s}
 .kap svg{width:18px;height:18px}
-.kap .kn{font-weight:600;color:var(--mute);letter-spacing:.06em;transition:color .3s}
+.kap .kn{font-weight:600;color:var(--dim);letter-spacing:.06em;transition:color .3s}   /* --dim: 5,75:1 mørk / 4,62:1 lys mot --bg (WCAG 4,5). --mute var 2,63 / 2,24. Aktivt kapittel (.kap.on .kn) er --orange og røres ikke. */
 .kap:hover{color:var(--paper);border-color:var(--dim)}
 .kap.on{color:var(--paper);border-color:transparent;background:var(--card)}
 .kap.on .kn{color:var(--orange)}
@@ -64,12 +64,17 @@
 
 /* Kontrollene - Apple-pille med prikker + pause, og piler */
 .fb-ktl{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:26px;position:relative}
-.prikker{display:flex;align-items:center;gap:10px;height:52px;padding:0 20px;border-radius:999px;background:var(--kontroll);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4)}
-.prikk{width:8px;height:8px;border-radius:999px;background:var(--dim);opacity:.55;position:relative;overflow:hidden;transition:width .45s cubic-bezier(.3,.7,.2,1),opacity .3s;padding:0}
+.prikker{display:flex;align-items:center;gap:0;height:52px;padding:0 12px;border-radius:999px;background:var(--kontroll);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4)}
+.prikk{position:relative;width:24px;height:24px;padding:0;border:none;background:none;opacity:.55;transition:width .45s cubic-bezier(.3,.7,.2,1),opacity .3s;display:inline-block}
+/* WCAG 2.5.8 (18. sep): knappen SELV er 24 × 24 px (Lighthouse/axe måler elementets egen boks, ikke pseudo-elementer);
+   den synlige prikken på 8 px er ::before, sentrert - utseendet står som før. Aktiv: 52 px bred pille (36 på mobil),
+   fyllstripa (i) ligger inni pilla. Avstanden mellom knappene er som før (gap 10 minus de 16 px usynlige = 8 px luft). */
+.prikk::before{content:'';position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%);border-radius:999px;background:var(--dim);transition:width .45s cubic-bezier(.3,.7,.2,1)}
 .prikk:hover{opacity:.9}
-.prikk.on{width:52px;opacity:1;background:rgba(139,139,149,.45)}
-.prikk i{position:absolute;inset:0 auto 0 0;width:0;background:var(--kontroll-ink);border-radius:999px}
-.prikk.on i{width:var(--p,0%)}
+.prikk.on{width:68px;opacity:1}
+.prikk.on::before{width:52px;background:rgba(139,139,149,.45)}
+.prikk i{position:absolute;left:8px;top:50%;height:8px;transform:translateY(-50%);width:0;max-width:52px;background:var(--kontroll-ink);border-radius:999px}
+.prikk.on i{width:calc(var(--p,0%) * .52)}
 .prikk.ferdig{opacity:.8}
 .rundknapp{width:52px;height:52px;border-radius:50%;background:var(--kontroll);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);display:grid;place-items:center;color:var(--kontroll-ink);transition:transform .2s,background .2s}
 .rundknapp:hover{transform:scale(1.06)}
@@ -915,9 +920,12 @@
   .sc-steg li b svg{width:9px;height:9px}
   .sc-scene{padding:14px 12px 18px;align-items:flex-start}
   .fb-ktl{margin-top:16px}
-  .prikker{height:44px;padding:0 16px;gap:8px}
-  .prikk{width:7px;height:7px}
-  .prikk.on{width:36px}
+  .prikker{height:44px;padding:0 8px;gap:0}
+  .prikk::before{width:7px;height:7px}
+  .prikk.on{width:52px}
+  .prikk.on::before{width:36px}
+  .prikk i{height:7px;max-width:36px}
+  .prikk.on i{width:calc(var(--p,0%) * .36)}
   .rundknapp{width:44px;height:44px}
   .pilpar{display:none}
   .vk[data-b="C"],.vk[data-b="samling"] span{display:none}

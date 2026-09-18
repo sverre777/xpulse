@@ -20,10 +20,21 @@ export function Scenerad() {
       lastForsideMotor()
         .then(() => lastSkript('/forside/oktgraf.js'))
         .then(() => { if (!avbrutt) return lastSkript('/forside/scener-trener.js') })
+        .then(() => {
+          // Småfiks 2 (18. sep): scenefila kjører karusell() selv første gang. Ved retur til sida
+          // er skriptet alt lastet (memoisert), så raden startes her - etter at forrige er stoppet.
+          if (avbrutt || !window.karusell || !window.SC3 || !window.KAP3) return
+          if (!window.KARUSELLER?.t || !el.querySelector('#tspor .sc')) window.karusell(window.SC3, window.KAP3, 't')
+        })
         .catch(e => console.error('[Scenerad]', e))
     }, { rootMargin: '400px' })
     io.observe(el)
-    return () => { avbrutt = true; io.disconnect() }
+    return () => {
+      avbrutt = true; io.disconnect()
+      // Teardown: rAF-løkka, IntersectionObserver, visibilitychange, mobil/PC-bytte og scenenes timere.
+      const h = window.KARUSELLER?.t
+      if (h) { h.stopp(); delete window.KARUSELLER!.t }
+    }
   }, [])
   return (
     <div ref={rot} id="tflyt" className="xp-forside-tokens lp-scenerad fb" aria-roledescription="karusell" aria-label="For trenere" tabIndex={0}>

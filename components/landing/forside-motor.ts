@@ -6,6 +6,10 @@ declare global {
   interface Window {
     enScene?: (tittel: string, element: HTMLElement, opts?: { fil?: string }) => Promise<{ stopp: () => void }>
     lastScenefil?: (fil: string) => Promise<void>
+    karusell?: (SC: unknown[], KAP: unknown[], P: string) => { stopp: () => void }
+    KARUSELLER?: Record<string, { stopp: () => void }>
+    SC3?: unknown[]
+    KAP3?: unknown[]
   }
 }
 

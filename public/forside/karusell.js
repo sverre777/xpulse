@@ -174,8 +174,10 @@ function karusell(SC,KAP,P){var $=function(id){return document.getElementById(P+
  $('nest').onclick=function(){gaTil(idx+1,true)};
  $('flyt').addEventListener('keydown',function(e){if(e.key==='ArrowRight'){gaTil(idx+1,true);e.preventDefault()}if(e.key==='ArrowLeft'){gaTil(idx-1,true);e.preventDefault()}});
 
- /* Fremdrift */
- (function tick(){if(skalSpille()&&!ferdig){var d=SC[idx].varighet,p=Math.min(1,(brukt+performance.now()-t0)/d);
+ /* Fremdrift. Teardown (småfiks 2, 18. sep): stoppet=true avslutter rAF-løkka;
+    karusell() returnerer {stopp} som Scenerad kaller ved unmount på trener-siden. */
+ var stoppet=false;
+ (function tick(){if(stoppet)return;if(skalSpille()&&!ferdig){var d=SC[idx].varighet,p=Math.min(1,(brukt+performance.now()-t0)/d);
    prikker[idx].style.setProperty('--p',(p*100)+'%');
    var ik2=SC.filter(function(s){return s.kap===SC[idx].kap}),foran=SC.slice(0,idx).filter(function(s){return s.kap===SC[idx].kap}).length;
    kaps[SC[idx].kap].style.setProperty('--kp',((foran+p)/ik2.length*100)+'%');
@@ -183,9 +185,9 @@ function karusell(SC,KAP,P){var $=function(id){return document.getElementById(P+
   requestAnimationFrame(tick)})();
 
  /* Synlighet: spiller bare når seksjonen er på skjermen */
- new IntersectionObserver(function(es){es.forEach(function(e){var var_=synlig;synlig=e.intersectionRatio>=.35;
-   if(synlig&&!var_){fortsett()}else if(!synlig&&var_){brukt+=performance.now()-t0;var S=scener[idx];S.stopp();if(S.d.rydd)S.d.rydd(S)}})},{threshold:[0,.35,.6]}).observe(spor);
- document.addEventListener('visibilitychange',function(){if(document.hidden)pause();else fortsett()});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){var var_=synlig;synlig=e.intersectionRatio>=.35;
+   if(synlig&&!var_){fortsett()}else if(!synlig&&var_){brukt+=performance.now()-t0;var S=scener[idx];S.stopp();if(S.d.rydd)S.d.rydd(S)}})},{threshold:[0,.35,.6]});io.observe(spor);
+ var paaSynlighet=function(){if(document.hidden)pause();else fortsett()};document.addEventListener('visibilitychange',paaSynlighet);
 
  /* Sveip/tofinger: kortet man lander på blir aktivt */
  var st;spor.addEventListener('scroll',function(){clearTimeout(st);st=setTimeout(function(){if(Date.now()-programScroll<900)return;
@@ -193,8 +195,15 @@ function karusell(SC,KAP,P){var $=function(id){return document.getElementById(P+
   if(best!==idx){brukerPause=false;spiller=true;aktiver(best,false)}},140)},{passive:true});
 
  /* Bytter mellom mobil og PC: tegn scenene på nytt i riktig oppstilling */
- MOBIL.addEventListener('change',function(){scener.forEach(function(_,i){if(i!==idx)ferdigTilstand(i)});aktiver(idx,true)});
+ var paaBytt=function(){scener.forEach(function(_,i){if(i!==idx)ferdigTilstand(i)});aktiver(idx,true)};MOBIL.addEventListener('change',paaBytt);
 
  if(rolig)spillK.style.display='none';
  aktiver(0,false);
+ var handtak={stopp:function(){if(stoppet)return;stoppet=true;io.disconnect();document.removeEventListener('visibilitychange',paaSynlighet);MOBIL.removeEventListener('change',paaBytt);clearTimeout(st);
+   scener.forEach(function(S){S.stopp();if(S.d.rydd)S.d.rydd(S)})}};
+ KARUSELLER[P]=handtak;
+ return handtak;
 }
+/* Aktive karuseller per prefiks ('' forsiden, 'd' detaljene, 't' trener) - så en side som
+   monterer trener-raden på nytt (Scenerad) kan stoppe den forrige uten å holde på returverdien. */
+var KARUSELLER={};

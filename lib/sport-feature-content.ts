@@ -677,6 +677,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'Watt-soner fra FTP', body: 'Coggan-soner regnet fra din egen FTP, med historikk når du tester på nytt.' },
           { title: 'NP, IF og TSS', body: 'Normalisert effekt og intensitetsfaktor per økt - belastningen blir riktig, ikke bare lang.' },
           { title: 'Watt per kg', body: 'Følges over tid sammen med vekt, uten at du må regne selv.' },
+          { title: 'Formkartet på Oversikt', body: 'Belastningen fra rittene mot form, søvn og helse på én tidsakse - så du ser når den harde uka slo inn.' },
         ],
       },
       {
@@ -975,6 +976,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'NP, IF og TSS', body: 'Normalisert effekt og intensitetsfaktor per sykkeløkt.' },
           { title: 'GAP på løping', body: 'Stigningsjustert tempo, så terrenget ikke skjuler framgangen.' },
           { title: 'Samlet belastning', body: 'CTL, ATL og TSB på tvers av grenene, med konkurransene på samme kurve.' },
+          { title: 'Formkartet på Oversikt', body: 'Belastningen fra alle tre grenene mot form, søvn og helse på én tidsakse - uka som helhet, ikke gren for gren.' },
         ],
       },
       {

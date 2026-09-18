@@ -85,12 +85,14 @@ export function PaceInput({
           disabled={disabled}
           style={{
             flex: 1,
+            minWidth: 0,
             backgroundColor: 'var(--flate-8)',
             border: '1px solid var(--kant-5)',
+            borderRadius: 999,   // Sverre 18. sep: pille, som resten
             color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: '14px',
-            padding: '8px 10px',
+            padding: '8px 14px',
             minHeight: '40px',
             outline: 'none',
           }}
@@ -149,17 +151,20 @@ function UnitToggle({
   // Sverre 14. sep: enhetsbryteren er en PILLE som resten av appen
   // (.xp-seg-pill), ikke en firkantet delt boks. Aktiv del fylt oransje.
   return (
-    <div className="xp-seg-pill" role="group" aria-label="Pace-enhet" data-pace-enhet={unit}>
+    // Sverre 18. sep: min/km og km/t får LIKE mye plass (km/t ble klippet på mobil).
+    <div className="xp-seg-pill" role="group" aria-label="Pace-enhet" data-pace-enhet={unit} style={{ flex: 'none' }}>
       <button type="button"
         disabled={disabled}
         onClick={() => onChange('min_per_km')}
-        className={unit === 'min_per_km' ? 'on' : undefined}>
+        className={unit === 'min_per_km' ? 'on' : undefined}
+        style={{ width: 76, padding: '8px 0', textAlign: 'center' }}>
         min/km
       </button>
       <button type="button"
         disabled={disabled}
         onClick={() => onChange('km_per_h')}
-        className={unit === 'km_per_h' ? 'on' : undefined}>
+        className={unit === 'km_per_h' ? 'on' : undefined}
+        style={{ width: 76, padding: '8px 0', textAlign: 'center' }}>
         km/t
       </button>
     </div>

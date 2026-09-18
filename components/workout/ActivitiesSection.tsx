@@ -2097,13 +2097,14 @@ function LactateMeasurementsEditor({
         {measurements.map(m => (
           <div key={m.id} className="grid gap-2 items-center"
             style={{ gridTemplateColumns: '1fr 1fr 24px' }}>
+            {/* regel 37 / Sverre 18. sep: laktatfeltene er piller */}
             <input value={m.value_mmol}
               onChange={e => updateMeasurement(m.id, { value_mmol: e.target.value })}
               inputMode="decimal" placeholder="-"
-              style={{ ...iSt, color: '#FF4500', textAlign: 'center' }} />
+              style={{ ...iSt, color: '#FF4500', textAlign: 'center', borderRadius: 999, minHeight: 36 }} />
             <input type="time" value={m.measured_at}
               onChange={e => updateMeasurement(m.id, { measured_at: e.target.value })}
-              style={{ ...iSt, textAlign: 'center' }} />
+              style={{ ...iSt, textAlign: 'center', borderRadius: 999, minHeight: 36 }} />
             <button type="button" onClick={() => deleteMeasurement(m.id)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)' }}
               title="Slett måling"><Ikon navn="slett" variant="strek" storrelse={14} /></button>
@@ -2115,7 +2116,7 @@ function LactateMeasurementsEditor({
         className="mt-2 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
-          background: 'none', border: '1px dashed #FF4500', cursor: 'pointer', width: '100%',
+          background: 'none', border: '1px dashed #FF4500', borderRadius: 999, cursor: 'pointer', width: '100%',
         }}>
         <Ikon navn="legg-til" variant="strek" storrelse={14} /> Legg til laktat
       </button>

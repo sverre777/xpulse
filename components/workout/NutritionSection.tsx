@@ -70,7 +70,7 @@ export function NutritionSection({
       {!readOnly && (
         <button type="button" onClick={add}
           style={{
-            background: 'none', border: '1px dashed var(--kant-6)', color: '#FF4500',
+            background: 'none', border: '1px dashed var(--kant-6)', borderRadius: 999, color: '#FF4500',
             padding: '10px 16px', cursor: 'pointer',
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
             fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -217,6 +217,7 @@ function NutritionRow({
 }
 
 const inputStyle: React.CSSProperties = {
+  borderRadius: 999,   // regel 37 / Sverre 18. sep: piller
   background: 'var(--flate-8-b)', border: '1px solid var(--kant-3)',
   color: 'var(--tekst-1-app)', padding: '6px 8px', fontSize: 13,
   fontFamily: "'Barlow', sans-serif", outline: 'none',

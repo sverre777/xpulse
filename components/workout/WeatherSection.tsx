@@ -12,7 +12,8 @@ import {
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
-  padding: '6px 10px', outline: 'none', width: '100%', boxSizing: 'border-box', minWidth: 0,
+  padding: '6px 14px', outline: 'none', width: '100%', boxSizing: 'border-box', minWidth: 0,
+  borderRadius: 999, minHeight: 36,   // regel 37 / Sverre 18. sep: piller, ikke firkanter
 }
 
 // Kompakt visnings-linje fra satt vær/føre, f.eks. "-4°C · Snø · Nysnø + Hardpakket · Lett bris".
@@ -77,12 +78,12 @@ export function WeatherSection({ value, onChange, readOnly = false }: {
               return (
                 <button key={val} type="button" disabled={readOnly}
                   onClick={() => set({ season_context: val })}
-                  className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                  className="px-3 py-1 text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     color: active ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                     background: active ? 'var(--kant-6)' : 'transparent',
-                    border: '1px solid var(--kant-4)', cursor: readOnly ? 'default' : 'pointer',
+                    border: '1px solid var(--kant-4)', borderRadius: 999, minHeight: 32, cursor: readOnly ? 'default' : 'pointer',
                   }}>
                   {lab}
                 </button>
@@ -133,6 +134,7 @@ function SurfaceGroup({ label, options, selected, onToggle, readOnly }: {
                 backgroundColor: active ? '#FF4500' : 'transparent',
                 color: active ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 border: `1px solid ${active ? '#FF4500' : 'var(--kant-4)'}`,
+                borderRadius: 999, minHeight: 36,
                 cursor: readOnly ? 'default' : 'pointer',
               }}>
               {o.label}

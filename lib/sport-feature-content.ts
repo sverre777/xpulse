@@ -191,7 +191,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       kicker: 'X-PULSE for skiskyting',
       titleLines: ['Eneste plattformen', 'med dyp', 'skyting-analyse.'],
       description:
-        'Auto-genererte konkurranseformater (Sprint, Jaktstart, Normal, Fellesstart), per-skyting-data, treff% delt på liggende/stående, og custom grafer som lar deg svare på spørsmål andre apper ikke kan.',
+        'Auto-genererte konkurranseformater (Sprint, Jaktstart, Normal, Fellesstart), per-skyting-data, treff% delt på liggende/stående, og custom grafer som lar deg svare på spørsmål andre apper ikke kan. Før om du hadde rifla på ryggen - per drag eller for hele økta.',
       backgroundImage: '/photos/skiskyting.jpg',
     },
     metaDescription:

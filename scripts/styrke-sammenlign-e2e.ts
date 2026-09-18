@@ -50,6 +50,10 @@ try {
   const ut = await lagBruker(PREFIKS, 'ut', 'CC Sammenlign', UTOVER_META)
   await girAbonnement(ut.uid, 'athlete_pro')
   console.log('FØR :', await status([ut.uid]))
+  // Beslutning 18. sep: PR i sammenligningen måles mot HELE historikken. D ligger utenfor utvalget
+  // med Markløft 5 × 130 (all-time tyngst, 650 i vekt × reps) - så A og B sine 115/120 er «tyngst i
+  // utvalget» men under all-time (ingen vekt-merke), og C sine 6 × 120 = 720 slår 650 uten ny vekt-rekord.
+  await seed(ut.uid, 'CC styrke D', lokalISO(30), [{ navn: 'Markløft', sett: [[5, 130]] }])
   await seed(ut.uid, 'CC styrke A', lokalISO(14), [{ navn: 'Knebøy', sett: [[8, 95], [8, 95]] }, { navn: 'Markløft', sett: [[5, 115]] }])
   await seed(ut.uid, 'CC styrke B', lokalISO(7), [{ navn: 'Knebøy', sett: [[8, 97.5], [6, 90]] }, { navn: 'Markløft', sett: [[5, 120]] }])
   const fraPlan = await seed(ut.uid, 'CC styrke C', lokalISO(1),
@@ -69,7 +73,7 @@ try {
   const kne = await radTekst('Knebøy')
   sjekk('Knebøy: plan «3×6×105», ført «3×8×100», PR-stjerne (100 > beste 97,5 før økta)', kne.includes('3×6×105') && kne.includes('3×8×100') && (await pva.locator('[data-pva-ovelse="Knebøy"]').first().getAttribute('data-pr')) === '1', kne)
   const mark = await radTekst('Markløft')
-  sjekk('Markløft: 3×6×120 er maks_reps-PR (5 ved 120 før)', mark.includes('3×6×120') && (await pva.locator('[data-pva-ovelse="Markløft"]').first().getAttribute('data-pr')) === '1', mark)
+  sjekk('Markløft: 3×6×120 er PR (720 i vekt × reps slår all-time 650; også 6 > 5 reps ved 120) - planMotFaktisk uendret', mark.includes('3×6×120') && (await pva.locator('[data-pva-ovelse="Markløft"]').first().getAttribute('data-pr')) === '1', mark)
   sjekk('Utfall: planlagt, ikke ført -> «ikke ført», ikke 0', /Utfall3×10×40ikkeført/.test((await radTekst('Utfall')).replace(/\s+/g, '')))
   sjekk('Kjerne: kroppsvekt «1×20», ingen PR (første registrering = grunnlinje)', (await radTekst('Kjerne')).includes('1×20') && (await pva.locator('[data-pva-ovelse="Kjerne"]').first().getAttribute('data-pr')) === '0')
 
@@ -83,9 +87,14 @@ try {
   const sm = p.locator('[data-styrke-sammenlign]').first()
   await sm.waitFor({ timeout: 60000 }); await p.waitForTimeout(1000)
   sjekk('sammenligningen viser tre gjennomføringer, øvelse for øvelse (3 rader: Knebøy, Markløft, Kjerne)', (await sm.getAttribute('data-okter')) === '3' && (await sm.locator('[data-sammenlign-ovelse]').count()) === 3)
-  const kneCeller = sm.locator('[data-sammenlign-ovelse="Knebøy"] [data-sammenlign-celle]')
-  const kg = await Promise.all([0, 1, 2].map(async i => `${await kneCeller.nth(i).getAttribute('data-kg')}${(await kneCeller.nth(i).getAttribute('data-pr')) === '1' ? '*' : ''}`))
-  sjekk('Knebøy kronologisk: 95 (PR), 97,5 (PR), 100 (PR) - gull ring = tyngste hittil', kg.join(',') === '95*,97.5*,100*', kg.join(','))
+  await p.waitForTimeout(2500)   // beste FØR hver økt hentes etter montering (ett kall per økt)
+  const celler = (navn: string) => sm.locator(`[data-sammenlign-ovelse="${navn}"] [data-sammenlign-celle]`)
+  const merk = async (navn: string) => Promise.all([0, 1, 2].map(async i => `${await celler(navn).nth(i).getAttribute('data-kg')}${(await celler(navn).nth(i).getAttribute('data-pr')) === '1' ? '*' : ''}${(await celler(navn).nth(i).getAttribute('data-pr-vxr')) === '1' ? '^' : ''}`))
+  const kneS = await merk('Knebøy'), mark2 = await merk('Markløft')
+  sjekk('Knebøy mot hele historikken: 95 er grunnlinje (ingen merke), 97,5 og 100 er tyngste noen gang (vekt-merke)', kneS.join(',') === '95,97.5*,100*', kneS.join(','))
+  sjekk('Markløft: 115 og 120 er tyngst i UTVALGET men under all-time 130 -> INGEN vekt-merke; C 6 × 120 = 720 > 650 -> vekt × reps-merke uten ny vekt-rekord', mark2.join(',') === '115,120,120^', mark2.join(','))
+  const tekstC = (await celler('Markløft').nth(2).textContent()) ?? ''
+  sjekk('merket vises som «★ vekt × reps» (stiplet gull), ikke som tyngste', tekstC.includes('vekt × reps') && !tekstC.includes('tyngste'))
   const kjerne = (await sm.locator('[data-sammenlign-ovelse="Kjerne"]').first().textContent()) ?? ''
   sjekk('Kjerne: «ikke ført» i A og B, «kroppsvekt» i C', (kjerne.match(/ikke ført/g) ?? []).length === 2 && kjerne.includes('kroppsvekt'))
 } finally {

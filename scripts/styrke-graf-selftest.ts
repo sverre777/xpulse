@@ -18,7 +18,7 @@ sjekk('planke: reps mangler, tid ført -> tida i blokka («45 s», «1 min»)', 
 sjekk('klamma dekker øvelsens sett med hvilen imellom', naer(u.klammer[0].fraSek, u.sett[0].fraSek) && naer(u.klammer[0].tilSek, u.sett[2].tilSek) && u.klammer[0].antallSett === 3)
 sjekk('hvile ligger mellom sett 1 og 2, ikke etter siste sett i øvelsen', naer(u.hvile[0].fraSek, u.sett[0].tilSek) && naer(u.hvile[0].tilSek, u.sett[1].fraSek) && u.hvile.every(h => h.tilSek <= u.sett[6].tilSek))
 sjekk('sett = 2,2 enheter, hvile = 0,8: forholdet er 2,75', naer((u.sett[0].tilSek - u.sett[0].fraSek) / (u.hvile[0].tilSek - u.hvile[0].fraSek), 2.75, 0.01))
-const pr = leggUtSett([ov('Knebøy', [['8', '100', ''], ['8', '102.5', '']])], 0, 600, { beste: { 'knebøy': { maksVekt: 100, repsPaaMaksVekt: 8, repsVedVekt: { '100': 8 }, est1RM: 126, okter: 3 } } })
+const pr = leggUtSett([ov('Knebøy', [['8', '100', ''], ['8', '102.5', '']])], 0, 600, { beste: { 'knebøy': { maksVekt: 100, repsPaaMaksVekt: 8, repsVedVekt: { '100': 8 }, est1RM: 126, besteVektXReps: 800, okter: 3 } } })
 sjekk('PR-ring på settet som slår beste (102,5 > 100), ikke på 100', pr.sett[0].pr === false && pr.sett[1].pr === true)
 sjekk('delt maksKg utenfra (plan og faktisk i samme skala)', leggUtSett([ov('X', [['5', '80', '']])], 0, 60, { maksKg: 160 }).sett[0].hoyde === 0.5)
 sjekk('øvelse uten navn eller uten sett hoppes over; tom liste gir tomt utlegg', leggUtSett([ov('', [['8', '100', '']]), ov('Y', [])], 0, 600).sett.length === 0)

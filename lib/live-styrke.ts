@@ -26,6 +26,8 @@ export interface BesteForOvelse {
   repsVedVekt: Record<string, number>
   /** Beste estimerte 1RM (Epley). */
   est1RM: number | null
+  /** Beste vekt × reps i ett sett (beslutning 18. sep - PR-merket i sammenligningen). */
+  besteVektXReps: number | null
   /** Antall gjennomførte økter med øvelsen - 0 = ingen historikk. */
   okter: number
 }
@@ -36,13 +38,14 @@ export function byggBeste(sett: StyrkeSett[]): Record<string, BesteForOvelse> {
   const okter: Record<string, Set<string>> = {}
   for (const s of sett) {
     const k = normOvelse(s.ovelse)
-    const b = ut[k] ?? (ut[k] = { maksVekt: null, repsPaaMaksVekt: null, repsVedVekt: {}, est1RM: null, okter: 0 })
+    const b = ut[k] ?? (ut[k] = { maksVekt: null, repsPaaMaksVekt: null, repsVedVekt: {}, est1RM: null, besteVektXReps: null, okter: 0 })
     ;(okter[k] ?? (okter[k] = new Set())).add(s.workout_id)
     if (s.vekt != null && s.vekt > 0) {
       if (s.reps != null && s.reps > 0) {
         const key = String(s.vekt)
         b.repsVedVekt[key] = Math.max(b.repsVedVekt[key] ?? 0, s.reps)
         b.est1RM = Math.max(b.est1RM ?? 0, epley1RM(s.vekt, s.reps))
+        b.besteVektXReps = Math.max(b.besteVektXReps ?? 0, s.vekt * s.reps)
       }
       if (b.maksVekt == null || s.vekt > b.maksVekt) b.maksVekt = s.vekt
     }
@@ -61,16 +64,20 @@ export function fmtBeste(b: BesteForOvelse | undefined): string | null {
 }
 export const fmtKg = (v: number) => String(Math.round(v * 100) / 100).replace('.', ',')
 
-export type PrSlag = 'maks_vekt' | 'maks_reps' | null
+export type PrSlag = 'maks_vekt' | 'vekt_x_reps' | 'maks_reps' | null
 
 /**
  * Er dette settet en PR mot historikken? Grunnlinje-regelen: uten historikk
  * (ingen økter) er ingenting en PR - ellers får man PR på alt i uke én.
+ * ÉN kilde (regel 11) for live, skjemaet, settraden, plan mot faktisk og
+ * sammenligningen. Prioritet: tyngste vekt > beste vekt × reps > flest reps ved
+ * en vekt. vekt_x_reps kom 18. sep (fantes i beregnPR, ikke her).
  */
 export function erPr(b: BesteForOvelse | undefined, reps: number | null, vekt: number | null): PrSlag {
   if (!b || b.okter === 0 || vekt == null || !(vekt > 0)) return null
   if (b.maksVekt != null && vekt > b.maksVekt) return 'maks_vekt'
   if (reps != null && reps > 0) {
+    if (b.besteVektXReps != null && vekt * reps > b.besteVektXReps) return 'vekt_x_reps'
     const f = b.repsVedVekt[String(vekt)]
     if (f != null && reps > f) return 'maks_reps'
   }

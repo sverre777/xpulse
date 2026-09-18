@@ -257,7 +257,7 @@ export function CompareWorkoutsTab({
             <WeatherCompareRow workouts={detailed} />
             <SplitsCompareChart workouts={detailed} />
             {/* Styrke bolk 5b: like styrkeøkter øvelse for øvelse (2-4 gjennomføringer). */}
-            <StyrkeSammenlign okter={detailed.map(w => ({ id: w.id, date: w.date, exercises: w.activities.flatMap(a => a.exercises.map(e => ({ exercise_name: e.exercise_name, sets: e.sets.map(s => ({ reps: s.reps, weight_kg: s.weight_kg })) }))) }))} />
+            <StyrkeSammenlign targetUserId={targetUserId} okter={detailed.map(w => ({ id: w.id, date: w.date, exercises: w.activities.flatMap(a => a.exercises.map(e => ({ exercise_name: e.exercise_name, sets: e.sets.map(s => ({ reps: s.reps, weight_kg: s.weight_kg })) }))) }))} />
           </div>
         ) : (
           <p className="text-xs text-center py-6"

@@ -77,27 +77,41 @@ export interface SammenlignCelle {
   /** Reps på den tyngste vekten. */
   reps: number | null
   kroppsvekt: boolean
-  /** Tyngste hittil blant de sammenlignede (kronologisk) - gull ring. */
-  pr: boolean
+  /** Beslutning 18. sep: PR mot HELE historikken (beste per øvelse sendt inn), aldri «i utvalget».
+      prVekt = tyngste vekt noen gang (maks_vekt), prVxR = beste vekt × reps i ett sett (vekt_x_reps). */
+  prVekt: boolean
+  prVxR: boolean
 }
 export interface SammenlignRad { ovelse: string; celler: SammenlignCelle[] }
 
-/** Øvelse for øvelse over 2-4 økter, kronologisk (eldst først). */
-export function sammenlignOvelser(okter: SammenlignOkt[]): { okter: SammenlignOkt[]; rader: SammenlignRad[]; maksKg: number } {
+/**
+ * Øvelse for øvelse over 2-4 økter, kronologisk (eldst først). REN: beste per
+ * øvelsesnavn sendes inn - ingen oppslag her. `beste` er enten ETT kart
+ * (normOvelse -> BesteForOvelse) som gjelder alle øktene, eller ett kart per
+ * økt-id (beste FØR den økta, som getBesteForExercises(navn, bruker, oktId)
+ * gir - samme regel som plan mot faktisk). Uten beste: ingen merker.
+ * Merkene regnes med erPr (ÉN kilde, regel 11) per ført sett i økta.
+ */
+export type BesteKart = Record<string, BesteForOvelse>
+export function sammenlignOvelser(okter: SammenlignOkt[], beste: BesteKart | Record<string, BesteKart> = {}): { okter: SammenlignOkt[]; rader: SammenlignRad[]; maksKg: number } {
+  const perOkt = (id: string): BesteKart => {
+    const v = (beste as Record<string, unknown>)[id]
+    if (v && typeof v === 'object' && !('okter' in (v as object))) return v as BesteKart   // kart per økt
+    return beste as BesteKart
+  }
   const sortert = [...okter].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
   const navn: string[] = []
   for (const o of sortert) for (const e of o.exercises) { const k = normOvelse(e.exercise_name); if (k && !navn.some(n => normOvelse(n) === k)) navn.push(e.exercise_name) }
   const rader: SammenlignRad[] = navn.map(ovelse => {
-    let besteHittil = 0
     const celler = sortert.map(o => {
+      const b = perOkt(o.id)[normOvelse(ovelse)]
       const e = o.exercises.find(x => normOvelse(x.exercise_name) === normOvelse(ovelse))
       const forte = (e?.sets ?? []).filter(s => (s.reps ?? 0) > 0 || (s.weight_kg ?? 0) > 0)
-      if (!e || forte.length === 0) return { kg: null, reps: null, kroppsvekt: false, pr: false }
+      if (!e || forte.length === 0) return { kg: null, reps: null, kroppsvekt: false, prVekt: false, prVxR: false }
       const kg = Math.max(0, ...forte.map(s => s.weight_kg ?? 0))
       const reps = Math.max(0, ...forte.filter(s => (s.weight_kg ?? 0) === kg).map(s => s.reps ?? 0)) || null
-      const pr = kg > 0 && kg > besteHittil
-      if (kg > besteHittil) besteHittil = kg
-      return { kg: kg > 0 ? kg : 0, reps, kroppsvekt: kg === 0, pr }
+      const slag = forte.map(s => erPr(b, s.reps ?? null, s.weight_kg ?? null))
+      return { kg: kg > 0 ? kg : 0, reps, kroppsvekt: kg === 0, prVekt: slag.includes('maks_vekt'), prVxR: slag.includes('vekt_x_reps') }
     })
     return { ovelse, celler }
   })

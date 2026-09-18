@@ -443,14 +443,24 @@ export async function getBesteForExercises(
   if (error || !data) return {}
   type WkRef = { id: string; date: string; user_id: string; is_completed: boolean }
   type ExRow = { exercise_name: string | null; workout_activity_exercise_sets: LastSessionSet[] | null; workout_activities: { workouts: WkRef | WkRef[] | null } | { workouts: WkRef | WkRef[] | null }[] | null }
-  const sett: StyrkeSett[] = []
+  type RadMedOkt = { r: ExRow; wk: WkRef }
+  const rader: RadMedOkt[] = []
   for (const r of data as ExRow[]) {
     const key = (r.exercise_name ?? '').trim().toLowerCase()
     if (!key || !wanted.has(key)) continue
     const wa = Array.isArray(r.workout_activities) ? r.workout_activities[0] : r.workout_activities
     const wk = wa ? (Array.isArray(wa.workouts) ? wa.workouts[0] : wa.workouts) : null
     if (!wk || wk.user_id !== resolved.userId || !wk.is_completed) continue
+    rader.push({ r, wk })
+  }
+  // «Beste FØR økta» (beslutning 18. sep, sammenligningen): økta selv OG alt som er ført
+  // senere holdes utenfor - ellers får en eldre økt i sammenligningen målt seg mot rekorder
+  // som ble satt etter den. Plan mot faktisk (alltid nyeste økt) får samme svar som før.
+  const grense = excludeWorkoutId ? (rader.find(x => x.wk.id === excludeWorkoutId)?.wk.date ?? null) : null
+  const sett: StyrkeSett[] = []
+  for (const { r, wk } of rader) {
     if (excludeWorkoutId && wk.id === excludeWorkoutId) continue
+    if (grense && wk.date > grense) continue
     for (const x of r.workout_activity_exercise_sets ?? []) {
       if (!erFortSett(x)) continue   // beslutning A: tomme rader gir verken beste eller grunnlinje
       sett.push({ workout_id: wk.id, date: wk.date, title: '', ovelse: r.exercise_name!, set_number: x.set_number, reps: x.reps ?? null, vekt: x.weight_kg ?? null, varighetSek: x.duration_seconds ?? null, rpe: x.rpe ?? null, supersett: false })
